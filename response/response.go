@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 )
 
-// Success returns shim.Error
+// Error returns shim.Error
 func Error(err interface{}) peer.Response {
 	return shim.Error(fmt.Sprintf("%s", err))
 }
@@ -24,16 +25,15 @@ func Success(data interface{}) peer.Response {
 		b, err := json.Marshal(data)
 		if err != nil {
 			return shim.Success(nil)
-		} else {
-			return shim.Success(b)
 		}
+		return shim.Success(b)
 	}
 }
 
-// Create peer.Response (Success or Error) depending on value of err
+// Create returns peer.Response (Success or Error) depending on value of err
 // if err is (bool) false or is error interface - returns shim.Error
 func Create(data interface{}, err interface{}) peer.Response {
-	var errObj error = nil
+	var errObj error
 
 	switch err.(type) {
 
@@ -56,20 +56,22 @@ func Create(data interface{}, err interface{}) peer.Response {
 
 	if errObj != nil {
 		return Error(errObj)
-	} else {
-		return Success(data)
 	}
+	return Success(data)
 }
 
+// Transformer type transforms data
 type Transformer struct {
 	data interface{}
 	err  error
 }
 
+// With func transformer
 func (t Transformer) With(transfomer func(interface{}) interface{}) peer.Response {
 	return Create(transfomer(t.data), t.err)
 }
 
+// Transform creates Transformer struct
 func Transform(data interface{}, err error) *Transformer {
 	return &Transformer{data, err}
 }

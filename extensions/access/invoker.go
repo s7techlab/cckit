@@ -2,6 +2,7 @@ package access
 
 import (
 	"crypto/x509"
+
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/s7techlab/cckit/identity"
@@ -13,7 +14,7 @@ type Invoker struct {
 }
 
 func (i Invoker) GetId() string {
-	return identity.IdByCert(i.cert)
+	return identity.IDByCert(i.cert)
 }
 
 func (i Invoker) GetMSPId() string {

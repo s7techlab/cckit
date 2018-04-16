@@ -9,6 +9,7 @@ import (
 	"fmt"
 )
 
+// Certificate decode and parse .pem []byte x509 certificate structure
 func Certificate(c []byte) (cert *x509.Certificate, err error) {
 	block, _ := pem.Decode(c)
 	if block == nil {
@@ -17,15 +18,17 @@ func Certificate(c []byte) (cert *x509.Certificate, err error) {
 	return x509.ParseCertificate(block.Bytes)
 }
 
-func Id(subject, issuer string) string {
+// ID returns identifier from .509  certificate
+func ID(subject, issuer string) string {
 	return fmt.Sprintf("x509::%s::%s", subject, issuer)
 }
 
-func IdByCert(cert *x509.Certificate) string {
-	return Id(GetDN(&cert.Subject), GetDN(&cert.Issuer))
+// IDByCert returns id by certificate subject and issuer
+func IDByCert(cert *x509.Certificate) string {
+	return ID(GetDN(&cert.Subject), GetDN(&cert.Issuer))
 }
 
-// Get the DN (distinquished name) associated with a pkix.Name.
+// GetDN (distinguished name) associated with a pkix.Name.
 // NOTE: This code is almost a direct copy of the String() function in
 // https://go-review.googlesource.com/c/go/+/67270/1/src/crypto/x509/pkix/pkix.go#26
 // which returns a DN as defined by RFC 2253.
@@ -51,29 +54,34 @@ func GetDN(name *pkix.Name) string {
 				}
 				typeName = typeString
 			}
-			valueString := fmt.Sprint(tv.Value)
-			escaped := ""
-			begin := 0
-			for idx, c := range valueString {
-				if (idx == 0 && (c == ' ' || c == '#')) ||
-					(idx == len(valueString)-1 && c == ' ') {
-					escaped += valueString[begin:idx]
-					escaped += "\\" + string(c)
-					begin = idx + 1
-					continue
-				}
-				switch c {
-				case ',', '+', '"', '\\', '<', '>', ';':
-					escaped += valueString[begin:idx]
-					escaped += "\\" + string(c)
-					begin = idx + 1
-				}
-			}
-			escaped += valueString[begin:]
-			s += typeName + "=" + escaped
+			s += typeName + "=" + getEscaped(tv.Value)
 		}
 	}
 	return s
+}
+
+func getEscaped(val interface{}) string {
+
+	valueString := fmt.Sprint(val)
+	escaped := ""
+	begin := 0
+	for idx, c := range valueString {
+		if (idx == 0 && (c == ' ' || c == '#')) ||
+			(idx == len(valueString)-1 && c == ' ') {
+			escaped += valueString[begin:idx]
+			escaped += "\\" + string(c)
+			begin = idx + 1
+			continue
+		}
+		switch c {
+		case ',', '+', '"', '\\', '<', '>', ';':
+			escaped += valueString[begin:idx]
+			escaped += "\\" + string(c)
+			begin = idx + 1
+		}
+	}
+	escaped += valueString[begin:]
+	return escaped
 }
 
 var attributeTypeNames = map[string]string{
