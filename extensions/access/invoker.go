@@ -2,8 +2,8 @@ package access
 
 import (
 	"crypto/x509"
-	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
+	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/s7techlab/cckit/identity"
 )
 
@@ -24,7 +24,7 @@ func (i Invoker) GetSubject() string {
 	return identity.GetDN(&i.cert.Subject)
 }
 
-func (i Invoker) GetIssuer() (string) {
+func (i Invoker) GetIssuer() string {
 	return identity.GetDN(&i.cert.Issuer)
 }
 

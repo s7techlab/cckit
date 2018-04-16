@@ -4,16 +4,14 @@ import (
 	"errors"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/convert"
+	"github.com/s7techlab/cckit/response"
 )
 
 type (
-
 	FromBytes interface {
 		FromBytes([]byte) (result interface{}, err error)
 	}
-
 
 	Parameters []Parameter
 
@@ -32,7 +30,7 @@ func (p Parameter) getArgfromStub(stub shim.ChaincodeStubInterface) (arg interfa
 	if p.ArgPos > len(args) {
 		return nil, errors.New(`Arg pos out of range`)
 	}
-	return convert.FromBytes(args[p.ArgPos+1],p.Type) //first arg is function name
+	return convert.FromBytes(args[p.ArgPos+1], p.Type) //first arg is function name
 }
 
 func ParameterBag() parameterBag {
@@ -42,7 +40,6 @@ func (pbag parameterBag) Add(name string, paramType interface{}) parameterBag {
 	pbag[name] = Param(name, paramType)
 	return pbag
 }
-
 
 func Param(name string, paramType interface{}, argPoss ...int) MiddlewareFunc {
 

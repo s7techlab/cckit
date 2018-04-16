@@ -1,10 +1,10 @@
 package testing
 
 import (
-	"github.com/pkg/errors"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 )
 
@@ -143,7 +143,6 @@ func (stub *MockStub) MockInvoke(uuid string, args [][]byte) peer.Response {
 
 	return res
 }
-
 
 func (stub *MockStub) Invoke(funcName string, iargs ...interface{}) peer.Response {
 	return stub.MockInvokeFunc(funcName, iargs...)

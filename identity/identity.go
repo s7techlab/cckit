@@ -15,6 +15,3 @@ type Identity interface {
 	GetIssuer() string
 	Is(i Identity) bool
 }
-
-
-

@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
+	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"time"
 )
 
@@ -11,7 +11,7 @@ type (
 		Stub() shim.ChaincodeStubInterface
 		Client() (cid.ClientIdentity, error)
 		Response() Response
-		Logger() (*shim.ChaincodeLogger)
+		Logger() *shim.ChaincodeLogger
 		Path() string
 		State() State
 		Time() (time.Time, error)
@@ -44,11 +44,11 @@ func (c *context) Response() Response {
 	return contextResponse{c}
 }
 
-func (c *context) Logger() (*shim.ChaincodeLogger) {
+func (c *context) Logger() *shim.ChaincodeLogger {
 	return c.logger
 }
 
-func (c *context) Path() (string) {
+func (c *context) Path() string {
 	return c.path
 }
 
@@ -95,5 +95,3 @@ func (c *context) Set(key string, val interface{}) {
 func (c *context) Get(key string) interface{} {
 	return c.store[key]
 }
-
-

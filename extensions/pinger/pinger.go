@@ -2,11 +2,11 @@ package pinger
 
 import (
 	"encoding/json"
+	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/pkg/errors"
 	r "github.com/s7techlab/cckit/router"
 	"time"
-	"github.com/pkg/errors"
-	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 )
 
 const (

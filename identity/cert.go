@@ -2,11 +2,11 @@ package identity
 
 import (
 	"crypto/x509"
-	"encoding/pem"
-	"fmt"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/hex"
+	"encoding/pem"
+	"fmt"
 )
 
 func Certificate(c []byte) (cert *x509.Certificate, err error) {

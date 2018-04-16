@@ -4,9 +4,9 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
-	r "github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/extensions/access"
 	"github.com/s7techlab/cckit/identity"
+	r "github.com/s7techlab/cckit/router"
 )
 
 const DefaultKey = `OWNER`

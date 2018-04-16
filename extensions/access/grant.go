@@ -13,23 +13,21 @@ type Grant struct {
 }
 
 // ========  Identity interface ===================
-func (g Grant) GetId() (string) {
+func (g Grant) GetId() string {
 	return identity.Id(g.Subject, g.Issuer)
 }
 
-func (g Grant) GetMSPId() (string) {
+func (g Grant) GetMSPId() string {
 	return g.MSPId
 }
 
-func (g Grant) GetSubject() (string) {
+func (g Grant) GetSubject() string {
 	return g.Subject
 }
 
-func (g Grant) GetIssuer() (string) {
+func (g Grant) GetIssuer() string {
 	return g.Issuer
 }
-
-
 
 func (g Grant) Is(id identity.Identity) bool {
 	return g.MSPId == id.GetMSPId() && g.Subject == id.GetSubject()

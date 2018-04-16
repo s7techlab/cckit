@@ -1,8 +1,8 @@
 package convert
 
 import (
-	"github.com/pkg/errors"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 type FromByter interface {
@@ -10,23 +10,19 @@ type FromByter interface {
 }
 
 type ToByter interface {
-	ToBytes() ([]byte)
+	ToBytes() []byte
 }
 
 func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
-
 	switch target.(type) {
 	case string:
 		return string(bb), nil
 
 	case FromByter:
 		return target.(FromByter).FromBytes(bb)
-
-	default:
-		return nil, errors.New(`from []byte converting supports FromByter interface and string`)
 	}
 
-	return
+	return nil, errors.New(`from []byte converting supports FromByter interface and string`)
 }
 
 func ToBytes(value interface{}) ([]byte, error) {
