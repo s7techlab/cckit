@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/vitiko/cckit/response"
-	"github.com/vitiko/cckit/convert"
+	"github.com/s7techlab/cckit/response"
+	"github.com/s7techlab/cckit/convert"
 )
 
 type (

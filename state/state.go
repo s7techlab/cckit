@@ -3,10 +3,10 @@ package state
 import (
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/vitiko/cckit/convert"
+	"github.com/s7techlab/cckit/convert"
 )
 
-type  entryList []interface{}
+type entryList []interface{}
 
 func Get(stub shim.ChaincodeStubInterface, key string, target interface{}) (result interface{}, err error) {
 	bb, err := stub.GetState(key)

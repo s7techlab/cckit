@@ -8,9 +8,6 @@ import (
 	"github.com/hyperledger/fabric/protos/peer"
 )
 
-
-
-
 // Success returns shim.Error
 func Error(err interface{}) peer.Response {
 	return shim.Error(fmt.Sprintf("%s", err))
@@ -53,7 +50,7 @@ func Create(data interface{}, err interface{}) peer.Response {
 	case error:
 		errObj = err.(error)
 	default:
-		panic(fmt.Sprintf(`Unknowm error type %s`, err))
+		panic(fmt.Sprintf(`unknowm error type %s`, err))
 
 	}
 

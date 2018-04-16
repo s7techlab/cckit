@@ -2,8 +2,6 @@ package convert
 
 import (
 	"errors"
-	"reflect"
-	"encoding/json"
 )
 
 type FromByter interface {

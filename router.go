@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	"sort"
 	"os"
+	"sort"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 type (
 	Map map[string]interface{}
 
-	HandlerFunc func(Context) peer.Response
+	HandlerFunc    func(Context) peer.Response
 	MiddlewareFunc func(HandlerFunc, ...int) HandlerFunc
 
 	PathHandler struct {
@@ -58,8 +58,6 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 	g.logger.Error(`router.methodnotfound: `, fnString)
 	return shim.Error(errMethodNotFound.Error())
 }
-
-
 
 func (g *Group) Use(middleware ...MiddlewareFunc) {
 	g.middleware = append(g.middleware, middleware...)
@@ -118,8 +116,8 @@ func (g *Group) Routes() ([]string, error) {
 	return r, nil
 }
 
-func (g *Group) Context  (path string, stub shim.ChaincodeStubInterface) Context {
-	return &context{path : path, stub: stub, logger: g.logger}
+func (g *Group) Context(path string, stub shim.ChaincodeStubInterface) Context {
+	return &context{path: path, stub: stub, logger: g.logger}
 }
 
 func New(name string) *Group {
@@ -129,7 +127,6 @@ func New(name string) *Group {
 	if err == nil {
 		logger.SetLevel(loggingLevel)
 	}
-
 
 	g := new(Group)
 	g.logger = logger

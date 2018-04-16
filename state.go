@@ -1,9 +1,8 @@
 package cckit
 
 import (
-	"github.com/vitiko/cckit/state"
+	"github.com/s7techlab/cckit/state"
 )
-
 
 type State interface {
 	Get(key string, target interface{}) (result interface{}, err error)
