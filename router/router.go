@@ -1,5 +1,5 @@
 // Package router provides base router for using in chaincode Invoke function
-package cckit
+package router
 
 import (
 	"errors"

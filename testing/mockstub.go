@@ -5,8 +5,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/vitiko/cckit/convert"
-	"fmt"
+	"github.com/s7techlab/cckit/convert"
 )
 
 var (
@@ -29,7 +28,7 @@ type MockStub struct {
 	creatorTransformer      func(...interface{}) (mspID, cert string)
 }
 
-func NewFullMockStub(name string, cc shim.Chaincode) *MockStub {
+func NewMockStub(name string, cc shim.Chaincode) *MockStub {
 	s := shim.NewMockStub(name, cc)
 	fs := new(MockStub)
 	fs.MockStub = *s
@@ -101,13 +100,12 @@ func (stub *MockStub) generateTxUid() string {
 }
 
 func (stub *MockStub) Init(iargs ...interface{}) peer.Response {
-
-	args, err := stub.ArgsToBytes(iargs...)
+	args, err := convert.ArgsToBytes(iargs...)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
 
-	return stub.MockInit(stub.generateTxUid(), args...)
+	return stub.MockInit(stub.generateTxUid(), args)
 }
 
 func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
@@ -146,21 +144,6 @@ func (stub *MockStub) MockInvoke(uuid string, args [][]byte) peer.Response {
 	return res
 }
 
-func (stub *MockStub) ArgsToBytes(iargs ...interface{}) (aa [][]byte, err error) {
-	args := make([][]byte, len(iargs))
-
-	for i, arg := range iargs {
-		val, err := convert.ToBytes(arg)
-
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf(`unable to convert invoke arg[%d]`, i))
-		}
-
-		args[i] = val
-	}
-
-	return args, nil
-}
 
 func (stub *MockStub) Invoke(funcName string, iargs ...interface{}) peer.Response {
 	return stub.MockInvokeFunc(funcName, iargs...)
@@ -168,7 +151,7 @@ func (stub *MockStub) Invoke(funcName string, iargs ...interface{}) peer.Respons
 
 func (stub *MockStub) MockInvokeFunc(funcName string, iargs ...interface{}) peer.Response {
 
-	fargs, err := stub.ArgsToBytes(iargs...)
+	fargs, err := convert.ArgsToBytes(iargs...)
 	if err != nil {
 		return shim.Error(err.Error())
 	}

@@ -1,4 +1,4 @@
-package cckit
+package router
 
 import (
 	"github.com/s7techlab/cckit/state"

@@ -1,7 +1,8 @@
 package convert
 
 import (
-	"errors"
+	"github.com/pkg/errors"
+	"fmt"
 )
 
 type FromByter interface {
@@ -47,4 +48,20 @@ func ToBytes(value interface{}) ([]byte, error) {
 		return nil, errors.New(`to []byte converting supports ToByter interface and string`)
 	}
 
+}
+
+func ArgsToBytes(iargs ...interface{}) (aa [][]byte, err error) {
+	args := make([][]byte, len(iargs))
+
+	for i, arg := range iargs {
+		val, err := ToBytes(arg)
+
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf(`unable to convert invoke arg[%d]`, i))
+		}
+
+		args[i] = val
+	}
+
+	return args, nil
 }
