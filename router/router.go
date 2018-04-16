@@ -108,7 +108,7 @@ func (g *Group) Routes() ([]string, error) {
 	}
 	r := make([]string, len(g.methods))
 	i := 0
-	for k, _ := range g.methods {
+	for k := range g.methods {
 		r[i] = k
 		i++
 	}
