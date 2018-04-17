@@ -6,6 +6,7 @@ import (
 	"github.com/s7techlab/cckit/response"
 )
 
+// Response chaincode interface
 type Response interface {
 	Error(err interface{}) peer.Response
 	Success(data interface{}) peer.Response
@@ -18,7 +19,7 @@ type contextResponse struct {
 
 func (c contextResponse) Error(err interface{}) peer.Response {
 	res := response.Error(err)
-	c.context.Logger().Warning(`router.handle.error: `, c.context.Path(), `, err: `, string(res.Message))
+	c.context.Logger().Warning(`router.handle.error: `, c.context.Path(), `, err: `, res.Message)
 	return res
 }
 
@@ -33,7 +34,6 @@ func (c contextResponse) Create(data interface{}, err interface{}) peer.Response
 
 	if result.Status == shim.ERROR {
 		return c.Error(result.Message)
-	} else {
-		return c.Success(result.Payload)
 	}
+	return c.Success(result.Payload)
 }

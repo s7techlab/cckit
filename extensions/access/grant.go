@@ -2,6 +2,7 @@ package access
 
 import (
 	"encoding/json"
+
 	"github.com/s7techlab/cckit/identity"
 )
 
@@ -14,7 +15,7 @@ type Grant struct {
 
 // ========  Identity interface ===================
 func (g Grant) GetId() string {
-	return identity.Id(g.Subject, g.Issuer)
+	return identity.ID(g.Subject, g.Issuer)
 }
 
 func (g Grant) GetMSPId() string {

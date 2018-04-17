@@ -3,10 +3,11 @@ package router
 
 import (
 	"errors"
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
 	"os"
 	"sort"
+
+	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/protos/peer"
 )
 
 var (
@@ -16,15 +17,21 @@ var (
 )
 
 type (
-	Map map[string]interface{}
+	// InterfaceMap map of interfaces
+	InterfaceMap map[string]interface{}
 
-	HandlerFunc    func(Context) peer.Response
+	// HandlerFunc chain code invoke context handler
+	HandlerFunc func(Context) peer.Response
+
+	// MiddlewareFunc middleware for chain code invoke
 	MiddlewareFunc func(HandlerFunc, ...int) HandlerFunc
 
+	// PathHandler information about path handler
 	PathHandler struct {
 		Handler HandlerFunc
 	}
 
+	// Group of chain code functions
 	Group struct {
 		logger     *shim.ChaincodeLogger
 		prefix     string
@@ -59,6 +66,7 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 	return shim.Error(errMethodNotFound.Error())
 }
 
+// Use middleware function in chain code functions group
 func (g *Group) Use(middleware ...MiddlewareFunc) {
 	g.middleware = append(g.middleware, middleware...)
 }
@@ -87,6 +95,7 @@ func (g *Group) Query(path string, handler HandlerFunc, middleware ...Middleware
 	return g.Invoke(path, handler, middleware...)
 }
 
+// Invoke configure handler and middleware functions for chain code function name
 func (g *Group) Invoke(path string, handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
 	g.handlers[g.prefix+path] = PathHandler{
 		func(context Context) peer.Response {
@@ -99,8 +108,7 @@ func (g *Group) Invoke(path string, handler HandlerFunc, middleware ...Middlewar
 	return g
 }
 
-// Routes
-// Get ordered string view of routes
+// Routes ordered []string view of routes
 func (g *Group) Routes() ([]string, error) {
 	rLen := len(g.methods)
 	if rLen == 0 {
@@ -116,10 +124,12 @@ func (g *Group) Routes() ([]string, error) {
 	return r, nil
 }
 
+// Context returns chain code invoke context  for provided path and stub
 func (g *Group) Context(path string, stub shim.ChaincodeStubInterface) Context {
 	return &context{path: path, stub: stub, logger: g.logger}
 }
 
+// New group of chain code functions
 func New(name string) *Group {
 
 	logger := shim.NewLogger(name)

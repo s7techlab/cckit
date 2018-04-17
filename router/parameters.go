@@ -2,6 +2,7 @@ package router
 
 import (
 	"errors"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/convert"
@@ -9,19 +10,18 @@ import (
 )
 
 type (
-	FromBytes interface {
-		FromBytes([]byte) (result interface{}, err error)
-	}
-
+	// Parameters list of chain code function parameters
 	Parameters []Parameter
 
+	// Parameter of chain code function
 	Parameter struct {
 		Name   string
 		Type   interface{}
 		ArgPos int
 	}
 
-	parameterBag map[string]MiddlewareFunc
+	// MiddlewareFuncMap named list of middleware functions
+	MiddlewareFuncMap map[string]MiddlewareFunc
 )
 
 func (p Parameter) getArgfromStub(stub shim.ChaincodeStubInterface) (arg interface{}, err error) {
@@ -33,16 +33,19 @@ func (p Parameter) getArgfromStub(stub shim.ChaincodeStubInterface) (arg interfa
 	return convert.FromBytes(args[p.ArgPos+1], p.Type) //first arg is function name
 }
 
-func ParameterBag() parameterBag {
-	return parameterBag{}
+// ParameterBag builder for named middleware list
+func ParameterBag() MiddlewareFuncMap {
+	return MiddlewareFuncMap{}
 }
-func (pbag parameterBag) Add(name string, paramType interface{}) parameterBag {
+
+// Add middleware function
+func (pbag MiddlewareFuncMap) Add(name string, paramType interface{}) MiddlewareFuncMap {
 	pbag[name] = Param(name, paramType)
 	return pbag
 }
 
+// Param create middleware function for transforming stub arg to context arg
 func Param(name string, paramType interface{}, argPoss ...int) MiddlewareFunc {
-
 	var argPos int
 	if len(argPoss) == 0 {
 		argPos = 0

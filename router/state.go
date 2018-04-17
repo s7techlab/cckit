@@ -4,6 +4,7 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
+// State interface for chain code CRUD operations
 type State interface {
 	Get(key string, target interface{}) (result interface{}, err error)
 	Put(key string, target interface{}) (err error)

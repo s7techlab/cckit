@@ -1,12 +1,14 @@
 package router
 
 import (
+	"time"
+
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"time"
 )
 
 type (
+	// Context of chaincode invoke
 	Context interface {
 		Stub() shim.ChaincodeStubInterface
 		Client() (cid.ClientIdentity, error)
@@ -15,7 +17,7 @@ type (
 		Path() string
 		State() State
 		Time() (time.Time, error)
-		Args() Map
+		Args() InterfaceMap
 		Arg(string) interface{}
 		ArgString(string) string
 		SetArg(string, interface{})
@@ -27,8 +29,8 @@ type (
 		stub       shim.ChaincodeStubInterface
 		logger     *shim.ChaincodeLogger
 		path       string
-		invokeArgs Map
-		store      Map
+		invokeArgs InterfaceMap
+		store      InterfaceMap
 	}
 )
 
@@ -56,23 +58,22 @@ func (c *context) State() State {
 	return &stateOp{c}
 }
 
+// Time
 func (c *context) Time() (time.Time, error) {
-
 	txTimestamp, err := c.stub.GetTxTimestamp()
 	if err != nil {
 		return time.Unix(0, 0), err
 	}
-
 	return time.Unix(txTimestamp.GetSeconds(), int64(txTimestamp.GetNanos())), nil
 }
 
-func (c *context) Args() Map {
+func (c *context) Args() InterfaceMap {
 	return c.invokeArgs
 }
 
 func (c *context) SetArg(name string, value interface{}) {
 	if c.invokeArgs == nil {
-		c.invokeArgs = make(Map)
+		c.invokeArgs = make(InterfaceMap)
 	}
 	c.invokeArgs[name] = value
 }
@@ -87,7 +88,7 @@ func (c *context) ArgString(name string) string {
 
 func (c *context) Set(key string, val interface{}) {
 	if c.store == nil {
-		c.store = make(Map)
+		c.store = make(InterfaceMap)
 	}
 	c.store[key] = val
 }
