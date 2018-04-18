@@ -9,18 +9,23 @@ import (
 	r "github.com/s7techlab/cckit/router"
 )
 
-const DefaultKey = `OWNER`
+// OwnerStateKey key used to store owner grant struct in chain code state
+const OwnerStateKey = `OWNER`
 
 var (
+	// ErrToMuchArguments occurs when to much arguments passed to Init
 	ErrToMuchArguments = errors.New(`too much arguments`)
-	ErrOnlyByOwner     = errors.New(`chaincode owner required`)
+
+	// ErrOnlyByOwner occurs when someone tries to invoke method allowed only for owner
+	ErrOnlyByOwner = errors.New(`chaincode owner required`)
 )
 
-// Get returns current owner
+// Get returns current chain code owner
 func Get(stub shim.ChaincodeStubInterface) ([]byte, error) {
-	return stub.GetState(DefaultKey)
+	return stub.GetState(OwnerStateKey)
 }
 
+// FromState return grant struct representing chain code owner
 func FromState(stub shim.ChaincodeStubInterface) (i identity.Identity, err error) {
 	owner, err := Get(stub)
 	if err != nil {
@@ -29,7 +34,7 @@ func FromState(stub shim.ChaincodeStubInterface) (i identity.Identity, err error
 	return access.FromBytes(owner)
 }
 
-// SetFromCreator chaincode owner from stub creator
+// SetFromCreator sets chain code owner from stub creator
 func SetFromCreator(c r.Context) peer.Response {
 	var grant *access.Grant
 	invoker, err := access.InvokerFromStub(c.Stub())
@@ -41,18 +46,17 @@ func SetFromCreator(c r.Context) peer.Response {
 	if err != nil {
 		return c.Response().Error(err)
 	}
-	return c.Response().Create(grant, c.State().Put(DefaultKey, grant))
+	return c.Response().Create(grant, c.State().Put(OwnerStateKey, grant))
 }
 
+// IsOwnerOr checks tx creator and compares with owner of another identity
 func IsOwnerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identity) (bool, error) {
-
 	if isOwner, err := InvokerIsOwner(stub); isOwner || err != nil {
 		return isOwner, err
 	}
 	if len(allowedTo) == 0 {
 		return false, nil
 	}
-
 	invoker, err := access.InvokerFromStub(stub)
 	if err != nil {
 		return false, err
@@ -62,22 +66,18 @@ func IsOwnerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identity)
 			return true, nil
 		}
 	}
-
 	return false, nil
 }
 
-// IsOwner checks chaincode owner
-// Uses current MspID from stub creator if owner isn't presented
+// InvokerIsOwner checks  than tx creator is chain code owner
 func InvokerIsOwner(stub shim.ChaincodeStubInterface) (bool, error) {
 	invoker, err := access.InvokerFromStub(stub)
 	if err != nil {
 		return false, err
 	}
-
 	owner, err := FromState(stub)
 	if err != nil {
 		return false, err
 	}
-
 	return invoker.Is(owner), nil
 }

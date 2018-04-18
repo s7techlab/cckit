@@ -11,8 +11,8 @@ var (
 
 // Identity interface for invoker (tx creator) and grants, stored in chain code state
 type Identity interface {
-	GetId() string
-	GetMSPId() string
+	GetID() string
+	GetMSPID() string
 	GetSubject() string
 	GetIssuer() string
 	Is(i Identity) bool
