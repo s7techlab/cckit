@@ -50,8 +50,8 @@ func SetFromCreator(c r.Context) peer.Response {
 }
 
 // IsOwnerOr checks tx creator and compares with owner of another identity
-func IsOwnerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identity) (bool, error) {
-	if isOwner, err := InvokerIsOwner(stub); isOwner || err != nil {
+func IsInvokerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identity) (bool, error) {
+	if isOwner, err := IsInvoker(stub); isOwner || err != nil {
 		return isOwner, err
 	}
 	if len(allowedTo) == 0 {
@@ -70,7 +70,7 @@ func IsOwnerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identity)
 }
 
 // InvokerIsOwner checks  than tx creator is chain code owner
-func InvokerIsOwner(stub shim.ChaincodeStubInterface) (bool, error) {
+func IsInvoker(stub shim.ChaincodeStubInterface) (bool, error) {
 	invoker, err := access.InvokerFromStub(stub)
 	if err != nil {
 		return false, err
