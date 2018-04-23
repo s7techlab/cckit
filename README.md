@@ -7,7 +7,17 @@
 
 
 
-### Example
+## Example
+
+
+### Hyperledger Fabric related repos
+
+* https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go
+* https://github.com/IBM-Blockchain/marbles/blob/master/chaincode/src/marbles/marbles.go
+* https://github.com/IBM-Blockchain-Archive/car-lease-demo/blob/master/Chaincode/src/vehicle_code/vehicles.go
+
+
+### Chaincode based on CCKit
 
 ```go
 
