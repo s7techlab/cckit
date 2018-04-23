@@ -2,16 +2,18 @@
 package router
 
 import (
-	"errors"
 	"os"
 	"sort"
 
+	"fmt"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/pkg/errors"
 )
 
 var (
-	errMethodNotFound  = errors.New(`method not found`)
+	ErrMethodNotFound  = errors.New(`method not found`)
 	errNoRoutes        = errors.New(`no routes presented`)
 	errArgsNumMismatch = errors.New(`method args count mismatch`)
 )
@@ -62,8 +64,9 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 		return h(g.Context(fnString, stub))
 	}
 
-	g.logger.Error(`router.methodnotfound: `, fnString)
-	return shim.Error(errMethodNotFound.Error())
+	err := errors.Wrap(fmt.Errorf(`%s: %s`, ErrMethodNotFound, fnString), `chaincode router`)
+	g.logger.Error(err)
+	return shim.Error(err.Error())
 }
 
 // Use middleware function in chain code functions group

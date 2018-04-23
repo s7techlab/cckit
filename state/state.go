@@ -16,8 +16,7 @@ func Get(stub shim.ChaincodeStubInterface, key string, target interface{}) (resu
 	if err != nil {
 		return
 	}
-
-	if bb == nil {
+	if bb == nil || len(bb) == 0 {
 		return nil, fmt.Errorf("state entry not found, key: %s", key)
 	}
 	return convert.FromBytes(bb, target)

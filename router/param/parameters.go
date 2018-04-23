@@ -1,4 +1,4 @@
-package router
+package param
 
 import (
 	"errors"
@@ -7,6 +7,7 @@ import (
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/response"
+	"github.com/s7techlab/cckit/router"
 )
 
 type (
@@ -21,7 +22,7 @@ type (
 	}
 
 	// MiddlewareFuncMap named list of middleware functions
-	MiddlewareFuncMap map[string]MiddlewareFunc
+	MiddlewareFuncMap map[string]router.MiddlewareFunc
 )
 
 func (p Parameter) getArgfromStub(stub shim.ChaincodeStubInterface) (arg interface{}, err error) {
@@ -45,7 +46,7 @@ func (pbag MiddlewareFuncMap) Add(name string, paramType interface{}) Middleware
 }
 
 // Param create middleware function for transforming stub arg to context arg
-func Param(name string, paramType interface{}, argPoss ...int) MiddlewareFunc {
+func Param(name string, paramType interface{}, argPoss ...int) router.MiddlewareFunc {
 	var argPos int
 	if len(argPoss) == 0 {
 		argPos = 0
@@ -55,8 +56,8 @@ func Param(name string, paramType interface{}, argPoss ...int) MiddlewareFunc {
 
 	parameter := Parameter{name, paramType, argPos}
 
-	return func(next HandlerFunc, pos ...int) HandlerFunc {
-		return func(context Context) peer.Response {
+	return func(next router.HandlerFunc, pos ...int) router.HandlerFunc {
+		return func(context router.Context) peer.Response {
 			arg, err := parameter.getArgfromStub(context.Stub())
 			if err != nil {
 				return response.Error(err)
