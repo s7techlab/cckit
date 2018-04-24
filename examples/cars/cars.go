@@ -4,6 +4,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/extensions/owner"
+	"github.com/s7techlab/cckit/response"
 	r "github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
 )
@@ -32,7 +33,7 @@ func New() *Cars {
 // Init initializes chain code
 func (cc *Cars) Init(stub shim.ChaincodeStubInterface) peer.Response {
 	// set owner of chain code with special permissions , based on tx creator certificate
-	return owner.SetFromCreator(cc.router.Context(`init`, stub))
+	return response.Success(nil)
 }
 
 // Invoke - entry point for chain code invocations

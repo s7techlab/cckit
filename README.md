@@ -10,7 +10,7 @@
 ## Example
 
 
-### Hyperledger Fabric related repos
+### Hyperledger Fabric chaincode examples
 
 * https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go
 * https://github.com/IBM-Blockchain/marbles/blob/master/chaincode/src/marbles/marbles.go

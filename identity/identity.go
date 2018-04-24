@@ -25,7 +25,7 @@ type Identity interface {
 }
 
 // FromCert creates invoker struct from an mspID and certificate
-func FromCert(mspID string, c []byte) (i Identity, err error) {
+func FromCert(mspID string, c []byte) (ci *CertIdentity, err error) {
 	cert, err := Certificate(c)
 	if err != nil {
 		return nil, err

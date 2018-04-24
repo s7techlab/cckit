@@ -190,6 +190,11 @@ func (stub *MockStub) From(mspParams ...interface{}) *MockStub {
 		case identity.CertIdentity:
 			sid.Mspid = mspParams[0].(identity.CertIdentity).MspID
 			sid.IdBytes = mspParams[0].(identity.CertIdentity).PemEncode()
+
+		case *identity.CertIdentity:
+			sid.Mspid = mspParams[0].(*identity.CertIdentity).MspID
+			sid.IdBytes = mspParams[0].(*identity.CertIdentity).PemEncode()
+
 		case pmsp.SerializedIdentity:
 			sid = mspParams[0].(pmsp.SerializedIdentity)
 

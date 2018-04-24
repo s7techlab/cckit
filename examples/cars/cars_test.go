@@ -3,7 +3,10 @@ package main
 import (
 	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	testcc "github.com/s7techlab/cckit/testing"
+	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
 
 func TestCars(t *testing.T) {
@@ -13,12 +16,11 @@ func TestCars(t *testing.T) {
 
 var _ = Describe(`Cars`, func() {
 
-	var cc *testcc.MockStub
+	//Create chaincode mock
+	cc := testcc.NewMockStub(`cars`, New())
 
 	BeforeSuite(func() {
-
-		cc = testcc.NewMockStub(`cars`, New())
-
+		expectcc.ResponseOk(cc.Init())
 	})
 
 })

@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/access"
-	"github.com/s7techlab/cckit/identity"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
@@ -19,43 +18,32 @@ func TestMarbles(t *testing.T) {
 
 var _ = Describe(`Marbles`, func() {
 
-	var cc *testcc.MockStub
-	actor := map[string]identity.CertIdentity{}
+	//Create chaincode mock
+	cc := testcc.NewMockStub(`marbles`, New())
+
+	// load actor certificates
+	actors, err := examplecert.Actors(map[string]string{`operator`: `s7techlab.pem`, `owner1`: `victor-nosov.pem`})
+	if err != nil {
+		panic(err)
+	}
 
 	BeforeSuite(func() {
-		// load certificates
-		for role, filename := range map[string]string{`operator`: `s7techlab.pem`, `owner1`: `victor-nosov.pem`} {
-			cert, err := examplecert.Plain(filename)
-			if err != nil {
-				panic(err)
-			}
-
-			i, err := identity.FromCert(`SOME_MSP`, cert)
-			if err != nil {
-				panic(err)
-			}
-
-			actor[role] = *i.(*identity.CertIdentity)
-		}
-
-		cc = testcc.NewMockStub(`marbles`, New())
-		expectcc.ResponseOk(cc.From(actor[`operator`]).Init())
+		// Init chaincode from operator
+		expectcc.ResponseOk(cc.From(actors[`operator`]).Init())
 	})
 
 	Describe("Chaincode owner", func() {
-
 		It("Allow everyone to retrieve chaincode owner", func() {
 			grant := expectcc.PayloadIs(cc.Invoke(`owner`), &access.Grant{}).(*access.Grant)
-			Expect(grant.GetSubject()).To(Equal(actor[`operator`].GetSubject()))
-			Expect(grant.Is(actor[`operator`])).To(BeTrue())
+			Expect(grant.GetSubject()).To(Equal(actors[`operator`].GetSubject()))
+			Expect(grant.Is(actors[`operator`])).To(BeTrue())
 		})
-
 	})
 
 	Describe("Marble owner", func() {
 
 		It("Allow chaincode owner to register marble owner", func() {
-			expectcc.ResponseOk(cc.From(actor[`operator`]).Invoke(`marbleOwnerRegister`, actor[`owner1`].ToSerialized()))
+			expectcc.ResponseOk(cc.From(actors[`operator`]).Invoke(`marbleOwnerRegister`, actors[`owner1`].ToSerialized()))
 		})
 
 	})
