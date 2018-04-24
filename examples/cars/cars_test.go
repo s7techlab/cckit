@@ -3,12 +3,10 @@ package main
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	testcc "github.com/s7techlab/cckit/testing"
 )
 
-func TestRefueling(t *testing.T) {
+func TestCars(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Cars Suite")
 }

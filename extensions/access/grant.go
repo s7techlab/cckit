@@ -53,7 +53,7 @@ func FromBytes(marshalled []byte) (grant *Grant, err error) {
 	return g, err
 }
 
-// GrantFromIdentity creates grant structure from an identity
+// GrantFromIdentity creates grant structure from an identity interface
 func GrantFromIdentity(i identity.Identity) (g *Grant, err error) {
 	return &Grant{
 		MSPId:   i.GetMSPID(),

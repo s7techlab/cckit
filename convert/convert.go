@@ -39,17 +39,15 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 
 }
 
+// FromBytesToStruct converts []byte to struct,array,slice depending on target type
 func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err error) {
-
 	targetType := reflect.TypeOf(target).Kind()
 	switch targetType {
 
 	case reflect.Ptr:
-
 		if bb == nil {
 			return nil, ErrUnableConvertNilToStruct
 		}
-
 		err = json.Unmarshal(bb, target) // will be ptr to target struct, array ot slice
 		return target, err
 
@@ -61,13 +59,11 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 		if bb == nil {
 			return nil, ErrUnableConvertNilToStruct
 		}
-
 		err = json.Unmarshal(bb, &target) // will be map[string]interface{}
 		return target, err
 	default:
 		return nil, ErrUnsupportedType
 	}
-
 }
 
 // ToBytes converts inteface{} (string, []byte , struct to ToByter interface to []byte for storing in state

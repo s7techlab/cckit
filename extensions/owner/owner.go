@@ -20,14 +20,9 @@ var (
 	ErrOnlyByOwner = errors.New(`chaincode owner required`)
 )
 
-// Get returns current chain code owner
-func Get(stub shim.ChaincodeStubInterface) ([]byte, error) {
-	return stub.GetState(OwnerStateKey)
-}
-
 // FromState return grant struct representing chain code owner
 func FromState(stub shim.ChaincodeStubInterface) (i identity.Identity, err error) {
-	owner, err := Get(stub)
+	owner, err := stub.GetState(OwnerStateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -37,12 +32,12 @@ func FromState(stub shim.ChaincodeStubInterface) (i identity.Identity, err error
 // SetFromCreator sets chain code owner from stub creator
 func SetFromCreator(c r.Context) peer.Response {
 	var grant *access.Grant
-	invoker, err := access.InvokerFromStub(c.Stub())
+	creator, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return c.Response().Error(err)
 	}
 
-	grant, err = access.GrantFromIdentity(invoker)
+	grant, err = access.GrantFromIdentity(creator)
 	if err != nil {
 		return c.Response().Error(err)
 	}
@@ -57,12 +52,12 @@ func IsInvokerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identit
 	if len(allowedTo) == 0 {
 		return false, nil
 	}
-	invoker, err := access.InvokerFromStub(stub)
+	creator, err := identity.FromStub(stub)
 	if err != nil {
 		return false, err
 	}
 	for _, allowed := range allowedTo {
-		if allowed.Is(invoker) {
+		if allowed.Is(creator) {
 			return true, nil
 		}
 	}
@@ -71,7 +66,7 @@ func IsInvokerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identit
 
 // InvokerIsOwner checks  than tx creator is chain code owner
 func IsInvoker(stub shim.ChaincodeStubInterface) (bool, error) {
-	invoker, err := access.InvokerFromStub(stub)
+	creator, err := identity.FromStub(stub)
 	if err != nil {
 		return false, err
 	}
@@ -79,5 +74,5 @@ func IsInvoker(stub shim.ChaincodeStubInterface) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return invoker.Is(owner), nil
+	return creator.Is(owner), nil
 }
