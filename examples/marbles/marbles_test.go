@@ -5,8 +5,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/s7techlab/cckit/convert"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/access"
+	"github.com/s7techlab/cckit/extensions/owner"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
@@ -42,8 +44,27 @@ var _ = Describe(`Marbles`, func() {
 
 	Describe("Marble owner", func() {
 
+		It("Disallow non chaincode owner to register marble owner", func() {
+			expectcc.ResponseError(
+				cc.From(actors[`owner1`]).Invoke(`marbleOwnerRegister`, actors[`owner1`]),
+				owner.ErrOwnerOnly)
+		})
+
 		It("Allow chaincode owner to register marble owner", func() {
-			expectcc.ResponseOk(cc.From(actors[`operator`]).Invoke(`marbleOwnerRegister`, actors[`owner1`].ToSerialized()))
+			expectcc.ResponseOk(
+				cc.From(actors[`operator`]).Invoke(`marbleOwnerRegister`, actors[`owner1`]))
+		})
+
+		It("Disallow chaincode owner to register duplicate marble owner", func() {
+			expectcc.ResponseError(
+				cc.From(actors[`operator`]).Invoke(`marbleOwnerRegister`, actors[`owner1`]),
+				ErrMarbleOwnerAlreadyRegistered)
+		})
+
+		It("Disallow to pass non SerializedIdentity json", func() {
+			expectcc.ResponseError(
+				cc.From(actors[`owner1`]).Invoke(`marbleOwnerRegister`, `some weird string`),
+				convert.ErrUnableToConvertValueToStruct)
 		})
 
 	})

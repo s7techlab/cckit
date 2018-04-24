@@ -40,10 +40,17 @@ func (g Grant) Is(id identity.Identity) bool {
 	return g.MSPId == id.GetMSPID() && g.Subject == id.GetSubject()
 }
 
-// ToBytes marshal grant structure to json bytes
+// ToBytes marshals grant structure to json bytes
 func (g Grant) ToBytes() (marshalled []byte) {
 	marshalled, _ = json.Marshal(g)
 	return
+}
+
+// FromBytes unmarshals grant structure from json bytes
+func (g Grant) FromBytes(marshalled []byte) (interface{}, error) {
+	grant := new(Grant)
+	err := json.Unmarshal(marshalled, grant)
+	return grant, err
 }
 
 // FromBytes unmarshal from json bytes

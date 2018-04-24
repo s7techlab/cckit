@@ -15,9 +15,6 @@ const OwnerStateKey = `OWNER`
 var (
 	// ErrToMuchArguments occurs when to much arguments passed to Init
 	ErrToMuchArguments = errors.New(`too much arguments`)
-
-	// ErrOnlyByOwner occurs when someone tries to invoke method allowed only for owner
-	ErrOnlyByOwner = errors.New(`chaincode owner required`)
 )
 
 // FromState return grant struct representing chain code owner

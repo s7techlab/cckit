@@ -22,6 +22,15 @@ func Get(stub shim.ChaincodeStubInterface, key string, target interface{}) (resu
 	return convert.FromBytes(bb, target)
 }
 
+// Exists check entry with key exists in chaincode state
+func Exists(stub shim.ChaincodeStubInterface, key string) (exists bool, err error) {
+	bb, err := stub.GetState(key)
+	if err != nil {
+		return false, err
+	}
+	return !(bb == nil || len(bb) == 0), nil
+}
+
 // List data from state using objectType prefix in composite key, trying to conver to target interface.
 // Keys -  additional components of composite key
 func List(stub shim.ChaincodeStubInterface, objectType string, target interface{}, keys ...string) (result EntryList, err error) {

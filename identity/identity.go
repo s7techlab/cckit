@@ -5,6 +5,8 @@ import (
 	"encoding/pem"
 	"errors"
 
+	"encoding/json"
+
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/msp"
@@ -97,4 +99,9 @@ func (ci CertIdentity) ToSerialized() *msp.SerializedIdentity {
 		Mspid:   ci.MspID,
 		IdBytes: ci.PemEncode(),
 	}
+}
+
+// ToBytes converts to serializedIdentity and then to json
+func (ci CertIdentity) ToBytes() ([]byte, error) {
+	return json.Marshal(ci.ToSerialized())
 }

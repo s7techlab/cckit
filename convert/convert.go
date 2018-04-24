@@ -11,8 +11,9 @@ import (
 
 var (
 	// ErrUnsupportedType - type cannot be translate to or from []byte
-	ErrUnsupportedType          = errors.New(`from []byte converting supports FromByter interface and string`)
-	ErrUnableConvertNilToStruct = errors.New(`unable to convert nil to [struct,array,slice,ptr]`)
+	ErrUnsupportedType              = errors.New(`fromBytes converting supports targets: FromByter interface, string,struct,array,slice,ptr`)
+	ErrUnableToConvertNilToStruct   = errors.New(`unable to convert nil to [struct,array,slice,ptr]`)
+	ErrUnableToConvertValueToStruct = errors.New(`unable to convert value to [struct,array,slice,ptr]`)
 )
 
 // FromByter interface supports FromBytes func for converting to structure
@@ -22,7 +23,7 @@ type FromByter interface {
 
 // ToByter interface supports ToBytes func, marshalling to []byte (json.Marshall)
 type ToByter interface {
-	ToBytes() []byte
+	ToBytes() ([]byte, error)
 }
 
 // FromBytes converts []byte to target interface
@@ -41,26 +42,31 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 
 // FromBytesToStruct converts []byte to struct,array,slice depending on target type
 func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err error) {
-	targetType := reflect.TypeOf(target).Kind()
-	switch targetType {
 
-	case reflect.Ptr:
-		if bb == nil {
-			return nil, ErrUnableConvertNilToStruct
-		}
-		err = json.Unmarshal(bb, target) // will be ptr to target struct, array ot slice
-		return target, err
+	if bb == nil {
+		return nil, ErrUnableToConvertNilToStruct
+	}
+
+	targetType := reflect.TypeOf(target).Kind()
+	var targetPtr interface{}
+
+	switch targetType {
 
 	case reflect.Struct:
 		fallthrough
 	case reflect.Array:
 		fallthrough
 	case reflect.Slice:
-		if bb == nil {
-			return nil, ErrUnableConvertNilToStruct
+		targetPtr = &target // will be map[string]interface{}
+		fallthrough
+	case reflect.Ptr:
+		targetPtr = target // will be ptr to target struct, array ot slice
+		err = json.Unmarshal(bb, targetPtr)
+
+		if err != nil {
+			err = errors.Wrap(err, ErrUnableToConvertValueToStruct.Error())
 		}
-		err = json.Unmarshal(bb, &target) // will be map[string]interface{}
-		return target, err
+		return targetPtr, err
 	default:
 		return nil, ErrUnsupportedType
 	}
@@ -69,12 +75,14 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 // ToBytes converts inteface{} (string, []byte , struct to ToByter interface to []byte for storing in state
 func ToBytes(value interface{}) ([]byte, error) {
 	switch value.(type) {
+
+	// first priority if value implements ToByter interface
+	case ToByter:
+		return value.(ToByter).ToBytes()
 	case string:
 		return []byte(value.(string)), nil
 	case []byte:
 		return value.([]byte), nil
-	case ToByter:
-		return value.(ToByter).ToBytes(), nil
 
 	default:
 		valueType := reflect.TypeOf(value).Kind()

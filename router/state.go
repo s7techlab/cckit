@@ -7,6 +7,7 @@ import (
 // State interface for chain code CRUD operations
 type State interface {
 	Get(key string, target interface{}) (result interface{}, err error)
+	Exists(key string) (exists bool, err error)
 	Put(key string, target interface{}) (err error)
 	List(objectType string, target interface{}) (result []interface{}, err error)
 }
@@ -17,6 +18,10 @@ type stateOp struct {
 
 func (s *stateOp) Get(key string, target interface{}) (result interface{}, err error) {
 	return state.Get(s.context.Stub(), key, target)
+}
+
+func (s *stateOp) Exists(key string) (exists bool, err error) {
+	return state.Exists(s.context.Stub(), key)
 }
 
 func (s *stateOp) Put(key string, value interface{}) (err error) {

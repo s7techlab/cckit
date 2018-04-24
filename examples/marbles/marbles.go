@@ -4,11 +4,16 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/msp"
 	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/extensions/access"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
+)
+
+var (
+	ErrMarbleOwnerAlreadyRegistered = errors.New(`marble owner already registered`)
 )
 
 // Marble represents information about marble
@@ -57,19 +62,23 @@ func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 
 // ownerInit - register a new owner aka end user, store into chaincode state
 func (cc *Chaincode) marbleOwnerRegister(c r.Context) peer.Response {
-
 	//mspID and certificate
 	ownerIdentity, err := identity.FromSerialized(c.Arg(`identity`).(*msp.SerializedIdentity))
 	if err != nil {
 		return c.Response().Error(err)
 	}
-
 	ownerGrant, err := access.GrantFromIdentity(ownerIdentity)
 	if err != nil {
 		return c.Response().Error(err)
 	}
 
-	// put owner grant ( cert subject and issuer) to state
+	if exists, err := c.State().Exists(ownerGrant.GetID()); err != nil {
+		return c.Response().Error(err)
+	} else if exists {
+		return c.Response().Error(ErrMarbleOwnerAlreadyRegistered)
+	}
+
+	// put grant struct with owner mspID, as well as cert subject and issuer to state
 	return c.Response().Create(ownerGrant, c.State().Put(ownerGrant.GetID(), ownerGrant))
 }
 
