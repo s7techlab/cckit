@@ -8,7 +8,7 @@ import (
 	"github.com/s7techlab/cckit/extensions/access"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
-	r "github.com/s7techlab/cckit/router"
+	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
 )
 
@@ -27,22 +27,22 @@ type Marble struct {
 
 // Chaincode marbles
 type Chaincode struct {
-	router *r.Group
+	router *router.Group
 }
 
 // New chaincode marbles
 func New() *Chaincode {
-	cc := &Chaincode{r.New(`marbles`)} // also initialized logger with "marbles" prefix
+	r := router.New(`marbles`) // also initialized logger with "marbles" prefix
 
-	cc.router.Query(`owner`, owner.Get) // returns current chaincode owner
+	r.Query(`owner`, owner.Get) // returns current chaincode owner
 
-	cc.router.Group(`marble`).
+	r.Group(`marble`).
 		// chain code method name is "marbleOwnerRegister"
-		Invoke(`OwnerRegister`, cc.marbleOwnerRegister, p.Struct(`identity`, &msp.SerializedIdentity{}), owner.Only).
-		Query(`Init`, cc.marbleInit). // chain code method name is "marbleInit"
-		Query(`Delete`, cc.marbleDelete, p.String(`id`)).
-		Invoke(`SetOwner`, cc.marbleSetOwner, p.String(`id`))
-	return cc
+		Invoke(`OwnerRegister`, marbleOwnerRegister, p.Struct(`identity`, &msp.SerializedIdentity{}), owner.Only).
+		Query(`Init`, marbleInit). // chain code method name is "marbleInit"
+		Query(`Delete`, marbleDelete, p.String(`id`)).
+		Invoke(`SetOwner`, marbleSetOwner, p.String(`id`))
+	return &Chaincode{r}
 }
 
 //========  Base methods ====================================
@@ -61,7 +61,7 @@ func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 // ======= Chain code methods
 
 // ownerInit - register a new owner aka end user, store into chaincode state
-func (cc *Chaincode) marbleOwnerRegister(c r.Context) peer.Response {
+func marbleOwnerRegister(c router.Context) peer.Response {
 	//mspID and certificate
 	ownerIdentity, err := identity.FromSerialized(c.Arg(`identity`).(msp.SerializedIdentity))
 	if err != nil {
@@ -83,17 +83,17 @@ func (cc *Chaincode) marbleOwnerRegister(c r.Context) peer.Response {
 }
 
 // marbleInit - create a new marble, store into chaincode state
-func (cc *Chaincode) marbleInit(c r.Context) peer.Response {
+func marbleInit(c router.Context) peer.Response {
 
 	return c.Response().Success(nil)
 }
 
-func (cc *Chaincode) marbleDelete(c r.Context) peer.Response {
+func marbleDelete(c router.Context) peer.Response {
 
 	return c.Response().Success(nil)
 }
 
-func (cc *Chaincode) marbleSetOwner(c r.Context) peer.Response {
+func marbleSetOwner(c router.Context) peer.Response {
 
 	return c.Response().Success(nil)
 }

@@ -23,66 +23,104 @@
 package main
 
 import (
+	"errors"
+	"time"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/response"
-	r "github.com/s7techlab/cckit/router"
+	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
 )
 
-type Car struct {
+var (
+	ErrCarAlreadyExists = errors.New(`car already exists`)
+)
+
+const CarKeyPrefix = `CAR`
+
+// CarPayload chaincode method argument
+type CarPayload struct {
 	Id    string
 	Title string
 	Owner string
 }
 
-type Cars struct {
-	router *r.Group
+// Car struct for chaincode state
+type Car struct {
+	Id    string
+	Title string
+	Owner string
+
+	UpdatedAt time.Time // set by chaincode method
 }
 
-func New() *Cars {
-	cc := &Cars{r.New(`cars`)} // also initialized logger with "cars" prefix
-	cc.router.Group(`car`).
-		Query(`List`, cc.carList).               // chain code method name is carList
-		Query(`Get`, cc.carGet, p.String(`id`)). // chain code method name is carGet
-		Invoke(`Put`, cc.carRegister, p.Struct(`car`, &Car{}), owner.Only)
-	return cc
+type Chaincode struct {
+	router *router.Group
+}
+
+func New() *Chaincode {
+	r := router.New(`cars`) // also initialized logger with "cars" prefix
+
+	r.Group(`car`).
+		Query(`List`, cars).               // chain code method name is carList
+		Query(`Get`, car, p.String(`id`)). // chain code method name is carGet
+		Invoke(`Register`, carRegister, p.Struct(`car`, &CarPayload{}))
+
+	return &Chaincode{r}
 }
 
 //========  Base methods ====================================
 //
 // Init initializes chain code
-func (cc *Cars) Init(stub shim.ChaincodeStubInterface) peer.Response {
+func (cc *Chaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
 	// set owner of chain code with special permissions , based on tx creator certificate
 	return response.Success(nil)
 }
 
 // Invoke - entry point for chain code invocations
-func (cc *Cars) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 	return cc.router.Handle(stub)
 }
 
+// Key for car entry in chaincode state
+func Key(id string) []string {
+	return []string{CarKeyPrefix, id}
+}
+
 // ======= Chaincode methods
-
-func (cc *Cars) carList(c r.Context) peer.Response {
-
-	return c.Response().Success(nil)
+func car(c router.Context) peer.Response {
+	return c.Response().Create(
+		c.State().Get(
+			Key(c.ArgString(`id`)), // get state entry by composite key  using CarKeyPrefix and car.Id
+			&Car{}))                // unmarshal from []byte to Car struct
 }
 
-func (cc *Cars) carGet(c r.Context) peer.Response {
-
-	return c.Response().Success(nil)
+func cars(c router.Context) peer.Response {
+	return c.Response().Create(
+		c.State().List(
+			CarKeyPrefix, // get list of state entries of type CarKeyPrefix
+			&Car{}))      // unmarshal from []byte and append to []Car slice
 }
 
-func (cc *Cars) carRegister(c r.Context) peer.Response {
+func carRegister(c router.Context) peer.Response {
+	// arg name defined in router method definition
+	p := c.Arg(`car`).(CarPayload)
+	if exists, err := c.State().Exists(Key(p.Id)); exists || err != nil {
+		return c.Response().Error(ErrCarAlreadyExists)
+	}
 
-	return c.Response().Success(nil)
+	t, _ := c.Time() // tx time
+	car := &Car{
+		Id:        p.Id,
+		Title:     p.Title,
+		Owner:     p.Owner,
+		UpdatedAt: t} // data for chaincode state
+
+	return c.Response().Create(
+		car, // peer.Response payload will json serialized car data
+		c.State().Put( //put json serialized data to state
+			Key(car.Id), // create composite key using CarKeyPrefix and car.Id
+			car))
 }
-
-func (cc *Cars) carNewOwner(c r.Context) peer.Response {
-
-	return c.Response().Success(nil)
-}
-
 ```

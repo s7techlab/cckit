@@ -1,18 +1,29 @@
 package state
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/s7techlab/cckit/convert"
 )
 
+var (
+	ErrUnableToCreateKey = errors.New(`unable to crate state key`)
+)
+
 // EntryList list of entries from state, gotten by part of composite key
 type EntryList []interface{}
 
 // Get data by key from state, trying to convert to target interface
-func Get(stub shim.ChaincodeStubInterface, key string, target interface{}) (result interface{}, err error) {
-	bb, err := stub.GetState(key)
+func Get(stub shim.ChaincodeStubInterface, key interface{}, target interface{}) (result interface{}, err error) {
+
+	stringKey, err := Key(stub, key)
+	if err != nil {
+		return false, err
+	}
+
+	bb, err := stub.GetState(stringKey)
 	if err != nil {
 		return
 	}
@@ -23,8 +34,14 @@ func Get(stub shim.ChaincodeStubInterface, key string, target interface{}) (resu
 }
 
 // Exists check entry with key exists in chaincode state
-func Exists(stub shim.ChaincodeStubInterface, key string) (exists bool, err error) {
-	bb, err := stub.GetState(key)
+func Exists(stub shim.ChaincodeStubInterface, key interface{}) (exists bool, err error) {
+
+	stringKey, err := Key(stub, key)
+	if err != nil {
+		return false, err
+	}
+
+	bb, err := stub.GetState(stringKey)
 	if err != nil {
 		return false, err
 	}
@@ -57,10 +74,26 @@ func List(stub shim.ChaincodeStubInterface, objectType string, target interface{
 }
 
 // Put data value in state with key, trying convert data to []byte
-func Put(stub shim.ChaincodeStubInterface, key string, value interface{}) (err error) {
+func Put(stub shim.ChaincodeStubInterface, key interface{}, value interface{}) (err error) {
 	b, err := convert.ToBytes(value)
 	if err != nil {
 		return err
 	}
-	return stub.PutState(key, b)
+	stringKey, err := Key(stub, key)
+	if err != nil {
+		return err
+	}
+	return stub.PutState(stringKey, b)
+}
+
+// Key transforms interface{} to string key
+func Key(stub shim.ChaincodeStubInterface, key interface{}) (string, error) {
+	switch key.(type) {
+	case string:
+		return key.(string), nil
+	case []string:
+		s := key.([]string)
+		return stub.CreateCompositeKey(s[0], s[1:])
+	}
+	return ``, ErrUnableToCreateKey
 }
