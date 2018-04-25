@@ -22,11 +22,15 @@ var _ = Describe(`Cars`, func() {
 	cc := testcc.NewMockStub(`cars`, New())
 
 	// load actor certificates
-	actors, err := examplecert.Actors(map[string]string{`authority`: `s7techlab.pem`, `someone`: `victor-nosov.pem`})
+	actors, err := examplecert.Actors(map[string]string{
+		`authority`: `s7techlab.pem`,
+		`someone`:   `victor-nosov.pem`,
+	})
 	if err != nil {
 		panic(err)
 	}
 
+	// cars fixtures
 	car1 := &Car{
 		Id:    `A777MP77`,
 		Title: `BMW`,
@@ -40,21 +44,22 @@ var _ = Describe(`Cars`, func() {
 	}
 
 	BeforeSuite(func() {
+		// init chaincode
 		expectcc.ResponseOk(cc.From(actors[`authority`]).Init()) // init chaincode from authority
 	})
 
 	Describe("Car", func() {
 
 		It("Allow authority to add information about car", func() {
-			//check that invoke method
+			//invoke chaincode method from authority actor
 			expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, car1))
 		})
 
 		It("Disallow non authority to add information about car", func() {
-			//check that invoke method
+			//invoke chaincode method from non authority actor
 			expectcc.ResponseError(
 				cc.From(actors[`someone`]).Invoke(`carRegister`, car1),
-				owner.ErrOwnerOnly)
+				owner.ErrOwnerOnly) // expect "only owner" error
 		})
 
 		It("Disallow authority to add duplicate information about car", func() {
@@ -80,7 +85,7 @@ var _ = Describe(`Cars`, func() {
 		})
 
 		It("Allow authority to add more information about car", func() {
-			//check that invoke method
+			// register second car
 			expectcc.ResponseOk(cc.Invoke(`carRegister`, car2))
 			cars := expectcc.PayloadIs(
 				cc.From(actors[`authority`]).Invoke(`carList`),
