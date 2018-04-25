@@ -7,7 +7,7 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/s7techlab/cckit/response"
+	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
 )
@@ -42,18 +42,19 @@ func New() *Chaincode {
 	r := router.New(`cars`) // also initialized logger with "cars" prefix
 
 	r.Group(`car`).
-		Query(`List`, cars).               // chain code method name is carList
-		Query(`Get`, car, p.String(`id`)). // chain code method name is carGet
-		Invoke(`Register`, carRegister, p.Struct(`car`, &CarPayload{}))
+		Query(`List`, cars).                                                        // chain code method name is carList
+		Query(`Get`, car, p.String(`id`)).                                          // chain code method name is carGet
+		Invoke(`Register`, carRegister, p.Struct(`car`, &CarPayload{}), owner.Only) // only owner (authority)
 
 	return &Chaincode{r}
 }
 
 //========  Base methods ====================================
 //
-// Init initializes chain code
+// Init initializes chain code - sets chaincode "owner"
 func (cc *Chaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return response.Success(nil)
+	// set owner of chain code with special permissions , based on tx creator certificate
+	return owner.SetFromCreator(cc.router.Context(`init`, stub))
 }
 
 // Invoke - entry point for chain code invocations

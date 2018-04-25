@@ -5,19 +5,25 @@
 
 **CCkit** is a **programming toolkit** for developing and testing hyperledger fabric chaincode
 
+## Overview
 
+### Features 
 
-## Example
+* Centralized chaincode invocation handling
+* Middleware support
+* Chaincode method access control
+* Automatic json marshalling / unmarshalling
+* MockStub testing
 
-
-### Hyperledger Fabric chaincode examples
+### Existing chaincode examples
 
 * https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go
 * https://github.com/IBM-Blockchain/marbles/blob/master/chaincode/src/marbles/marbles.go
 * https://github.com/IBM-Blockchain-Archive/car-lease-demo/blob/master/Chaincode/src/vehicle_code/vehicles.go
 
+## Example based on CCKit
 
-### Chaincode "Cars" based on CCKit
+### Chaincode "Cars" 
 
 [source code](examples/cars/cars.go),  [tests](examples/cars/cars_test.go)
 
@@ -31,7 +37,7 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/s7techlab/cckit/response"
+	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
 )
@@ -66,18 +72,19 @@ func New() *Chaincode {
 	r := router.New(`cars`) // also initialized logger with "cars" prefix
 
 	r.Group(`car`).
-		Query(`List`, cars).               // chain code method name is carList
-		Query(`Get`, car, p.String(`id`)). // chain code method name is carGet
-		Invoke(`Register`, carRegister, p.Struct(`car`, &CarPayload{}))
+		Query(`List`, cars).                                                        // chain code method name is carList
+		Query(`Get`, car, p.String(`id`)).                                          // chain code method name is carGet
+		Invoke(`Register`, carRegister, p.Struct(`car`, &CarPayload{}), owner.Only) // only owner (authority)
 
 	return &Chaincode{r}
 }
 
 //========  Base methods ====================================
 //
-// Init initializes chain code
+// Init initializes chain code - sets chaincode "owner"
 func (cc *Chaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return response.Success(nil)
+	// set owner of chain code with special permissions , based on tx creator certificate
+	return owner.SetFromCreator(cc.router.Context(`init`, stub))
 }
 
 // Invoke - entry point for chain code invocations
@@ -130,4 +137,101 @@ func carRegister(c router.Context) peer.Response {
 			Key(car.Id), // create composite key using CarKeyPrefix and car.Id
 			car))
 }
+```
+
+### Test for chaincode
+
+```go
+package main
+
+import (
+	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	examplecert "github.com/s7techlab/cckit/examples/cert"
+	"github.com/s7techlab/cckit/extensions/owner"
+	testcc "github.com/s7techlab/cckit/testing"
+	expectcc "github.com/s7techlab/cckit/testing/expect"
+)
+
+func TestCars(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Cars Suite")
+}
+
+var _ = Describe(`Cars`, func() {
+
+	//Create chaincode mock
+	cc := testcc.NewMockStub(`cars`, New())
+
+	// load actor certificates
+	actors, err := examplecert.Actors(map[string]string{`authority`: `s7techlab.pem`, `someone`: `victor-nosov.pem`})
+	if err != nil {
+		panic(err)
+	}
+
+	car1 := &Car{
+		Id:    `A777MP77`,
+		Title: `BMW`,
+		Owner: `victor-nosov`,
+	}
+
+	car2 := &Car{
+		Id:    `O888OO77`,
+		Title: `TOYOTA`,
+		Owner: `alexander`,
+	}
+
+	BeforeSuite(func() {
+		expectcc.ResponseOk(cc.From(actors[`authority`]).Init()) // init chaincode from authority
+	})
+
+	Describe("Car", func() {
+
+		It("Allow authority to add information about car", func() {
+			//check that invoke method
+			expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, car1))
+		})
+
+		It("Disallow non authority to add information about car", func() {
+			//check that invoke method
+			expectcc.ResponseError(
+				cc.From(actors[`someone`]).Invoke(`carRegister`, car1),
+				owner.ErrOwnerOnly)
+		})
+
+		It("Disallow authority to add duplicate information about car", func() {
+			expectcc.ResponseError(
+				cc.From(actors[`authority`]).Invoke(`carRegister`, car1),
+				ErrCarAlreadyExists) //expect already exists
+		})
+
+		It("Allow everyone to retrieve car information", func() {
+			car := expectcc.PayloadIs(cc.Invoke(`carGet`, car1.Id),
+				&Car{}).(Car)
+
+			Expect(car.Title).To(Equal(car1.Title))
+			Expect(car.Id).To(Equal(car1.Id))
+		})
+
+		It("Allow everyone to get car list", func() {
+			//  &[]Car{} - declares target type for unmarshalling from []byte received from chaincode
+			cars := expectcc.PayloadIs(cc.Invoke(`carList`), &[]Car{}).([]Car)
+
+			Expect(len(cars)).To(Equal(1))
+			Expect(cars[0].Id).To(Equal(car1.Id))
+		})
+
+		It("Allow authority to add more information about car", func() {
+			//check that invoke method
+			expectcc.ResponseOk(cc.Invoke(`carRegister`, car2))
+			cars := expectcc.PayloadIs(
+				cc.From(actors[`authority`]).Invoke(`carList`),
+				&[]Car{}).([]Car)
+
+			Expect(len(cars)).To(Equal(2))
+		})
+	})
+})
 ```
