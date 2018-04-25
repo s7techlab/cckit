@@ -141,6 +141,8 @@ func carRegister(c router.Context) peer.Response {
 
 ### Test for chaincode
 
+Tests are based on a modified [MockStub](testing/mockstub.go)
+
 ```go
 package main
 
