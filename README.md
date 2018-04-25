@@ -19,7 +19,10 @@
 
 ### Chaincode "Cars" based on CCKit
 
+[source code](examples/cars/cars.go),  [tests](examples/cars/cars_test.go)
+
 ```go
+// Simple CRUD chaincode for store information about cars
 package main
 
 import (
@@ -89,13 +92,16 @@ func Key(id string) []string {
 }
 
 // ======= Chaincode methods
+
+// car get info chaincode method handler
 func car(c router.Context) peer.Response {
 	return c.Response().Create(
-		c.State().Get(
-			Key(c.ArgString(`id`)), // get state entry by composite key  using CarKeyPrefix and car.Id
+		c.State().Get( // get state entry
+			Key(c.ArgString(`id`)), // by composite key using CarKeyPrefix and car.Id
 			&Car{}))                // unmarshal from []byte to Car struct
 }
 
+// cars car list chaincode method handler
 func cars(c router.Context) peer.Response {
 	return c.Response().Create(
 		c.State().List(
@@ -103,6 +109,7 @@ func cars(c router.Context) peer.Response {
 			&Car{}))      // unmarshal from []byte and append to []Car slice
 }
 
+// carRegister car register chaincode method handler
 func carRegister(c router.Context) peer.Response {
 	// arg name defined in router method definition
 	p := c.Arg(`car`).(CarPayload)
