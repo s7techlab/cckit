@@ -52,7 +52,7 @@ func FromStub(stub shim.ChaincodeStubInterface) (i Identity, err error) {
 	return &CertIdentity{mspID, cert}, nil
 }
 
-func FromSerialized(s *msp.SerializedIdentity) (i Identity, err error) {
+func FromSerialized(s msp.SerializedIdentity) (i Identity, err error) {
 	return FromCert(s.Mspid, s.IdBytes)
 }
 

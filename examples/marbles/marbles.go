@@ -63,7 +63,7 @@ func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 // ownerInit - register a new owner aka end user, store into chaincode state
 func (cc *Chaincode) marbleOwnerRegister(c r.Context) peer.Response {
 	//mspID and certificate
-	ownerIdentity, err := identity.FromSerialized(c.Arg(`identity`).(*msp.SerializedIdentity))
+	ownerIdentity, err := identity.FromSerialized(c.Arg(`identity`).(msp.SerializedIdentity))
 	if err != nil {
 		return c.Response().Error(err)
 	}

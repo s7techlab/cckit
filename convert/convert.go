@@ -48,28 +48,28 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 	}
 
 	targetType := reflect.TypeOf(target).Kind()
-	var targetPtr interface{}
-
 	switch targetType {
-
 	case reflect.Struct:
 		fallthrough
 	case reflect.Array:
 		fallthrough
 	case reflect.Slice:
-		targetPtr = &target // will be map[string]interface{}
-		fallthrough
+		// will be map[string]interface{}
+		return UnmarshallPtr(bb, &target)
 	case reflect.Ptr:
-		targetPtr = target // will be ptr to target struct, array ot slice
-		err = json.Unmarshal(bb, targetPtr)
+		return UnmarshallPtr(bb, target)
 
-		if err != nil {
-			err = errors.Wrap(err, ErrUnableToConvertValueToStruct.Error())
-		}
-		return targetPtr, err
 	default:
 		return nil, ErrUnsupportedType
 	}
+}
+
+func UnmarshallPtr(bb []byte, targetPtr interface{}) (result interface{}, err error) {
+	err = json.Unmarshal(bb, targetPtr)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrUnableToConvertValueToStruct.Error())
+	}
+	return reflect.Indirect(reflect.ValueOf(targetPtr)).Interface(), nil
 }
 
 // ToBytes converts inteface{} (string, []byte , struct to ToByter interface to []byte for storing in state
