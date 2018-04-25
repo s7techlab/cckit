@@ -29,7 +29,7 @@ type MockStub struct {
 	ClearCreatorAfterInvoke bool
 	_args                   [][]byte
 	InvokablesFull          map[string]*MockStub
-	creatorTransformer      func(...interface{}) pmsp.SerializedIdentity
+	creatorTransformer      func(...interface{}) (mspID string, certPEM []byte)
 }
 
 // NewMockStub creates MockStub
@@ -98,14 +98,14 @@ func (stub *MockStub) GetFunctionAndParameters() (function string, params []stri
 }
 
 // RegisterCreatorTransformer  that transforms creator data to MSP_ID and X.509 certificate
-func (stub *MockStub) RegisterCreatorTransformer(transformer func(...interface{}) pmsp.SerializedIdentity) *MockStub {
+func (stub *MockStub) RegisterCreatorTransformer(transformer func(...interface{}) (string, []byte)) *MockStub {
 	stub.creatorTransformer = transformer
 	return stub
 }
 
 // MockCreator of tx
-func (stub *MockStub) MockCreator(identity pmsp.SerializedIdentity) {
-	stub.mockCreator, _ = msp.NewSerializedIdentity(identity.Mspid, identity.IdBytes)
+func (stub *MockStub) MockCreator(mspID string, certPEM []byte) {
+	stub.mockCreator, _ = msp.NewSerializedIdentity(mspID, certPEM)
 }
 
 func (stub *MockStub) generateTxUID() string {
@@ -178,38 +178,39 @@ func (stub *MockStub) GetCreator() ([]byte, error) {
 
 // From tx creator mock
 func (stub *MockStub) From(mspParams ...interface{}) *MockStub {
-	var sid pmsp.SerializedIdentity
+	var mspID string
+	var certPEM []byte
 
 	if stub.creatorTransformer != nil {
-		sid = stub.creatorTransformer(mspParams...)
+		mspID, certPEM = stub.creatorTransformer(mspParams...)
 
 	} else if len(mspParams) == 1 {
-
-		switch mspParams[0].(type) {
+		p := mspParams[0]
+		switch p.(type) {
 
 		case identity.CertIdentity:
-			sid.Mspid = mspParams[0].(identity.CertIdentity).MspID
-			sid.IdBytes = mspParams[0].(identity.CertIdentity).PemEncode()
+			mspID = p.(identity.CertIdentity).MspID
+			certPEM = p.(identity.CertIdentity).PemEncode()
 
 		case *identity.CertIdentity:
-			sid.Mspid = mspParams[0].(*identity.CertIdentity).MspID
-			sid.IdBytes = mspParams[0].(*identity.CertIdentity).PemEncode()
+			mspID = p.(*identity.CertIdentity).MspID
+			certPEM = p.(*identity.CertIdentity).PemEncode()
 
 		case pmsp.SerializedIdentity:
-			sid = mspParams[0].(pmsp.SerializedIdentity)
-
+			mspID = p.(pmsp.SerializedIdentity).Mspid
+			certPEM = p.(pmsp.SerializedIdentity).IdBytes
 		case [2]string:
 			// array with 2 elements  - mspId and ca cert
-			sid.Mspid = mspParams[0].([2]string)[0]
-			sid.IdBytes = []byte(mspParams[0].([2]string)[1])
+			mspID = p.([2]string)[0]
+			certPEM = []byte(p.([2]string)[1])
 		default:
 			panic(ErrUnknownFromArgsType)
 		}
 	} else if len(mspParams) == 2 {
-		sid.Mspid = mspParams[0].(string)
-		sid.IdBytes = mspParams[1].([]byte)
+		mspID = mspParams[0].(string)
+		certPEM = mspParams[1].([]byte)
 	}
 
-	stub.MockCreator(sid)
+	stub.MockCreator(mspID, certPEM)
 	return stub
 }
