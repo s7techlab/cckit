@@ -53,12 +53,12 @@ func New() *Chaincode {
 //
 // Init initializes chain code
 func (cc *Chaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	// set owner of chain code with special permissions , based on tx creator certificate
 	return response.Success(nil)
 }
 
 // Invoke - entry point for chain code invocations
 func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+	// delegate handling to router
 	return cc.router.Handle(stub)
 }
 
