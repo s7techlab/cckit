@@ -1,3 +1,4 @@
+// Package owner provides method for storing in chaincode state information about chaincode owner
 package owner
 
 import (
@@ -41,7 +42,7 @@ func SetFromCreator(c r.Context) peer.Response {
 	return c.Response().Create(grant, c.State().Put(OwnerStateKey, grant))
 }
 
-// IsOwnerOr checks tx creator and compares with owner of another identity
+// IsInvokerOr checks tx creator and compares with owner of another identity
 func IsInvokerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identity) (bool, error) {
 	if isOwner, err := IsInvoker(stub); isOwner || err != nil {
 		return isOwner, err
@@ -61,7 +62,7 @@ func IsInvokerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identit
 	return false, nil
 }
 
-// InvokerIsOwner checks  than tx creator is chain code owner
+// IsInvoker checks  than tx creator is chain code owner
 func IsInvoker(stub shim.ChaincodeStubInterface) (bool, error) {
 	creator, err := identity.FromStub(stub)
 	if err != nil {

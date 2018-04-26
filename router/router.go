@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// ErrMethodNotFound occurs when trying to invoke non existent chaincode method
 	ErrMethodNotFound  = errors.New(`method not found`)
 	errNoRoutes        = errors.New(`no routes presented`)
 	errArgsNumMismatch = errors.New(`method args count mismatch`)

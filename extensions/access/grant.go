@@ -1,3 +1,4 @@
+// Package access contains structs for storing chaincode access control information
 package access
 
 import (

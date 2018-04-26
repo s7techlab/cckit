@@ -35,7 +35,7 @@ func FromCert(mspID string, c []byte) (ci *CertIdentity, err error) {
 	return &CertIdentity{mspID, cert}, nil
 }
 
-// InvokerFromStub creates Identity interface  from tx creator mspID and certificate (stub.GetCreator)
+// FromStub creates Identity interface  from tx creator mspID and certificate (stub.GetCreator)
 func FromStub(stub shim.ChaincodeStubInterface) (i Identity, err error) {
 	clientIdentity, err := cid.New(stub)
 	if err != nil {
@@ -88,6 +88,7 @@ func (ci CertIdentity) Is(id Identity) bool {
 	return ci.MspID == id.GetMSPID() && ci.GetSubject() == id.GetSubject()
 }
 
+// PemEncode encodes certificate to PEM
 func (ci CertIdentity) PemEncode() []byte {
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  `CERTIFICATE`,

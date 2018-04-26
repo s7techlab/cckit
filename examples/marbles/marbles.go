@@ -1,3 +1,4 @@
+// Marbles chaincode example
 package main
 
 import (
@@ -13,6 +14,7 @@ import (
 )
 
 var (
+	// ErrMarbleOwnerAlreadyRegistered occurs when trying to register owner with same certificate Subject and Issuer
 	ErrMarbleOwnerAlreadyRegistered = errors.New(`marble owner already registered`)
 )
 

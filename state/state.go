@@ -9,7 +9,9 @@ import (
 )
 
 var (
-	ErrUnableToCreateKey = errors.New(`unable to crate state key`)
+	// ErrUnableToCreateKey can occurs while creating composite key for entry
+	ErrUnableToCreateKey = errors.New(`unable to create state key`)
+	ErrKeyAlreadyExists  = errors.New(`state key already exists`)
 )
 
 // EntryList list of entries from state, gotten by part of composite key
@@ -84,6 +86,21 @@ func Put(stub shim.ChaincodeStubInterface, key interface{}, value interface{}) (
 		return err
 	}
 	return stub.PutState(stringKey, b)
+}
+
+// Insert value into chaincode state, returns error if key already exists
+func Insert(stub shim.ChaincodeStubInterface, key interface{}, value interface{}) (err error) {
+	exists, err := Exists(stub, key)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return ErrKeyAlreadyExists
+	}
+
+	return Put(stub, key, value)
 }
 
 // Key transforms interface{} to string key

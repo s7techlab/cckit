@@ -1,3 +1,4 @@
+// Converting between json serialized to []byte and go structs
 package convert
 
 import (
@@ -11,8 +12,10 @@ import (
 
 var (
 	// ErrUnsupportedType - type cannot be translate to or from []byte
-	ErrUnsupportedType              = errors.New(`fromBytes converting supports targets: FromByter interface, string,struct,array,slice,ptr`)
-	ErrUnableToConvertNilToStruct   = errors.New(`unable to convert nil to [struct,array,slice,ptr]`)
+	ErrUnsupportedType = errors.New(`fromBytes converting supports targets: FromByter interface, string,struct,array,slice,ptr`)
+	// ErrUnsupportedType - nil cannot be converted to struct
+	ErrUnableToConvertNilToStruct = errors.New(`unable to convert nil to [struct,array,slice,ptr]`)
+	// ErrUnsupportedType - value  cannot be converted to struct
 	ErrUnableToConvertValueToStruct = errors.New(`unable to convert value to [struct,array,slice,ptr]`)
 )
 
@@ -64,6 +67,7 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 	}
 }
 
+// UnmarshallPtr unmarshalls  [] byte to pointer, and returns value pointed to
 func UnmarshallPtr(bb []byte, targetPtr interface{}) (result interface{}, err error) {
 	err = json.Unmarshal(bb, targetPtr)
 	if err != nil {

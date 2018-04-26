@@ -92,9 +92,6 @@ func cars(c router.Context) peer.Response {
 func carRegister(c router.Context) peer.Response {
 	// arg name defined in router method definition
 	p := c.Arg(`car`).(CarPayload)
-	if exists, err := c.State().Exists(Key(p.Id)); exists || err != nil {
-		return c.Response().Error(ErrCarAlreadyExists)
-	}
 
 	t, _ := c.Time() // tx time
 	car := &Car{     // data for chaincode state
@@ -106,7 +103,7 @@ func carRegister(c router.Context) peer.Response {
 
 	return c.Response().Create(
 		car, // peer.Response payload will be json serialized car data
-		c.State().Put( //put json serialized data to state
+		c.State().Insert( //put json serialized data to state
 			Key(car.Id), // create composite key using CarKeyPrefix and car.Id
 			car))
 }

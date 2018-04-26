@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	// ErrOwnerOnly error occurs when trying to invoke chaincode func  protected by onlyOwner middleware (modifier)
 	ErrOwnerOnly = errors.New(`owner only`)
 )
 

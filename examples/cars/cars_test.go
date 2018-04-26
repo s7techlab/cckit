@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/owner"
+	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
@@ -65,7 +66,7 @@ var _ = Describe(`Cars`, func() {
 		It("Disallow authority to add duplicate information about car", func() {
 			expectcc.ResponseError(
 				cc.From(actors[`authority`]).Invoke(`carRegister`, car1),
-				ErrCarAlreadyExists) //expect already exists
+				state.ErrKeyAlreadyExists) //expect car id already exists
 		})
 
 		It("Allow everyone to retrieve car information", func() {

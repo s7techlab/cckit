@@ -9,7 +9,7 @@ import (
 	"github.com/s7techlab/cckit/convert"
 )
 
-// ExpectResponseOk expects peer.Response has shim.OK status and message has okSubstr prefix
+// ResponseOk expects peer.Response has shim.OK status and message has okSubstr prefix
 func ResponseOk(response peer.Response, okSubstr ...string) {
 	g.Expect(int(response.Status)).To(g.Equal(shim.OK), response.Message)
 
@@ -19,7 +19,7 @@ func ResponseOk(response peer.Response, okSubstr ...string) {
 
 }
 
-// ExpectResponseError expects peer.Response has shim.ERROR status and message has errorSubstr prefix
+// ResponseError expects peer.Response has shim.ERROR status and message has errorSubstr prefix
 func ResponseError(response peer.Response, errorSubstr ...interface{}) {
 	g.Expect(int(response.Status)).To(g.Equal(shim.ERROR), response.Message)
 
@@ -29,8 +29,8 @@ func ResponseError(response peer.Response, errorSubstr ...interface{}) {
 	}
 }
 
+// PayloadIs expects peer.Response payload can be marshalled to target interface{} and returns converted value
 func PayloadIs(response peer.Response, target interface{}) interface{} {
-
 	ResponseOk(response)
 	data, err := convert.FromBytes(response.Payload, target)
 	description := ``
