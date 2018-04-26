@@ -32,10 +32,10 @@ type (
 	// HandlerFunc returns result as interface and error, this is converted to peer.Response via response.Create
 	HandlerFunc func(Context) (interface{}, error)
 
-	// MiddlewareFunc middleware for chain code invoke
+	// ContextMiddlewareFunc middleware for ContextHandlerFun
 	ContextMiddlewareFunc func(ContextHandlerFunc, ...int) ContextHandlerFunc
 
-	// MiddlewareFunc middleware for chain code invoke
+	// MiddlewareFunc middleware for HandlerFunc
 	MiddlewareFunc func(HandlerFunc, ...int) HandlerFunc
 
 	// Group of chain code functions
@@ -114,7 +114,7 @@ func (g *Group) StubHandler(path string, fn StubHandlerFunc) *Group {
 	return g
 }
 
-// StubHandler adds new stub handler using presented path
+// ContextHandler adds new context handler using presented path
 func (g *Group) ContextHandler(path string, fn ContextHandlerFunc) *Group {
 	g.contextHandlers[g.prefix+path] = fn
 	return g

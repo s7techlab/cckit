@@ -18,7 +18,7 @@ var (
 	ErrToMuchArguments = errors.New(`too much arguments`)
 )
 
-// FromState return grant struct representing chain code owner
+// IdentityFromState return grant struct representing chain code owner
 func IdentityFromState(stub shim.ChaincodeStubInterface) (i identity.Identity, err error) {
 	owner, err := stub.GetState(OwnerStateKey)
 	if err != nil {
