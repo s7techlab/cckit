@@ -9,6 +9,7 @@ import (
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/access"
 	"github.com/s7techlab/cckit/extensions/owner"
+	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
@@ -61,7 +62,7 @@ var _ = Describe(`Marbles`, func() {
 		It("Disallow chaincode owner to register duplicate marble owner", func() {
 			expectcc.ResponseError(
 				cc.From(actors[`operator`]).Invoke(`marbleOwnerRegister`, actors[`owner1`]),
-				ErrMarbleOwnerAlreadyRegistered)
+				state.ErrKeyAlreadyExists)
 		})
 
 		It("Disallow to pass non SerializedIdentity json", func() {

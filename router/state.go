@@ -6,7 +6,7 @@ import (
 
 // State interface for chain code CRUD operations
 type State interface {
-	Get(key interface{}, target interface{}) (result interface{}, err error)
+	Get(key interface{}, target ...interface{}) (result interface{}, err error)
 	Exists(key interface{}) (exists bool, err error)
 	Put(key interface{}, value interface{}) (err error)
 	Insert(key interface{}, value interface{}) (err error)
@@ -17,8 +17,8 @@ type stateOp struct {
 	context Context
 }
 
-func (s *stateOp) Get(key interface{}, target interface{}) (result interface{}, err error) {
-	return state.Get(s.context.Stub(), key, target)
+func (s *stateOp) Get(key interface{}, target ...interface{}) (result interface{}, err error) {
+	return state.Get(s.context.Stub(), key, target...)
 }
 
 func (s *stateOp) Exists(key interface{}) (exists bool, err error) {

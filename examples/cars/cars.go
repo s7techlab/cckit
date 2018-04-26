@@ -73,23 +73,21 @@ func Key(id string) []string {
 // ======= Chaincode methods
 
 // car get info chaincode method handler
-func car(c router.Context) peer.Response {
-	return c.Response().Create( // returns shim.OK or shim.ERROR, depending on the result of state get operation
-		c.State().Get( // get state entry
-			Key(c.ArgString(`id`)), // by composite key using CarKeyPrefix and car.Id
-			&Car{}))                // and unmarshal from []byte to Car struct
+func car(c router.Context) (interface{}, error) {
+	return c.State().Get( // get state entry
+		Key(c.ArgString(`id`)), // by composite key using CarKeyPrefix and car.Id
+		&Car{})                 // and unmarshal from []byte to Car struct
 }
 
 // cars car list chaincode method handler
-func cars(c router.Context) peer.Response {
-	return c.Response().Create(
-		c.State().List(
-			CarKeyPrefix, // get list of state entries of type CarKeyPrefix
-			&Car{}))      // unmarshal from []byte and append to []Car slice
+func cars(c router.Context) (interface{}, error) {
+	return c.State().List(
+		CarKeyPrefix, // get list of state entries of type CarKeyPrefix
+		&Car{})       // unmarshal from []byte and append to []Car slice
 }
 
 // carRegister car register chaincode method handler
-func carRegister(c router.Context) peer.Response {
+func carRegister(c router.Context) (interface{}, error) {
 	// arg name defined in router method definition
 	p := c.Arg(`car`).(CarPayload)
 
@@ -101,9 +99,8 @@ func carRegister(c router.Context) peer.Response {
 		UpdatedAt: t,
 	}
 
-	return c.Response().Create(
-		car, // peer.Response payload will be json serialized car data
+	return car, // peer.Response payload will be json serialized car data
 		c.State().Insert( //put json serialized data to state
 			Key(car.Id), // create composite key using CarKeyPrefix and car.Id
-			car))
+			car)
 }

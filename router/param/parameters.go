@@ -4,9 +4,7 @@ import (
 	"errors"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/convert"
-	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 )
 
@@ -57,10 +55,10 @@ func Param(name string, paramType interface{}, argPoss ...int) router.Middleware
 	parameter := Parameter{name, paramType, argPos}
 
 	return func(next router.HandlerFunc, pos ...int) router.HandlerFunc {
-		return func(context router.Context) peer.Response {
+		return func(context router.Context) (interface{}, error) {
 			arg, err := parameter.getArgfromStub(context.Stub())
 			if err != nil {
-				return response.Error(err)
+				return nil, err
 			}
 			context.SetArg(name, arg)
 			return next(context)

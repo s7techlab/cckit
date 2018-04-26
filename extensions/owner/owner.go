@@ -19,7 +19,7 @@ var (
 )
 
 // FromState return grant struct representing chain code owner
-func FromState(stub shim.ChaincodeStubInterface) (i identity.Identity, err error) {
+func IdentityFromState(stub shim.ChaincodeStubInterface) (i identity.Identity, err error) {
 	owner, err := stub.GetState(OwnerStateKey)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func IsInvoker(stub shim.ChaincodeStubInterface) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	owner, err := FromState(stub)
+	owner, err := IdentityFromState(stub)
 	if err != nil {
 		return false, err
 	}

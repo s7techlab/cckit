@@ -20,7 +20,7 @@ var (
 type EntryList []interface{}
 
 // Get data by key from state, trying to convert to target interface
-func Get(stub shim.ChaincodeStubInterface, key interface{}, target interface{}) (result interface{}, err error) {
+func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{}) (result interface{}, err error) {
 
 	stringKey, err := Key(stub, key)
 	if err != nil {
@@ -34,7 +34,14 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target interface{}) 
 	if bb == nil || len(bb) == 0 {
 		return nil, fmt.Errorf("state entry not found, key: %s", key)
 	}
-	return convert.FromBytes(bb, target)
+
+	// converting to target type
+	if len(target) == 1 {
+		return convert.FromBytes(bb, target)
+	}
+
+	// or return raw
+	return bb, nil
 }
 
 // Exists check entry with key exists in chaincode state

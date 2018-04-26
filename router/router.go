@@ -3,13 +3,13 @@ package router
 
 import (
 	"os"
-	"sort"
 
 	"fmt"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
+	"github.com/s7techlab/cckit/response"
 )
 
 var (
@@ -23,24 +23,32 @@ type (
 	// InterfaceMap map of interfaces
 	InterfaceMap map[string]interface{}
 
-	// HandlerFunc chain code invoke context handler
-	HandlerFunc func(Context) peer.Response
+	// ContextHandlerFunc use stub context as input parameter
+	ContextHandlerFunc func(Context) peer.Response
+
+	// StubHandlerFunc acts as raw chaincode invoke method, accepts stub and returns peer.Response
+	StubHandlerFunc func(shim.ChaincodeStubInterface) peer.Response
+
+	// HandlerFunc returns result as interface and error, this is converted to peer.Response via response.Create
+	HandlerFunc func(Context) (interface{}, error)
+
+	// MiddlewareFunc middleware for chain code invoke
+	ContextMiddlewareFunc func(ContextHandlerFunc, ...int) ContextHandlerFunc
 
 	// MiddlewareFunc middleware for chain code invoke
 	MiddlewareFunc func(HandlerFunc, ...int) HandlerFunc
 
-	// PathHandler information about path handler
-	PathHandler struct {
-		Handler HandlerFunc
-	}
-
 	// Group of chain code functions
 	Group struct {
-		logger     *shim.ChaincodeLogger
-		prefix     string
-		middleware []MiddlewareFunc
-		methods    map[string]func(stub shim.ChaincodeStubInterface) peer.Response
-		handlers   map[string]PathHandler
+		logger *shim.ChaincodeLogger
+		prefix string
+
+		stubHandlers    map[string]StubHandlerFunc
+		contextHandlers map[string]ContextHandlerFunc
+		handlers        map[string]HandlerFunc
+
+		contextMiddleware []ContextMiddlewareFunc
+		middleware        []MiddlewareFunc
 	}
 )
 
@@ -49,20 +57,32 @@ type (
 func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 	fnString, _ := stub.GetFunctionAndParameters()
 
-	if fn, ok := g.methods[fnString]; ok {
-		return fn(stub)
-	}
-	if pathHandler, ok := g.handlers[fnString]; ok {
+	if stubHandler, ok := g.stubHandlers[fnString]; ok {
+		g.logger.Debug(`router.stubHandler: `, fnString)
+		return stubHandler(stub)
+	} else if contextHandler, ok := g.contextHandlers[fnString]; ok {
+		g.logger.Debug(`router.contextHandler: `, fnString)
 
-		g.logger.Debug(`router.invoke: `, fnString)
 		h := func(c Context) peer.Response {
-			h := pathHandler.Handler
+			h := contextHandler
+			for i := len(g.contextMiddleware) - 1; i >= 0; i-- {
+				h = g.contextMiddleware[i](h, i)
+			}
+			return h(c)
+		}
+
+		return h(g.Context(fnString, stub))
+	} else if handler, ok := g.handlers[fnString]; ok {
+		g.logger.Debug(`router.handler: `, fnString)
+
+		h := func(c Context) (interface{}, error) {
+			h := handler
 			for i := len(g.middleware) - 1; i >= 0; i-- {
 				h = g.middleware[i](h, i)
 			}
 			return h(c)
 		}
-		return h(g.Context(fnString, stub))
+		return response.Create(h(g.Context(fnString, stub)))
 	}
 
 	err := errors.Wrap(fmt.Errorf(`%s: %s`, ErrMethodNotFound, fnString), `chaincode router`)
@@ -79,18 +99,24 @@ func (g *Group) Use(middleware ...MiddlewareFunc) {
 // New group can be used as independent
 func (g *Group) Group(path string) *Group {
 	return &Group{
-		logger:     g.logger,
-		prefix:     g.prefix + path,
-		methods:    g.methods,
-		handlers:   g.handlers,
-		middleware: g.middleware,
+		logger:          g.logger,
+		prefix:          g.prefix + path,
+		stubHandlers:    g.stubHandlers,
+		contextHandlers: g.contextHandlers,
+		handlers:        g.handlers,
+		middleware:      g.middleware,
 	}
 }
 
-// Add adds new handler using presented path
-// Sets methods handler container
-func (g *Group) Add(path string, fn func(stub shim.ChaincodeStubInterface) peer.Response) *Group {
-	g.methods[g.prefix+path] = fn
+// StubHandler adds new stub handler using presented path
+func (g *Group) StubHandler(path string, fn StubHandlerFunc) *Group {
+	g.stubHandlers[g.prefix+path] = fn
+	return g
+}
+
+// StubHandler adds new stub handler using presented path
+func (g *Group) ContextHandler(path string, fn ContextHandlerFunc) *Group {
+	g.contextHandlers[g.prefix+path] = fn
 	return g
 }
 
@@ -101,31 +127,14 @@ func (g *Group) Query(path string, handler HandlerFunc, middleware ...Middleware
 
 // Invoke configure handler and middleware functions for chain code function name
 func (g *Group) Invoke(path string, handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
-	g.handlers[g.prefix+path] = PathHandler{
-		func(context Context) peer.Response {
-			h := handler
-			for i := len(middleware) - 1; i >= 0; i-- {
-				h = middleware[i](h, i)
-			}
-			return h(context)
-		}}
+	g.handlers[g.prefix+path] = func(context Context) (interface{}, error) {
+		h := handler
+		for i := len(middleware) - 1; i >= 0; i-- {
+			h = middleware[i](h, i)
+		}
+		return h(context)
+	}
 	return g
-}
-
-// Routes ordered []string view of routes
-func (g *Group) Routes() ([]string, error) {
-	rLen := len(g.methods)
-	if rLen == 0 {
-		return nil, errNoRoutes
-	}
-	r := make([]string, len(g.methods))
-	i := 0
-	for k := range g.methods {
-		r[i] = k
-		i++
-	}
-	sort.Strings(r)
-	return r, nil
 }
 
 // Context returns chain code invoke context  for provided path and stub
@@ -144,8 +153,9 @@ func New(name string) *Group {
 
 	g := new(Group)
 	g.logger = logger
-	g.methods = make(map[string]func(stub shim.ChaincodeStubInterface) peer.Response)
-	g.handlers = make(map[string]PathHandler)
+	g.stubHandlers = make(map[string]StubHandlerFunc)
+	g.contextHandlers = make(map[string]ContextHandlerFunc)
+	g.handlers = make(map[string]HandlerFunc)
 
 	return g
 }
