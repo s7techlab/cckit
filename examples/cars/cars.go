@@ -42,9 +42,10 @@ func New() *Chaincode {
 	r := router.New(`cars`) // also initialized logger with "cars" prefix
 
 	r.Group(`car`).
-		Query(`List`, cars).                                                        // chain code method name is carList
-		Query(`Get`, car, p.String(`id`)).                                          // chain code method name is carGet
-		Invoke(`Register`, carRegister, p.Struct(`car`, &CarPayload{}), owner.Only) // only owner (authority)
+		Query(`List`, cars).                                            // chain code method name is carList
+		Query(`Get`, car, p.String(`id`)).                              // chain code method name is carGet, method has 1 string argument "id"
+		Invoke(`Register`, carRegister, p.Struct(`car`, &CarPayload{}), // 1 struct argument
+			owner.Only) // allow access to method only for chaincode owner (authority)
 
 	return &Chaincode{r}
 }
@@ -54,6 +55,7 @@ func New() *Chaincode {
 // Init initializes chain code - sets chaincode "owner"
 func (cc *Chaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
 	// set owner of chain code with special permissions , based on tx creator certificate
+	// owner info stored in chaincode state as entry with key "OWNER" and content is serialized "Grant" structure
 	return owner.SetFromCreator(cc.router.Context(`init`, stub))
 }
 
@@ -72,10 +74,10 @@ func Key(id string) []string {
 
 // car get info chaincode method handler
 func car(c router.Context) peer.Response {
-	return c.Response().Create(
+	return c.Response().Create( // returns shim.OK or shim.ERROR, depending on the result of state get operation
 		c.State().Get( // get state entry
 			Key(c.ArgString(`id`)), // by composite key using CarKeyPrefix and car.Id
-			&Car{}))                // unmarshal from []byte to Car struct
+			&Car{}))                // and unmarshal from []byte to Car struct
 }
 
 // cars car list chaincode method handler
@@ -95,14 +97,15 @@ func carRegister(c router.Context) peer.Response {
 	}
 
 	t, _ := c.Time() // tx time
-	car := &Car{
+	car := &Car{     // data for chaincode state
 		Id:        p.Id,
 		Title:     p.Title,
 		Owner:     p.Owner,
-		UpdatedAt: t} // data for chaincode state
+		UpdatedAt: t,
+	}
 
 	return c.Response().Create(
-		car, // peer.Response payload will json serialized car data
+		car, // peer.Response payload will be json serialized car data
 		c.State().Put( //put json serialized data to state
 			Key(car.Id), // create composite key using CarKeyPrefix and car.Id
 			car))

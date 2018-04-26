@@ -7,7 +7,22 @@
 
 ## Overview
 
-### Features 
+### Problems with existing chaincode examples
+
+There are several chaincode examples available : 
+
+* [Marbles from hyperledger](https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go)
+* [Marbles from IBM-Blockchain](https://github.com/IBM-Blockchain/marbles/blob/master/chaincode/src/marbles/marbles.go)
+* [Car-lease-demo from IBM-Blockchain](https://github.com/IBM-Blockchain-Archive/car-lease-demo/blob/master/Chaincode/src/vehicle_code/vehicles.go)
+
+
+#### Main problems:
+
+* Absence of chaincode methods routing
+* Lots of code duplication (json marshalling / unmarshalling, validation, access control etc)
+* Uncompleted testing tools (MockStub)
+
+### CCKit features 
 
 * Centralized chaincode invocation handling
 * Middleware support
@@ -15,15 +30,12 @@
 * Automatic json marshalling / unmarshalling
 * MockStub testing
 
-### Existing chaincode examples
-
-* https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go
-* https://github.com/IBM-Blockchain/marbles/blob/master/chaincode/src/marbles/marbles.go
-* https://github.com/IBM-Blockchain-Archive/car-lease-demo/blob/master/Chaincode/src/vehicle_code/vehicles.go
-
 ## Example based on CCKit
 
 ### Chaincode "Cars" 
+
+Car registration chaincode. Only authority can register car information, all can view information about registered cars.
+
 
 [source code](examples/cars/cars.go),  [tests](examples/cars/cars_test.go)
 

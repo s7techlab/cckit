@@ -26,7 +26,7 @@ type Identity interface {
 	Is(i Identity) bool
 }
 
-// FromCert creates invoker struct from an mspID and certificate
+// FromCert creates CertIdentity struct from an mspID and certificate
 func FromCert(mspID string, c []byte) (ci *CertIdentity, err error) {
 	cert, err := Certificate(c)
 	if err != nil {
@@ -35,7 +35,7 @@ func FromCert(mspID string, c []byte) (ci *CertIdentity, err error) {
 	return &CertIdentity{mspID, cert}, nil
 }
 
-// InvokerFromStub creates invoker struct from tx creator mspID and certificate
+// InvokerFromStub creates Identity interface  from tx creator mspID and certificate (stub.GetCreator)
 func FromStub(stub shim.ChaincodeStubInterface) (i Identity, err error) {
 	clientIdentity, err := cid.New(stub)
 	if err != nil {
@@ -52,6 +52,7 @@ func FromStub(stub shim.ChaincodeStubInterface) (i Identity, err error) {
 	return &CertIdentity{mspID, cert}, nil
 }
 
+// FromSerialized converts  msp.SerializedIdentity struct  to Identity interface{}
 func FromSerialized(s msp.SerializedIdentity) (i Identity, err error) {
 	return FromCert(s.Mspid, s.IdBytes)
 }
@@ -94,6 +95,7 @@ func (ci CertIdentity) PemEncode() []byte {
 	})
 }
 
+// ToSerialized converts CertIdentity to *msp.SerializedIdentity
 func (ci CertIdentity) ToSerialized() *msp.SerializedIdentity {
 	return &msp.SerializedIdentity{
 		Mspid:   ci.MspID,

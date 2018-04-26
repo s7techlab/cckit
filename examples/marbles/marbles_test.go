@@ -3,8 +3,6 @@ package main
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/s7techlab/cckit/convert"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/access"
@@ -36,7 +34,9 @@ var _ = Describe(`Marbles`, func() {
 
 	Describe("Chaincode owner", func() {
 		It("Allow everyone to retrieve chaincode owner", func() {
-			grant := expectcc.PayloadIs(cc.Invoke(`owner`), &access.Grant{}).(*access.Grant)
+
+			// get info about chaincode owner
+			grant := expectcc.PayloadIs(cc.Invoke(`owner`), &access.Grant{}).(access.Grant)
 			Expect(grant.GetSubject()).To(Equal(actors[`operator`].GetSubject()))
 			Expect(grant.Is(actors[`operator`])).To(BeTrue())
 		})
@@ -44,15 +44,16 @@ var _ = Describe(`Marbles`, func() {
 
 	Describe("Marble owner", func() {
 
+		It("Allow chaincode owner to register marble owner", func() {
+			expectcc.ResponseOk(
+				// register owner1 certificate as potential marble owner
+				cc.From(actors[`operator`]).Invoke(`marbleOwnerRegister`, actors[`owner1`]))
+		})
+
 		It("Disallow non chaincode owner to register marble owner", func() {
 			expectcc.ResponseError(
 				cc.From(actors[`owner1`]).Invoke(`marbleOwnerRegister`, actors[`owner1`]),
 				owner.ErrOwnerOnly)
-		})
-
-		It("Allow chaincode owner to register marble owner", func() {
-			expectcc.ResponseOk(
-				cc.From(actors[`operator`]).Invoke(`marbleOwnerRegister`, actors[`owner1`]))
 		})
 
 		It("Disallow chaincode owner to register duplicate marble owner", func() {
