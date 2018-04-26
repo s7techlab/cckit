@@ -11,7 +11,9 @@ import (
 var (
 	// ErrUnableToCreateKey can occurs while creating composite key for entry
 	ErrUnableToCreateKey = errors.New(`unable to create state key`)
-	ErrKeyAlreadyExists  = errors.New(`state key already exists`)
+
+	// ErrKeyAlreadyExists can occurs when trying to insert entry with existing key
+	ErrKeyAlreadyExists = errors.New(`state key already exists`)
 )
 
 // EntryList list of entries from state, gotten by part of composite key

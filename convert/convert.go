@@ -1,4 +1,4 @@
-// Converting between json serialized to []byte and go structs
+// Package convert for transforming  between json serialized  []byte and go structs
 package convert
 
 import (
@@ -13,9 +13,9 @@ import (
 var (
 	// ErrUnsupportedType - type cannot be translate to or from []byte
 	ErrUnsupportedType = errors.New(`fromBytes converting supports targets: FromByter interface, string,struct,array,slice,ptr`)
-	// ErrUnsupportedType - nil cannot be converted to struct
+	// ErrUnableToConvertNilToStruct - nil cannot be converted to struct
 	ErrUnableToConvertNilToStruct = errors.New(`unable to convert nil to [struct,array,slice,ptr]`)
-	// ErrUnsupportedType - value  cannot be converted to struct
+	// ErrUnableToConvertValueToStruct - value  cannot be converted to struct
 	ErrUnableToConvertValueToStruct = errors.New(`unable to convert value to [struct,array,slice,ptr]`)
 )
 
