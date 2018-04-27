@@ -26,8 +26,8 @@ type Identity interface {
 	Is(i Identity) bool
 }
 
-// FromCert creates CertIdentity struct from an mspID and certificate
-func NewCertIdentity(mspID string, certPEM []byte) (ci *CertIdentity, err error) {
+// New creates CertIdentity struct from an mspID and certificate
+func New(mspID string, certPEM []byte) (ci *CertIdentity, err error) {
 	cert, err := Certificate(certPEM)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func NewCertIdentity(mspID string, certPEM []byte) (ci *CertIdentity, err error)
 }
 
 // FromStub creates Identity interface  from tx creator mspID and certificate (stub.GetCreator)
-func FromStub(stub shim.ChaincodeStubInterface) (i Identity, err error) {
+func FromStub(stub shim.ChaincodeStubInterface) (ci *CertIdentity, err error) {
 	clientIdentity, err := cid.New(stub)
 	if err != nil {
 		return
@@ -53,8 +53,8 @@ func FromStub(stub shim.ChaincodeStubInterface) (i Identity, err error) {
 }
 
 // FromSerialized converts  msp.SerializedIdentity struct  to Identity interface{}
-func FromSerialized(s msp.SerializedIdentity) (i Identity, err error) {
-	return NewCertIdentity(s.Mspid, s.IdBytes)
+func FromSerialized(s msp.SerializedIdentity) (ci *CertIdentity, err error) {
+	return New(s.Mspid, s.IdBytes)
 }
 
 // CertIdentity  structs holds data of an tx creator
