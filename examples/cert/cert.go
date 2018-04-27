@@ -31,7 +31,7 @@ func Actors(roles map[string]string) (map[string]*identity.CertIdentity, error) 
 		if err != nil {
 			return nil, err
 		}
-		ci, err := identity.FromCert(`SOME_MSP`, cert)
+		ci, err := identity.NewCertIdentity(`SOME_MSP`, cert)
 		if err != nil {
 			return nil, err
 		}

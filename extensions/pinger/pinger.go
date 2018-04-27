@@ -2,18 +2,15 @@
 package pinger
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
-	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/pkg/errors"
 	r "github.com/s7techlab/cckit/router"
 )
 
 const (
 	// PingsStatePrefix prefix for PingInfo composite key in chain code state
-	PingsStatePrefix = `PING`
+	PingKeyPrefix = `PING`
 	// FuncPingConstant func name
 	FuncPingConstant = `pingLocal`
 	// FuncPing func name
@@ -25,66 +22,43 @@ const (
 // PingInfo stores time and certificate of ping tx creator
 type PingInfo struct {
 	Time        time.Time
+	InvokerID   string
 	InvokerCert []byte
-}
-
-// ToBytes marshals PingInfo struct to json bytes
-func (pi PingInfo) ToBytes() []byte {
-	marshalled, _ := json.Marshal(pi)
-	return marshalled
-}
-
-// PingInfoFromBytes unmarshal from bytes
-func PingInfoFromBytes(marshalled []byte) (pingInfo PingInfo, e error) {
-	pi := new(PingInfo)
-	e = json.Unmarshal(marshalled, pi)
-	return *pi, e
-}
-
-// PingsInfoFromBytes unmarshal from bytes
-func PingsInfoFromBytes(marshalled []byte) (pingsInfo []PingInfo, e error) {
-	pi := new([]PingInfo)
-	e = json.Unmarshal(marshalled, pi)
-	return *pi, e
 }
 
 // Ping chain code func for put tx creator information to chain code state
 // checks endorsement policy is working
-func Ping(c r.Context) peer.Response {
+func Ping(c r.Context) (interface{}, error) {
+	pingInfo, err := FromContext(c)
+	if err != nil {
+		return nil, err
+	}
+
+	return pingInfo, c.State().Put([]string{PingKeyPrefix, pingInfo.InvokerID, pingInfo.Time.String()}, pingInfo)
+}
+
+func FromContext(c r.Context) (*PingInfo, error) {
 	id, err := cid.GetID(c.Stub())
 	if err != nil {
-		return c.Response().Error(err)
+		return nil, err
 	}
-
 	cert, err := cid.GetX509Certificate(c.Stub())
 	if err != nil {
-		return c.Response().Error(err)
+		return nil, err
 	}
-
 	t, err := c.Time()
 	if err != nil {
-		return c.Response().Error(err)
+		return nil, err
 	}
-
-	key, err := c.Stub().CreateCompositeKey(PingsStatePrefix, []string{id, t.String()})
-	if err != nil {
-		return c.Response().Error(err)
-	}
-
-	return c.Response().Create(`pinged`, c.State().Put(key, PingInfo{t, cert.Raw}))
-	//cid.ClientIdentity()
+	return &PingInfo{Time: t, InvokerID: id, InvokerCert: cert.Raw}, nil
 }
 
 // PingConstant chain code func only checks that chain code is installed and instantiated
-func PingConstant(c r.Context) peer.Response {
-	t, err := c.Time()
-	if err != nil {
-		return c.Response().Error(errors.Wrap(err, `failed to get tx timestamp`))
-	}
-	return c.Response().Success(t.String())
+func PingConstant(c r.Context) (interface{}, error) {
+	return FromContext(c)
 }
 
 // Pings chain code func returns pings from chain code state
-func Pings(c r.Context) peer.Response {
-	return c.Response().Create(c.State().List(PingsStatePrefix, PingInfo{}))
+func Pings(c r.Context) (interface{}, error) {
+	return c.State().List(PingKeyPrefix, &PingInfo{})
 }
