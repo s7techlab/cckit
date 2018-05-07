@@ -1,7 +1,7 @@
 package param
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/s7techlab/cckit/convert"
@@ -23,13 +23,13 @@ type (
 	MiddlewareFuncMap map[string]router.MiddlewareFunc
 )
 
-func (p Parameter) getArgfromStub(stub shim.ChaincodeStubInterface) (arg interface{}, err error) {
-	args := stub.GetArgs()
+func (p Parameter) ValueFromStub(stub shim.ChaincodeStubInterface) (arg interface{}, err error) {
+	args := stub.GetArgs()[1:] // first arg is chaincode function name
 
-	if p.ArgPos > len(args) {
-		return nil, errors.New(`Arg pos out of range`)
+	if p.ArgPos >= len(args) {
+		return nil, fmt.Errorf(`arg not exists in stub, requested pos : %d, args length : %d`, p.ArgPos, len(args))
 	}
-	return convert.FromBytes(args[p.ArgPos+1], p.Type) //first arg is function name
+	return convert.FromBytes(args[p.ArgPos], p.Type) //first arg is function name
 }
 
 // ParameterBag builder for named middleware list
@@ -56,7 +56,7 @@ func Param(name string, paramType interface{}, argPoss ...int) router.Middleware
 
 	return func(next router.HandlerFunc, pos ...int) router.HandlerFunc {
 		return func(context router.Context) (interface{}, error) {
-			arg, err := parameter.getArgfromStub(context.Stub())
+			arg, err := parameter.ValueFromStub(context.Stub())
 			if err != nil {
 				return nil, err
 			}
