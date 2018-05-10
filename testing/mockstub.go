@@ -34,12 +34,13 @@ type MockStub struct {
 
 // NewMockStub creates MockStub
 func NewMockStub(name string, cc shim.Chaincode) *MockStub {
-	s := shim.NewMockStub(name, cc)
-	fs := new(MockStub)
-	fs.MockStub = *s
-	fs.cc = cc
-	fs.InvokablesFull = make(map[string]*MockStub)
-	return fs
+
+	return &MockStub{
+		MockStub: *shim.NewMockStub(name, cc),
+		cc:       cc,
+		ClearCreatorAfterInvoke: true, // by default clear tx creator data after each cc method invoke
+		InvokablesFull:          make(map[string]*MockStub),
+	}
 }
 
 // GetArgs mocked args
