@@ -13,7 +13,7 @@ var (
 // Only allow access from chain code owner
 func Only(next router.HandlerFunc, pos ...int) router.HandlerFunc {
 	return func(c router.Context) (interface{}, error) {
-		invokerIsOwner, err := IsInvoker(c.Stub())
+		invokerIsOwner, err := IsInvoker(c)
 		if invokerIsOwner && err == nil {
 			return next(c)
 		}

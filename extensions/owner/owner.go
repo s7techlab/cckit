@@ -2,10 +2,8 @@
 package owner
 
 import (
-	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
-	"github.com/s7techlab/cckit/extensions/access"
 	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
 )
@@ -18,60 +16,53 @@ var (
 	ErrToMuchArguments = errors.New(`too much arguments`)
 )
 
-// IdentityFromState return grant struct representing chain code owner
-func IdentityFromState(stub shim.ChaincodeStubInterface) (i identity.Identity, err error) {
-	owner, err := stub.GetState(OwnerStateKey)
-	if err != nil {
-		return nil, err
-	}
-	return access.FromBytes(owner)
-}
-
 // SetFromCreator sets chain code owner from stub creator
 func SetFromCreator(c r.Context) peer.Response {
-	var grant *access.Grant
 	creator, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return c.Response().Error(err)
 	}
-
-	grant, err = access.GrantFromIdentity(creator)
+	identityEntry, err := identity.CreateEntry(creator)
 	if err != nil {
 		return c.Response().Error(err)
 	}
-
-	return c.Response().Create(grant, c.State().Insert(OwnerStateKey, grant))
+	return c.Response().Create(identityEntry, c.State().Insert(OwnerStateKey, identityEntry))
 }
 
 // IsInvokerOr checks tx creator and compares with owner of another identity
-func IsInvokerOr(stub shim.ChaincodeStubInterface, allowedTo ...identity.Identity) (bool, error) {
-	if isOwner, err := IsInvoker(stub); isOwner || err != nil {
+func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
+	if isOwner, err := IsInvoker(c); isOwner || err != nil {
 		return isOwner, err
 	}
 	if len(allowedTo) == 0 {
 		return false, nil
 	}
-	creator, err := identity.FromStub(stub)
+	invoker, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return false, err
 	}
 	for _, allowed := range allowedTo {
-		if allowed.Is(creator) {
+		if allowed.Is(invoker) {
 			return true, nil
 		}
 	}
 	return false, nil
 }
 
+// IdentityFromState
+func IdentityEntryFromState(c r.Context) (interface{}, error) {
+	return c.State().Get(OwnerStateKey, &identity.Entry{})
+}
+
 // IsInvoker checks  than tx creator is chain code owner
-func IsInvoker(stub shim.ChaincodeStubInterface) (bool, error) {
-	creator, err := identity.FromStub(stub)
+func IsInvoker(c r.Context) (bool, error) {
+	invoker, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return false, err
 	}
-	owner, err := IdentityFromState(stub)
+	owner, err := IdentityEntryFromState(c)
 	if err != nil {
 		return false, err
 	}
-	return creator.Is(owner), nil
+	return invoker.Is(owner.(identity.Entry)), nil
 }

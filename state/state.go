@@ -37,7 +37,7 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{
 
 	// converting to target type
 	if len(target) == 1 {
-		return convert.FromBytes(bb, target)
+		return convert.FromBytes(bb, target[0])
 	}
 
 	// or return raw

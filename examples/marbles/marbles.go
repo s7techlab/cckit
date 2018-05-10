@@ -5,7 +5,6 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/msp"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/s7techlab/cckit/extensions/access"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/router"
@@ -67,13 +66,13 @@ func marbleOwnerRegister(c router.Context) (interface{}, error) {
 	}
 
 	// create grant struct
-	ownerGrant, err := access.GrantFromIdentity(ownerIdentity)
+	ownerEntry, err := identity.CreateEntry(ownerIdentity)
 	if err != nil {
 		return nil, err
 	}
 
 	// put grant struct with owner mspID, as well as cert subject and issuer to state
-	return ownerGrant, c.State().Insert(ownerGrant.GetID(), ownerGrant)
+	return ownerEntry, c.State().Insert(ownerEntry.GetID(), ownerEntry)
 }
 
 // marbleInit - create a new marble, store into chaincode state

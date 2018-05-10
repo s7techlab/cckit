@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/s7techlab/cckit/convert"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
-	"github.com/s7techlab/cckit/extensions/access"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/state"
@@ -43,9 +42,9 @@ var _ = Describe(`Marbles`, func() {
 		It("Allow everyone to retrieve chaincode owner", func() {
 
 			// get info about chaincode owner
-			grant := expectcc.PayloadIs(cc.Invoke(`owner`), &access.Grant{}).(access.Grant)
-			Expect(grant.GetSubject()).To(Equal(actors[`operator`].GetSubject()))
-			Expect(grant.Is(actors[`operator`])).To(BeTrue())
+			owner := expectcc.PayloadIs(cc.Invoke(`owner`), &identity.Entry{}).(identity.Entry)
+			Expect(owner.GetSubject()).To(Equal(actors[`operator`].GetSubject()))
+			Expect(owner.Is(actors[`operator`])).To(BeTrue())
 		})
 	})
 

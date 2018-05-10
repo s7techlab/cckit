@@ -45,12 +45,12 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 
 // FromBytesToStruct converts []byte to struct,array,slice depending on target type
 func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err error) {
-
 	if bb == nil {
 		return nil, ErrUnableToConvertNilToStruct
 	}
 
 	targetType := reflect.TypeOf(target).Kind()
+
 	switch targetType {
 	case reflect.Struct:
 		fallthrough
@@ -93,9 +93,6 @@ func ToBytes(value interface{}) ([]byte, error) {
 
 		switch valueType {
 
-		// used when type based on string
-		case reflect.String:
-			return []byte(reflect.ValueOf(value).String()), nil
 		case reflect.Ptr:
 			fallthrough
 		case reflect.Struct:
@@ -106,6 +103,11 @@ func ToBytes(value interface{}) ([]byte, error) {
 
 			//TODO: problems when struct includes anonymous struct - anonymous struct is in separate field
 			return json.Marshal(value)
+
+			// used when type based on string
+		case reflect.String:
+			return []byte(reflect.ValueOf(value).String()), nil
+
 		default:
 			return nil, fmt.Errorf(`to []byte converting supports ToByter interface,struct,array,slice  and string, current type is %s`, valueType)
 		}
