@@ -34,7 +34,6 @@ type MockStub struct {
 
 // NewMockStub creates MockStub
 func NewMockStub(name string, cc shim.Chaincode) *MockStub {
-
 	return &MockStub{
 		MockStub: *shim.NewMockStub(name, cc),
 		cc:       cc,

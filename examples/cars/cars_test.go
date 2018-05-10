@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/owner"
+	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -23,10 +24,9 @@ var _ = Describe(`Cars`, func() {
 	cc := testcc.NewMockStub(`cars`, New())
 
 	// load actor certificates
-	actors, err := examplecert.Actors(map[string]string{
+	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
 		`authority`: `s7techlab.pem`,
-		`someone`:   `victor-nosov.pem`,
-	})
+		`someone`:   `victor-nosov.pem`}, examplecert.Content)
 	if err != nil {
 		panic(err)
 	}
@@ -87,7 +87,7 @@ var _ = Describe(`Cars`, func() {
 
 		It("Allow authority to add more information about car", func() {
 			// register second car
-			expectcc.ResponseOk(cc.Invoke(`carRegister`, car2))
+			expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, car2))
 			cars := expectcc.PayloadIs(
 				cc.From(actors[`authority`]).Invoke(`carList`),
 				&[]Car{}).([]Car)

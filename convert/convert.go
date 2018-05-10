@@ -93,6 +93,9 @@ func ToBytes(value interface{}) ([]byte, error) {
 
 		switch valueType {
 
+		// used when type based on string
+		case reflect.String:
+			return []byte(reflect.ValueOf(value).String()), nil
 		case reflect.Ptr:
 			fallthrough
 		case reflect.Struct:

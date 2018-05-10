@@ -39,7 +39,8 @@ func SetFromCreator(c r.Context) peer.Response {
 	if err != nil {
 		return c.Response().Error(err)
 	}
-	return c.Response().Create(grant, c.State().Put(OwnerStateKey, grant))
+
+	return c.Response().Create(grant, c.State().Insert(OwnerStateKey, grant))
 }
 
 // IsInvokerOr checks tx creator and compares with owner of another identity

@@ -9,6 +9,7 @@ import (
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/access"
 	"github.com/s7techlab/cckit/extensions/owner"
+	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -24,8 +25,11 @@ var _ = Describe(`Marbles`, func() {
 	//Create chaincode mock
 	cc := testcc.NewMockStub(`marbles`, New())
 
-	// load actor certificates
-	actors, err := examplecert.Actors(map[string]string{`operator`: `s7techlab.pem`, `owner1`: `victor-nosov.pem`})
+	// load actor certificates from github.com/s7techlab/cckit/examples/cert
+	actors, err := identity.ActorsFromPemFile(
+		`SOME_MSP`,
+		map[string]string{`operator`: `s7techlab.pem`, `owner1`: `victor-nosov.pem`},
+		examplecert.Content)
 	if err != nil {
 		panic(err)
 	}

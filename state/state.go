@@ -106,7 +106,7 @@ func Insert(stub shim.ChaincodeStubInterface, key interface{}, value interface{}
 	}
 
 	if exists {
-		return ErrKeyAlreadyExists
+		return fmt.Errorf(`%s: %s`, ErrKeyAlreadyExists, key)
 	}
 
 	return Put(stub, key, value)
