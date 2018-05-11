@@ -1,6 +1,8 @@
 // Package access contains structs for storing chaincode access control information
 package identity
 
+import "github.com/hyperledger/fabric/core/chaincode/shim"
+
 // Entry structure for storing identity information
 type Entry struct {
 	MSPId   string
@@ -48,4 +50,12 @@ func CreateEntry(i Identity) (g *Entry, err error) {
 		Subject: i.GetSubject(),
 		Issuer:  i.GetIssuer(),
 	}, nil
+}
+
+func EntryFromStub(stub shim.ChaincodeStubInterface) (g *Entry, err error) {
+	id, err := FromStub(stub)
+	if err != nil {
+		return nil, err
+	}
+	return CreateEntry(id)
 }
