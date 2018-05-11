@@ -58,15 +58,9 @@ func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 // marbleOwnerRegister  register a new owner aka end user, save user cert info (Subject, Issuer)
 // into chaincode state as serialized Grant struct
 func marbleOwnerRegister(c router.Context) (interface{}, error) {
-	// receives mspID and certificate as arg with type msp.SerializedIdentity
-	// and converts to Identity interface
-	ownerIdentity, err := identity.FromSerialized(c.Arg(`identity`).(msp.SerializedIdentity))
-	if err != nil {
-		return nil, err
-	}
-
-	// create grant struct
-	ownerEntry, err := identity.CreateEntry(ownerIdentity)
+	// receives mspID and certificate as arg in msp.SerializedIdentity type
+	// and converts to Identity.Entry
+	ownerEntry, err := identity.EntryFromSerialized(c.Arg(`identity`).(msp.SerializedIdentity))
 	if err != nil {
 		return nil, err
 	}

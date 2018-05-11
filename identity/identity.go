@@ -57,6 +57,14 @@ func FromSerialized(s msp.SerializedIdentity) (ci *CertIdentity, err error) {
 	return New(s.Mspid, s.IdBytes)
 }
 
+func EntryFromSerialized(s msp.SerializedIdentity) (g *Entry, err error) {
+	id, err := FromSerialized(s)
+	if err != nil {
+		return nil, err
+	}
+	return CreateEntry(id)
+}
+
 // CertIdentity  structs holds data of an tx creator
 type CertIdentity struct {
 	MspID string
