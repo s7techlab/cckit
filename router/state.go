@@ -10,7 +10,7 @@ type State interface {
 	Exists(key interface{}) (exists bool, err error)
 	Put(key interface{}, value interface{}) (err error)
 	Insert(key interface{}, value interface{}) (err error)
-	List(objectType string, target interface{}) (result []interface{}, err error)
+	List(objectType interface{}, target interface{}) (result []interface{}, err error)
 }
 
 type stateOp struct {
@@ -33,6 +33,6 @@ func (s *stateOp) Insert(key interface{}, value interface{}) (err error) {
 	return state.Insert(s.context.Stub(), key, value)
 }
 
-func (s *stateOp) List(objectType string, target interface{}) (result []interface{}, err error) {
+func (s *stateOp) List(objectType interface{}, target interface{}) (result []interface{}, err error) {
 	return state.List(s.context.Stub(), objectType, target)
 }

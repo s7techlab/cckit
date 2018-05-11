@@ -1,8 +1,9 @@
 package state
 
 import (
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/s7techlab/cckit/convert"
@@ -18,6 +19,11 @@ var (
 
 // EntryList list of entries from state, gotten by part of composite key
 type EntryList []interface{}
+
+// Keyer interface for entity containing logic of its key creation
+type Keyer interface {
+	Key() ([]string, error)
+}
 
 // Get data by key from state, trying to convert to target interface
 func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{}) (result interface{}, err error) {
@@ -61,8 +67,12 @@ func Exists(stub shim.ChaincodeStubInterface, key interface{}) (exists bool, err
 
 // List data from state using objectType prefix in composite key, trying to conver to target interface.
 // Keys -  additional components of composite key
-func List(stub shim.ChaincodeStubInterface, objectType string, target interface{}, keys ...string) (result EntryList, err error) {
-	iter, err := stub.GetStateByPartialCompositeKey(objectType, keys)
+func List(stub shim.ChaincodeStubInterface, objectType interface{}, target interface{}) (result EntryList, err error) {
+	keyParts, err := KeyParts(objectType)
+	if err != nil {
+		return nil, errors.Wrap(err, `unable to get key parts`)
+	}
+	iter, err := stub.GetStateByPartialCompositeKey(keyParts[0], keyParts[1:])
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +96,7 @@ func List(stub shim.ChaincodeStubInterface, objectType string, target interface{
 
 // Put data value in state with key, trying convert data to []byte
 func Put(stub shim.ChaincodeStubInterface, key interface{}, value interface{}) (err error) {
-	b, err := convert.ToBytes(value)
+	bb, err := convert.ToBytes(value)
 	if err != nil {
 		return err
 	}
@@ -94,7 +104,7 @@ func Put(stub shim.ChaincodeStubInterface, key interface{}, value interface{}) (
 	if err != nil {
 		return err
 	}
-	return stub.PutState(stringKey, b)
+	return stub.PutState(stringKey, bb)
 }
 
 // Insert value into chaincode state, returns error if key already exists
@@ -104,22 +114,33 @@ func Insert(stub shim.ChaincodeStubInterface, key interface{}, value interface{}
 	if err != nil {
 		return err
 	}
-
 	if exists {
-		return fmt.Errorf(`%s: %s`, ErrKeyAlreadyExists, key)
+		strKey, _ := Key(stub, key)
+		return fmt.Errorf(`%s: %s (%s)`, ErrKeyAlreadyExists, key, strKey)
 	}
-
 	return Put(stub, key, value)
 }
 
 // Key transforms interface{} to string key
 func Key(stub shim.ChaincodeStubInterface, key interface{}) (string, error) {
-	switch key.(type) {
-	case string:
-		return key.(string), nil
-	case []string:
-		s := key.([]string)
-		return stub.CreateCompositeKey(s[0], s[1:])
+	keyParts, err := KeyParts(key)
+	if err != nil {
+		return ``, err
 	}
-	return ``, ErrUnableToCreateKey
+	return stub.CreateCompositeKey(keyParts[0], keyParts[1:])
+}
+
+// KeyParts returns string parts of composite key
+func KeyParts(key interface{}) ([]string, error) {
+
+	switch key.(type) {
+	case Keyer:
+		return key.(Keyer).Key()
+	case string:
+		return []string{key.(string)}, nil
+	case []string:
+		return key.([]string), nil
+	}
+
+	return nil, ErrUnableToCreateKey
 }
