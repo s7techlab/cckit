@@ -18,7 +18,7 @@ var (
 	// ErrChaincodeNotExists occurs when attempting to invoke a nonexostent external chaincode
 	ErrChaincodeNotExists = errors.New(`chaincode not exists`)
 	// ErrUnknownFromArgsType  occurs when attempting to set unknown args in From func
-	ErrUnknownFromArgsType = `unknown args type to cckit.MockStub.From func, `
+	ErrUnknownFromArgsType = errors.New(`unknown args type to cckit.MockStub.From func, `)
 )
 
 // MockStub replacement of shim.MockStub with creator mocking facilities
@@ -29,8 +29,10 @@ type MockStub struct {
 	ClearCreatorAfterInvoke bool
 	_args                   [][]byte
 	InvokablesFull          map[string]*MockStub
-	creatorTransformer      func(...interface{}) (mspID string, certPEM []byte)
+	creatorTransformer      CreatorTransformer
 }
+
+type CreatorTransformer func(...interface{}) (mspID string, certPEM []byte, err error)
 
 // NewMockStub creates MockStub
 func NewMockStub(name string, cc shim.Chaincode) *MockStub {
@@ -98,8 +100,8 @@ func (stub *MockStub) GetFunctionAndParameters() (function string, params []stri
 }
 
 // RegisterCreatorTransformer  that transforms creator data to MSP_ID and X.509 certificate
-func (stub *MockStub) RegisterCreatorTransformer(transformer func(...interface{}) (string, []byte)) *MockStub {
-	stub.creatorTransformer = transformer
+func (stub *MockStub) RegisterCreatorTransformer(creatorTransformer CreatorTransformer) *MockStub {
+	stub.creatorTransformer = creatorTransformer
 	return stub
 }
 
@@ -177,40 +179,46 @@ func (stub *MockStub) GetCreator() ([]byte, error) {
 }
 
 // From tx creator mock
-func (stub *MockStub) From(mspParams ...interface{}) *MockStub {
+func (stub *MockStub) From(txCreator ...interface{}) *MockStub {
+
 	var mspID string
 	var certPEM []byte
+	var err error
 
 	if stub.creatorTransformer != nil {
-		mspID, certPEM = stub.creatorTransformer(mspParams...)
+		mspID, certPEM, err = stub.creatorTransformer(txCreator...)
+	} else {
+		mspID, certPEM, err = TransformCreator(txCreator...)
+	}
 
-	} else if len(mspParams) == 1 {
-		p := mspParams[0]
+	if err != nil {
+		panic(err)
+	}
+	stub.MockCreator(mspID, certPEM)
+	return stub
+}
+
+func TransformCreator(txCreator ...interface{}) (mspID string, certPEM []byte, err error) {
+	if len(txCreator) == 1 {
+		p := txCreator[0]
 		switch p.(type) {
 
 		case identity.CertIdentity:
-			mspID = p.(identity.CertIdentity).MspID
-			certPEM = p.(identity.CertIdentity).PemEncode()
+			return p.(identity.CertIdentity).MspID, p.(identity.CertIdentity).PemEncode(), nil
 
 		case *identity.CertIdentity:
-			mspID = p.(*identity.CertIdentity).MspID
-			certPEM = p.(*identity.CertIdentity).PemEncode()
+			return p.(*identity.CertIdentity).MspID, p.(*identity.CertIdentity).PemEncode(), nil
 
 		case pmsp.SerializedIdentity:
-			mspID = p.(pmsp.SerializedIdentity).Mspid
-			certPEM = p.(pmsp.SerializedIdentity).IdBytes
+			return p.(pmsp.SerializedIdentity).Mspid, p.(pmsp.SerializedIdentity).IdBytes, nil
+
 		case [2]string:
 			// array with 2 elements  - mspId and ca cert
-			mspID = p.([2]string)[0]
-			certPEM = []byte(p.([2]string)[1])
-		default:
-			panic(ErrUnknownFromArgsType)
+			return p.([2]string)[0], []byte(p.([2]string)[1]), nil
 		}
-	} else if len(mspParams) == 2 {
-		mspID = mspParams[0].(string)
-		certPEM = mspParams[1].([]byte)
+	} else if len(txCreator) == 2 {
+		return txCreator[0].(string), txCreator[1].([]byte), nil
 	}
 
-	stub.MockCreator(mspID, certPEM)
-	return stub
+	return ``, nil, ErrUnknownFromArgsType
 }
