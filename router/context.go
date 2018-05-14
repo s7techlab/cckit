@@ -43,7 +43,7 @@ func (c *context) Client() (cid.ClientIdentity, error) {
 }
 
 func (c *context) Response() Response {
-	return contextResponse{c}
+	return ContextResponse{c}
 }
 
 func (c *context) Logger() *shim.ChaincodeLogger {
@@ -55,7 +55,7 @@ func (c *context) Path() string {
 }
 
 func (c *context) State() State {
-	return &stateOp{c}
+	return ContextState{c}
 }
 
 // Time

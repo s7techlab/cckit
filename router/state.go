@@ -13,26 +13,26 @@ type State interface {
 	List(objectType interface{}, target interface{}) (result []interface{}, err error)
 }
 
-type stateOp struct {
+type ContextState struct {
 	context Context
 }
 
-func (s *stateOp) Get(key interface{}, target ...interface{}) (result interface{}, err error) {
+func (s ContextState) Get(key interface{}, target ...interface{}) (result interface{}, err error) {
 	return state.Get(s.context.Stub(), key, target...)
 }
 
-func (s *stateOp) Exists(key interface{}) (exists bool, err error) {
+func (s ContextState) Exists(key interface{}) (exists bool, err error) {
 	return state.Exists(s.context.Stub(), key)
 }
 
-func (s *stateOp) Put(key interface{}, value interface{}) (err error) {
+func (s ContextState) Put(key interface{}, value interface{}) (err error) {
 	return state.Put(s.context.Stub(), key, value)
 }
 
-func (s *stateOp) Insert(key interface{}, value interface{}) (err error) {
+func (s ContextState) Insert(key interface{}, value interface{}) (err error) {
 	return state.Insert(s.context.Stub(), key, value)
 }
 
-func (s *stateOp) List(objectType interface{}, target interface{}) (result []interface{}, err error) {
+func (s ContextState) List(objectType interface{}, target interface{}) (result []interface{}, err error) {
 	return state.List(s.context.Stub(), objectType, target)
 }

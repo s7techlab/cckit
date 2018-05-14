@@ -13,23 +13,27 @@ type Response interface {
 	Create(data interface{}, err interface{}) peer.Response
 }
 
-type contextResponse struct {
+// ContextResponse implementation
+type ContextResponse struct {
 	context Context
 }
 
-func (c contextResponse) Error(err interface{}) peer.Response {
+// Error response
+func (c ContextResponse) Error(err interface{}) peer.Response {
 	res := response.Error(err)
 	c.context.Logger().Warning(`router.handle.error: `, c.context.Path(), `, err: `, res.Message)
 	return res
 }
 
-func (c contextResponse) Success(data interface{}) peer.Response {
+// Success response
+func (c ContextResponse) Success(data interface{}) peer.Response {
 	res := response.Success(data)
 	c.context.Logger().Debug(`router.handle.success: `, c.context.Path(), `, data: `, string(res.Payload))
 	return res
 }
 
-func (c contextResponse) Create(data interface{}, err interface{}) peer.Response {
+// Create  returns error response if err != nil
+func (c ContextResponse) Create(data interface{}, err interface{}) peer.Response {
 	result := response.Create(data, err)
 
 	if result.Status == shim.ERROR {
