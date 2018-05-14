@@ -27,12 +27,10 @@ type Keyer interface {
 
 // Get data by key from state, trying to convert to target interface
 func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{}) (result interface{}, err error) {
-
 	stringKey, err := Key(stub, key)
 	if err != nil {
 		return false, err
 	}
-
 	bb, err := stub.GetState(stringKey)
 	if err != nil {
 		return
@@ -40,7 +38,6 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{
 	if bb == nil || len(bb) == 0 {
 		return nil, fmt.Errorf("state entry not found, key: %s", key)
 	}
-
 	// converting to target type
 	if len(target) == 1 {
 		return convert.FromBytes(bb, target[0])
@@ -52,12 +49,10 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{
 
 // Exists check entry with key exists in chaincode state
 func Exists(stub shim.ChaincodeStubInterface, key interface{}) (exists bool, err error) {
-
 	stringKey, err := Key(stub, key)
 	if err != nil {
 		return false, err
 	}
-
 	bb, err := stub.GetState(stringKey)
 	if err != nil {
 		return false, err
@@ -116,7 +111,7 @@ func Insert(stub shim.ChaincodeStubInterface, key interface{}, value interface{}
 	}
 	if exists {
 		strKey, _ := Key(stub, key)
-		return fmt.Errorf(`%s: %s (%s)`, ErrKeyAlreadyExists, key, strKey)
+		return fmt.Errorf(`%s: %s`, ErrKeyAlreadyExists, strKey)
 	}
 	return Put(stub, key, value)
 }
