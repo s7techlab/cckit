@@ -2,17 +2,15 @@
 package convert
 
 import (
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
 
 var (
-	// ErrUnsupportedType - type cannot be translate to or from []byte
-	ErrUnsupportedType = errors.New(`fromBytes converting supports targets: FromByter interface, string,struct,array,slice,ptr`)
 	// ErrUnableToConvertNilToStruct - nil cannot be converted to struct
 	ErrUnableToConvertNilToStruct = errors.New(`unable to convert nil to [struct,array,slice,ptr]`)
 	// ErrUnableToConvertValueToStruct - value  cannot be converted to struct
@@ -34,6 +32,8 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 	switch target.(type) {
 	case string:
 		return string(bb), nil
+	case int:
+		return strconv.Atoi(string(bb))
 	case FromByter:
 		return target.(FromByter).FromBytes(bb)
 
@@ -48,7 +48,6 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 	if bb == nil {
 		return nil, ErrUnableToConvertNilToStruct
 	}
-
 	targetType := reflect.TypeOf(target).Kind()
 
 	switch targetType {
@@ -63,7 +62,9 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 		return UnmarshallPtr(bb, target)
 
 	default:
-		return nil, ErrUnsupportedType
+		return nil, fmt.Errorf(
+			`toBytes converting supports ToByter interface,struct,array,slice and string, current type is %s`,
+			targetType)
 	}
 }
 
@@ -85,6 +86,8 @@ func ToBytes(value interface{}) ([]byte, error) {
 		return value.(ToByter).ToBytes()
 	case string:
 		return []byte(value.(string)), nil
+	case uint:
+		return []byte(fmt.Sprint(value.(uint))), nil
 	case []byte:
 		return value.([]byte), nil
 
@@ -109,11 +112,12 @@ func ToBytes(value interface{}) ([]byte, error) {
 			return []byte(reflect.ValueOf(value).String()), nil
 
 		default:
-			return nil, fmt.Errorf(`to []byte converting supports ToByter interface,struct,array,slice  and string, current type is %s`, valueType)
+			return nil, fmt.Errorf(
+				`toBytes converting supports ToByter interface,struct,array,slice and string, current type is %s`,
+				valueType)
 		}
 
 	}
-
 }
 
 // ArgsToBytes converts func arguments to bytes
