@@ -1,4 +1,6 @@
-# X.509 certificate for testing
+# Hyperledger Fabric chaincode kit (CCKit)
+
+## X.509 certificate for testing
 
 generate self-signed certificate:
 

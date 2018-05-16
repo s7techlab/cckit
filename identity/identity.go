@@ -57,6 +57,7 @@ func FromSerialized(s msp.SerializedIdentity) (ci *CertIdentity, err error) {
 	return New(s.Mspid, s.IdBytes)
 }
 
+// EntryFromSerialized creates Entry from SerializedEntry
 func EntryFromSerialized(s msp.SerializedIdentity) (g *Entry, err error) {
 	id, err := FromSerialized(s)
 	if err != nil {

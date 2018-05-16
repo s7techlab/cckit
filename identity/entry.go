@@ -10,6 +10,11 @@ type Entry struct {
 	Issuer  string
 }
 
+// IdentityEntry interface
+type IdentityEntry interface {
+	GetIdentityEntry() Entry
+}
+
 // ========  Identity interface ===================
 
 // GetID identifier by certificate subject and issuer
@@ -42,6 +47,10 @@ func (e Entry) Is(id Identity) bool {
 //	err := json.Unmarshal(bb, entry)
 //	return entry, err
 //}
+
+func (e Entry) GetIdentityEntry() Entry {
+	return e
+}
 
 // CreateEntry creates IdentityEntry structure from an identity interface
 func CreateEntry(i Identity) (g *Entry, err error) {

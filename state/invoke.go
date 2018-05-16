@@ -10,6 +10,7 @@ var (
 	ErrEmptyChaincodeResponsePayload = errors.New(`empty chaincode response payload`)
 )
 
+// InvokeChaincode locally calls the specified chaincode and converts result into target data type
 func InvokeChaincode(
 	stub shim.ChaincodeStubInterface, chaincodeName string, args []interface{}, channel string, target interface{}) (interface{}, error) {
 
