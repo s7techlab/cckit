@@ -32,6 +32,8 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 	switch target.(type) {
 	case string:
 		return string(bb), nil
+	case []byte:
+		return bb, nil
 	case int:
 		return strconv.Atoi(string(bb))
 	case FromByter:

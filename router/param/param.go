@@ -23,3 +23,8 @@ func Bool(name string, argPoss ...int) router.MiddlewareFunc {
 func Struct(name string, target interface{}, argPoss ...int) router.MiddlewareFunc {
 	return Param(name, target, argPoss...)
 }
+
+// Bytes creates middleware for converting to []byte chaincode method parameter
+func Bytes(name string, argPoss ...int) router.MiddlewareFunc {
+	return Param(name, []byte{}, argPoss...)
+}

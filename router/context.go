@@ -20,6 +20,7 @@ type (
 		Args() InterfaceMap
 		Arg(string) interface{}
 		ArgString(string) string
+		ArgBytes(string) []byte
 		SetArg(string, interface{})
 		Get(string) interface{}
 		Set(string, interface{})
@@ -84,6 +85,10 @@ func (c *context) Arg(name string) interface{} {
 
 func (c *context) ArgString(name string) string {
 	return c.Arg(name).(string)
+}
+
+func (c *context) ArgBytes(name string) []byte {
+	return c.Arg(name).([]byte)
 }
 
 func (c *context) Set(key string, val interface{}) {
