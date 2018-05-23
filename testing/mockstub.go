@@ -204,10 +204,10 @@ func TransformCreator(txCreator ...interface{}) (mspID string, certPEM []byte, e
 		switch p.(type) {
 
 		case identity.CertIdentity:
-			return p.(identity.CertIdentity).MspID, p.(identity.CertIdentity).PemEncode(), nil
+			return p.(identity.CertIdentity).MspID, p.(identity.CertIdentity).GetPEM(), nil
 
 		case *identity.CertIdentity:
-			return p.(*identity.CertIdentity).MspID, p.(*identity.CertIdentity).PemEncode(), nil
+			return p.(*identity.CertIdentity).MspID, p.(*identity.CertIdentity).GetPEM(), nil
 
 		case pmsp.SerializedIdentity:
 			return p.(pmsp.SerializedIdentity).Mspid, p.(pmsp.SerializedIdentity).IdBytes, nil

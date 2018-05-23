@@ -1,13 +1,20 @@
 // Package access contains structs for storing chaincode access control information
 package identity
 
-import "github.com/hyperledger/fabric/core/chaincode/shim"
+import (
+	"crypto/x509"
+
+	"github.com/hyperledger/fabric/core/chaincode/shim"
+)
 
 // Entry structure for storing identity information
+// string representation certificate Subject and Issuer can be used for reach query searching
 type Entry struct {
 	MSPId   string
 	Subject string
 	Issuer  string
+	PEM     []byte
+	cert    *x509.Certificate `json:"-"` // temporary cert
 }
 
 // IdentityEntry interface
@@ -37,6 +44,26 @@ func (e Entry) GetIssuer() string {
 	return e.Issuer
 }
 
+// GetPK certificate issuer
+func (e Entry) GetPEM() []byte {
+	return e.PEM
+}
+
+func (e Entry) GetPublicKey() interface{} {
+
+	if e.cert == nil {
+		cert, err := Certificate(e.PEM)
+
+		if err != nil {
+			return err
+		}
+
+		e.cert = cert
+	}
+
+	return e.cert.PublicKey
+}
+
 // Is checks IdentityEntry is equal to an other Identity
 func (e Entry) Is(id Identity) bool {
 	return e.MSPId == id.GetMSPID() && e.Subject == id.GetSubject()
@@ -58,6 +85,7 @@ func CreateEntry(i Identity) (g *Entry, err error) {
 		MSPId:   i.GetMSPID(),
 		Subject: i.GetSubject(),
 		Issuer:  i.GetIssuer(),
+		PEM:     i.GetPEM(),
 	}, nil
 }
 

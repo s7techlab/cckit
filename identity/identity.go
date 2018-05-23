@@ -19,10 +19,20 @@ var (
 
 // Identity interface for invoker (tx creator) and grants, stored in chain code state
 type Identity interface {
+	// GetID Identifier, based on Subject and Issuer
 	GetID() string
+
+	// GetMSPID msp identifier
 	GetMSPID() string
+
+	//  GetSubject string representation of X.509 cert subject
 	GetSubject() string
+	//  GetIssuer string representation of X.509 cert issuer
 	GetIssuer() string
+
+	// GetPublicKey *rsa.PublicKey or *dsa.PublicKey or *ecdsa.PublicKey:
+	GetPublicKey() interface{}
+	GetPEM() []byte
 	Is(i Identity) bool
 }
 
@@ -92,13 +102,17 @@ func (ci CertIdentity) GetIssuer() string {
 	return GetDN(&ci.Cert.Issuer)
 }
 
+func (ci CertIdentity) GetPublicKey() interface{} {
+	return ci.Cert.PublicKey
+}
+
 // Is checks invoker is equal an identity
 func (ci CertIdentity) Is(id Identity) bool {
 	return ci.MspID == id.GetMSPID() && ci.GetSubject() == id.GetSubject()
 }
 
-// PemEncode encodes certificate to PEM
-func (ci CertIdentity) PemEncode() []byte {
+// GetPEM certificate encoded to PEM
+func (ci CertIdentity) GetPEM() []byte {
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  `CERTIFICATE`,
 		Bytes: ci.Cert.Raw,
@@ -109,7 +123,7 @@ func (ci CertIdentity) PemEncode() []byte {
 func (ci CertIdentity) ToSerialized() *msp.SerializedIdentity {
 	return &msp.SerializedIdentity{
 		Mspid:   ci.MspID,
-		IdBytes: ci.PemEncode(),
+		IdBytes: ci.GetPEM(),
 	}
 }
 
