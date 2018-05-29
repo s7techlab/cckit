@@ -5,6 +5,7 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/s7techlab/cckit/convert"
 )
 
 type (
@@ -24,6 +25,7 @@ type (
 		SetArg(string, interface{})
 		Get(string) interface{}
 		Set(string, interface{})
+		SetEvent(string, interface{}) error
 	}
 
 	context struct {
@@ -98,6 +100,13 @@ func (c *context) Set(key string, val interface{}) {
 	c.store[key] = val
 }
 
+func (c *context) SetEvent(name string, payload interface{}) error {
+	bb, err := convert.ToBytes(payload)
+	if err != nil {
+		return err
+	}
+	return c.stub.SetEvent(name, bb)
+}
 func (c *context) Get(key string) interface{} {
 	return c.store[key]
 }
