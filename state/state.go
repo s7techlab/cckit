@@ -25,6 +25,8 @@ type Keyer interface {
 	Key() ([]string, error)
 }
 
+type KeyerFunc func(string) ([]string, error)
+
 // Get data by key from state, trying to convert to target interface
 func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{}) (result interface{}, err error) {
 	stringKey, err := Key(stub, key)
@@ -36,7 +38,7 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{
 		return
 	}
 	if bb == nil || len(bb) == 0 {
-		return nil, fmt.Errorf("state entry not found, key: %s", key)
+		return nil, fmt.Errorf("state entry not found, key: %s", stringKey)
 	}
 	// converting to target type
 	if len(target) == 1 {
@@ -138,4 +140,18 @@ func KeyParts(key interface{}) ([]string, error) {
 	}
 
 	return nil, ErrUnableToCreateKey
+}
+
+type stringKeyer struct {
+	str   string
+	keyer KeyerFunc
+}
+
+func (sk stringKeyer) Key() ([]string, error) {
+	return sk.keyer(sk.str)
+}
+
+// StringKeyer constructor for struct implementing Keyer interface
+func StringKeyer(str string, keyer KeyerFunc) Keyer {
+	return stringKeyer{str, keyer}
 }
