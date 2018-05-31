@@ -3,7 +3,8 @@ package identity
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
+
+	"github.com/pkg/errors"
 
 	"encoding/json"
 
@@ -49,7 +50,7 @@ func New(mspID string, certPEM []byte) (ci *CertIdentity, err error) {
 func FromStub(stub shim.ChaincodeStubInterface) (ci *CertIdentity, err error) {
 	clientIdentity, err := cid.New(stub)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, `client identity from stub`)
 	}
 	mspID, err := clientIdentity.GetMSPID()
 	if err != nil {
