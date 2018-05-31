@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
 )
 
@@ -43,6 +45,14 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 		return FromBytesToStruct(bb, target)
 	}
 
+}
+
+// FromResponse converts response.Payload to target
+func FromResponse(response peer.Response, target interface{}) (result interface{}, err error) {
+	if response.Status == shim.ERROR {
+		return nil, errors.New(response.Message)
+	}
+	return FromBytes(response.Payload, target)
 }
 
 // FromBytesToStruct converts []byte to struct,array,slice depending on target type
