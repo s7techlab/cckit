@@ -100,6 +100,8 @@ func ToBytes(value interface{}) ([]byte, error) {
 		return []byte(value.(string)), nil
 	case uint:
 		return []byte(fmt.Sprint(value.(uint))), nil
+	case int:
+		return []byte(fmt.Sprint(value.(int))), nil
 	case []byte:
 		return value.([]byte), nil
 
