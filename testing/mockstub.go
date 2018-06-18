@@ -18,7 +18,7 @@ var (
 	// ErrChaincodeNotExists occurs when attempting to invoke a nonexostent external chaincode
 	ErrChaincodeNotExists = errors.New(`chaincode not exists`)
 	// ErrUnknownFromArgsType  occurs when attempting to set unknown args in From func
-	ErrUnknownFromArgsType = errors.New(`unknown args type to cckit.MockStub.From func, `)
+	ErrUnknownFromArgsType = errors.New(`unknown args type to cckit.MockStub.From func`)
 )
 
 // MockStub replacement of shim.MockStub with creator mocking facilities
@@ -224,6 +224,14 @@ func TransformCreator(txCreator ...interface{}) (mspID string, certPEM []byte, e
 
 		case pmsp.SerializedIdentity:
 			return p.(pmsp.SerializedIdentity).Mspid, p.(pmsp.SerializedIdentity).IdBytes, nil
+
+		case msp.SigningIdentity:
+			cert, err := p.(msp.SigningIdentity).Serialize()
+
+			if err != nil {
+				return ``, nil, err
+			}
+			return p.(msp.SigningIdentity).GetMSPIdentifier(), cert, nil
 
 		case [2]string:
 			// array with 2 elements  - mspId and ca cert
