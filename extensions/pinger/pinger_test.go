@@ -56,6 +56,11 @@ var _ = Describe(`Pinger`, func() {
 			pingInfo := expectcc.PayloadIs(cc.From(invokerIdentity).Invoke(FuncPing), &PingInfo{}).(PingInfo)
 			Expect(pingInfo.InvokerID).To(Equal(invokerIdentity.GetID()))
 			Expect(pingInfo.InvokerCert).To(Equal(invokerIdentity.GetPEM()))
+
+			//check that we have event
+			pingInfoEvent := expectcc.EventPayloadIs(cc.ChaincodeEvent, &PingInfo{}).(PingInfo)
+			Expect(pingInfoEvent.InvokerID).To(Equal(invokerIdentity.GetID()))
+			Expect(pingInfoEvent.InvokerCert).To(Equal(invokerIdentity.GetPEM()))
 		})
 
 	})

@@ -40,3 +40,14 @@ func PayloadIs(response peer.Response, target interface{}) interface{} {
 	g.Expect(err).To(g.BeNil(), description)
 	return data
 }
+
+func EventPayloadIs(event *peer.ChaincodeEvent, target interface{}) interface{} {
+	g.Expect(event).NotTo(g.BeNil())
+	data, err := convert.FromBytes(event.Payload, target)
+	description := ``
+	if err != nil {
+		description = err.Error()
+	}
+	g.Expect(err).To(g.BeNil(), description)
+	return data
+}
