@@ -5,12 +5,15 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
+	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
 )
 
 const (
 	// PingsStatePrefix prefix for PingInfo composite key in chain code state
 	PingKeyPrefix = `PING`
+	// PingEvent event name
+	PingEvent = `PING`
 	// FuncPingConstant func name
 	FuncPingConstant = `pingLocal`
 	// FuncPing func name
@@ -26,23 +29,31 @@ type PingInfo struct {
 	InvokerCert []byte
 }
 
-// Ping chain code func for put tx creator information to chain code state
-// checks endorsement policy is working
+func (p PingInfo) Key() ([]string, error) {
+	return []string{PingKeyPrefix, p.InvokerID, p.Time.String()}, nil
+}
+
+// Ping chaincode func puts tx creator information into chaincode state
+// can be used for checking endorsement policy is working
 func Ping(c r.Context) (interface{}, error) {
 	pingInfo, err := FromContext(c)
 	if err != nil {
 		return nil, err
 	}
 
-	return pingInfo, c.State().Put([]string{PingKeyPrefix, pingInfo.InvokerID, pingInfo.Time.String()}, pingInfo)
+	c.SetEvent(PingEvent, pingInfo)
+	return pingInfo, c.State().Put(pingInfo, pingInfo)
 }
 
+// FromContext create PingInfo struct with tx creator Id and certificate in PEM format
 func FromContext(c r.Context) (*PingInfo, error) {
 	id, err := cid.GetID(c.Stub())
 	if err != nil {
 		return nil, err
 	}
-	cert, err := cid.GetX509Certificate(c.Stub())
+
+	//take certificate from creator
+	invoker, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return nil, err
 	}
@@ -50,10 +61,11 @@ func FromContext(c r.Context) (*PingInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PingInfo{Time: t, InvokerID: id, InvokerCert: cert.Raw}, nil
+	return &PingInfo{Time: t, InvokerID: id, InvokerCert: invoker.GetPEM()}, nil
 }
 
-// PingConstant chain code func only checks that chain code is installed and instantiated
+// PingConstant chaincode func returns invoker information
+// can be used for testing that chain code is installed and instantiated
 func PingConstant(c r.Context) (interface{}, error) {
 	return FromContext(c)
 }

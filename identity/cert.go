@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
@@ -18,8 +19,13 @@ func Certificate(c []byte) (cert *x509.Certificate, err error) {
 	return x509.ParseCertificate(block.Bytes)
 }
 
-// ID returns identifier from .509  certificate
+// ID returns identifier from .509  certificate and base64 encode
 func ID(subject, issuer string) string {
+	return base64.StdEncoding.EncodeToString([]byte(IDRaw(subject, issuer)))
+}
+
+// IDRaw generates string identifier from .509  certificate
+func IDRaw(subject, issuer string) string {
 	return fmt.Sprintf("x509::%s::%s", subject, issuer)
 }
 

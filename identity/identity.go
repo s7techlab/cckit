@@ -46,6 +46,15 @@ func New(mspID string, certPEM []byte) (ci *CertIdentity, err error) {
 	return &CertIdentity{mspID, cert}, nil
 }
 
+// FromFile creates certIdentity from file determined by filename
+func FromFile(mspID string, filename string, getContent GetContent) (ci *CertIdentity, err error) {
+	PEM, err := getContent(filename)
+	if err != nil {
+		return nil, err
+	}
+	return New(mspID, PEM)
+}
+
 // FromStub creates Identity interface  from tx creator mspID and certificate (stub.GetCreator)
 func FromStub(stub shim.ChaincodeStubInterface) (ci *CertIdentity, err error) {
 	clientIdentity, err := cid.New(stub)
