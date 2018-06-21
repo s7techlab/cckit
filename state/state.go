@@ -20,7 +20,10 @@ var (
 	ErrAllowOnlyOneValue = errors.New(`allow only one value`)
 
 	// ErrKeyNotSupportKeyerInterface can occurs when trying to Insert or Put struct without providing key and struct not support Keyer interface
-	ErrKeyNotSupportKeyerInterface = errors.New(`keyer not support keyer interface`)
+	ErrKeyNotSupportKeyerInterface = errors.New(`key not support keyer interface`)
+
+	// ErrKeyPartsLength can occurs when trying to create key consisting of zero parts
+	ErrKeyPartsLength = errors.New(`key parts length must be greater than zero`)
 )
 
 // EntryList list of entries from state, gotten by part of composite key
@@ -155,6 +158,16 @@ func Key(stub shim.ChaincodeStubInterface, key interface{}) (string, error) {
 	if err != nil {
 		return ``, err
 	}
+
+	switch len(keyParts) {
+	case 0:
+		return ``, ErrKeyPartsLength
+	case 1:
+		return keyParts[0], nil
+	default:
+		return stub.CreateCompositeKey(keyParts[0], keyParts[1:])
+	}
+
 	return stub.CreateCompositeKey(keyParts[0], keyParts[1:])
 }
 
