@@ -15,6 +15,12 @@ var (
 
 	// ErrKeyAlreadyExists can occurs when trying to insert entry with existing key
 	ErrKeyAlreadyExists = errors.New(`state key already exists`)
+
+	// ErrAllowOnlyOneValue can occurs when trying to call Insert or Put with more than 2 arguments
+	ErrAllowOnlyOneValue = errors.New(`allow only one value`)
+
+	// ErrKeyNotSupportKeyerInterface can occurs when trying to Insert or Put struct without providing key and struct not support Keyer interface
+	ErrKeyNotSupportKeyerInterface = errors.New(`keyer not support keyer interface`)
 )
 
 // EntryList list of entries from state, gotten by part of composite key
@@ -53,7 +59,7 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{
 func Exists(stub shim.ChaincodeStubInterface, key interface{}) (exists bool, err error) {
 	stringKey, err := Key(stub, key)
 	if err != nil {
-		return false, err
+		return false, errors.Wrap(err, `check key existence`)
 	}
 	bb, err := stub.GetState(stringKey)
 	if err != nil {
@@ -91,8 +97,27 @@ func List(stub shim.ChaincodeStubInterface, objectType interface{}, target inter
 	return entries, nil
 }
 
+func getValue(key interface{}, values []interface{}) (interface{}, error) {
+	switch len(values) {
+	case 0:
+		if _, ok := key.(Keyer); !ok {
+			return nil, ErrKeyNotSupportKeyerInterface
+		}
+		return key, nil
+	case 1:
+		return values[0], nil
+	default:
+		return nil, ErrAllowOnlyOneValue
+	}
+}
+
 // Put data value in state with key, trying convert data to []byte
-func Put(stub shim.ChaincodeStubInterface, key interface{}, value interface{}) (err error) {
+func Put(stub shim.ChaincodeStubInterface, key interface{}, values ...interface{}) (err error) {
+	value, err := getValue(key, values)
+	if err != nil {
+		return err
+	}
+
 	bb, err := convert.ToBytes(value)
 	if err != nil {
 		return err
@@ -105,16 +130,22 @@ func Put(stub shim.ChaincodeStubInterface, key interface{}, value interface{}) (
 }
 
 // Insert value into chaincode state, returns error if key already exists
-func Insert(stub shim.ChaincodeStubInterface, key interface{}, value interface{}) (err error) {
+func Insert(stub shim.ChaincodeStubInterface, key interface{}, values ...interface{}) (err error) {
 	exists, err := Exists(stub, key)
-
 	if err != nil {
 		return err
 	}
+
 	if exists {
 		strKey, _ := Key(stub, key)
 		return fmt.Errorf(`%s: %s`, ErrKeyAlreadyExists, strKey)
 	}
+
+	value, err := getValue(key, values)
+	if err != nil {
+		return err
+	}
+
 	return Put(stub, key, value)
 }
 
@@ -129,7 +160,6 @@ func Key(stub shim.ChaincodeStubInterface, key interface{}) (string, error) {
 
 // KeyParts returns string parts of composite key
 func KeyParts(key interface{}) ([]string, error) {
-
 	switch key.(type) {
 	case Keyer:
 		return key.(Keyer).Key()

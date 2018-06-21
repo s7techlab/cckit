@@ -8,8 +8,8 @@ import (
 type State interface {
 	Get(key interface{}, target ...interface{}) (result interface{}, err error)
 	Exists(key interface{}) (exists bool, err error)
-	Put(key interface{}, value interface{}) (err error)
-	Insert(key interface{}, value interface{}) (err error)
+	Put(key interface{}, value ...interface{}) (err error)
+	Insert(key interface{}, value ...interface{}) (err error)
 	List(objectType interface{}, target interface{}) (result []interface{}, err error)
 }
 
@@ -25,12 +25,12 @@ func (s ContextState) Exists(key interface{}) (exists bool, err error) {
 	return state.Exists(s.context.Stub(), key)
 }
 
-func (s ContextState) Put(key interface{}, value interface{}) (err error) {
-	return state.Put(s.context.Stub(), key, value)
+func (s ContextState) Put(key interface{}, value ...interface{}) (err error) {
+	return state.Put(s.context.Stub(), key, value...)
 }
 
-func (s ContextState) Insert(key interface{}, value interface{}) (err error) {
-	return state.Insert(s.context.Stub(), key, value)
+func (s ContextState) Insert(key interface{}, value ...interface{}) (err error) {
+	return state.Insert(s.context.Stub(), key, value...)
 }
 
 func (s ContextState) List(objectType interface{}, target interface{}) (result []interface{}, err error) {

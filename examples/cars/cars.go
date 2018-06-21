@@ -34,6 +34,11 @@ type Car struct {
 	UpdatedAt time.Time // set by chaincode method
 }
 
+// Key for car entry in chaincode state
+func (c Car) Key() ([]string, error) {
+	return []string{CarKeyPrefix, c.Id}, nil
+}
+
 type Chaincode struct {
 	router *router.Group
 }
@@ -65,18 +70,14 @@ func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 	return cc.router.Handle(stub)
 }
 
-// Key for car entry in chaincode state
-func Key(id string) []string {
-	return []string{CarKeyPrefix, id}
-}
-
 // ======= Chaincode methods
 
 // car get info chaincode method handler
 func car(c router.Context) (interface{}, error) {
-	return c.State().Get( // get state entry
-		Key(c.ArgString(`id`)), // by composite key using CarKeyPrefix and car.Id
-		&Car{})                 // and unmarshal from []byte to Car struct
+
+	// get state entry by composite key using CarKeyPrefix and car.Id
+	//  and unmarshal from []byte to Car struct
+	return c.State().Get(&Car{Id: c.ArgString(`id`)})
 }
 
 // cars car list chaincode method handler
@@ -100,7 +101,7 @@ func carRegister(c router.Context) (interface{}, error) {
 	}
 
 	return car, // peer.Response payload will be json serialized car data
-		c.State().Insert( //put json serialized data to state
-			Key(car.Id), // create composite key using CarKeyPrefix and car.Id
-			car)
+		//put json serialized data to state
+		// create composite key using CarKeyPrefix and car.Id
+		c.State().Insert(car)
 }
