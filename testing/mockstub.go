@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/msp"
 	pmsp "github.com/hyperledger/fabric/protos/msp"
@@ -226,12 +227,17 @@ func TransformCreator(txCreator ...interface{}) (mspID string, certPEM []byte, e
 			return p.(pmsp.SerializedIdentity).Mspid, p.(pmsp.SerializedIdentity).IdBytes, nil
 
 		case msp.SigningIdentity:
-			cert, err := p.(msp.SigningIdentity).Serialize()
 
+			serialized, err := p.(msp.SigningIdentity).Serialize()
 			if err != nil {
 				return ``, nil, err
 			}
-			return p.(msp.SigningIdentity).GetMSPIdentifier(), cert, nil
+
+			sid := &pmsp.SerializedIdentity{}
+			if err = proto.Unmarshal(serialized, sid); err != nil {
+				return ``, nil, err
+			}
+			return sid.Mspid, sid.IdBytes, nil
 
 		case [2]string:
 			// array with 2 elements  - mspId and ca cert
