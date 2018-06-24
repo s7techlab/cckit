@@ -29,7 +29,7 @@ type Chaincode struct {
 func New() *Chaincode {
 	r := router.New(`marbles`) // also initialized logger with "marbles" prefix
 
-	r.Query(`owner`, owner.FromState) // returns current chaincode owner
+	r.Query(`owner`, owner.Query) // returns current chaincode owner
 
 	r.Group(`marble`).
 		// chain code method name is "marbleOwnerRegister"
