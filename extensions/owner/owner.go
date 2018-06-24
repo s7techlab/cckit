@@ -18,10 +18,20 @@ var (
 
 // SetFromCreator sets chain code owner from stub creator
 func SetFromCreator(c r.Context) peer.Response {
+	ownerSetted, err := c.State().Exists(OwnerStateKey)
+	if err != nil {
+		return c.Response().Error(err)
+	}
+
+	if ownerSetted {
+		return c.Response().Create(c.State().Get(OwnerStateKey, &identity.Entry{}))
+	}
+
 	creator, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return c.Response().Error(err)
 	}
+
 	identityEntry, err := identity.CreateEntry(creator)
 	if err != nil {
 		return c.Response().Error(err)
