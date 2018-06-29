@@ -11,16 +11,23 @@ import (
 
 // Error returns shim.Error
 func Error(err interface{}) peer.Response {
+	resp, ok := err.(peer.Response)
+	if ok {
+		return resp
+	}
+
 	return shim.Error(fmt.Sprintf("%s", err))
 }
 
 // Success returns shim.Success with serialized json if necessary
 func Success(data interface{}) peer.Response {
-	switch data.(type) {
+	switch v := data.(type) {
 	case string:
-		return shim.Success([]byte(data.(string)))
+		return shim.Success([]byte(v))
 	case []byte:
-		return shim.Success(data.([]byte))
+		return shim.Success(v)
+	case peer.Response:
+		return v
 	default:
 		b, err := json.Marshal(data)
 		if err != nil {
@@ -35,28 +42,29 @@ func Success(data interface{}) peer.Response {
 func Create(data interface{}, err interface{}) peer.Response {
 	var errObj error
 
-	switch err.(type) {
-
+	switch v := err.(type) {
 	case nil:
 		errObj = nil
 	case bool:
-		if !err.(bool) {
+		if !v {
 			errObj = errors.New(`boolean error: false`)
 		}
 	case string:
-		if err.(string) != `` {
-			errObj = errors.New(err.(string))
+		if v != `` {
+			errObj = errors.New(v)
 		}
 	case error:
-		errObj = err.(error)
+		errObj = v
+	case peer.Response:
+		return v
 	default:
 		panic(fmt.Sprintf(`unknowm error type %s`, err))
-
 	}
 
 	if errObj != nil {
 		return Error(errObj)
 	}
+
 	return Success(data)
 }
 
