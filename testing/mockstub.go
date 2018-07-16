@@ -5,14 +5,11 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/msp"
-	pmsp "github.com/hyperledger/fabric/protos/msp"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
-	"github.com/s7techlab/cckit/identity"
 )
 
 var (
@@ -192,7 +189,7 @@ func (stub *MockStub) GetCreator() ([]byte, error) {
 	return stub.mockCreator, nil
 }
 
-// From tx creator mock
+// From mock tx creator
 func (stub *MockStub) From(txCreator ...interface{}) *MockStub {
 
 	var mspID string
@@ -212,40 +209,8 @@ func (stub *MockStub) From(txCreator ...interface{}) *MockStub {
 	return stub
 }
 
-func TransformCreator(txCreator ...interface{}) (mspID string, certPEM []byte, err error) {
-	if len(txCreator) == 1 {
-		p := txCreator[0]
-		switch p.(type) {
-
-		case identity.CertIdentity:
-			return p.(identity.CertIdentity).MspID, p.(identity.CertIdentity).GetPEM(), nil
-
-		case *identity.CertIdentity:
-			return p.(*identity.CertIdentity).MspID, p.(*identity.CertIdentity).GetPEM(), nil
-
-		case pmsp.SerializedIdentity:
-			return p.(pmsp.SerializedIdentity).Mspid, p.(pmsp.SerializedIdentity).IdBytes, nil
-
-		case msp.SigningIdentity:
-
-			serialized, err := p.(msp.SigningIdentity).Serialize()
-			if err != nil {
-				return ``, nil, err
-			}
-
-			sid := &pmsp.SerializedIdentity{}
-			if err = proto.Unmarshal(serialized, sid); err != nil {
-				return ``, nil, err
-			}
-			return sid.Mspid, sid.IdBytes, nil
-
-		case [2]string:
-			// array with 2 elements  - mspId and ca cert
-			return p.([2]string)[0], []byte(p.([2]string)[1]), nil
-		}
-	} else if len(txCreator) == 2 {
-		return txCreator[0].(string), txCreator[1].([]byte), nil
-	}
-
-	return ``, nil, ErrUnknownFromArgsType
-}
+// At mock tx timestamp
+//func (stub *MockStub) At(txTimestamp *timestamp.Timestamp) *MockStub {
+//	stub.TxTimestamp = txTimestamp
+//	return stub
+//}
