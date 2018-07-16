@@ -14,9 +14,13 @@ import (
 
 var (
 	// ErrMethodNotFound occurs when trying to invoke non existent chaincode method
-	ErrMethodNotFound  = errors.New(`method not found`)
-	errNoRoutes        = errors.New(`no routes presented`)
-	errArgsNumMismatch = errors.New(`method args count mismatch`)
+	ErrMethodNotFound = errors.New(`chaincode method not found`)
+
+	// ErrArgsNumMismatch occurs when the number of declared and the number of arguments passed does not match
+	ErrArgsNumMismatch = errors.New(`chaincode method args count mismatch`)
+
+	// ErrHandlerError error in handler
+	ErrHandlerError = errors.New(`router handler error`)
 )
 
 type (
@@ -58,10 +62,10 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 	fnString, _ := stub.GetFunctionAndParameters()
 
 	if stubHandler, ok := g.stubHandlers[fnString]; ok {
-		g.logger.Debug(`router.stubHandler: `, fnString)
+		g.logger.Debug(`router stubHandler: `, fnString)
 		return stubHandler(stub)
 	} else if contextHandler, ok := g.contextHandlers[fnString]; ok {
-		g.logger.Debug(`router.contextHandler: `, fnString)
+		g.logger.Debug(`router contextHandler: `, fnString)
 
 		h := func(c Context) peer.Response {
 			h := contextHandler
@@ -73,7 +77,7 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 
 		return h(g.Context(fnString, stub))
 	} else if handler, ok := g.handlers[fnString]; ok {
-		g.logger.Debug(`router.handler: `, fnString)
+		g.logger.Debug(`router handler: `, fnString)
 
 		h := func(c Context) (interface{}, error) {
 			h := handler
@@ -82,10 +86,16 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 			}
 			return h(c)
 		}
-		return response.Create(h(g.Context(fnString, stub)))
+
+		resp := response.Create(h(g.Context(fnString, stub)))
+		if resp.Status != shim.OK {
+			g.logger.Errorf(`%s: %s: %s`, ErrHandlerError, fnString, resp.Message)
+		}
+
+		return resp
 	}
 
-	err := errors.Wrap(fmt.Errorf(`%s: %s`, ErrMethodNotFound, fnString), `chaincode router`)
+	err := fmt.Errorf(`%s: %s`, ErrMethodNotFound, fnString)
 	g.logger.Error(err)
 	return shim.Error(err.Error())
 }

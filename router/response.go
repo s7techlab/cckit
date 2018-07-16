@@ -21,14 +21,14 @@ type ContextResponse struct {
 // Error response
 func (c ContextResponse) Error(err interface{}) peer.Response {
 	res := response.Error(err)
-	c.context.Logger().Warning(`router.handle.error: `, c.context.Path(), `, err: `, res.Message)
+	c.context.Logger().Errorf(`%s: %s:%s`, ErrHandlerError, c.context.Path(), res.Message)
 	return res
 }
 
 // Success response
 func (c ContextResponse) Success(data interface{}) peer.Response {
 	res := response.Success(data)
-	c.context.Logger().Debug(`router.handle.success: `, c.context.Path(), `, data: `, string(res.Payload))
+	c.context.Logger().Debug(`route handle success: `, c.context.Path(), `, data: `, string(res.Payload))
 	return res
 }
 
