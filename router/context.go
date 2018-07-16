@@ -86,11 +86,13 @@ func (c *context) Arg(name string) interface{} {
 }
 
 func (c *context) ArgString(name string) string {
-	return c.Arg(name).(string)
+	out, _ := c.Arg(name).(string)
+	return out
 }
 
 func (c *context) ArgBytes(name string) []byte {
-	return c.Arg(name).([]byte)
+	out, _ := c.Arg(name).([]byte)
+	return out
 }
 
 func (c *context) Set(key string, val interface{}) {
