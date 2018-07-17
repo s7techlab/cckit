@@ -1,11 +1,10 @@
 package state
 
 import (
-	"fmt"
-
-	"github.com/pkg/errors"
+	"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 )
 
@@ -15,6 +14,9 @@ var (
 
 	// ErrKeyAlreadyExists can occurs when trying to insert entry with existing key
 	ErrKeyAlreadyExists = errors.New(`state key already exists`)
+
+	// ErrrKeyNotFound key not found in chaincode state
+	ErrrKeyNotFound = errors.New(`state entry not found`)
 
 	// ErrAllowOnlyOneValue can occurs when trying to call Insert or Put with more than 2 arguments
 	ErrAllowOnlyOneValue = errors.New(`allow only one value`)
@@ -38,16 +40,16 @@ type KeyerFunc func(string) ([]string, error)
 
 // Get data by key from state, trying to convert to target interface
 func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{}) (result interface{}, err error) {
-	stringKey, err := Key(stub, key)
+	strKey, err := Key(stub, key)
 	if err != nil {
 		return false, err
 	}
-	bb, err := stub.GetState(stringKey)
+	bb, err := stub.GetState(strKey)
 	if err != nil {
 		return
 	}
 	if bb == nil || len(bb) == 0 {
-		return nil, fmt.Errorf("state entry not found, key: %s", stringKey)
+		return nil, errors.Wrap(KeyError(strKey), ErrrKeyNotFound.Error())
 	}
 	// converting to target type
 	if len(target) == 1 {
@@ -141,7 +143,7 @@ func Insert(stub shim.ChaincodeStubInterface, key interface{}, values ...interfa
 
 	if exists {
 		strKey, _ := Key(stub, key)
-		return fmt.Errorf(`%s: %s`, ErrKeyAlreadyExists, strKey)
+		return errors.Wrap(KeyError(strKey), ErrKeyAlreadyExists.Error())
 	}
 
 	value, err := getValue(key, values)
@@ -183,6 +185,11 @@ func KeyParts(key interface{}) ([]string, error) {
 	}
 
 	return nil, ErrUnableToCreateKey
+}
+
+// KeyError error with key
+func KeyError(strKey string) error {
+	return errors.New(strings.Replace(strKey, "\x00", ` | `, -1))
 }
 
 type stringKeyer struct {
