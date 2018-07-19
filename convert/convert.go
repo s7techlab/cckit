@@ -7,6 +7,9 @@ import (
 	"reflect"
 	"strconv"
 
+	"time"
+
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
@@ -38,6 +41,18 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 		return bb, nil
 	case int:
 		return strconv.Atoi(string(bb))
+
+	case []string:
+		arrInterface, err := UnmarshallPtr(bb, &target)
+
+		if err != nil {
+			return nil, err
+		}
+		arrString := []string{}
+		for _, v := range arrInterface.([]interface{}) {
+			arrString = append(arrString, v.(string))
+		}
+		return arrString, nil
 	case FromByter:
 		return target.(FromByter).FromBytes(bb)
 
@@ -147,4 +162,8 @@ func ArgsToBytes(iargs ...interface{}) (aa [][]byte, err error) {
 	}
 
 	return args, nil
+}
+
+func TimestampToTime(ts *timestamp.Timestamp) time.Time {
+	return time.Unix(ts.GetSeconds(), int64(ts.GetNanos()))
 }

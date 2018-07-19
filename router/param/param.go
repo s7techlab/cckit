@@ -9,6 +9,10 @@ func String(name string, argPoss ...int) router.MiddlewareFunc {
 	return Param(name, ``, argPoss...)
 }
 
+func Strings(name string, argPoss ...int) router.MiddlewareFunc {
+	return Param(name, []string{}, argPoss...)
+}
+
 // Int creates middleware for converting to integer chaincode method parameter
 func Int(name string, argPoss ...int) router.MiddlewareFunc {
 	return Param(name, 1, argPoss...)
