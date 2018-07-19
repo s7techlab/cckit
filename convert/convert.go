@@ -34,6 +34,9 @@ type ToByter interface {
 
 // FromBytes converts []byte to target interface
 func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
+
+	// create copy
+
 	switch target.(type) {
 	case string:
 		return string(bb), nil
@@ -96,7 +99,10 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 }
 
 // UnmarshallPtr unmarshalls  [] byte to pointer, and returns value pointed to
-func UnmarshallPtr(bb []byte, targetPtr interface{}) (result interface{}, err error) {
+func UnmarshallPtr(bb []byte, to interface{}) (result interface{}, err error) {
+
+	targetPtr := reflect.New(reflect.ValueOf(to).Elem().Type()).Interface()
+
 	err = json.Unmarshal(bb, targetPtr)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrUnableToConvertValueToStruct.Error())

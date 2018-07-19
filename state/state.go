@@ -16,7 +16,7 @@ var (
 	ErrKeyAlreadyExists = errors.New(`state key already exists`)
 
 	// ErrrKeyNotFound key not found in chaincode state
-	ErrrKeyNotFound = errors.New(`state entry not found`)
+	ErrKeyNotFound = errors.New(`state entry not found`)
 
 	// ErrAllowOnlyOneValue can occurs when trying to call Insert or Put with more than 2 arguments
 	ErrAllowOnlyOneValue = errors.New(`allow only one value`)
@@ -49,7 +49,7 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{
 		return
 	}
 	if bb == nil || len(bb) == 0 {
-		return nil, errors.Wrap(KeyError(strKey), ErrrKeyNotFound.Error())
+		return nil, errors.Wrap(KeyError(strKey), ErrKeyNotFound.Error())
 	}
 	// converting to target type
 	if len(target) == 1 {
@@ -152,6 +152,15 @@ func Insert(stub shim.ChaincodeStubInterface, key interface{}, values ...interfa
 	}
 
 	return Put(stub, key, value)
+}
+
+// Delete entry from state
+func Delete(stub shim.ChaincodeStubInterface, key interface{}) (err error) {
+	stringKey, err := Key(stub, key)
+	if err != nil {
+		return errors.Wrap(err, `deleting from state`)
+	}
+	return stub.DelState(stringKey)
 }
 
 // Key transforms interface{} to string key

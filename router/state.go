@@ -11,6 +11,7 @@ type State interface {
 	Put(key interface{}, value ...interface{}) (err error)
 	Insert(key interface{}, value ...interface{}) (err error)
 	List(objectType interface{}, target interface{}) (result []interface{}, err error)
+	Delete(key interface{}) (err error)
 }
 
 type ContextState struct {
@@ -35,4 +36,8 @@ func (s ContextState) Insert(key interface{}, value ...interface{}) (err error) 
 
 func (s ContextState) List(objectType interface{}, target interface{}) (result []interface{}, err error) {
 	return state.List(s.context.Stub(), objectType, target)
+}
+
+func (s ContextState) Delete(key interface{}) (err error) {
+	return state.Delete(s.context.Stub(), key)
 }
