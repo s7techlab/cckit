@@ -161,6 +161,11 @@ func Key(stub shim.ChaincodeStubInterface, key interface{}) (string, error) {
 		return ``, err
 	}
 
+	return KeyFromParts(stub, keyParts)
+}
+
+// KeyFromParts creates composite key by string slice
+func KeyFromParts(stub shim.ChaincodeStubInterface, keyParts []string) (string, error) {
 	switch len(keyParts) {
 	case 0:
 		return ``, ErrKeyPartsLength
@@ -169,8 +174,6 @@ func Key(stub shim.ChaincodeStubInterface, key interface{}) (string, error) {
 	default:
 		return stub.CreateCompositeKey(keyParts[0], keyParts[1:])
 	}
-
-	return stub.CreateCompositeKey(keyParts[0], keyParts[1:])
 }
 
 // KeyParts returns string parts of composite key
