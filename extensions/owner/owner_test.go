@@ -49,9 +49,6 @@ var _ = Describe(`Ownable`, func() {
 	if err != nil {
 		panic(err)
 	}
-	if err != nil {
-		panic(err)
-	}
 
 	Describe("Owner", func() {
 
