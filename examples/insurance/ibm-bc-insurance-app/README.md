@@ -20,11 +20,85 @@ companies, regulators, and insurance companies to create a valuable new insuranc
 
 https://github.com/IBM/build-blockchain-insurance-app
 
-Chaincode from  https://github.com/IBM/build-blockchain-insurance-app/tree/master/web/chaincode/src/bcins is copied to  the current
-directory for sample creation  test
-
+Chaincode from  https://github.com/IBM/build-blockchain-insurance-app/tree/master/web/chaincode/src/bcins is copied to  
+the current directory for sample creation test.
 
 ## Why test with Mockstub
 
-Creating blockchain network and deploying the chaincode(s) to it is quite cumbersome and slow process, especially if your code
-is constantly changing during developing process. Mockstub allows you to get the test results almost immediately.
+Creating blockchain network and deploying the chaincode(s) to it is quite cumbersome and slow process, especially if your 
+code is constantly changing during developing process. 
+
+The Hyperledger Fabric [shim package](https://github.com/hyperledger/fabric/tree/release-1.2/core/chaincode/shim) 
+contains the [MockStub](https://github.com/hyperledger/fabric/blob/release-1.2/core/chaincode/shim/mockstub.go)
+implementation that wraps chaincode and stub out the calls to 
+[shim.ChaincodeStubInterface](https://github.com/hyperledger/fabric/blob/release-1.2/core/chaincode/shim/interfaces.go) 
+in chaincode functions. Mockstub allows you to get the test results almost immediately.
+
+
+MockStub contains implementation for most of `shim.ChaincodeStubInterface` function, but in the current version 
+of Hyperledger Fabric (1.2), the MockStub has not implemented some of the important methods such
+as `GetCreator`, for example. Since chaincode would use this method to get tx creator certificate
+for access control, it's critical to be able to stub this method  in order to completely unit-test chaincode. 
+
+`CCKit` contains extended [MockStub](../../../testing/mockstub.go) with implementation of some of the unimplemented
+methods and delegating existing ones to shim.MockStub.
+
+
+## Getting started
+
+```go
+package main
+
+import (
+	"testing"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	testcc "github.com/s7techlab/cckit/testing"
+	expectcc "github.com/s7techlab/cckit/testing/expect"
+)
+
+func TestInsuranceApp(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Insurance app suite")
+}
+
+var _ = Describe(`Insurance`, func() {
+
+	//Create chaincode mock
+	cc := testcc.NewMockStub(`insurance`, new(SmartContract))
+	
+	...
+	}
+}
+```
+
+ 
+## Chaincode interface 
+
+Chaincode functions described in file [main.go](main.go):
+
+```go
+var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Response{
+	// Insurance Peer
+	"contract_type_ls":         listContractTypes,
+	"contract_type_create":     createContractType,
+	"contract_type_set_active": setActiveContractType,
+	"contract_ls":              listContracts,
+	"claim_ls":                 listClaims,
+	"claim_file":               fileClaim,
+	"claim_process":            processClaim,
+	"user_authenticate":        authUser,
+	"user_get_info":            getUser,
+	// Shop Peer
+	"contract_create": createContract,
+	"user_create":     createUser,
+	// Repair Shop Peer
+	"repair_order_ls":       listRepairOrders,
+	"repair_order_complete": completeRepairOrder,
+	// Police Peer
+	"theft_claim_ls":      listTheftClaims,
+	"theft_claim_process": processTheftClaim,
+}
+```
+
+So we can use them for testing insurance chaincode functionality.
