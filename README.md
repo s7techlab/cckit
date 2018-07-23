@@ -11,6 +11,7 @@
 
 There are several chaincode examples available : 
 
+* [Blockchain insurance application](https://github.com/IBM/build-blockchain-insurance-app)
 * [Marbles from hyperledger](https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go)
 * [Marbles from IBM-Blockchain](https://github.com/IBM-Blockchain/marbles/blob/master/chaincode/src/marbles/marbles.go)
 * [Car-lease-demo from IBM-Blockchain](https://github.com/IBM-Blockchain-Archive/car-lease-demo/blob/master/Chaincode/src/vehicle_code/vehicles.go)

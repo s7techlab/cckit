@@ -9,7 +9,7 @@ import (
 
 const (
 	InvokeStateCleanFunc  = `StateClean`
-	QueryStateKeysFunc    = `StateKeysList`
+	QueryStateKeysFunc    = `StateKeys`
 	QueryStateGetFunc     = `StateGet`
 	InvokeStatePutFunc    = `StatePut`
 	InvokeStateDeleteFunc = `StateDelete`
