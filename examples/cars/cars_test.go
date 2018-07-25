@@ -1,4 +1,4 @@
-package main
+package cars
 
 import (
 	"testing"
@@ -31,19 +31,6 @@ var _ = Describe(`Cars`, func() {
 		panic(err)
 	}
 
-	// cars fixtures
-	car1 := &Car{
-		Id:    `A777MP77`,
-		Title: `BMW`,
-		Owner: `victor-nosov`,
-	}
-
-	car2 := &Car{
-		Id:    `O888OO77`,
-		Title: `TOYOTA`,
-		Owner: `alexander`,
-	}
-
 	BeforeSuite(func() {
 		// init chaincode
 		expectcc.ResponseOk(cc.From(actors[`authority`]).Init()) // init chaincode from authority
@@ -53,28 +40,28 @@ var _ = Describe(`Cars`, func() {
 
 		It("Allow authority to add information about car", func() {
 			//invoke chaincode method from authority actor
-			expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, car1))
+			expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, Payloads[0]))
 		})
 
 		It("Disallow non authority to add information about car", func() {
 			//invoke chaincode method from non authority actor
 			expectcc.ResponseError(
-				cc.From(actors[`someone`]).Invoke(`carRegister`, car1),
+				cc.From(actors[`someone`]).Invoke(`carRegister`, Payloads[0]),
 				owner.ErrOwnerOnly) // expect "only owner" error
 		})
 
 		It("Disallow authority to add duplicate information about car", func() {
 			expectcc.ResponseError(
-				cc.From(actors[`authority`]).Invoke(`carRegister`, car1),
+				cc.From(actors[`authority`]).Invoke(`carRegister`, Payloads[0]),
 				state.ErrKeyAlreadyExists) //expect car id already exists
 		})
 
 		It("Allow everyone to retrieve car information", func() {
-			car := expectcc.PayloadIs(cc.Invoke(`carGet`, car1.Id),
+			car := expectcc.PayloadIs(cc.Invoke(`carGet`, Payloads[0].Id),
 				&Car{}).(Car)
 
-			Expect(car.Title).To(Equal(car1.Title))
-			Expect(car.Id).To(Equal(car1.Id))
+			Expect(car.Title).To(Equal(Payloads[0].Title))
+			Expect(car.Id).To(Equal(Payloads[0].Id))
 		})
 
 		It("Allow everyone to get car list", func() {
@@ -82,12 +69,12 @@ var _ = Describe(`Cars`, func() {
 			cars := expectcc.PayloadIs(cc.Invoke(`carList`), &[]Car{}).([]Car)
 
 			Expect(len(cars)).To(Equal(1))
-			Expect(cars[0].Id).To(Equal(car1.Id))
+			Expect(cars[0].Id).To(Equal(Payloads[0].Id))
 		})
 
 		It("Allow authority to add more information about car", func() {
 			// register second car
-			expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, car2))
+			expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, Payloads[1]))
 			cars := expectcc.PayloadIs(
 				cc.From(actors[`authority`]).Invoke(`carList`),
 				&[]Car{}).([]Car)

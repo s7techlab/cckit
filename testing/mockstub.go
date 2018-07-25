@@ -27,8 +27,8 @@ type MockStub struct {
 	ClearCreatorAfterInvoke bool
 	_args                   [][]byte
 	InvokablesFull          map[string]*MockStub
-	creatorTransformer      CreatorTransformer
-	ChaincodeEvent          *peer.ChaincodeEvent
+	creatorTransformer      CreatorTransformer   // transformer for tx creator data, used in From func
+	ChaincodeEvent          *peer.ChaincodeEvent // event in last tx
 }
 
 type CreatorTransformer func(...interface{}) (mspID string, certPEM []byte, err error)
@@ -58,7 +58,7 @@ func (stub *MockStub) SetEvent(name string, payload []byte) error {
 		return errors.New("event name can not be nil string")
 	}
 	stub.ChaincodeEvent = &peer.ChaincodeEvent{EventName: name, Payload: payload}
-	return nil
+	return stub.MockStub.SetEvent(name, payload)
 }
 
 // GetStringArgs get mocked args as strings
@@ -136,12 +136,6 @@ func (stub *MockStub) Init(iargs ...interface{}) peer.Response {
 
 // MockInit mocked init function
 func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
-
-	//default method name
-	//if len(args) == 0 || string(args[0]) != "Init" {
-	//	args = append([][]byte{[]byte("Init")}, args...)
-	//}
-
 	stub.SetArgs(args)
 	stub.MockTransactionStart(uuid)
 	res := stub.cc.Init(stub)

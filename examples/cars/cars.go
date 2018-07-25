@@ -1,5 +1,5 @@
 // Simple CRUD chaincode for store information about cars
-package main
+package cars
 
 import (
 	"errors"
@@ -16,7 +16,8 @@ var (
 	ErrCarAlreadyExists = errors.New(`car already exists`)
 )
 
-const CarKeyPrefix = `CAR`
+const CarEntity = `CAR`
+const CarRegisteredEvent = `CAR_REGISTERED`
 
 // CarPayload chaincode method argument
 type CarPayload struct {
@@ -36,7 +37,7 @@ type Car struct {
 
 // Key for car entry in chaincode state
 func (c Car) Key() ([]string, error) {
-	return []string{CarKeyPrefix, c.Id}, nil
+	return []string{CarEntity, c.Id}, nil
 }
 
 type Chaincode struct {
@@ -83,8 +84,8 @@ func car(c router.Context) (interface{}, error) {
 // cars car list chaincode method handler
 func cars(c router.Context) (interface{}, error) {
 	return c.State().List(
-		CarKeyPrefix, // get list of state entries of type CarKeyPrefix
-		&Car{})       // unmarshal from []byte and append to []Car slice
+		CarEntity, // get list of state entries of type CarKeyPrefix
+		&Car{})    // unmarshal from []byte and append to []Car slice
 }
 
 // carRegister car register chaincode method handler
@@ -99,6 +100,9 @@ func carRegister(c router.Context) (interface{}, error) {
 		Owner:     p.Owner,
 		UpdatedAt: t,
 	}
+
+	// trigger event
+	c.SetEvent(CarRegisteredEvent, car)
 
 	return car, // peer.Response payload will be json serialized car data
 		//put json serialized data to state
