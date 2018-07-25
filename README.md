@@ -1,6 +1,7 @@
 # Hyperledger Fabric chaincode kit (CCKit)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/s7techlab/cckit)](https://goreportcard.com/report/github.com/s7techlab/cckit)
+![Build](https://api.travis-ci.org/s7techlab/cckit.svg?branch=master)
 
 
 **CCkit** is a **programming toolkit** for developing and testing hyperledger fabric chaincode
