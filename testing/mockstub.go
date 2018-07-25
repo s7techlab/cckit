@@ -53,12 +53,20 @@ func (stub *MockStub) SetArgs(args [][]byte) {
 	stub._args = args
 }
 
+// SetEvent sets chaincode event
 func (stub *MockStub) SetEvent(name string, payload []byte) error {
 	if name == "" {
 		return errors.New("event name can not be nil string")
 	}
 	stub.ChaincodeEvent = &peer.ChaincodeEvent{EventName: name, Payload: payload}
 	return stub.MockStub.SetEvent(name, payload)
+}
+
+// ClearEvents clears chaincode events channel -
+func (stub *MockStub) ClearEvents() {
+	for len(stub.ChaincodeEventsChannel) > 0 {
+		<-stub.ChaincodeEventsChannel
+	}
 }
 
 // GetStringArgs get mocked args as strings

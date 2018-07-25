@@ -7,7 +7,8 @@ import (
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 
-	"github.com/hyperledger/fabric/protos/peer"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/s7techlab/cckit/identity"
@@ -44,19 +45,32 @@ var _ = Describe(`Mockstub`, func() {
 		Expect(cc.ChaincodeEvent.EventName).To(Equal(cars.CarRegisteredEvent))
 		Expect(event.Id).To(Equal(cars.Payloads[0].Id))
 
+		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(1))
+
 	})
 
-	It("Allow to get  t event while chaincode invoke using ChaincodeEventsChannel ", func() {
+	It("Allow to clear events channel", func() {
 
-		var ccEvent *peer.ChaincodeEvent
+		cc.ClearEvents()
+		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
+		timeout := make(chan bool, 1)
+
 		go func() {
-			select {
-			case ccEvent = <-cc.ChaincodeEventsChannel:
-			}
+			time.Sleep(time.Millisecond * 10)
+			timeout <- true
 		}()
 
 		expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[1]))
-		Expect(ccEvent.EventName).To(Equal(cars.CarRegisteredEvent))
+
+		select {
+		case ccEvent := <-cc.ChaincodeEventsChannel:
+			Expect(ccEvent.EventName).To(Equal(cars.CarRegisteredEvent))
+			event := expectcc.EventPayloadIs(ccEvent, &cars.Car{}).(cars.Car)
+			Expect(event.Id).To(Equal(cars.Payloads[1].Id))
+		case <-timeout:
+			Expect(true).To(Equal(false), `Event not received`)
+		}
+
 	})
 
 })
