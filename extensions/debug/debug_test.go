@@ -88,24 +88,24 @@ var _ = Describe(`Debuggable`, func() {
 		})
 
 		It("Allow to get keys", func() {
-			keys := expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeysList`, []string{`prefixA`}), &[]string{}).([]string)
+			keys := expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeys`, []string{`prefixA`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(5))
 
 			key0, key0rest, _ := cc.SplitCompositeKey(keys[0])
 			Expect(key0).To(Equal(`prefixA`))
 			Expect(key0rest).To(Equal([]string{`key0`}))
 
-			keys = expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeysList`, []string{`prefixB`, `subprefixB`}), &[]string{}).([]string)
+			keys = expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeys`, []string{`prefixB`, `subprefixB`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(7))
 		})
 
 		It("Allow to delete state entry", func() {
 			expectcc.ResponseOk(cc.From(owner).Invoke(`debugStateDelete`, []string{`prefixA`, `key0`}))
-			keys := expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeysList`, []string{`prefixA`}), &[]string{}).([]string)
+			keys := expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeys`, []string{`prefixA`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(4))
 
 			expectcc.ResponseOk(cc.From(owner).Invoke(`debugStateDelete`, []string{`prefixA`, `key4`}))
-			keys = expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeysList`, []string{`prefixA`}), &[]string{}).([]string)
+			keys = expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeys`, []string{`prefixA`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(3))
 		})
 
@@ -116,7 +116,7 @@ var _ = Describe(`Debuggable`, func() {
 			Expect(cleanResult[`prefixA`]).To(Equal(3))
 			Expect(len(cleanResult)).To(Equal(1))
 
-			keys := expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeysList`, []string{`prefixA`}), &[]string{}).([]string)
+			keys := expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeys`, []string{`prefixA`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(0))
 		})
 

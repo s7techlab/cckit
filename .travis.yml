@@ -1,0 +1,10 @@
+language: go
+
+before_install:
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - dep ensure -vendor-only
+
+script:
+  - go test ./...
+go:
+  - 1.10.x

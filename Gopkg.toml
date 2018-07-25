@@ -1,0 +1,25 @@
+required = ["github.com/op/go-logging"]
+
+[[override]]
+  name = "github.com/hyperledger/fabric"
+  version = "1.2.0"
+
+
+[[override]]
+  name = "github.com/golang/protobuf"
+  branch = "master"
+
+
+[[override]]
+  name = "github.com/pkg/errors"
+  branch = "master"
+
+
+[[override]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
+
+
+[[override]]
+  name = "github.com/docker/docker"
+  revision = "57142e89befe90977da6dce7762f9fcc70f28da1"
