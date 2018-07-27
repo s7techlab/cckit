@@ -170,6 +170,7 @@ func ArgsToBytes(iargs ...interface{}) (aa [][]byte, err error) {
 	return args, nil
 }
 
+// TimestampToTime converts timestamp to time.Time
 func TimestampToTime(ts *timestamp.Timestamp) time.Time {
 	return time.Unix(ts.GetSeconds(), int64(ts.GetNanos()))
 }

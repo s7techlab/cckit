@@ -12,6 +12,8 @@ import (
 	"github.com/s7techlab/cckit/convert"
 )
 
+const EventChannelBufferSize = 100
+
 var (
 	// ErrChaincodeNotExists occurs when attempting to invoke a nonexostent external chaincode
 	ErrChaincodeNotExists = errors.New(`chaincode not exists`)
@@ -22,13 +24,14 @@ var (
 // MockStub replacement of shim.MockStub with creator mocking facilities
 type MockStub struct {
 	shim.MockStub
-	cc                      shim.Chaincode
-	mockCreator             []byte
-	ClearCreatorAfterInvoke bool
-	_args                   [][]byte
-	InvokablesFull          map[string]*MockStub
-	creatorTransformer      CreatorTransformer   // transformer for tx creator data, used in From func
-	ChaincodeEvent          *peer.ChaincodeEvent // event in last tx
+	cc                          shim.Chaincode
+	mockCreator                 []byte
+	ClearCreatorAfterInvoke     bool
+	_args                       [][]byte
+	InvokablesFull              map[string]*MockStub        // invokable this version of MockStub
+	creatorTransformer          CreatorTransformer          // transformer for tx creator data, used in From func
+	ChaincodeEvent              *peer.ChaincodeEvent        // event in last tx
+	chaincodeEventSubscriptions []chan *peer.ChaincodeEvent // multiple event subscriptions
 }
 
 type CreatorTransformer func(...interface{}) (mspID string, certPEM []byte, err error)
@@ -58,8 +61,20 @@ func (stub *MockStub) SetEvent(name string, payload []byte) error {
 	if name == "" {
 		return errors.New("event name can not be nil string")
 	}
+
 	stub.ChaincodeEvent = &peer.ChaincodeEvent{EventName: name, Payload: payload}
+
+	for _, sub := range stub.chaincodeEventSubscriptions {
+		sub <- stub.ChaincodeEvent
+	}
+
 	return stub.MockStub.SetEvent(name, payload)
+}
+
+func (stub *MockStub) EventSubscription() chan *peer.ChaincodeEvent {
+	subscription := make(chan *peer.ChaincodeEvent, EventChannelBufferSize)
+	stub.chaincodeEventSubscriptions = append(stub.chaincodeEventSubscriptions, subscription)
+	return subscription
 }
 
 // ClearEvents clears chaincode events channel -

@@ -50,11 +50,13 @@ var _ = Describe(`Mockstub`, func() {
 	})
 
 	It("Allow to clear events channel", func() {
-
 		cc.ClearEvents()
 		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
-		timeout := make(chan bool, 1)
 
+	})
+
+	It("Allow to get events via events channel", func() {
+		timeout := make(chan bool, 1)
 		go func() {
 			time.Sleep(time.Millisecond * 10)
 			timeout <- true
@@ -71,6 +73,34 @@ var _ = Describe(`Mockstub`, func() {
 			Expect(true).To(Equal(false), `Event not received`)
 		}
 
+	})
+
+	It("Allow to use multiple events subscriptions", func() {
+		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
+
+		sub1 := cc.EventSubscription()
+		sub2 := cc.EventSubscription()
+
+		Expect(len(sub1)).To(Equal(0))
+		Expect(len(sub2)).To(Equal(0))
+
+		expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[2]))
+
+		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(1))
+		Expect(len(sub1)).To(Equal(1))
+		Expect(len(sub2)).To(Equal(1))
+
+		event1 := <-sub1
+		event2 := <-sub2
+		event := <-cc.ChaincodeEventsChannel
+
+		Expect(event1.Payload).To(Equal(event.Payload))
+		Expect(event2.Payload).To(Equal(event.Payload))
+		Expect(event1.Payload).To(Equal(event2.Payload))
+
+		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
+		Expect(len(sub1)).To(Equal(0))
+		Expect(len(sub2)).To(Equal(0))
 	})
 
 })
