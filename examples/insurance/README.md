@@ -43,6 +43,14 @@ for access control, it's critical to be able to stub this method  in order to co
 `CCKit` contains extended [MockStub](../../testing/mockstub.go) with implementation of some of the unimplemented
 methods and delegating existing ones to shim.MockStub.
 
+## Tests for this application
+
+The tests are located in [ibm_app_test](ibm_app_test) directory:
+
+* [app_test.go](ibm_app_test/app_test.go) contains [Ginkgo](https://onsi.github.io/ginkgo/) based tests
+* [dto.go](ibm_app_test/dto.go) contains named DTO (data transfer objects) from original chaincode source code
+* [fixture.go](ibm_app_test/fixtures.go) contains fixtures for tests
+
 
 ## Getting started
 
