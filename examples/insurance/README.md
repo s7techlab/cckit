@@ -13,15 +13,15 @@ shows how through distributed ledger and smart contracts blockchain can transfor
 data is exchanged, claims are processed, and fraud is prevented. Blockchain can bring together developers from tech 
 companies, regulators, and insurance companies to create a valuable new insurance management asset. 
  
-![Architecture](images/arch-blockchain-insurance2.png)
+![Architecture](vendor/ibm-app/images/arch-blockchain-insurance2.png)
 
 
 ### Source code 
 
 https://github.com/IBM/build-blockchain-insurance-app
 
-Chaincode from  https://github.com/IBM/build-blockchain-insurance-app/tree/master/web/chaincode/src/bcins is copied to  
-the current directory for sample creation test.
+Chaincode from  https://github.com/IBM/build-blockchain-insurance-app/tree/master/web/chaincode/src/bcins is copied and to  
+the [vendor](vendor) directory for sample test creation.
 
 ## Why test with Mockstub
 
