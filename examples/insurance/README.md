@@ -13,15 +13,15 @@ shows how through distributed ledger and smart contracts blockchain can transfor
 data is exchanged, claims are processed, and fraud is prevented. Blockchain can bring together developers from tech 
 companies, regulators, and insurance companies to create a valuable new insurance management asset. 
  
-![Architecture](vendor/ibm-app/images/arch-blockchain-insurance2.png)
+![Architecture](vendor/ibm_app/images/arch-blockchain-insurance2.png)
 
 
 ### Source code 
 
 https://github.com/IBM/build-blockchain-insurance-app
 
-Chaincode from  https://github.com/IBM/build-blockchain-insurance-app/tree/master/web/chaincode/src/bcins is copied and to  
-the [vendor](vendor) directory for sample test creation.
+Chaincode from  https://github.com/IBM/build-blockchain-insurance-app/tree/master/web/chaincode/src/bcins is copied to  
+the [vendor/ibm-app](vendor/ibm_app) directory for sample test creation.
 
 ## Why test with Mockstub
 
@@ -40,7 +40,7 @@ of Hyperledger Fabric (1.2), the MockStub has not implemented some of the import
 as `GetCreator`, for example. Since chaincode would use this method to get tx creator certificate
 for access control, it's critical to be able to stub this method  in order to completely unit-test chaincode. 
 
-`CCKit` contains extended [MockStub](../../../testing/mockstub.go) with implementation of some of the unimplemented
+`CCKit` contains extended [MockStub](../../testing/mockstub.go) with implementation of some of the unimplemented
 methods and delegating existing ones to shim.MockStub.
 
 
