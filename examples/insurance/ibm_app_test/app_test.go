@@ -23,19 +23,50 @@ var _ = Describe(`Insurance`, func() {
 	cc := testcc.NewMockStub(`insurance`, new(ibm_app.SmartContract))
 
 	Describe("Chaincode initialization ", func() {
-		It("Allow to provide contract types attributes  during chaincode creation", func() {
+		It("Allow to provide contract types attributes  during chaincode creation [init]", func() {
 			expectcc.ResponseOk(cc.Init(`init`, &ContractTypesDTO{ContractType1}))
 		})
 	})
 
 	Describe("Contract type ", func() {
 
-		It("Allow to retrieve all contract type, added during chaincode init", func() {
+		It("Allow to retrieve all contract type, added during chaincode init [contract_type_ls]", func() {
 			contractTypes := expectcc.PayloadIs(
 				cc.Invoke(`contract_type_ls`), &ContractTypesDTO{}).(ContractTypesDTO)
 
 			Expect(len(contractTypes)).To(Equal(1))
 			Expect(contractTypes[0].ShopType).To(Equal(ContractType1.ShopType))
+		})
+
+		It("Allow to create new contract type [contract_type_create]", func() {
+			expectcc.ResponseOk(cc.Invoke(`contract_type_create`, &ContractType2))
+
+			// get contract type list
+			contractTypes := expectcc.PayloadIs(
+				cc.Invoke(`contract_type_ls`), &ContractTypesDTO{}).(ContractTypesDTO)
+
+			//expect now we have 2 contract type
+			Expect(len(contractTypes)).To(Equal(2))
+		})
+
+		It("Allow to set active contract type [contract_type_set_active]", func() {
+			Expect(ContractType2.Active).To(BeFalse())
+
+			// active ContractType2
+			expectcc.ResponseOk(cc.Invoke(`contract_type_set_active`, &ContractTypeActiveDTO{
+				UUID: ContractType2.UUID, Active: true}))
+		})
+
+		It("Allow to retrieve filtered by shop type contract types [contract_type_ls]", func() {
+			contractTypes := expectcc.PayloadIs(
+				cc.Invoke(`contract_type_ls`, &ShopTypeDTO{ContractType2.ShopType}),
+				&ContractTypesDTO{}).(ContractTypesDTO)
+
+			Expect(len(contractTypes)).To(Equal(1))
+			Expect(contractTypes[0].UUID).To(Equal(ContractType2.UUID))
+
+			// Contract type 2 activated on previous step
+			Expect(contractTypes[0].Active).To(BeTrue())
 		})
 	})
 

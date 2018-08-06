@@ -21,6 +21,20 @@ var (
 			MaxDurationDays: 5,
 		}}
 
+	ContractType2 = ContractTypeDTO{
+		UUID: `7890`,
+		ContractType: &ibm_app.ContractType{
+			ShopType:        `shop-type-2`,
+			FormulaPerDay:   `bbb`,
+			MaxSumInsured:   777,
+			TheftInsured:    false,
+			Description:     `once more description`,
+			Conditions:      `once more conditions`,
+			Active:          false,
+			MinDurationDays: 2,
+			MaxDurationDays: 10,
+		}}
+
 	// Contract fixture
 	Contract1 = CreateContractDTO{
 		UUID:             `xxx-aaa-bbb`,

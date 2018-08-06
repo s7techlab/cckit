@@ -13,6 +13,15 @@ type ContractTypeDTO struct {
 	*ibm_app.ContractType
 }
 
+type ContractTypeActiveDTO struct {
+	UUID   string `json:"uuid"`
+	Active bool   `json:"active"`
+}
+
+type ShopTypeDTO struct {
+	ShopType string `json:"shop_type"`
+}
+
 // CreateContractDTO type used in in "createContract" func (arg) in invoke_shop.go
 type CreateContractDTO struct {
 	UUID             string       `json:"uuid"`
