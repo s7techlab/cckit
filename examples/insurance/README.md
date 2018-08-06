@@ -54,11 +54,22 @@ The tests are located in [ibm_app_test](ibm_app_test) directory:
 
 ## Getting started
 
+Ginkgo hooks into Go’s existing testing infrastructure. This allows you to run a Ginkgo suite using go test.
+We import the ginkgo and gomega packages into the test’s top-level namespace by performing a dot-import. More about
+testing with Ginkgo you can read on [onsi.github.io/ginkgo/](https://onsi.github.io/ginkgo/)
+
+Using separate [package with tests](ibm_app_test) instead of [chaincode package](vendor/ibm_app) allows us to respect
+the encapsulation of the chaincode package: your tests will need to import chaincode and access it from the outside.
+
 ```go
 package main
 
 import (
+	"fmt"
 	"testing"
+
+	"ibm_app"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -73,7 +84,7 @@ func TestInsuranceApp(t *testing.T) {
 var _ = Describe(`Insurance`, func() {
 
 	//Create chaincode mock
-	cc := testcc.NewMockStub(`insurance`, new(SmartContract))
+	cc := testcc.NewMockStub(`insurance`, new(ibm_app.SmartContract))
 	
 	...
 	}
