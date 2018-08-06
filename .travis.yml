@@ -5,9 +5,14 @@ git:
 
 before_install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - go get github.com/mattn/goveralls
 
 install:
   - dep ensure -vendor-only -v
+
+script:
+  - go test -race -v  ./...
+  - $GOPATH/bin/goveralls -service=travis-ci
 
 go:
   - 1.10.x
