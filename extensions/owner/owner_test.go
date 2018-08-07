@@ -20,29 +20,50 @@ func TestOwner(t *testing.T) {
 	RunSpecs(t, "Owner suite")
 }
 
-type OwnableChaincode struct {
+type OwnableFromCreatorChaincode struct {
 	router *router.Group
 }
 
-func (cc *OwnableChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
+func (cc *OwnableFromCreatorChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
 	return owner.SetFromCreator(cc.router.Context(`init`, stub))
 }
 
-func (cc *OwnableChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+func (cc *OwnableFromCreatorChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
 	// delegate handling to router
 	return cc.router.Handle(stub)
 }
 
-func New() *OwnableChaincode {
-	r := router.New(`ownable`) // also initialized logger with "pingable" prefix
+//  OwnableFromArgsChaincode  - owner credentials can be passed at the time of initialization
+type OwnableFromArgsChaincode struct {
+	router *router.Group
+}
+
+func (cc *OwnableFromArgsChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
+	return owner.SetFromArgs(cc.router.Context(`init`, stub))
+}
+
+func (cc *OwnableFromArgsChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
+	// delegate handling to router
+	return cc.router.Handle(stub)
+}
+
+func NewOwnableFromCreator() *OwnableFromCreatorChaincode {
+	r := router.New(`ownableFromCreator`) // also initialized logger with "pingable" prefix
 	r.Invoke(owner.QueryMethod, owner.Query)
-	return &OwnableChaincode{r}
+	return &OwnableFromCreatorChaincode{r}
+}
+
+func NewOwnableFromArgs() *OwnableFromArgsChaincode {
+	r := router.New(`ownableFromArgs`) // also initialized logger with "pingable" prefix
+	r.Invoke(owner.QueryMethod, owner.Query)
+	return &OwnableFromArgsChaincode{r}
 }
 
 var _ = Describe(`Ownable`, func() {
 
 	//Create chaincode mock
-	cc := testcc.NewMockStub(`ownable`, New())
+	cc1 := testcc.NewMockStub(`ownableFromCreator`, NewOwnableFromCreator())
+	cc2 := testcc.NewMockStub(`ownableFromArgs`, NewOwnableFromArgs())
 	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
 		`owner`:   `s7techlab.pem`,
 		`someone`: `victor-nosov.pem`}, examplecert.Content)
@@ -50,25 +71,52 @@ var _ = Describe(`Ownable`, func() {
 		panic(err)
 	}
 
-	Describe("Owner", func() {
+	Describe("Owner from creator", func() {
 
-		It("Allow set owner during chaincode init", func() {
+		It("Allow to set owner during chaincode init", func() {
 			//invoke chaincode method from authority actor
-			owner := expectcc.PayloadIs(cc.From(actors[`owner`]).Init(), &identity.Entry{}).(identity.Entry)
+			owner := expectcc.PayloadIs(cc1.From(actors[`owner`]).Init(), &identity.Entry{}).(identity.Entry)
 			Expect(owner.GetSubject()).To(Equal(actors[`owner`].GetSubject()))
 		})
 
 		It("Owner not changed during chaincode upgrade", func() {
 			// cc upgrade
-			ownerAfterSecondInit := expectcc.PayloadIs(cc.From(actors[`someone`]).Init(), &identity.Entry{}).(identity.Entry)
+			ownerAfterSecondInit := expectcc.PayloadIs(cc1.From(actors[`someone`]).Init(), &identity.Entry{}).(identity.Entry)
 			Expect(ownerAfterSecondInit.Subject).To(Equal(actors[`owner`].GetSubject()))
 		})
 
-		It("Can be queried", func() {
-			ownerIdentity := expectcc.PayloadIs(cc.From(actors[`someone`]).Invoke(owner.QueryMethod), &identity.Entry{}).(identity.Entry)
+		It("Owner can be queried", func() {
+			ownerIdentity := expectcc.PayloadIs(cc1.From(actors[`someone`]).Invoke(owner.QueryMethod), &identity.Entry{}).(identity.Entry)
 			Expect(ownerIdentity.GetSubject()).To(Equal(actors[`owner`].GetSubject()))
 			Expect(ownerIdentity.GetMSPID()).To(Equal(actors[`owner`].GetMSPID()))
 			Expect(ownerIdentity.GetPublicKey()).To(Equal(actors[`owner`].GetPublicKey()))
 		})
+	})
+
+	Describe("Owner from args", func() {
+
+		It("Allow to set owner during chaincode init", func() {
+			//invoke chaincode method from someone, but pass owner mspId and cert to init
+			owner := expectcc.PayloadIs(cc2.From(actors[`someone`]).Init(actors[`owner`].MspID, actors[`owner`].GetPEM()), &identity.Entry{}).(identity.Entry)
+			Expect(owner.GetSubject()).To(Equal(actors[`owner`].GetSubject()))
+		})
+
+		It("Owner not changed during chaincode upgrade", func() {
+			// cc upgrade
+			ownerAfterSecondInit := expectcc.PayloadIs(cc2.From(actors[`someone`]).Init(), &identity.Entry{}).(identity.Entry)
+			Expect(ownerAfterSecondInit.Subject).To(Equal(actors[`owner`].GetSubject()))
+		})
+		It("Disallow set owner twice", func() {
+			//invoke chaincode method from someone, but pass owner mspId and cert to init
+			expectcc.ResponseError(cc2.From(actors[`someone`]).Init(actors[`owner`].MspID, actors[`owner`].GetPEM()))
+		})
+
+		It("Owner can be queried", func() {
+			ownerIdentity := expectcc.PayloadIs(cc2.From(actors[`someone`]).Invoke(owner.QueryMethod), &identity.Entry{}).(identity.Entry)
+			Expect(ownerIdentity.GetSubject()).To(Equal(actors[`owner`].GetSubject()))
+			Expect(ownerIdentity.GetMSPID()).To(Equal(actors[`owner`].GetMSPID()))
+			Expect(ownerIdentity.GetPublicKey()).To(Equal(actors[`owner`].GetPublicKey()))
+		})
+
 	})
 })

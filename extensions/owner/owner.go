@@ -12,19 +12,33 @@ import (
 const OwnerStateKey = `OWNER`
 
 var (
-	// ErrToMuchArguments occurs when to much arguments passed to Init
-	ErrToMuchArguments = errors.New(`too much arguments`)
+	// ErrOwnerNotProvided
+	ErrOwnerNotProvided = errors.New(`owner not provided`)
+
+	// ErrOwnerAlreadySetted owner already setted
+	ErrOwnerAlreadySetted = errors.New(`owner already setted`)
 )
+
+func IsSetted(c r.Context) (bool, error) {
+	return c.State().Exists(OwnerStateKey)
+}
+
+func Get(c r.Context) (*identity.Entry, error) {
+	ownerEntry, err := c.State().Get(OwnerStateKey, &identity.Entry{})
+	if err != nil {
+		return nil, err
+	}
+
+	o := ownerEntry.(identity.Entry)
+	return &o, nil
+}
 
 // SetFromCreator sets chain code owner from stub creator
 func SetFromCreator(c r.Context) peer.Response {
-	ownerSetted, err := c.State().Exists(OwnerStateKey)
-	if err != nil {
+	if ownerSetted, err := IsSetted(c); err != nil {
 		return c.Response().Error(err)
-	}
-
-	if ownerSetted {
-		return c.Response().Create(c.State().Get(OwnerStateKey, &identity.Entry{}))
+	} else if ownerSetted {
+		return c.Response().Create(Get(c))
 	}
 
 	creator, err := identity.FromStub(c.Stub())
@@ -33,6 +47,44 @@ func SetFromCreator(c r.Context) peer.Response {
 	}
 
 	identityEntry, err := identity.CreateEntry(creator)
+	if err != nil {
+		return c.Response().Error(err)
+	}
+	return c.Response().Create(identityEntry, c.State().Insert(OwnerStateKey, identityEntry))
+}
+
+// SetFromArgs set owner fron first args
+func SetFromArgs(c r.Context) peer.Response {
+	args := c.Stub().GetArgs()
+
+	if len(args) == 2 {
+		return Insert(c, string(args[0]), args[1])
+	}
+
+	if isSetted, err := IsSetted(c); err != nil {
+		return c.Response().Error(err)
+	} else if !isSetted {
+		return c.Response().Error(ErrOwnerNotProvided)
+	}
+
+	return c.Response().Create(Get(c))
+}
+
+// Insert
+func Insert(c r.Context, mspID string, cert []byte) peer.Response {
+
+	if ownerSetted, err := IsSetted(c); err != nil {
+		return c.Response().Error(err)
+	} else if ownerSetted {
+		return c.Response().Error(ErrOwnerAlreadySetted)
+	}
+
+	id, err := identity.New(mspID, cert)
+	if err != nil {
+		return c.Response().Error(err)
+	}
+
+	identityEntry, err := identity.CreateEntry(id)
 	if err != nil {
 		return c.Response().Error(err)
 	}
