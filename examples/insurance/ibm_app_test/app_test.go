@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 
 	"ibm_app"
@@ -88,11 +87,15 @@ var _ = Describe(`Insurance`, func() {
 			Expect(contractCreateResponse.Username).To(Equal(Contract1.Username))
 		})
 
-		It("ERROR: During contract creation we also created user - ERROR in smart contract", func() {
+		It("Allow every one to get user info", func() {
 
-			fmt.Printf(`%+v`, cc.Invoke(`user_get_info`, &GetUserDTO{
-				Username: Contract1.Username,
-			}))
+			// orininally was error https://github.com/IBM/build-blockchain-insurance-app/pull/44
+			user := expectcc.PayloadIs(
+				cc.Invoke(`user_get_info`, &GetUserDTO{
+					Username: Contract1.Username,
+				}), &ResponseUserDTO{}).(ResponseUserDTO)
+
+			Expect(user.LastName).To(Equal(Contract1.LastName))
 		})
 
 	})
