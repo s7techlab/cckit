@@ -99,18 +99,29 @@ func (stub *MockStub) MockPeerChaincode(invokableChaincodeName string, otherStub
 	stub.InvokablesFull[invokableChaincodeName] = otherStub
 }
 
+// MockedPeerChancodes returns names of mocked chaincodes, available for invoke from current stub
+func (stub *MockStub) MockedPeerChancodes() []string {
+	keys := make([]string, 0)
+	for k := range stub.InvokablesFull {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 // InvokeChaincode using another MockStub
 func (stub *MockStub) InvokeChaincode(chaincodeName string, args [][]byte, channel string) peer.Response {
 
 	// TODO "args" here should possibly be a serialized pb.ChaincodeInput
 	// Internally we use chaincode name as a composite name
+	ccName := chaincodeName
 	if channel != "" {
 		chaincodeName = chaincodeName + "/" + channel
 	}
 
 	otherStub, exists := stub.InvokablesFull[chaincodeName]
 	if !exists {
-		return shim.Error(ErrChaincodeNotExists.Error())
+		return shim.Error(fmt.Sprintf(`%s: try to invoke chaincode "%s" in channel "%s" (%s). Available mocked chaincodes are: %s`,
+			ErrChaincodeNotExists, ccName, channel, chaincodeName, stub.MockedPeerChancodes()))
 	}
 
 	res := otherStub.MockInvoke(stub.TxID, args)
