@@ -1,4 +1,4 @@
-package main
+package cars
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cc := cars.New()
+	cc := cars.NewWithoutAccessControl()
 	if err := shim.Start(cc); err != nil {
 		fmt.Printf("Error starting Cars chaincode: %s", err)
 	}

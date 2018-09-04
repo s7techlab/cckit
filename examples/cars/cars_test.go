@@ -22,6 +22,7 @@ var _ = Describe(`Cars`, func() {
 
 	//Create chaincode mock
 	cc := testcc.NewMockStub(`cars`, New())
+	ccWithoutAC := testcc.NewMockStub(`cars`, NewWithoutAccessControl())
 
 	// load actor certificates
 	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
@@ -48,6 +49,12 @@ var _ = Describe(`Cars`, func() {
 			expectcc.ResponseError(
 				cc.From(actors[`someone`]).Invoke(`carRegister`, Payloads[0]),
 				owner.ErrOwnerOnly) // expect "only owner" error
+		})
+
+		It("Allow non authority to add information about car to chaincode without access control", func() {
+			//invoke chaincode method from non authority actor
+			expectcc.ResponseOk(
+				ccWithoutAC.From(actors[`someone`]).Invoke(`carRegister`, Payloads[0]))
 		})
 
 		It("Disallow authority to add duplicate information about car", func() {
