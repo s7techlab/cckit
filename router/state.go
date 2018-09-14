@@ -7,6 +7,7 @@ import (
 // State interface for chain code CRUD operations
 type State interface {
 	Get(key interface{}, target ...interface{}) (result interface{}, err error)
+	GetHistory(key interface{}, target interface{}) (result state.HistoryEntryList, err error)
 	Exists(key interface{}) (exists bool, err error)
 	Put(key interface{}, value ...interface{}) (err error)
 	Insert(key interface{}, value ...interface{}) (err error)
@@ -20,6 +21,10 @@ type ContextState struct {
 
 func (s ContextState) Get(key interface{}, target ...interface{}) (result interface{}, err error) {
 	return state.Get(s.context.Stub(), key, target...)
+}
+
+func (s ContextState) GetHistory(key interface{}, target interface{}) (result state.HistoryEntryList, err error) {
+	return state.GetHistory(s.context.Stub(), key, target)
 }
 
 func (s ContextState) Exists(key interface{}) (exists bool, err error) {

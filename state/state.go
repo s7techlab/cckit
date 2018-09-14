@@ -28,6 +28,17 @@ var (
 	ErrKeyPartsLength = errors.New(`key parts length must be greater than zero`)
 )
 
+// HistoryEntry struct containing history information of a single entry
+type HistoryEntry struct {
+	TxId      string      `json:"txId"`
+	Timestamp int64       `json:"timestamp"`
+	IsDeleted bool        `json:"isDeleted"`
+	Value     interface{} `json:"value"`
+}
+
+// HistoryEntryList list of history entries
+type HistoryEntryList []HistoryEntry
+
 // EntryList list of entries from state, gotten by part of composite key
 type EntryList []interface{}
 
@@ -42,7 +53,7 @@ type KeyerFunc func(string) ([]string, error)
 func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{}) (result interface{}, err error) {
 	strKey, err := Key(stub, key)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	bb, err := stub.GetState(strKey)
 	if err != nil {
@@ -58,6 +69,43 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{
 
 	// or return raw
 	return bb, nil
+}
+
+// GetHistory by key from state, trying to convert to target interface
+func GetHistory(stub shim.ChaincodeStubInterface, key interface{}, target interface{}) (result HistoryEntryList, err error) {
+	strKey, err := Key(stub, key)
+	if err != nil {
+		return nil, err
+	}
+	iter, err := stub.GetHistoryForKey(strKey)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = iter.Close() }()
+
+	results := HistoryEntryList{}
+
+	for iter.HasNext() {
+		state, err := iter.Next()
+		if err != nil {
+			return nil, err
+		}
+		value, err := convert.FromBytes(state.Value, target)
+		if err != nil {
+			return nil, err
+		}
+
+		entry := HistoryEntry{
+			TxId:      state.GetTxId(),
+			Timestamp: state.GetTimestamp().GetSeconds(),
+			IsDeleted: state.GetIsDelete(),
+			Value:     value,
+		}
+		results = append(results, entry)
+	}
+
+	return results, nil
 }
 
 // Exists check entry with key exists in chaincode state
