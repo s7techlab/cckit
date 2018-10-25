@@ -12,6 +12,8 @@ import (
 	"github.com/s7techlab/cckit/response"
 )
 
+const InitFunc = `init`
+
 var (
 	// ErrMethodNotFound occurs when trying to invoke non existent chaincode method
 	ErrMethodNotFound = errors.New(`chaincode method not found`)
@@ -56,10 +58,19 @@ type (
 	}
 )
 
+// HandleInit handle chaincode init method
+func (g *Group) HandleInit(stub shim.ChaincodeStubInterface) peer.Response {
+	return g.HandleFunc(InitFunc, stub)
+}
+
 // Handle used for using in CC Invoke function
 // Must be called after adding new routes using Add function
 func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 	fnString, _ := stub.GetFunctionAndParameters()
+	return g.HandleFunc(fnString, stub)
+}
+
+func (g *Group) HandleFunc(fnString string, stub shim.ChaincodeStubInterface) peer.Response {
 
 	if stubHandler, ok := g.stubHandlers[fnString]; ok {
 		g.logger.Debug(`router stubHandler: `, fnString)
@@ -98,11 +109,17 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 	err := fmt.Errorf(`%s: %s`, ErrMethodNotFound, fnString)
 	g.logger.Error(err)
 	return shim.Error(err.Error())
+
+}
+
+func (g *Group) Pre(middleware ...MiddlewareFunc) *Group {
+	return g
 }
 
 // Use middleware function in chain code functions group
-func (g *Group) Use(middleware ...MiddlewareFunc) {
+func (g *Group) Use(middleware ...MiddlewareFunc) *Group {
 	g.middleware = append(g.middleware, middleware...)
+	return g
 }
 
 // Group gets new group using presented path
@@ -145,6 +162,10 @@ func (g *Group) Invoke(path string, handler HandlerFunc, middleware ...Middlewar
 		return h(context)
 	}
 	return g
+}
+
+func (g *Group) Init(handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
+	return g.Invoke(`init`, handler, middleware...)
 }
 
 // Context returns chain code invoke context  for provided path and stub

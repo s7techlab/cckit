@@ -22,6 +22,7 @@ type (
 		Arg(string) interface{}
 		ArgString(string) string
 		ArgBytes(string) []byte
+		ArgInt(string) int
 		SetArg(string, interface{})
 		Get(string) interface{}
 		Set(string, interface{})
@@ -92,6 +93,11 @@ func (c *context) ArgString(name string) string {
 
 func (c *context) ArgBytes(name string) []byte {
 	out, _ := c.Arg(name).([]byte)
+	return out
+}
+
+func (c *context) ArgInt(name string) int {
+	out, _ := c.Arg(name).(int)
 	return out
 }
 

@@ -13,6 +13,7 @@ import (
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
+	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -28,7 +29,7 @@ type DebuggableChaincode struct {
 }
 
 func (cc *DebuggableChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return owner.SetFromCreator(cc.router.Context(`init`, stub))
+	return response.Create(owner.SetFromCreator(cc.router.Context(`init`, stub)))
 }
 
 func (cc *DebuggableChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {

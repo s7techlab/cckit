@@ -5,14 +5,16 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
+	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 func TestOwner(t *testing.T) {
@@ -25,7 +27,7 @@ type OwnableFromCreatorChaincode struct {
 }
 
 func (cc *OwnableFromCreatorChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return owner.SetFromCreator(cc.router.Context(`init`, stub))
+	return response.Create(owner.SetFromCreator(cc.router.Context(`init`, stub)))
 }
 
 func (cc *OwnableFromCreatorChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
@@ -39,7 +41,7 @@ type OwnableFromArgsChaincode struct {
 }
 
 func (cc *OwnableFromArgsChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return owner.SetFromArgs(cc.router.Context(`init`, stub))
+	return response.Create(owner.SetFromArgs(cc.router.Context(`init`, stub)))
 }
 
 func (cc *OwnableFromArgsChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {

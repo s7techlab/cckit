@@ -50,7 +50,7 @@ type Keyer interface {
 type KeyerFunc func(string) ([]string, error)
 
 // Get data by key from state, trying to convert to target interface
-func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{}) (result interface{}, err error) {
+func Get(stub shim.ChaincodeStubInterface, key interface{}, config ...interface{}) (result interface{}, err error) {
 	strKey, err := Key(stub, key)
 	if err != nil {
 		return nil, err
@@ -60,11 +60,15 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, target ...interface{
 		return
 	}
 	if bb == nil || len(bb) == 0 {
+		// default value
+		if len(config) >= 2 {
+			return config[1], nil
+		}
 		return nil, errors.Wrap(KeyError(strKey), ErrKeyNotFound.Error())
 	}
 	// converting to target type
-	if len(target) == 1 {
-		return convert.FromBytes(bb, target[0])
+	if len(config) >= 1 {
+		return convert.FromBytes(bb, config[0])
 	}
 
 	// or return raw

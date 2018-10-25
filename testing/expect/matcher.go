@@ -3,6 +3,8 @@ package expect
 import (
 	"fmt"
 
+	"strconv"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	g "github.com/onsi/gomega"
@@ -41,6 +43,23 @@ func PayloadIs(response peer.Response, target interface{}) interface{} {
 	return data
 }
 
+// PayloadString expects payload content is string
+func PayloadString(response peer.Response, expectedValue string) string {
+	ResponseOk(response)
+	str := string(response.Payload)
+	g.Expect(str).To(g.Equal(expectedValue))
+	return str
+}
+
+func PayloadInt(response peer.Response, expectedValue int) int {
+	ResponseOk(response)
+	d, err := strconv.Atoi(string((response.Payload)))
+	g.Expect(err).To(g.BeNil())
+	g.Expect(d).To(g.Equal(expectedValue))
+	return d
+}
+
+// EventPayloadIs expects peer.ChaincodeEvent payload can be marshalled to target interface{} and returns converted value
 func EventPayloadIs(event *peer.ChaincodeEvent, target interface{}) interface{} {
 	g.Expect(event).NotTo(g.BeNil())
 	data, err := convert.FromBytes(event.Payload, target)

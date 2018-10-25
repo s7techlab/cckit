@@ -212,6 +212,10 @@ func (stub *MockStub) Invoke(funcName string, iargs ...interface{}) peer.Respons
 	return stub.MockInvoke(stub.generateTxUID(), args)
 }
 
+func (stub *MockStub) Query(funcName string, iargs ...interface{}) peer.Response {
+	return stub.Invoke(funcName, iargs...)
+}
+
 // GetCreator mocked
 func (stub *MockStub) GetCreator() ([]byte, error) {
 	return stub.mockCreator, nil

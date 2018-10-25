@@ -22,6 +22,10 @@ var (
 	ErrUnableToConvertValueToStruct = errors.New(`unable to convert value to [struct,array,slice,ptr]`)
 )
 
+const TypeInt = 1
+const TypeString = ``
+const TypeBool = true
+
 // FromByter interface supports FromBytes func for converting to structure
 type FromByter interface {
 	FromBytes([]byte) (interface{}, error)
