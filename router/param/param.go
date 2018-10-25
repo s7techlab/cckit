@@ -1,12 +1,13 @@
 package param
 
 import (
+	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
 )
 
 // String creates middleware for converting to string chaincode method parameter
 func String(name string, argPoss ...int) router.MiddlewareFunc {
-	return Param(name, ``, argPoss...)
+	return Param(name, convert.TypeString, argPoss...)
 }
 
 func Strings(name string, argPoss ...int) router.MiddlewareFunc {
@@ -15,12 +16,12 @@ func Strings(name string, argPoss ...int) router.MiddlewareFunc {
 
 // Int creates middleware for converting to integer chaincode method parameter
 func Int(name string, argPoss ...int) router.MiddlewareFunc {
-	return Param(name, 1, argPoss...)
+	return Param(name, convert.TypeInt, argPoss...)
 }
 
 // Bool creates middleware for converting to bool chaincode method parameter
 func Bool(name string, argPoss ...int) router.MiddlewareFunc {
-	return Param(name, true, argPoss...)
+	return Param(name, convert.TypeBool, argPoss...)
 }
 
 // Struct creates middleware for converting to struct chaincode method parameter
@@ -31,4 +32,11 @@ func Struct(name string, target interface{}, argPoss ...int) router.MiddlewareFu
 // Bytes creates middleware for converting to []byte chaincode method parameter
 func Bytes(name string, argPoss ...int) router.MiddlewareFunc {
 	return Param(name, []byte{}, argPoss...)
+}
+
+// StrictKnown allows passing arguments to chaincode func only if parameters are defined in router
+func StrictKnown(next router.HandlerFunc, pos ...int) router.HandlerFunc {
+	return func(c router.Context) (interface{}, error) {
+		return next(c)
+	}
 }

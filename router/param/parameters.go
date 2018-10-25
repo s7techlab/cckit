@@ -3,10 +3,11 @@ package param
 import (
 	"fmt"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
 )
+
+const LastPosKey = `_lastPos`
 
 type (
 	// Parameters list of chain code function parameters
@@ -19,22 +20,36 @@ type (
 		ArgPos int
 	}
 
+	//DefinedParams
+
 	// MiddlewareFuncMap named list of middleware functions
 	MiddlewareFuncMap map[string]router.MiddlewareFunc
 )
 
-func (p Parameter) ValueFromStub(stub shim.ChaincodeStubInterface) (arg interface{}, err error) {
-	args := stub.GetArgs()[1:] // first arg is chaincode function name
-
-	if p.ArgPos >= len(args) {
-		return nil, fmt.Errorf(`arg not exists in stub, requested pos : %d, args length : %d`, p.ArgPos, len(args))
+func (p Parameter) ValueFromContext(c router.Context) (arg interface{}, err error) {
+	// by default args start from pos 1 , at first pos is funcName
+	argsStartsFrom := 1
+	if c.Path() == router.InitFunc {
+		argsStartsFrom = 0
 	}
-	return convert.FromBytes(args[p.ArgPos], p.Type) //first arg is function name
-}
 
-// ParameterBag builder for named middleware list
-func ParameterBag() MiddlewareFuncMap {
-	return MiddlewareFuncMap{}
+	argPos := p.ArgPos
+	if argPos == -1 {
+		lastPos, ok := c.Arg(LastPosKey).(int)
+		if !ok {
+			argPos = 0
+		} else {
+			argPos = lastPos + 1
+		}
+		c.SetArg(LastPosKey, argPos)
+	}
+
+	args := c.Stub().GetArgs()[argsStartsFrom:] // first arg is chaincode function name
+	if p.ArgPos >= len(args) {
+		return nil, fmt.Errorf(`param not exists, param expected at pos : %d, stub args length : %d`, p.ArgPos, len(args))
+	}
+
+	return convert.FromBytes(args[argPos], p.Type) //first arg is function name
 }
 
 // Add middleware function
@@ -47,7 +62,7 @@ func (pbag MiddlewareFuncMap) Add(name string, paramType interface{}) Middleware
 func Param(name string, paramType interface{}, argPoss ...int) router.MiddlewareFunc {
 	var argPos int
 	if len(argPoss) == 0 {
-		argPos = 0
+		argPos = -1 // use next pos
 	} else {
 		argPos = argPoss[0]
 	}
@@ -55,13 +70,14 @@ func Param(name string, paramType interface{}, argPoss ...int) router.Middleware
 	parameter := Parameter{name, paramType, argPos}
 
 	return func(next router.HandlerFunc, pos ...int) router.HandlerFunc {
-		return func(context router.Context) (interface{}, error) {
-			arg, err := parameter.ValueFromStub(context.Stub())
+		return func(c router.Context) (interface{}, error) {
+
+			arg, err := parameter.ValueFromContext(c)
 			if err != nil {
 				return nil, err
 			}
-			context.SetArg(name, arg)
-			return next(context)
+			c.SetArg(name, arg)
+			return next(c)
 		}
 	}
 }

@@ -7,12 +7,11 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
+	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/router/param"
 	"github.com/s7techlab/cckit/state"
@@ -47,7 +46,7 @@ type BooksChaincode struct {
 }
 
 func (cc *BooksChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return owner.SetFromCreator(cc.router.Context(`init`, stub))
+	return response.Create(owner.SetFromCreator(cc.router.Context(`init`, stub)))
 }
 
 func (cc *BooksChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {

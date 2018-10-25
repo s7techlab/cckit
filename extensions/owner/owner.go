@@ -2,7 +2,6 @@
 package owner
 
 import (
-	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
@@ -34,27 +33,27 @@ func Get(c r.Context) (*identity.Entry, error) {
 }
 
 // SetFromCreator sets chain code owner from stub creator
-func SetFromCreator(c r.Context) peer.Response {
+func SetFromCreator(c r.Context) (*identity.Entry, error) {
 	if ownerSetted, err := IsSetted(c); err != nil {
-		return c.Response().Error(err)
+		return nil, err
 	} else if ownerSetted {
-		return c.Response().Create(Get(c))
+		return Get(c)
 	}
 
 	creator, err := identity.FromStub(c.Stub())
 	if err != nil {
-		return c.Response().Error(err)
+		return nil, err
 	}
 
 	identityEntry, err := identity.CreateEntry(creator)
 	if err != nil {
-		return c.Response().Error(err)
+		return nil, err
 	}
-	return c.Response().Create(identityEntry, c.State().Insert(OwnerStateKey, identityEntry))
+	return identityEntry, c.State().Insert(OwnerStateKey, identityEntry)
 }
 
 // SetFromArgs set owner fron first args
-func SetFromArgs(c r.Context) peer.Response {
+func SetFromArgs(c r.Context) (*identity.Entry, error) {
 	args := c.Stub().GetArgs()
 
 	if len(args) == 2 {
@@ -62,33 +61,33 @@ func SetFromArgs(c r.Context) peer.Response {
 	}
 
 	if isSetted, err := IsSetted(c); err != nil {
-		return c.Response().Error(err)
+		return nil, err
 	} else if !isSetted {
-		return c.Response().Error(ErrOwnerNotProvided)
+		return nil, ErrOwnerNotProvided
 	}
 
-	return c.Response().Create(Get(c))
+	return Get(c)
 }
 
 // Insert
-func Insert(c r.Context, mspID string, cert []byte) peer.Response {
+func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 
 	if ownerSetted, err := IsSetted(c); err != nil {
-		return c.Response().Error(err)
+		return nil, errors.Wrap(err, `check owner is set`)
 	} else if ownerSetted {
-		return c.Response().Error(ErrOwnerAlreadySetted)
+		return nil, ErrOwnerAlreadySetted
 	}
 
 	id, err := identity.New(mspID, cert)
 	if err != nil {
-		return c.Response().Error(err)
+		return nil, err
 	}
 
 	identityEntry, err := identity.CreateEntry(id)
 	if err != nil {
-		return c.Response().Error(err)
+		return nil, errors.Wrap(err, `create owner entry`)
 	}
-	return c.Response().Create(identityEntry, c.State().Insert(OwnerStateKey, identityEntry))
+	return identityEntry, c.State().Insert(OwnerStateKey, identityEntry)
 }
 
 // IsInvokerOr checks tx creator and compares with owner of another identity
