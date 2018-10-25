@@ -7,6 +7,8 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
