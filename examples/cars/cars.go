@@ -5,10 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/extensions/owner"
-	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
 )
@@ -41,56 +38,43 @@ func (c Car) Key() ([]string, error) {
 	return []string{CarEntity, c.Id}, nil
 }
 
-type Chaincode struct {
-	router *router.Group
-}
-
-func New() *Chaincode {
+func New() *router.Chaincode {
 	r := router.New(`cars`) // also initialized logger with "cars" prefix
 
+	r.Init(invokeInit)
+
 	r.Group(`car`).
-		Query(`List`, cars).                                            // chain code method name is carList
-		Query(`Get`, car, p.String(`id`)).                              // chain code method name is carGet, method has 1 string argument "id"
-		Invoke(`Register`, carRegister, p.Struct(`car`, &CarPayload{}), // 1 struct argument
+		Query(`List`, queryCars).                                             // chain code method name is carList
+		Query(`Get`, queryCar, p.String(`id`)).                               // chain code method name is carGet, method has 1 string argument "id"
+		Invoke(`Register`, invokeCarRegister, p.Struct(`car`, &CarPayload{}), // 1 struct argument
 			owner.Only) // allow access to method only for chaincode owner (authority)
 
-	return &Chaincode{r}
+	return router.NewChaincode(r)
 }
 
-//========  Base methods ====================================
-//
-// Init initializes chain code - sets chaincode "owner"
-func (cc *Chaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	// set owner of chain code with special permissions , based on tx creator certificate
-	// owner info stored in chaincode state as entry with key "OWNER" and content is serialized "Grant" structure
-	return response.Create(owner.SetFromCreator(cc.router.Context(`init`, stub)))
+// ======= Init ==================
+func invokeInit(c router.Context) (interface{}, error) {
+	return owner.SetFromCreator(c)
 }
 
-// Invoke - entry point for chain code invocations
-func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	// delegate handling to router
-	return cc.router.Handle(stub)
-}
-
-// ======= Chaincode methods
+// ======= Chaincode methods =====
 
 // car get info chaincode method handler
-func car(c router.Context) (interface{}, error) {
-
+func queryCar(c router.Context) (interface{}, error) {
 	// get state entry by composite key using CarKeyPrefix and car.Id
 	//  and unmarshal from []byte to Car struct
 	return c.State().Get(&Car{Id: c.ArgString(`id`)})
 }
 
 // cars car list chaincode method handler
-func cars(c router.Context) (interface{}, error) {
+func queryCars(c router.Context) (interface{}, error) {
 	return c.State().List(
 		CarEntity, // get list of state entries of type CarKeyPrefix
 		&Car{})    // unmarshal from []byte and append to []Car slice
 }
 
 // carRegister car register chaincode method handler
-func carRegister(c router.Context) (interface{}, error) {
+func invokeCarRegister(c router.Context) (interface{}, error) {
 	// arg name defined in router method definition
 	p := c.Arg(`car`).(CarPayload)
 
