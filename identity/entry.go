@@ -17,6 +17,12 @@ type Entry struct {
 	cert    *x509.Certificate `json:"-"` // temporary cert
 }
 
+// Id short id representation
+type Id struct {
+	MSP  string
+	Cert string
+}
+
 // IdentityEntry interface
 type IdentityEntry interface {
 	GetIdentityEntry() Entry

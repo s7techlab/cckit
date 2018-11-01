@@ -101,4 +101,30 @@ var _ = Describe(`ERC-20`, func() {
 
 	})
 
+	Describe("ERC-20 transfer allowance", func() {
+
+		It("Allow everyone to check token transfer allowance - zero initially", func() {
+			expectcc.PayloadInt(
+				erc20fs.Query(
+					`allowance`,
+					actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(),
+					actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID()), 0)
+		})
+
+		It("Allow token owner to set transfer allowance", func() {
+			expectcc.ResponseOk(
+				erc20fs.From(actors[`token_owner`]).Invoke(
+					`approve`, actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID(), 10))
+		})
+
+		It("Allow everyone to check token transfer allowance", func() {
+			expectcc.PayloadInt(
+				erc20fs.Query(
+					`allowance`,
+					actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(),
+					actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID()), 10)
+		})
+
+	})
+
 })
