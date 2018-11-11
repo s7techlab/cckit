@@ -99,7 +99,289 @@ and get dependencies using `dep` command:
 
 ERC20 example is located in [examples/erc20](https://github.com/s7techlab/cckit/tree/master/examples/erc20) directory.
 
+
+
+## Defining token smart contract functions
+
+First, we need to define chaincode function. In our example we use [router](https://github.com/s7techlab/cckit/tree/master/router) package from CCkit, that allows us to defined
+chaincode methods and theirs parameters in consistent way. 
+
+At first we define `init` function (smart contract constructor) with arguments `symbol`, `name` and `totalSupply`. 
+After that we define chaincode methods, implementing ERC20 interface, adopted to HLD owner identifiers 
+(pair of MSP Id and certificate ID). All querying method prefixed with `query', all writing to state methods prefixed with
+`invoke`.
+
+As a result we use [default chaincode](https://github.com/s7techlab/cckit/blob/master/router/chaincode.go) structure, 
+that delegates `Init` and `Invoke` handling to router.
+
+```go
+func NewErc20FixedSupply() *router.Chaincode {
+	r := router.New(`erc20fixedSupply`).Use(p.StrictKnown).
+		
+		// Chaincode init function, initiates token smart contract with token symbol, name and totalSupply
+		Init(invokeInitFixedSupply, p.String(`symbol`), p.String(`name`), p.Int(`totalSupply`)).
+
+		// Get token symbol
+		Query(`symbol`, querySymbol).
+
+		// Get token name
+		Query(`name`, queryName).
+
+		// Get the total token supply
+		Query(`totalSupply`, queryTotalSupply).
+
+		//  get account balance
+		Query(`balanceOf`, queryBalanceOf, p.String(`mspId`), p.String(`certId`)).
+
+		//Send value amount of tokens
+		Invoke(`transfer`, invokeTransfer, p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`)).
+
+		// Allow spender to withdraw from your account, multiple times, up to the _value amount.
+		// If this function is called again it overwrites the current allowance with _valu
+		Invoke(`approve`, invokeApprove, p.String(`spenderMspId`), p.String(`spenderCertId`), p.Int(`amount`)).
+
+		//    Returns the amount which _spender is still allowed to withdraw from _owner]
+		Invoke(`allowance`, queryAllowance, p.String(`ownerMspId`), p.String(`ownerCertId`),
+			p.String(`spenderMspId`), p.String(`spenderCertId`)).
+
+		// Send amount of tokens from owner account to another
+		Invoke(`transferFrom`, invokeTransferFrom, p.String(`fromMspId`), p.String(`fromCertId`),
+			p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`))
+
+	return router.NewChaincode(r)
+}
+````
+
+## Chaincode initialization (constructor)
+
+Chaincode init function (token constructor) performs the following actions:
+
+* puts to chaincode state information about chaincode owner, using 
+  [owner](https://github.com/s7techlab/cckit/tree/master/extensions/owner) extension from CCkit
+* puts to chaincode state token configuration - token symbol, name and total supply
+* sets chaincode owner balance with total supply
+
+```go
+func invokeInitFixedSupply(c router.Context) (interface{}, error) {
+	ownerIdentity, err := owner.SetFromCreator(c)
+	if err != nil {
+		return nil, errors.Wrap(err, `set chaincode owner`)
+	}
+
+	// save token configuration in state
+	if err := c.State().Insert(SymbolKey, c.ArgString(`symbol`)); err != nil {
+		return nil, err
+	}
+
+	if err := c.State().Insert(NameKey, c.ArgString(`name`)); err != nil {
+		return nil, err
+	}
+
+	if err := c.State().Insert(TotalSupplyKey, c.ArgInt(`totalSupply`)); err != nil {
+		return nil, err
+	}
+
+	// set token owner initial balance
+	if err := setBalance(c, ownerIdentity.GetMSPID(), ownerIdentity.GetID(), c.ArgInt(`totalSupply`)); err != nil {
+		return nil, errors.Wrap(err, `set owner initial balance`)
+	}
+
+	return ownerIdentity, nil
+}
+```
+
+
+## Defining events structure types
+
+We use [Id](https://github.com/s7techlab/cckit/blob/master/identity/entry.go) structure from 
+[identity](https://github.com/s7techlab/cckit/tree/master/identity) package:
+```go
+// Id structure defines short id representation
+type Id struct {
+	MSP  string
+	Cert string
+}
+```
+
+And define structures for `Transfer` and `Approve` event:
+
+```go
+type (
+	Transfer struct {
+		From   identity.Id
+		To     identity.Id
+		Amount int
+	}
+
+	Approve struct {
+		From    identity.Id
+		Spender identity.Id
+		Amount  int
+	}
+)
+```
+
+## Implementing token smart contract functions
+
+Querying function is quite simple - it's just read value from chaincode state:
+
+```go
+const SymbolKey = `symbol`
+
+func querySymbol(c r.Context) (interface{}, error) {
+	return c.State().Get(SymbolKey)
+}
+```
+
+Some of changing state functions are more complicated. For example in function `invokeTransfer` we do:
+
+* receive function invoker certificate (via tx `GetCreator()` function)
+* check transfer destination 
+* get current invoker (payer) balance
+* check balance to transfer `amount` of tokens
+* get recipient balance
+* update payer and recipient balances in chaincode state
+
+```go
+func invokeTransfer(c r.Context) (interface{}, error) {
+	// transfer target
+	toMspId := c.ArgString(`toMspId`)
+	toCertId := c.ArgString(`toCertId`)
+
+	//transfer amount
+	amount := c.ArgInt(`amount`)
+
+	// get informartion about tx creator
+	invoker, err := identity.FromStub(c.Stub())
+	if err != nil {
+		return nil, err
+	}
+
+	// Disallow to transfer token to same account
+	if invoker.GetMSPID() == toMspId && invoker.GetID() == toCertId {
+		return nil, ErrForbiddenToTransferToSameAccount
+	}
+
+	// get information about invoker balance from state
+	invokerBalance, err := getBalance(c, invoker.GetMSPID(), invoker.GetID())
+	if err != nil {
+		return nil, err
+	}
+
+	// Check the funds sufficiency
+	if invokerBalance-amount < 0 {
+		return nil, ErrNotEnoughFunds
+	}
+
+	// Get information about recipient balance from state
+	recipientBalance, err := getBalance(c, toMspId, toCertId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update payer and recipient balance
+	setBalance(c, invoker.GetMSPID(), invoker.GetID(), invokerBalance-amount)
+	setBalance(c, toMspId, toCertId, recipientBalance+amount)
+
+	// Trigger event with name "transfer" and payload - serialized to json Transfer structure
+	c.SetEvent(`transfer`, &Transfer{
+		From: identity.Id{
+			MSP:  invoker.GetMSPID(),
+			Cert: invoker.GetID(), 
+		},
+		To: identity.Id{
+			MSP:  toMspId,
+			Cert: toCertId,
+		},
+		Amount: amount,
+	})
+
+	// return current invoker balance
+	return invokerBalance - amount, nil
+}
+
+// setBalance puts balance value to state
+func setBalance(c r.Context, mspId, certId string, balance int) error {
+	return c.State().Put(balanceKey(mspId, certId), balance)
+}
+
+// balanceKey creates composite key for store balance value in state
+func balanceKey(ownerMspId, ownerCertId string) []string {
+	return []string{BalancePrefix, ownerMspId, ownerCertId}
+}
+```
+
+
+
 ## Testing 
 
 
+Also, we can fast test our chaincode via CCkit [MockStub](https://github.com/s7techlab/cckit/tree/master/testing)
 
+
+To start testing we init chaincode via MockStub with test parameters:
+
+```go
+var _ = Describe(`ERC-20`, func() {
+
+	const TokenSymbol = `HLF`
+	const TokenName = `HLFCoin`
+	const TotalSupply = 10000
+	const Decimals = 3
+
+	//Create chaincode mock
+	erc20fs := testcc.NewMockStub(`erc20`, NewErc20FixedSupply())
+
+	// load actor certificates
+	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+		`token_owner`:     `s7techlab.pem`,
+		`account_holder1`: `victor-nosov.pem`,
+		//`accoubt_holder2`: `victor-nosov.pem`
+	}, examplecert.Content)
+	if err != nil {
+		panic(err)
+	}
+
+	BeforeSuite(func() {
+		// init token haincode
+		expectcc.ResponseOk(erc20fs.From(actors[`token_owner`]).Init(TokenSymbol, TokenName, TotalSupply, Decimals))
+	})
+```
+
+After we can check all token operations:
+
+```go
+
+	Describe("ERC-20 transfer", func() {
+
+		It("Disallow to transfer token to same account", func() {
+			expectcc.ResponseError(
+				erc20fs.From(actors[`token_owner`]).Invoke(
+					`transfer`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(), 100),
+				ErrForbiddenToTransferToSameAccount)
+		})
+
+		It("Disallow token holder with zero balance to transfer tokens", func() {
+			expectcc.ResponseError(
+				erc20fs.From(actors[`account_holder1`]).Invoke(
+					`transfer`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(), 100),
+				ErrNotEnoughFunds)
+		})
+
+		It("Allow token holder with non zero balance to transfer tokens", func() {
+			expectcc.PayloadInt(
+				erc20fs.From(actors[`token_owner`]).Invoke(
+					`transfer`, actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID(), 100),
+				TotalSupply-100)
+
+			expectcc.PayloadInt(
+				erc20fs.Query(
+					`balanceOf`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID()), TotalSupply-100)
+
+			expectcc.PayloadInt(
+				erc20fs.Query(
+					`balanceOf`, actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID()), 100)
+		})
+
+	})
+```

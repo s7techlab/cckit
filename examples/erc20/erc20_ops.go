@@ -48,36 +48,46 @@ func queryBalanceOf(c r.Context) (interface{}, error) {
 }
 
 func invokeTransfer(c r.Context) (interface{}, error) {
+	// transfer target
 	toMspId := c.ArgString(`toMspId`)
 	toCertId := c.ArgString(`toCertId`)
+
+	//transfer amount
 	amount := c.ArgInt(`amount`)
 
+	// get informartion about tx creator
 	invoker, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return nil, err
 	}
 
+	// Disallow to transfer token to same account
 	if invoker.GetMSPID() == toMspId && invoker.GetID() == toCertId {
 		return nil, ErrForbiddenToTransferToSameAccount
 	}
 
+	// get information about invoker balance from state
 	invokerBalance, err := getBalance(c, invoker.GetMSPID(), invoker.GetID())
 	if err != nil {
 		return nil, err
 	}
 
+	// Check the funds sufficiency
 	if invokerBalance-amount < 0 {
 		return nil, ErrNotEnoughFunds
 	}
 
+	// Get information about recipient balance from state
 	recipientBalance, err := getBalance(c, toMspId, toCertId)
 	if err != nil {
 		return nil, err
 	}
 
+	// Update payer and recipient balance
 	setBalance(c, invoker.GetMSPID(), invoker.GetID(), invokerBalance-amount)
 	setBalance(c, toMspId, toCertId, recipientBalance+amount)
 
+	// Trigger event with name "transfer" and payload - serialized to json Transfer structure
 	c.SetEvent(`transfer`, &Transfer{
 		From: identity.Id{
 			MSP:  invoker.GetMSPID(),
@@ -184,6 +194,7 @@ func invokeTransferFrom(c r.Context) (interface{}, error) {
 
 // === internal functions, not "public" chaincode functions
 
+// setBalance puts balance value to state
 func balanceKey(ownerMspId, ownerCertId string) []string {
 	return []string{BalancePrefix, ownerMspId, ownerCertId}
 }
@@ -196,6 +207,7 @@ func getBalance(c r.Context, mspId, certId string) (int, error) {
 	return c.State().GetInt(balanceKey(mspId, certId), 0)
 }
 
+// setBalance puts balance value to state
 func setBalance(c r.Context, mspId, certId string, balance int) error {
 	return c.State().Put(balanceKey(mspId, certId), balance)
 }

@@ -13,6 +13,8 @@ const TotalSupplyKey = `totalSupply`
 
 func NewErc20FixedSupply() *router.Chaincode {
 	r := router.New(`erc20fixedSupply`).Use(p.StrictKnown).
+
+		// Chaincode init function, initiates token smart contract with token symbol, name and totalSupply
 		Init(invokeInitFixedSupply, p.String(`symbol`), p.String(`name`), p.Int(`totalSupply`)).
 
 		// Get token symbol
