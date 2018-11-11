@@ -37,7 +37,7 @@ func NewErc20FixedSupply() *router.Chaincode {
 		Invoke(`approve`, invokeApprove, p.String(`spenderMspId`), p.String(`spenderCertId`), p.Int(`amount`)).
 
 		//    Returns the amount which _spender is still allowed to withdraw from _owner]
-		Invoke(`allowance`, queryAllowance, p.String(`ownerMspId`), p.String(`ownerCertId`),
+		Query(`allowance`, queryAllowance, p.String(`ownerMspId`), p.String(`ownerCertId`),
 			p.String(`spenderMspId`), p.String(`spenderCertId`)).
 
 		// Send amount of tokens from owner account to another
