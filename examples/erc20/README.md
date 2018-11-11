@@ -13,7 +13,7 @@ and events that an Ethereum token contract has to implement. Most of the major t
 are ERC20-compliant. ERC-20 has many benefits, including unifying token wallets and ability for exchanges to list
 more tokens by providing nothing more than the address of the token’s contract.
 
-```
+```solidity
 // ----------------------------------------------------------------------------
 // ERC Token Standard #20 Interface
 // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
