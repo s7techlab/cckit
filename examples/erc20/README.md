@@ -103,12 +103,12 @@ ERC20 example is located in [examples/erc20](https://github.com/s7techlab/cckit/
 
 ## Defining token smart contract functions
 
-First, we need to define chaincode function. In our example we use [router](https://github.com/s7techlab/cckit/tree/master/router) package from CCkit, that allows us to defined
-chaincode methods and theirs parameters in consistent way. 
+First, we need to define chaincode functions. In our example we use [router](https://github.com/s7techlab/cckit/tree/master/router) 
+package from CCkit, that allows us to define chaincode methods and their parameters in consistent way. 
 
 At first we define `init` function (smart contract constructor) with arguments `symbol`, `name` and `totalSupply`. 
-After that we define chaincode methods, implementing ERC20 interface, adopted to HLD owner identifiers 
-(pair of MSP Id and certificate ID). All querying method prefixed with `query', all writing to state methods prefixed with
+After that we define chaincode methods, implementing ERC20 interface, adopted to HLF owner identifiers 
+(pair of MSP Id and certificate ID). All querying method are prefixed with `query`, all writing to state methods are prefixed with
 `invoke`.
 
 As a result we use [default chaincode](https://github.com/s7techlab/cckit/blob/master/router/chaincode.go) structure, 
@@ -116,37 +116,38 @@ that delegates `Init` and `Invoke` handling to router.
 
 ```go
 func NewErc20FixedSupply() *router.Chaincode {
+	
 	r := router.New(`erc20fixedSupply`).Use(p.StrictKnown).
 		
-		// Chaincode init function, initiates token smart contract with token symbol, name and totalSupply
-		Init(invokeInitFixedSupply, p.String(`symbol`), p.String(`name`), p.Int(`totalSupply`)).
-
-		// Get token symbol
-		Query(`symbol`, querySymbol).
-
-		// Get token name
-		Query(`name`, queryName).
-
-		// Get the total token supply
-		Query(`totalSupply`, queryTotalSupply).
-
-		//  get account balance
-		Query(`balanceOf`, queryBalanceOf, p.String(`mspId`), p.String(`certId`)).
-
-		//Send value amount of tokens
-		Invoke(`transfer`, invokeTransfer, p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`)).
-
-		// Allow spender to withdraw from your account, multiple times, up to the _value amount.
-		// If this function is called again it overwrites the current allowance with _valu
-		Invoke(`approve`, invokeApprove, p.String(`spenderMspId`), p.String(`spenderCertId`), p.Int(`amount`)).
-
-		//    Returns the amount which _spender is still allowed to withdraw from _owner]
-		Invoke(`allowance`, queryAllowance, p.String(`ownerMspId`), p.String(`ownerCertId`),
-			p.String(`spenderMspId`), p.String(`spenderCertId`)).
-
-		// Send amount of tokens from owner account to another
-		Invoke(`transferFrom`, invokeTransferFrom, p.String(`fromMspId`), p.String(`fromCertId`),
-			p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`))
+        // Chaincode init function, initiates token smart contract with token symbol, name and totalSupply
+        Init(invokeInitFixedSupply, p.String(`symbol`), p.String(`name`), p.Int(`totalSupply`)).
+    
+        // Get token symbol
+        Query(`symbol`, querySymbol).
+    
+        // Get token name
+        Query(`name`, queryName).
+    
+        // Get the total token supply
+        Query(`totalSupply`, queryTotalSupply).
+    
+        //  get account balance
+        Query(`balanceOf`, queryBalanceOf, p.String(`mspId`), p.String(`certId`)).
+    
+        //Send value amount of tokens
+        Invoke(`transfer`, invokeTransfer, p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`)).
+    
+        // Allow spender to withdraw from your account, multiple times, up to the _value amount.
+        // If this function is called again it overwrites the current allowance with _valu
+        Invoke(`approve`, invokeApprove, p.String(`spenderMspId`), p.String(`spenderCertId`), p.Int(`amount`)).
+    
+        //    Returns the amount which _spender is still allowed to withdraw from _owner]
+        Invoke(`allowance`, queryAllowance, p.String(`ownerMspId`), p.String(`ownerCertId`),
+            p.String(`spenderMspId`), p.String(`spenderCertId`)).
+    
+        // Send amount of tokens from owner account to another
+        Invoke(`transferFrom`, invokeTransferFrom, p.String(`fromMspId`), p.String(`fromCertId`),
+            p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`))
 
 	return router.NewChaincode(r)
 }
@@ -154,7 +155,7 @@ func NewErc20FixedSupply() *router.Chaincode {
 
 ## Chaincode initialization (constructor)
 
-Chaincode init function (token constructor) performs the following actions:
+Chaincode `init` function (token constructor) performs the following actions:
 
 * puts to chaincode state information about chaincode owner, using 
   [owner](https://github.com/s7techlab/cckit/tree/master/extensions/owner) extension from CCkit
@@ -162,6 +163,12 @@ Chaincode init function (token constructor) performs the following actions:
 * sets chaincode owner balance with total supply
 
 ```go
+
+const SymbolKey = `symbol`
+const NameKey = `name`
+const TotalSupplyKey = `totalSupply`
+
+
 func invokeInitFixedSupply(c router.Context) (interface{}, error) {
 	ownerIdentity, err := owner.SetFromCreator(c)
 	if err != nil {
@@ -316,7 +323,7 @@ func balanceKey(ownerMspId, ownerCertId string) []string {
 ## Testing 
 
 
-Also, we can fast test our chaincode via CCkit [MockStub](https://github.com/s7techlab/cckit/tree/master/testing)
+Also, we can fast test our chaincode via CCkit [MockStub](https://github.com/s7techlab/cckit/tree/master/testing).  
 
 
 To start testing we init chaincode via MockStub with test parameters:
@@ -352,36 +359,36 @@ After we can check all token operations:
 
 ```go
 
-	Describe("ERC-20 transfer", func() {
+Describe("ERC-20 transfer", func() {
 
-		It("Disallow to transfer token to same account", func() {
-			expectcc.ResponseError(
-				erc20fs.From(actors[`token_owner`]).Invoke(
-					`transfer`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(), 100),
-				ErrForbiddenToTransferToSameAccount)
-		})
+    It("Disallow to transfer token to same account", func() {
+        expectcc.ResponseError(
+            erc20fs.From(actors[`token_owner`]).Invoke(
+                `transfer`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(), 100),
+            ErrForbiddenToTransferToSameAccount)
+    })
 
-		It("Disallow token holder with zero balance to transfer tokens", func() {
-			expectcc.ResponseError(
-				erc20fs.From(actors[`account_holder1`]).Invoke(
-					`transfer`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(), 100),
-				ErrNotEnoughFunds)
-		})
+    It("Disallow token holder with zero balance to transfer tokens", func() {
+        expectcc.ResponseError(
+            erc20fs.From(actors[`account_holder1`]).Invoke(
+                `transfer`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(), 100),
+            ErrNotEnoughFunds)
+    })
 
-		It("Allow token holder with non zero balance to transfer tokens", func() {
-			expectcc.PayloadInt(
-				erc20fs.From(actors[`token_owner`]).Invoke(
-					`transfer`, actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID(), 100),
-				TotalSupply-100)
+    It("Allow token holder with non zero balance to transfer tokens", func() {
+        expectcc.PayloadInt(
+            erc20fs.From(actors[`token_owner`]).Invoke(
+                `transfer`, actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID(), 100),
+            TotalSupply-100)
 
-			expectcc.PayloadInt(
-				erc20fs.Query(
-					`balanceOf`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID()), TotalSupply-100)
+        expectcc.PayloadInt(
+            erc20fs.Query(
+                `balanceOf`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID()), TotalSupply-100)
 
-			expectcc.PayloadInt(
-				erc20fs.Query(
-					`balanceOf`, actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID()), 100)
-		})
+        expectcc.PayloadInt(
+            erc20fs.Query(
+                `balanceOf`, actors[`account_holder1`].GetMSPID(), actors[`account_holder1`].GetID()), 100)
+    })
 
-	})
+})
 ```
