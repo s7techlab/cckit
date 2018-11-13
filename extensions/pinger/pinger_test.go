@@ -3,6 +3,8 @@ package pinger
 import (
 	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/router"
