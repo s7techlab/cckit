@@ -2,12 +2,9 @@
 package main
 
 import (
-	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/msp"
-	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
-	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
 )
@@ -21,15 +18,10 @@ type Marble struct {
 	Owner      string `json:"owner"`
 }
 
-// Chaincode marbles
-type Chaincode struct {
-	router *router.Group
-}
-
 // New chaincode marbles
-func New() *Chaincode {
+func New() *router.Chaincode {
 	r := router.New(`marbles`) // also initialized logger with "marbles" prefix
-
+	r.Init(owner.InvokeSetFromCreator)
 	r.Query(`owner`, owner.Query) // returns current chaincode owner
 
 	r.Group(`marble`).
@@ -38,20 +30,7 @@ func New() *Chaincode {
 		Query(`Init`, marbleInit). // chain code method name is "marbleInit"
 		Query(`Delete`, marbleDelete, p.String(`id`)).
 		Invoke(`SetOwner`, marbleSetOwner, p.String(`id`))
-	return &Chaincode{r}
-}
-
-//========  Base methods ====================================
-//
-// Init initializes chaincode
-func (cc *Chaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	// set owner of chain code with special permissions , based on tx creator certificate
-	return response.Create(owner.SetFromCreator(cc.router.Context(`init`, stub)))
-}
-
-// Invoke - entry point for chaincode invocations
-func (cc *Chaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	return cc.router.Handle(stub)
+	return router.NewChaincode(r)
 }
 
 // ======= Chain code methods

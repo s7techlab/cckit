@@ -5,13 +5,10 @@ import (
 
 	"encoding/json"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
-	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/router/param"
 	"github.com/s7techlab/cckit/state"
@@ -44,30 +41,18 @@ type BookChapter struct {
 	Title string
 }
 
-type BooksChaincode struct {
-	router *router.Group
-}
-
-func (cc *BooksChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return response.Create(owner.SetFromCreator(cc.router.Context(`init`, stub)))
-}
-
-func (cc *BooksChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	// delegate handling to router
-	return cc.router.Handle(stub)
-}
-
-func New() *BooksChaincode {
+func New() *router.Chaincode {
 	r := router.New(`books`)
 	debug.AddHandlers(r, `debug`, owner.Only)
 
-	r.Invoke(`bookList`, bookList)
-	r.Invoke(`bookGet`, bookGet, param.String(`id`))
-	r.Invoke(`bookInsert`, bookInsert, param.Struct(`book`, &Book{}))
-	r.Invoke(`bookUpsert`, bookUpsert, param.Struct(`book`, &Book{}))
-	r.Invoke(`bookDelete`, bookDelete, param.String(`id`))
+	r.Init(owner.InvokeSetFromCreator).
+		Invoke(`bookList`, bookList).
+		Invoke(`bookGet`, bookGet, param.String(`id`)).
+		Invoke(`bookInsert`, bookInsert, param.Struct(`book`, &Book{})).
+		Invoke(`bookUpsert`, bookUpsert, param.Struct(`book`, &Book{})).
+		Invoke(`bookDelete`, bookDelete, param.String(`id`))
 
-	return &BooksChaincode{r}
+	return router.NewChaincode(r)
 }
 
 func bookList(c router.Context) (interface{}, error) {

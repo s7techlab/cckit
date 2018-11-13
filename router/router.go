@@ -15,6 +15,9 @@ import (
 const InitFunc = `init`
 
 var (
+	// ErrEmptyArgs occurs when trying to invoke chaincode method with empty args
+	ErrEmptyArgs = errors.New(`empty args`)
+
 	// ErrMethodNotFound occurs when trying to invoke non existent chaincode method
 	ErrMethodNotFound = errors.New(`chaincode method not found`)
 
@@ -55,29 +58,46 @@ type (
 
 		contextMiddleware []ContextMiddlewareFunc
 		middleware        []MiddlewareFunc
+		preMiddleware     []ContextMiddlewareFunc
 	}
 )
 
 // HandleInit handle chaincode init method
 func (g *Group) HandleInit(stub shim.ChaincodeStubInterface) peer.Response {
-	return g.HandleFunc(InitFunc, stub)
+	return g.HandleContext(g.Context(stub).ReplaceArgs(
+		// add "init" as first arg
+		append([][]byte{[]byte(InitFunc)}, stub.GetArgs()...)))
 }
 
 // Handle used for using in CC Invoke function
 // Must be called after adding new routes using Add function
 func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
-	fnString, _ := stub.GetFunctionAndParameters()
-	return g.HandleFunc(fnString, stub)
+	args := stub.GetArgs()
+	if len(args) == 0 {
+		return response.Error(ErrEmptyArgs)
+	}
+
+	// Pre context handling middleware
+	h := func(c Context) peer.Response {
+		h := g.HandleContext
+		for i := len(g.preMiddleware) - 1; i >= 0; i-- {
+			h = g.preMiddleware[i](h, i)
+		}
+		return h(c)
+	}
+	return h(g.Context(stub))
 }
 
-func (g *Group) HandleFunc(fnString string, stub shim.ChaincodeStubInterface) peer.Response {
+func (g *Group) HandleContext(c Context) peer.Response {
 
-	if stubHandler, ok := g.stubHandlers[fnString]; ok {
-		g.logger.Debug(`router stubHandler: `, fnString)
-		return stubHandler(stub)
-	} else if contextHandler, ok := g.contextHandlers[fnString]; ok {
-		g.logger.Debug(`router contextHandler: `, fnString)
+	// handle standard stub handler (accepts StubInterface, returns peer.Response)
+	if stubHandler, ok := g.stubHandlers[c.Path()]; ok {
+		g.logger.Debug(`router stubHandler: `, c.Path())
+		return stubHandler(c.Stub())
 
+		// handle context handler (accepts Context, returns peer.Response)
+	} else if contextHandler, ok := g.contextHandlers[c.Path()]; ok {
+		g.logger.Debug(`router contextHandler: `, c.Path())
 		h := func(c Context) peer.Response {
 			h := contextHandler
 			for i := len(g.contextMiddleware) - 1; i >= 0; i-- {
@@ -85,11 +105,9 @@ func (g *Group) HandleFunc(fnString string, stub shim.ChaincodeStubInterface) pe
 			}
 			return h(c)
 		}
-
-		return h(g.Context(fnString, stub))
-	} else if handler, ok := g.handlers[fnString]; ok {
-		g.logger.Debug(`router handler: `, fnString)
-
+		return h(c)
+	} else if handler, ok := g.handlers[c.Path()]; ok {
+		g.logger.Debug(`router handler: `, c.Path())
 		h := func(c Context) (interface{}, error) {
 			h := handler
 			for i := len(g.middleware) - 1; i >= 0; i-- {
@@ -97,22 +115,20 @@ func (g *Group) HandleFunc(fnString string, stub shim.ChaincodeStubInterface) pe
 			}
 			return h(c)
 		}
-
-		resp := response.Create(h(g.Context(fnString, stub)))
+		resp := response.Create(h(c))
 		if resp.Status != shim.OK {
-			g.logger.Errorf(`%s: %s: %s`, ErrHandlerError, fnString, resp.Message)
+			g.logger.Errorf(`%s: %s: %s`, ErrHandlerError, c.Path(), resp.Message)
 		}
-
 		return resp
 	}
 
-	err := fmt.Errorf(`%s: %s`, ErrMethodNotFound, fnString)
+	err := fmt.Errorf(`%s: %s`, ErrMethodNotFound, c.Path())
 	g.logger.Error(err)
 	return shim.Error(err.Error())
-
 }
 
-func (g *Group) Pre(middleware ...MiddlewareFunc) *Group {
+func (g *Group) Pre(middleware ...ContextMiddlewareFunc) *Group {
+	g.preMiddleware = append(g.preMiddleware, middleware...)
 	return g
 }
 
@@ -169,8 +185,8 @@ func (g *Group) Init(handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
 }
 
 // Context returns chain code invoke context  for provided path and stub
-func (g *Group) Context(path string, stub shim.ChaincodeStubInterface) Context {
-	return &context{path: path, stub: stub, logger: g.logger}
+func (g *Group) Context(stub shim.ChaincodeStubInterface) Context {
+	return &context{stub: stub, logger: g.logger}
 }
 
 // New group of chain code functions

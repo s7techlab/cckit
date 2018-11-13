@@ -29,10 +29,9 @@ type (
 func (p Parameter) ValueFromContext(c router.Context) (arg interface{}, err error) {
 	// by default args start from pos 1 , at first pos is funcName
 	argsStartsFrom := 1
-	if c.Path() == router.InitFunc {
-		argsStartsFrom = 0
-	}
-
+	//if c.Path() == router.InitFunc {
+	//	argsStartsFrom = 0
+	//}
 	argPos := p.ArgPos
 	if argPos == -1 {
 		lastPos, ok := c.Arg(LastPosKey).(int)
@@ -44,9 +43,9 @@ func (p Parameter) ValueFromContext(c router.Context) (arg interface{}, err erro
 		c.SetArg(LastPosKey, argPos)
 	}
 
-	args := c.Stub().GetArgs()[argsStartsFrom:] // first arg is chaincode function name
-	if p.ArgPos >= len(args) {
-		return nil, fmt.Errorf(`param not exists, param expected at pos : %d, stub args length : %d`, p.ArgPos, len(args))
+	args := c.GetArgs()[argsStartsFrom:] // first arg is chaincode function name
+	if argPos >= len(args) {
+		return nil, fmt.Errorf(`method "%s", param "%s" not exists, param expected at pos : %d, stub args length: %d`, c.Path(), p.Name, argPos, len(args))
 	}
 
 	return convert.FromBytes(args[argPos], p.Type) //first arg is function name

@@ -5,15 +5,12 @@ import (
 
 	"strconv"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity"
-	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -24,24 +21,10 @@ func TestDebug(t *testing.T) {
 	RunSpecs(t, "Debug suite")
 }
 
-type DebuggableChaincode struct {
-	router *router.Group
-}
-
-func (cc *DebuggableChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return response.Create(owner.SetFromCreator(cc.router.Context(`init`, stub)))
-}
-
-func (cc *DebuggableChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	// delegate handling to router
-	return cc.router.Handle(stub)
-}
-
-func New() *DebuggableChaincode {
-	r := router.New(`debuggable`)
+func New() *router.Chaincode {
+	r := router.New(`debuggable`).Init(owner.InvokeSetFromCreator)
 	debug.AddHandlers(r, `debug`, owner.Only)
-
-	return &DebuggableChaincode{r}
+	return router.NewChaincode(r)
 }
 
 var _ = Describe(`Debuggable`, func() {

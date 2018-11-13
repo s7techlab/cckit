@@ -7,6 +7,7 @@ import (
 
 // State interface for chain code CRUD operations
 type State interface {
+	UseEncryption([]byte) bool
 	Get(key interface{}, target ...interface{}) (result interface{}, err error)
 	GetInt(key interface{}, defaultValue int) (result int, err error)
 	GetHistory(key interface{}, target interface{}) (result state.HistoryEntryList, err error)
@@ -19,6 +20,10 @@ type State interface {
 
 type ContextState struct {
 	context Context
+}
+
+func (s ContextState) UseEncryption([]byte) bool {
+	return false
 }
 
 func (s ContextState) Get(key interface{}, target ...interface{}) (result interface{}, err error) {

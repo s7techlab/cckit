@@ -5,8 +5,8 @@
 generate self-signed certificate:
 
 ```
-$ openssl genrsa -out private.key 3072
-$ openssl req -new -x509 -key private.key -sha256 -out certificate.pem -days 730
+$ openssl ecparam -name secp384r1 -genkey | openssl pkcs8 -topk8 -nocrypt > some-person.key.pem
+$ openssl req -new -x509 -key some-person.pem.key -out some-person.pem -days 730
 ```
 
 You are about to be asked to enter information that will be incorporated into your certificate request.
@@ -16,7 +16,7 @@ What you are about to enter is what is called a Distinguished Name or a DN.
 
 examine the certificate:
 
-`$ openssl x509 -in certificate.pem -text -noout`
+`$ openssl x509 -in some-persone.pem -text -noout`
 
 
 ````
@@ -31,4 +31,15 @@ Certificate:
              Not After : Jul  6 07:49:10 2018 GMT
          Subject: C=RU, ST=Moscow, L=Moscow, O=S7Techlab, OU=Blockchain dept, CN=Victor Nosov/emailAddress=vitiko@mail.ru
          Subject Public Key Info
+````
+
+
+examine the key:
+
+`openssl ecparam -in some-person.pem.key -text -noout`
+
+
+````
+ASN1 OID: secp256k1
+
 ````

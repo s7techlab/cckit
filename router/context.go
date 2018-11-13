@@ -18,12 +18,18 @@ type (
 		Path() string
 		State() State
 		Time() (time.Time, error)
+
+		ReplaceArgs(args [][]byte) Context // replace args, for usage in preMiddleware
+		GetArgs() [][]byte
+
+		// to remove, be only get/set
 		Args() InterfaceMap
 		Arg(string) interface{}
 		ArgString(string) string
 		ArgBytes(string) []byte
 		ArgInt(string) int
 		SetArg(string, interface{})
+
 		Get(string) interface{}
 		Set(string, interface{})
 		SetEvent(string, interface{}) error
@@ -33,6 +39,7 @@ type (
 		stub       shim.ChaincodeStubInterface
 		logger     *shim.ChaincodeLogger
 		path       string
+		args       [][]byte
 		invokeArgs InterfaceMap
 		store      InterfaceMap
 	}
@@ -55,7 +62,7 @@ func (c *context) Logger() *shim.ChaincodeLogger {
 }
 
 func (c *context) Path() string {
-	return c.path
+	return string(c.GetArgs()[0])
 }
 
 func (c *context) State() State {
@@ -69,6 +76,19 @@ func (c *context) Time() (time.Time, error) {
 		return time.Unix(0, 0), err
 	}
 	return time.Unix(txTimestamp.GetSeconds(), int64(txTimestamp.GetNanos())), nil
+}
+
+// ReplaceArgs replace args, for usage in preMiddleware
+func (c *context) ReplaceArgs(args [][]byte) Context {
+	c.args = args
+	return c
+}
+
+func (c *context) GetArgs() [][]byte {
+	if c.args != nil {
+		return c.args
+	}
+	return c.stub.GetArgs()
 }
 
 func (c *context) Args() InterfaceMap {
@@ -108,13 +128,14 @@ func (c *context) Set(key string, val interface{}) {
 	c.store[key] = val
 }
 
+func (c *context) Get(key string) interface{} {
+	return c.store[key]
+}
+
 func (c *context) SetEvent(name string, payload interface{}) error {
 	bb, err := convert.ToBytes(payload)
 	if err != nil {
 		return err
 	}
 	return c.stub.SetEvent(name, bb)
-}
-func (c *context) Get(key string) interface{} {
-	return c.store[key]
 }

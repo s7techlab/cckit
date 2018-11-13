@@ -3,13 +3,8 @@ package pinger
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/identity"
-	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -20,24 +15,11 @@ func TestPinger(t *testing.T) {
 	RunSpecs(t, "Pinger suite")
 }
 
-type PingableChaincode struct {
-	router *router.Group
-}
-
-func (cc *PingableChaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
-	return response.Success(nil)
-}
-
-// Invoke - entry point for chain code invocations
-func (cc *PingableChaincode) Invoke(stub shim.ChaincodeStubInterface) peer.Response {
-	// delegate handling to router
-	return cc.router.Handle(stub)
-}
-
-func New() *PingableChaincode {
-	r := router.New(`pingable`) // also initialized logger with "pingable" prefix
-	r.Invoke(FuncPing, Ping)
-	return &PingableChaincode{r}
+func New() *router.Chaincode {
+	r := router.New(`pingable`).
+		Init(router.EmptyContextHandler).
+		Invoke(FuncPing, Ping)
+	return router.NewChaincode(r)
 }
 
 var _ = Describe(`Pinger`, func() {
