@@ -6,6 +6,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/s7techlab/cckit/convert"
+	"github.com/s7techlab/cckit/state"
 )
 
 type (
@@ -16,7 +17,7 @@ type (
 		Response() Response
 		Logger() *shim.ChaincodeLogger
 		Path() string
-		State() State
+		State() state.State
 		Time() (time.Time, error)
 
 		ReplaceArgs(args [][]byte) Context // replace args, for usage in preMiddleware
@@ -65,8 +66,8 @@ func (c *context) Path() string {
 	return string(c.GetArgs()[0])
 }
 
-func (c *context) State() State {
-	return ContextState{c}
+func (c *context) State() state.State {
+	return state.New(c.stub)
 }
 
 // Time

@@ -1,8 +1,6 @@
-package encryption
+package encryption_test
 
 import (
-	"fmt"
-
 	"testing"
 
 	"math/rand"
@@ -10,6 +8,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/s7techlab/cckit/extensions/debug"
+	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -23,18 +23,22 @@ func TestEncryption(t *testing.T) {
 
 func NewEncryptedCC() *router.Chaincode {
 	r := router.New(`encrypted`).
-		Pre(ArgsDecrypt).
+		Pre(encryption.ArgsDecryptIfKeyProvided).
 		Init(router.EmptyContextHandler).
 		Invoke(`putEncryptedToState`, putEncryptedToState, p.String(`key`), p.String(`value`))
+
+	debug.AddHandlers(r, `debug`)
 	return router.NewChaincode(r)
 }
 
 func putEncryptedToState(c router.Context) (interface{}, error) {
+	tm, _ := c.Stub().GetTransient()
+	es := encryption.State(c, tm[encryption.TransientMapKey])
 
-	fmt.Println(c.ArgString(`key`))
-	fmt.Println(c.ArgString(`value`))
+	v := c.ArgString(`value`)
+	encValue, _ := encryption.Encrypt(tm[encryption.TransientMapKey], []byte(v))
 
-	return nil, nil
+	return encValue, es.Put(c.ArgString(`key`), v)
 }
 
 var _ = Describe(`Router`, func() {
@@ -50,22 +54,32 @@ var _ = Describe(`Router`, func() {
 
 	Describe("Encrypted", func() {
 
-		It("Allow anyone to invoke ping method", func() {
+		It("Allow to put encoded data to state", func() {
 
-			args, err := EncryptArgs(encKey, `putEncryptedToState`, `key1`, `value1`)
+			key1 := `key1`
+			value1 := `value1`
+
+			args, err := encryption.EncryptArgs(encKey, `putEncryptedToState`, key1, value1)
 			if err != nil {
 				panic(err)
 			}
 
 			expectcc.ResponseOk(encryptedCC.Init())
+			ccRes := encryptedCC.WithTransient(encryption.TransientMapWithKey(encKey)).InvokeBytes(args...).Payload
+			decryptedRes, err := encryption.Decrypt(encKey, ccRes)
+			if err != nil {
+				panic(err)
+			}
 
-			//fmt.Println(string(args[0]))
-			fmt.Println(encryptedCC.WithTransient(TransientMapWithKey(encKey)).InvokeBytes(args...).Message)
+			Expect(string(decryptedRes)).To(Equal(value1))
 
-			////invoke chaincode method from authority actor
-			//pingInfo := expectcc.PayloadIs(cc.From(invokerIdentity).Invoke(FuncPing), &PingInfo{}).(PingInfo)
+			getRes := encryptedCC.Invoke(`debugStateGet`, []string{key1}).Payload
+			decryptedRes, err = encryption.Decrypt(encKey, getRes)
+			if err != nil {
+				panic(err)
+			}
 
-			//Expect(pingInfoEvent.InvokerCert).To(Equal(invokerIdentity.GetPEM()))
+			Expect(string(decryptedRes)).To(Equal(value1))
 		})
 
 	})

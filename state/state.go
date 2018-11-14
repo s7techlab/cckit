@@ -8,26 +8,6 @@ import (
 	"github.com/s7techlab/cckit/convert"
 )
 
-var (
-	// ErrUnableToCreateKey can occurs while creating composite key for entry
-	ErrUnableToCreateKey = errors.New(`unable to create state key`)
-
-	// ErrKeyAlreadyExists can occurs when trying to insert entry with existing key
-	ErrKeyAlreadyExists = errors.New(`state key already exists`)
-
-	// ErrrKeyNotFound key not found in chaincode state
-	ErrKeyNotFound = errors.New(`state entry not found`)
-
-	// ErrAllowOnlyOneValue can occurs when trying to call Insert or Put with more than 2 arguments
-	ErrAllowOnlyOneValue = errors.New(`allow only one value`)
-
-	// ErrKeyNotSupportKeyerInterface can occurs when trying to Insert or Put struct without providing key and struct not support Keyer interface
-	ErrKeyNotSupportKeyerInterface = errors.New(`key not support keyer interface`)
-
-	// ErrKeyPartsLength can occurs when trying to create key consisting of zero parts
-	ErrKeyPartsLength = errors.New(`key parts length must be greater than zero`)
-)
-
 // HistoryEntry struct containing history information of a single entry
 type HistoryEntry struct {
 	TxId      string      `json:"txId"`
@@ -39,9 +19,6 @@ type HistoryEntry struct {
 // HistoryEntryList list of history entries
 type HistoryEntryList []HistoryEntry
 
-// EntryList list of entries from state, gotten by part of composite key
-type EntryList []interface{}
-
 // Keyer interface for entity containing logic of its key creation
 type Keyer interface {
 	Key() ([]string, error)
@@ -49,13 +26,50 @@ type Keyer interface {
 
 type KeyerFunc func(string) ([]string, error)
 
+type FromBytesTransformer func(bb []byte, config ...interface{}) (interface{}, error)
+type ToBytesTransformer func(v interface{}, config ...interface{}) ([]byte, error)
+
+func ConvertFromBytes(bb []byte, config ...interface{}) (interface{}, error) {
+	// convertation not needed
+	if len(config) == 0 {
+		return bb, nil
+	}
+	return convert.FromBytes(bb, config[0])
+}
+
+func ConvertToBytes(v interface{}, config ...interface{}) ([]byte, error) {
+	return convert.ToBytes(v)
+}
+
+// State interface for chain code CRUD operations
+type State interface {
+	Get(key interface{}, target ...interface{}) (result interface{}, err error)
+	GetInt(key interface{}, defaultValue int) (result int, err error)
+	GetHistory(key interface{}, target interface{}) (result HistoryEntryList, err error)
+	Exists(key interface{}) (exists bool, err error)
+	Put(key interface{}, value ...interface{}) (err error)
+	Insert(key interface{}, value ...interface{}) (err error)
+	List(objectType interface{}, target interface{}) (result []interface{}, err error)
+	Delete(key interface{}) (err error)
+}
+
+type StateImpl struct {
+	stub      shim.ChaincodeStubInterface
+	FromBytes FromBytesTransformer
+	ToBytes   ToBytesTransformer
+}
+
+func New(stub shim.ChaincodeStubInterface) *StateImpl {
+	return &StateImpl{stub: stub, FromBytes: ConvertFromBytes, ToBytes: ConvertToBytes}
+}
+
 // Get data by key from state, trying to convert to target interface
-func Get(stub shim.ChaincodeStubInterface, key interface{}, config ...interface{}) (result interface{}, err error) {
-	strKey, err := Key(stub, key)
+func (s *StateImpl) Get(key interface{}, config ...interface{}) (result interface{}, err error) {
+	strKey, err := s.Key(key)
 	if err != nil {
 		return nil, err
 	}
-	bb, err := stub.GetState(strKey)
+	bb, err := s.stub.GetState(strKey)
 	if err != nil {
 		return
 	}
@@ -66,22 +80,25 @@ func Get(stub shim.ChaincodeStubInterface, key interface{}, config ...interface{
 		}
 		return nil, errors.Wrap(KeyError(strKey), ErrKeyNotFound.Error())
 	}
-	// converting to target type
-	if len(config) >= 1 {
-		return convert.FromBytes(bb, config[0])
-	}
 
-	// or return raw
-	return bb, nil
+	return s.FromBytes(bb, config...)
+}
+
+func (s *StateImpl) GetInt(key interface{}, defaultValue int) (result int, err error) {
+	val, err := s.Get(key, convert.TypeInt, defaultValue)
+	if err != nil {
+		return 0, err
+	}
+	return val.(int), nil
 }
 
 // GetHistory by key from state, trying to convert to target interface
-func GetHistory(stub shim.ChaincodeStubInterface, key interface{}, target interface{}) (result HistoryEntryList, err error) {
-	strKey, err := Key(stub, key)
+func (s *StateImpl) GetHistory(key interface{}, target interface{}) (result HistoryEntryList, err error) {
+	strKey, err := s.Key(key)
 	if err != nil {
 		return nil, err
 	}
-	iter, err := stub.GetHistoryForKey(strKey)
+	iter, err := s.stub.GetHistoryForKey(strKey)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +112,7 @@ func GetHistory(stub shim.ChaincodeStubInterface, key interface{}, target interf
 		if err != nil {
 			return nil, err
 		}
-		value, err := convert.FromBytes(state.Value, target)
+		value, err := s.FromBytes(state.Value, target)
 		if err != nil {
 			return nil, err
 		}
@@ -113,12 +130,12 @@ func GetHistory(stub shim.ChaincodeStubInterface, key interface{}, target interf
 }
 
 // Exists check entry with key exists in chaincode state
-func Exists(stub shim.ChaincodeStubInterface, key interface{}) (exists bool, err error) {
-	stringKey, err := Key(stub, key)
+func (s *StateImpl) Exists(key interface{}) (exists bool, err error) {
+	stringKey, err := s.Key(key)
 	if err != nil {
 		return false, errors.Wrap(err, `check key existence`)
 	}
-	bb, err := stub.GetState(stringKey)
+	bb, err := s.stub.GetState(stringKey)
 	if err != nil {
 		return false, err
 	}
@@ -127,17 +144,17 @@ func Exists(stub shim.ChaincodeStubInterface, key interface{}) (exists bool, err
 
 // List data from state using objectType prefix in composite key, trying to conver to target interface.
 // Keys -  additional components of composite key
-func List(stub shim.ChaincodeStubInterface, objectType interface{}, target interface{}) (result EntryList, err error) {
+func (s *StateImpl) List(objectType interface{}, target interface{}) (result []interface{}, err error) {
 	keyParts, err := KeyParts(objectType)
 	if err != nil {
 		return nil, errors.Wrap(err, `unable to get key parts`)
 	}
-	iter, err := stub.GetStateByPartialCompositeKey(keyParts[0], keyParts[1:])
+	iter, err := s.stub.GetStateByPartialCompositeKey(keyParts[0], keyParts[1:])
 	if err != nil {
 		return nil, err
 	}
 
-	entries := EntryList{}
+	entries := make([]interface{}, 0)
 	defer func() { _ = iter.Close() }()
 
 	for iter.HasNext() {
@@ -145,7 +162,7 @@ func List(stub shim.ChaincodeStubInterface, objectType interface{}, target inter
 		if err != nil {
 			return nil, err
 		}
-		entry, err := convert.FromBytes(v.Value, target)
+		entry, err := s.FromBytes(v.Value, target)
 		if err != nil {
 			return nil, err
 		}
@@ -156,6 +173,8 @@ func List(stub shim.ChaincodeStubInterface, objectType interface{}, target inter
 
 func getValue(key interface{}, values []interface{}) (interface{}, error) {
 	switch len(values) {
+
+	// key is struct implementing keyer interface
 	case 0:
 		if _, ok := key.(Keyer); !ok {
 			return nil, ErrKeyNotSupportKeyerInterface
@@ -169,32 +188,32 @@ func getValue(key interface{}, values []interface{}) (interface{}, error) {
 }
 
 // Put data value in state with key, trying convert data to []byte
-func Put(stub shim.ChaincodeStubInterface, key interface{}, values ...interface{}) (err error) {
+func (s *StateImpl) Put(key interface{}, values ...interface{}) (err error) {
 	value, err := getValue(key, values)
 	if err != nil {
 		return err
 	}
 
-	bb, err := convert.ToBytes(value)
+	bb, err := s.ToBytes(value)
 	if err != nil {
 		return err
 	}
-	stringKey, err := Key(stub, key)
+	stringKey, err := s.Key(key)
 	if err != nil {
 		return err
 	}
-	return stub.PutState(stringKey, bb)
+	return s.stub.PutState(stringKey, bb)
 }
 
 // Insert value into chaincode state, returns error if key already exists
-func Insert(stub shim.ChaincodeStubInterface, key interface{}, values ...interface{}) (err error) {
-	exists, err := Exists(stub, key)
+func (s *StateImpl) Insert(key interface{}, values ...interface{}) (err error) {
+	exists, err := s.Exists(key)
 	if err != nil {
 		return err
 	}
 
 	if exists {
-		strKey, _ := Key(stub, key)
+		strKey, _ := s.Key(key)
 		return errors.Wrap(KeyError(strKey), ErrKeyAlreadyExists.Error())
 	}
 
@@ -203,37 +222,37 @@ func Insert(stub shim.ChaincodeStubInterface, key interface{}, values ...interfa
 		return err
 	}
 
-	return Put(stub, key, value)
+	return s.Put(key, value)
 }
 
 // Delete entry from state
-func Delete(stub shim.ChaincodeStubInterface, key interface{}) (err error) {
-	stringKey, err := Key(stub, key)
+func (s *StateImpl) Delete(key interface{}) (err error) {
+	stringKey, err := s.Key(key)
 	if err != nil {
 		return errors.Wrap(err, `deleting from state`)
 	}
-	return stub.DelState(stringKey)
+	return s.stub.DelState(stringKey)
 }
 
 // Key transforms interface{} to string key
-func Key(stub shim.ChaincodeStubInterface, key interface{}) (string, error) {
+func (s *StateImpl) Key(key interface{}) (string, error) {
 	keyParts, err := KeyParts(key)
 	if err != nil {
 		return ``, err
 	}
 
-	return KeyFromParts(stub, keyParts)
+	return s.KeyFromParts(keyParts)
 }
 
 // KeyFromParts creates composite key by string slice
-func KeyFromParts(stub shim.ChaincodeStubInterface, keyParts []string) (string, error) {
+func (s *StateImpl) KeyFromParts(keyParts []string) (string, error) {
 	switch len(keyParts) {
 	case 0:
 		return ``, ErrKeyPartsLength
 	case 1:
 		return keyParts[0], nil
 	default:
-		return stub.CreateCompositeKey(keyParts[0], keyParts[1:])
+		return s.stub.CreateCompositeKey(keyParts[0], keyParts[1:])
 	}
 }
 

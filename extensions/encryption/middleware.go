@@ -7,7 +7,7 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
-func ArgsDecrypt(next router.ContextHandlerFunc, pos ...int) router.ContextHandlerFunc {
+func ArgsDecryptIfKeyProvided(next router.ContextHandlerFunc, pos ...int) router.ContextHandlerFunc {
 	return func(c router.Context) peer.Response {
 		transient, err := c.Stub().GetTransient()
 		if err != nil {
