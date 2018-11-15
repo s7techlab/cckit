@@ -60,6 +60,7 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 			arrString = append(arrString, v.(string))
 		}
 		return arrString, nil
+
 	case FromByter:
 		return target.(FromByter).FromBytes(bb)
 

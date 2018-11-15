@@ -51,6 +51,13 @@ func PayloadString(response peer.Response, expectedValue string) string {
 	return str
 }
 
+// PayloadBytes expects response is ok and compares response.Payload with expected value
+func PayloadBytes(response peer.Response, expectedValue []byte) []byte {
+	ResponseOk(response)
+	g.Expect(response.Payload).To(g.Equal(expectedValue))
+	return response.Payload
+}
+
 func PayloadInt(response peer.Response, expectedValue int) int {
 	ResponseOk(response)
 	d, err := strconv.Atoi(string((response.Payload)))

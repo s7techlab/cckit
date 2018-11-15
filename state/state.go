@@ -28,6 +28,7 @@ type KeyerFunc func(string) ([]string, error)
 
 type FromBytesTransformer func(bb []byte, config ...interface{}) (interface{}, error)
 type ToBytesTransformer func(v interface{}, config ...interface{}) ([]byte, error)
+type KeyPartsTransformer func(key interface{}) ([]string, error)
 
 func ConvertFromBytes(bb []byte, config ...interface{}) (interface{}, error) {
 	// convertation not needed
@@ -41,6 +42,20 @@ func ConvertToBytes(v interface{}, config ...interface{}) ([]byte, error) {
 	return convert.ToBytes(v)
 }
 
+// KeyParts returns string parts of composite key
+func KeyParts(key interface{}) ([]string, error) {
+	switch key.(type) {
+	case Keyer:
+		return key.(Keyer).Key()
+	case string:
+		return []string{key.(string)}, nil
+	case []string:
+		return key.([]string), nil
+	}
+
+	return nil, ErrUnableToCreateKey
+}
+
 // State interface for chain code CRUD operations
 type State interface {
 	Get(key interface{}, target ...interface{}) (result interface{}, err error)
@@ -49,18 +64,31 @@ type State interface {
 	Exists(key interface{}) (exists bool, err error)
 	Put(key interface{}, value ...interface{}) (err error)
 	Insert(key interface{}, value ...interface{}) (err error)
-	List(objectType interface{}, target interface{}) (result []interface{}, err error)
+	List(objectType interface{}, target ...interface{}) (result []interface{}, err error)
 	Delete(key interface{}) (err error)
 }
 
 type StateImpl struct {
-	stub      shim.ChaincodeStubInterface
-	FromBytes FromBytesTransformer
-	ToBytes   ToBytesTransformer
+	stub                shim.ChaincodeStubInterface
+	KeyParts            KeyPartsTransformer
+	StateGetTransformer FromBytesTransformer
+	StatePutTransformer ToBytesTransformer
 }
 
 func New(stub shim.ChaincodeStubInterface) *StateImpl {
-	return &StateImpl{stub: stub, FromBytes: ConvertFromBytes, ToBytes: ConvertToBytes}
+	return &StateImpl{
+		stub:                stub,
+		KeyParts:            KeyParts,
+		StateGetTransformer: ConvertFromBytes,
+		StatePutTransformer: ConvertToBytes}
+}
+
+func (s *StateImpl) Key(key interface{}) (string, error) {
+	keyParts, err := s.KeyParts(key)
+	if err != nil {
+		return ``, err
+	}
+	return KeyFromParts(s.stub, keyParts)
 }
 
 // Get data by key from state, trying to convert to target interface
@@ -81,7 +109,7 @@ func (s *StateImpl) Get(key interface{}, config ...interface{}) (result interfac
 		return nil, errors.Wrap(KeyError(strKey), ErrKeyNotFound.Error())
 	}
 
-	return s.FromBytes(bb, config...)
+	return s.StateGetTransformer(bb, config...)
 }
 
 func (s *StateImpl) GetInt(key interface{}, defaultValue int) (result int, err error) {
@@ -112,7 +140,7 @@ func (s *StateImpl) GetHistory(key interface{}, target interface{}) (result Hist
 		if err != nil {
 			return nil, err
 		}
-		value, err := s.FromBytes(state.Value, target)
+		value, err := s.StateGetTransformer(state.Value, target)
 		if err != nil {
 			return nil, err
 		}
@@ -144,14 +172,15 @@ func (s *StateImpl) Exists(key interface{}) (exists bool, err error) {
 
 // List data from state using objectType prefix in composite key, trying to conver to target interface.
 // Keys -  additional components of composite key
-func (s *StateImpl) List(objectType interface{}, target interface{}) (result []interface{}, err error) {
-	keyParts, err := KeyParts(objectType)
+func (s *StateImpl) List(objectType interface{}, target ...interface{}) (result []interface{}, err error) {
+	keyParts, err := s.KeyParts(objectType)
 	if err != nil {
-		return nil, errors.Wrap(err, `unable to get key parts`)
+		return nil, errors.Wrap(err, `prepare list key parts`)
 	}
+
 	iter, err := s.stub.GetStateByPartialCompositeKey(keyParts[0], keyParts[1:])
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, `create list iterator`)
 	}
 
 	entries := make([]interface{}, 0)
@@ -162,9 +191,9 @@ func (s *StateImpl) List(objectType interface{}, target interface{}) (result []i
 		if err != nil {
 			return nil, err
 		}
-		entry, err := s.FromBytes(v.Value, target)
+		entry, err := s.StateGetTransformer(v.Value, target...)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, `transform list entry`)
 		}
 		entries = append(entries, entry)
 	}
@@ -194,7 +223,7 @@ func (s *StateImpl) Put(key interface{}, values ...interface{}) (err error) {
 		return err
 	}
 
-	bb, err := s.ToBytes(value)
+	bb, err := s.StatePutTransformer(value)
 	if err != nil {
 		return err
 	}
@@ -234,40 +263,16 @@ func (s *StateImpl) Delete(key interface{}) (err error) {
 	return s.stub.DelState(stringKey)
 }
 
-// Key transforms interface{} to string key
-func (s *StateImpl) Key(key interface{}) (string, error) {
-	keyParts, err := KeyParts(key)
-	if err != nil {
-		return ``, err
-	}
-
-	return s.KeyFromParts(keyParts)
-}
-
 // KeyFromParts creates composite key by string slice
-func (s *StateImpl) KeyFromParts(keyParts []string) (string, error) {
+func KeyFromParts(stub shim.ChaincodeStubInterface, keyParts []string) (string, error) {
 	switch len(keyParts) {
 	case 0:
 		return ``, ErrKeyPartsLength
 	case 1:
 		return keyParts[0], nil
 	default:
-		return s.stub.CreateCompositeKey(keyParts[0], keyParts[1:])
+		return stub.CreateCompositeKey(keyParts[0], keyParts[1:])
 	}
-}
-
-// KeyParts returns string parts of composite key
-func KeyParts(key interface{}) ([]string, error) {
-	switch key.(type) {
-	case Keyer:
-		return key.(Keyer).Key()
-	case string:
-		return []string{key.(string)}, nil
-	case []string:
-		return key.([]string), nil
-	}
-
-	return nil, ErrUnableToCreateKey
 }
 
 // KeyError error with key

@@ -13,52 +13,65 @@ func init() {
 	factory.InitFactories(nil)
 }
 
+// EncryptArgs encrypt args
 func EncryptArgs(key []byte, args ...interface{}) ([][]byte, error) {
 	argBytes, err := convert.ArgsToBytes(args...)
 	if err != nil {
 		return nil, err
 	}
-
-	for i, a := range argBytes {
-		encrypted, err := Encrypt(key, a)
+	eargs := make([][]byte, len(args))
+	for i, bb := range argBytes {
+		encrypted, err := Encrypt(key, bb)
 		if err != nil {
 			return nil, errors.Wrap(err, `encryption error`)
 		}
-		argBytes[i] = encrypted
-	}
 
-	return argBytes, nil
+		eargs[i] = encrypted
+	}
+	return eargs, nil
 }
 
+// DecryptArgs decrypt args
 func DecryptArgs(key []byte, args [][]byte) ([][]byte, error) {
+	dargs := make([][]byte, len(args))
 	for i, a := range args {
 		decrypted, err := Decrypt(key, a)
 		if err != nil {
 			return nil, errors.Wrap(err, `decryption error`)
 		}
-		args[i] = decrypted
+		dargs[i] = decrypted
 	}
-
-	return args, nil
+	return dargs, nil
 }
 
-func Encrypt(key, value []byte) ([]byte, error) {
-	encrypter, err := entities.NewAES256EncrypterEntity("ID", factory.GetDefault(), key, nil)
+// Encrypt converts value to []byte  and encrypts its with key
+func Encrypt(key []byte, value interface{}) ([]byte, error) {
+	// TODO: customize  IV
+	encrypter, err := entities.NewAES256EncrypterEntity("ID", factory.GetDefault(), key, make([]byte, 16))
 	if err != nil {
 		return nil, err
 	}
 
-	return encrypter.Encrypt(value)
+	bb, err := convert.ToBytes(value)
+	if err != nil {
+		return nil, errors.Wrap(err, `convert values to bytes`)
+	}
+
+	return encrypter.Encrypt(bb)
 }
 
+// Decrypt decrypts value with key
 func Decrypt(key, value []byte) ([]byte, error) {
 	encrypter, err := entities.NewAES256EncrypterEntity("ID", factory.GetDefault(), key, nil)
 	if err != nil {
 		return nil, err
 	}
-	return encrypter.Decrypt(value)
+	bb := make([]byte, len(value))
+	copy(bb, value)
+	return encrypter.Decrypt(bb)
 }
 
+// TransientMapWithKey creates transient map with encrypting/decrypting key
 func TransientMapWithKey(key []byte) map[string][]byte {
 	return map[string][]byte{TransientMapKey: key}
 }
