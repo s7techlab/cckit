@@ -28,13 +28,11 @@ Middleware functions can perform the following tasks:
 * Call the next middleware function in the stack.
 
 
-
-
-
 ## Defining chaincode function and their arguments
 
-
 ### Delegating chaincode methods handling
+
+[router/context.go](context.go)
 
 ```go
 // Chaincode default chaincode implementation with router
