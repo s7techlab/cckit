@@ -9,6 +9,8 @@ import (
 
 	"time"
 
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/s7techlab/cckit/identity"
@@ -56,11 +58,8 @@ var _ = Describe(`Mockstub`, func() {
 	})
 
 	It("Allow to get events via events channel", func() {
-		timeout := make(chan bool, 1)
-		go func() {
-			time.Sleep(time.Millisecond * 10)
-			timeout <- true
-		}()
+
+		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*10)
 
 		expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[1]))
 
@@ -69,7 +68,7 @@ var _ = Describe(`Mockstub`, func() {
 			Expect(ccEvent.EventName).To(Equal(cars.CarRegisteredEvent))
 			event := expectcc.EventPayloadIs(ccEvent, &cars.Car{}).(cars.Car)
 			Expect(event.Id).To(Equal(cars.Payloads[1].Id))
-		case <-timeout:
+		case <-ctx.Done():
 			Expect(true).To(Equal(false), `Event not received`)
 		}
 

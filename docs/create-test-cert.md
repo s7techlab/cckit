@@ -6,7 +6,7 @@ generate self-signed certificate:
 
 ```
 $ openssl ecparam -name secp384r1 -genkey | openssl pkcs8 -topk8 -nocrypt > some-person.key.pem
-$ openssl req -new -x509 -key some-person.pem.key -out some-person.pem -days 730
+$ openssl req -new -x509 -key some-person.key.pem -out some-person.pem -days 730
 ```
 
 You are about to be asked to enter information that will be incorporated into your certificate request.
