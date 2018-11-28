@@ -35,6 +35,12 @@ main problems:
 
 
 
+### Publications
+
+* [CCKit: Routing and middleware for Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/routing-and-middleware-for-developing-hyperledger-fabric-chaincode-written-in-go-90913951bf08)
+* [ERC20 token as Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339)
+* [Developing and testing Hyperledger Fabric smart contracts](https://habr.com/post/426705/) [RUS]
+
 ## Example based on CCKit
 
 ### Chaincode "Cars" 
