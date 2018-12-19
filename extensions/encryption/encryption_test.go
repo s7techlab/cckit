@@ -33,6 +33,7 @@ func (p Payment) Key() ([]string, error) {
 	return []string{p.Type, p.Id}, nil
 }
 
+// ==== Chaincode example with encrypted state ===
 func NewEncryptedPaymentCC() *router.Chaincode {
 	r := router.New(`encrypted`).
 		Pre(encryption.ArgsDecryptIfKeyProvided).
@@ -59,19 +60,23 @@ func invokePaymentCreate(c router.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	// Encrypted state wrapper
 	es, err := encryption.State(c, key)
 	if err != nil {
 		return nil, err
 	}
 
+	// encrypted identifier for method return
 	encId, _ := encryption.Encrypt(key, paymentId)
 
-	// use encoded state to put encoded amount with encoded key
+	// use encoded state to put encrypted Payment entity with encrypted key
 	return encId, es.Put(&Payment{Type: paymentType, Id: paymentId, Amount: paymentAmount})
 }
 
 func queryPayments(c router.Context) (interface{}, error) {
 	paymentType := c.ArgString(`type`)
+
+	// Encrypted state wrapper with key from transient map
 	es, err := encryption.StateWithTransientKey(c)
 	if err != nil {
 		return nil, err
