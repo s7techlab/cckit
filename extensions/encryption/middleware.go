@@ -7,25 +7,42 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
+// ArgsDecryptIfKeyProvided  - pre middleware, decrypts chaincode method arguments if key provided in transient map
 func ArgsDecryptIfKeyProvided(next router.ContextHandlerFunc, pos ...int) router.ContextHandlerFunc {
-	return func(c router.Context) peer.Response {
-		transient, err := c.Stub().GetTransient()
-		if err != nil {
-			return response.Error(err)
-		}
+	return argsDecryptor(next, false)
+}
 
-		key, ok := transient[TransientMapKey]
+// ArgsDecryptIfKeyProvided  - pre middleware, decrypts chaincode method arguments, key must be provided in transient map
+func ArgsDecrypt(next router.ContextHandlerFunc, pos ...int) router.ContextHandlerFunc {
+	return argsDecryptor(next, true)
+}
+
+func decryptReplaceArgs(key []byte, c router.Context) error {
+	args, err := DecryptArgs(key, c.Stub().GetArgs())
+	if err != nil {
+		return errors.Wrap(err, `args`)
+	}
+	c.ReplaceArgs(args)
+	return nil
+}
+
+func argsDecryptor(next router.ContextHandlerFunc, keyShouldBeProvided bool) router.ContextHandlerFunc {
+	return func(c router.Context) peer.Response {
+		key, err := KeyFromTransient(c)
 		// no key provided
-		if !ok {
-			c.Logger().Debug(`no decrypt key provided`)
+
+		if err != nil {
+			c.Logger().Debugf(`no decrypt key provided: %s`, err)
+			if err == ErrKeyNotDefinedInTransientMap && keyShouldBeProvided {
+				return response.Error(err)
+			}
 			return next(c)
 		}
 
-		args, err := DecryptArgs(key, c.Stub().GetArgs())
-		if err != nil {
-			return response.Error(errors.Wrap(err, `decrypt args error`))
+		if err = decryptReplaceArgs(key, c); err != nil {
+			return response.Error(err)
 		}
 
-		return next(c.ReplaceArgs(args))
+		return next(c)
 	}
 }

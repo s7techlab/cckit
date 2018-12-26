@@ -27,7 +27,11 @@ func State(c router.Context, key []byte) (state.State, error) {
 
 // KeyFromTransient gets key for encrypting/decrypting from transient map
 func KeyFromTransient(c router.Context) ([]byte, error) {
-	tm, _ := c.Stub().GetTransient()
+	tm, err := c.Stub().GetTransient()
+	if err != nil {
+		return nil, err
+	}
+
 	key, ok := tm[TransientMapKey]
 	if !ok {
 		return nil, ErrKeyNotDefinedInTransientMap
@@ -43,6 +47,20 @@ func StateWithTransientKey(c router.Context) (state.State, error) {
 		return nil, err
 	}
 	return State(c, key)
+}
+
+// StateWithTransientKeyIfProvided creates encrypted state wrapper with provided key for symmetric encryption/decryption
+// if key provided, otherwise - standard state wrapper without encryption
+func StateWithTransientKeyIfProvided(c router.Context) (state.State, error) {
+	key, err := KeyFromTransient(c)
+	switch err {
+	case nil:
+		return State(c, key)
+	case ErrKeyNotDefinedInTransientMap:
+		//default state wrapper without encryption
+		return c.State(), nil
+	}
+	return nil, err
 }
 
 // KeyPartsEncryptedWith encrypts key parts
