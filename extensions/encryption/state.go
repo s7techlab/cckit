@@ -11,7 +11,7 @@ import (
 
 var (
 	// ErrKeyNotDefinedInTransientMap occurs when key not defined in transient map
-	ErrKeyNotDefinedInTransientMap = errors.New(`key not defined in transient map`)
+	ErrKeyNotDefinedInTransientMap = errors.New(`encryption key is not defined in transient map`)
 )
 
 // State encrypting the data before putting to state and decrypting the data after getting from state

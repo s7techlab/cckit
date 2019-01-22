@@ -123,14 +123,12 @@ var _ = Describe(`Router`, func() {
 		})
 
 		It("Allow to get encrypted payments by type as unencrypted values", func() {
-			args, err := encryption.EncryptArgs(encKey, `paymentList`, pType)
-			Expect(err).To(BeNil())
 
-			payments := expectcc.PayloadIs(encryptOnDemandPaymentCC.WithTransient(encryption.TransientMapWithKey(encKey)).InvokeBytes(args...), &[]encryption.Payment{}).([]encryption.Payment)
+			// MockInvoke sets key in transient map and encrypt input arguments
+			payments := expectcc.PayloadIs(encryption.MockInvoke(encryptOnDemandPaymentCC, encKey, `paymentList`, pType), &[]encryption.Payment{}).([]encryption.Payment)
 
 			Expect(len(payments)).To(Equal(1))
-
-			// Returned value is decoded
+			// Returned value is not encrypted
 			Expect(payments[0].Id).To(Equal(pId1))
 		})
 
@@ -160,10 +158,7 @@ var _ = Describe(`Router`, func() {
 
 		It("Allow to create payment providing key in encryptPaymentCC ", func() {
 			// encode all arguments
-			args, err := encryption.EncryptArgs(encKey, `paymentCreate`, pType, pId3, pAmount3)
-			Expect(err).To(BeNil())
-
-			expectcc.ResponseOk(encryptPaymentCC.WithTransient(encryption.TransientMapWithKey(encKey)).InvokeBytes(args...))
+			expectcc.ResponseOk(encryption.MockInvoke(encryptPaymentCC, encKey, `paymentCreate`, pType, pId3, pAmount3))
 		})
 	})
 })
