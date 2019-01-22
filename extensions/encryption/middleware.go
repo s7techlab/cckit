@@ -55,7 +55,7 @@ type EncryptedStateContext struct {
 
 // State returns encrypted state with key from transient map
 func (ec EncryptedStateContext) State() state.State {
-	s, _ := StateWithTransientKeyIfProvided(ec)
+	s, _ := StateWithTransientKey(ec)
 	return s
 }
 
