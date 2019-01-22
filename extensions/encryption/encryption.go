@@ -79,11 +79,20 @@ func TransientMapWithKey(key []byte) map[string][]byte {
 	return map[string][]byte{TransientMapKey: key}
 }
 
-// MockInvoke helper for invoking MockStub with transient key end encrypted args
+// MockInvoke helper for invoking MockStub with transient key and encrypted args
 func MockInvoke(cc *testing.MockStub, encKey []byte, args ...interface{}) peer.Response {
 	encArgs, err := EncryptArgs(encKey, args...)
 	if err != nil {
 		return response.Error(`unable to encrypt input args`)
 	}
 	return cc.WithTransient(TransientMapWithKey(encKey)).InvokeBytes(encArgs...)
+}
+
+// MockQuery helper for querying MockStub with transient key and encrypted args
+func MockQuery(cc *testing.MockStub, encKey []byte, args ...interface{}) peer.Response {
+	encArgs, err := EncryptArgs(encKey, args...)
+	if err != nil {
+		return response.Error(`unable to encrypt input args`)
+	}
+	return cc.WithTransient(TransientMapWithKey(encKey)).QueryBytes(encArgs...)
 }

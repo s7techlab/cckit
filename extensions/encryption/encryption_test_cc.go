@@ -36,7 +36,7 @@ func NewEncryptPaymentCC() *router.Chaincode {
 
 // Chaincode with encrypting data on demand (if encrypting key is provided in transient map)
 func NewEncryptOnDemandPaymentCC() *router.Chaincode {
-	r := router.New(`encrypted`).
+	r := router.New(`encrypted-on-demand`).
 		Pre(ArgsDecryptIfKeyProvided).
 		Init(router.EmptyContextHandler)
 
@@ -46,6 +46,22 @@ func NewEncryptOnDemandPaymentCC() *router.Chaincode {
 		Invoke(`Create`, invokePaymentCreate, p.String(`type`), p.String(`id`), p.Int(`amount`)).
 		Query(`List`, queryPayments, p.String(`type`)).
 		Query(`Get`, queryPayment, p.String(`type`), p.String(`id`))
+
+	return router.NewChaincode(r)
+}
+
+func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
+	r := router.New(`encrypted-with-custom-context`).
+		Pre(ArgsDecrypt).
+		Use(EncStateContext). // default Context replaced with EncryptedStateContext
+		Init(router.EmptyContextHandler)
+
+	debug.AddHandlers(r, `debug`)
+
+	r.Group(`payment`).
+		Invoke(`Create`, invokePaymentCreateWithDefaultContext, p.String(`type`), p.String(`id`), p.Int(`amount`)).
+		Query(`List`, queryPaymentsWithDefaultContext, p.String(`type`)).
+		Query(`Get`, queryPaymentWithDefaultContext, p.String(`type`), p.String(`id`))
 
 	return router.NewChaincode(r)
 }
@@ -61,6 +77,7 @@ func invokePaymentCreate(c router.Context) (interface{}, error) {
 		returnVal     []byte
 	)
 
+	// Explicit encrypted state wrapper with key from transient map if key provided
 	if s, err = StateWithTransientKeyIfProvided(c); err != nil {
 		return nil, err
 	}
@@ -74,17 +91,36 @@ func invokePaymentCreate(c router.Context) (interface{}, error) {
 	return returnVal, s.Put(&Payment{Type: paymentType, Id: paymentId, Amount: paymentAmount})
 }
 
+func invokePaymentCreateWithDefaultContext(c router.Context) (interface{}, error) {
+	var (
+		paymentType   = c.ArgString(`type`)
+		paymentId     = c.ArgString(`id`)
+		paymentAmount = c.ArgInt(`amount`)
+		returnVal     = []byte(paymentId) // unencrypted
+	)
+	// State use encryption setting from context
+	return returnVal, c.State().Put(&Payment{Type: paymentType, Id: paymentId, Amount: paymentAmount})
+}
+
 func queryPayments(c router.Context) (interface{}, error) {
 	var (
 		paymentType = c.ArgString(`type`)
 		s           state.State
 		err         error
 	)
-	// Encrypted state wrapper with key from transient map if key provided
+	// Explicit encrypted state wrapper with key from transient map if key provided
 	if s, err = StateWithTransientKeyIfProvided(c); err != nil {
 		return nil, err
 	}
 	return s.List(paymentType, &Payment{})
+}
+
+func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {
+	var (
+		paymentType = c.ArgString(`type`)
+	)
+	// State use encryption setting from context
+	return c.State().List(paymentType, &Payment{})
 }
 
 // Payment query chaincode function handler - can be used in encryption and no encryption mode
@@ -99,4 +135,13 @@ func queryPayment(c router.Context) (interface{}, error) {
 		return nil, err
 	}
 	return s.Get([]string{paymentType, paymentId}, &Payment{})
+}
+
+func queryPaymentWithDefaultContext(c router.Context) (interface{}, error) {
+	var (
+		paymentType = c.ArgString(`type`)
+		paymentId   = c.ArgString(`id`)
+	)
+
+	return c.State().Get([]string{paymentType, paymentId}, &Payment{})
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
+	"github.com/s7techlab/cckit/state"
 )
 
 // ArgsDecryptIfKeyProvided  - pre middleware, decrypts chaincode method arguments if key provided in transient map
@@ -44,5 +45,24 @@ func argsDecryptor(next router.ContextHandlerFunc, keyShouldBeProvided bool) rou
 		}
 
 		return next(c)
+	}
+}
+
+// EncryptedStateContext returns encrypted state with key from transient map
+type EncryptedStateContext struct {
+	router.Context
+}
+
+// State returns encrypted state with key from transient map
+func (ec EncryptedStateContext) State() state.State {
+	s, _ := StateWithTransientKeyIfProvided(ec)
+	return s
+}
+
+// EncStateContext replaces default state with encrypted state
+func EncStateContext(next router.HandlerFunc, pos ...int) router.HandlerFunc {
+	return func(c router.Context) (interface{}, error) {
+		cc := &EncryptedStateContext{c}
+		return next(cc)
 	}
 }

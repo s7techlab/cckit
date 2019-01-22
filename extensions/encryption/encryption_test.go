@@ -4,8 +4,6 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/s7techlab/cckit/convert"
-
 	"math/rand"
 	"time"
 
@@ -22,8 +20,9 @@ func TestEncryption(t *testing.T) {
 }
 
 var (
-	encryptOnDemandPaymentCC *testcc.MockStub
-	encryptPaymentCC         *testcc.MockStub
+	encryptOnDemandPaymentCC            *testcc.MockStub
+	encryptPaymentCC                    *testcc.MockStub
+	encryptPaymentCCWithEncStateContext *testcc.MockStub
 
 	pType  = `SALE`
 	encKey []byte
@@ -37,6 +36,11 @@ var (
 
 	pId3     = `id-3`
 	pAmount3 = 333
+
+	encryptedPType, encryptedPId1 []byte
+	payment1                      encryption.Payment
+	encPayment1                   []byte
+	err                           error
 )
 
 var _ = Describe(`Router`, func() {
@@ -44,21 +48,31 @@ var _ = Describe(`Router`, func() {
 	//Create chaincode mock
 	encryptOnDemandPaymentCC = testcc.NewMockStub(`paymentsEncOnDemand`, encryption.NewEncryptOnDemandPaymentCC())
 	encryptPaymentCC = testcc.NewMockStub(`paymentsEnc`, encryption.NewEncryptPaymentCC())
+	encryptPaymentCCWithEncStateContext = testcc.NewMockStub(`paymentsEnc`, encryption.NewEncryptedPaymentCCWithEncStateContext())
+
 	// Create encode key. In real case it can be calculated via ECDH
 	encKey = make([]byte, 32)
 	rand.Seed(time.Now().UnixNano())
 	rand.Read(encKey)
 
-	Describe("Encrypting in demand", func() {
+	BeforeSuite(func() {
+		encryptedPType, err = encryption.Encrypt(encKey, pType)
+		Expect(err).To(BeNil())
 
-		encryptedType, err := encryption.Encrypt(encKey, pType)
-		if err != nil {
-			panic(err)
+		encryptedPId1, err = encryption.Encrypt(encKey, pId1)
+		Expect(err).To(BeNil())
+
+		payment1 = encryption.Payment{
+			Type:   pType,
+			Id:     pId1,
+			Amount: pAmount1,
 		}
-		encryptedPaymentId1, err := encryption.Encrypt(encKey, pId1)
-		if err != nil {
-			panic(err)
-		}
+
+		encPayment1, err = encryption.Encrypt(encKey, payment1)
+		Expect(err).To(BeNil())
+	})
+
+	Describe("Encrypting in demand", func() {
 
 		It("Allow to init encrypt-on-demand payment chaincode", func() {
 			expectcc.ResponseOk(encryptOnDemandPaymentCC.Init())
@@ -77,14 +91,14 @@ var _ = Describe(`Router`, func() {
 			Expect(len(args)).To(Equal(4))
 
 			Expect(err).To(BeNil())
-			Expect(args[1]).To(Equal(encryptedType))
+			Expect(args[1]).To(Equal(encryptedPType))
 			// second argument is encoded payment id
-			Expect(args[2]).To(Equal(encryptedPaymentId1))
+			Expect(args[2]).To(Equal(encryptedPId1))
 
 			// invoke chaincode with encoded args and encKey via transientMap, receives encoded payment id
 			ccPId := expectcc.PayloadBytes(
 				encryptOnDemandPaymentCC.WithTransient(encryption.TransientMapWithKey(encKey)).
-					InvokeBytes(args...), encryptedPaymentId1)
+					InvokeBytes(args...), encryptedPId1)
 
 			decryptedPaymentId, err := encryption.Decrypt(encKey, ccPId)
 			Expect(err).To(BeNil())
@@ -98,32 +112,20 @@ var _ = Describe(`Router`, func() {
 			Expect(err).To(BeNil())
 			Expect(len(args)).To(Equal(3))
 
-			payment := encryption.Payment{
-				Type:   pType,
-				Id:     pId1,
-				Amount: pAmount1,
-			}
-
-			bb, err := convert.ToBytes(payment)
-			Expect(err).To(BeNil())
-
-			encPayment, err := encryption.Encrypt(encKey, bb)
-			Expect(err).To(BeNil())
-
 			//Check that value is encrypted in chaincode state - use debugStateGet func
+			// without providing key in tramsient map
 			expectcc.PayloadBytes(encryptOnDemandPaymentCC.Invoke(`debugStateGet`, []string{
-				base64.StdEncoding.EncodeToString(encryptedType),
-				base64.StdEncoding.EncodeToString(encryptedPaymentId1)}), encPayment)
+				base64.StdEncoding.EncodeToString(encryptedPType),
+				base64.StdEncoding.EncodeToString(encryptedPId1)}), encPayment1)
 
 			//returns unencrypted
 			paymentFromCC := expectcc.PayloadIs(
 				encryptOnDemandPaymentCC.WithTransient(encryption.TransientMapWithKey(encKey)).InvokeBytes(args...), &encryption.Payment{}).(encryption.Payment)
 
-			Expect(paymentFromCC).To(Equal(payment))
+			Expect(paymentFromCC).To(Equal(payment1))
 		})
 
 		It("Allow to get encrypted payments by type as unencrypted values", func() {
-
 			// MockInvoke sets key in transient map and encrypt input arguments
 			payments := expectcc.PayloadIs(encryption.MockInvoke(encryptOnDemandPaymentCC, encKey, `paymentList`, pType), &[]encryption.Payment{}).([]encryption.Payment)
 
@@ -159,6 +161,38 @@ var _ = Describe(`Router`, func() {
 		It("Allow to create payment providing key in encryptPaymentCC ", func() {
 			// encode all arguments
 			expectcc.ResponseOk(encryption.MockInvoke(encryptPaymentCC, encKey, `paymentCreate`, pType, pId3, pAmount3))
+		})
+	})
+
+	Describe("Encrypted state context", func() {
+		It("Allow to init encrypt payment chaincodes", func() {
+			expectcc.ResponseOk(encryptPaymentCCWithEncStateContext.Init())
+		})
+
+		It("Allow to create payment providing key in encryptPaymentCC ", func() {
+			// encode all arguments
+			expectcc.ResponseOk(encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3))
+
+			//Check that value is encrypted in chaincode state - use debugStateGet func
+			expectcc.PayloadBytes(encryptOnDemandPaymentCC.Invoke(`debugStateGet`, []string{
+				base64.StdEncoding.EncodeToString(encryptedPType),
+				base64.StdEncoding.EncodeToString(encryptedPId1)}), encPayment1)
+		})
+
+		It("Allow to get encrypted payments by type as unencrypted values", func() {
+			payments := expectcc.PayloadIs(encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentList`, pType), &[]encryption.Payment{}).([]encryption.Payment)
+
+			Expect(len(payments)).To(Equal(1))
+			// Returned value is not encrypted
+			Expect(payments[0].Id).To(Equal(pId1))
+		})
+
+		It("Allow to get payment by type and id", func() {
+			//returns unencrypted
+			paymentFromCC := expectcc.PayloadIs(
+				encryption.MockQuery(encryptPaymentCCWithEncStateContext, encKey, `paymentGet`, pType, pId1), &encryption.Payment{}).(encryption.Payment)
+
+			Expect(string(paymentFromCC.Id)).To(Equal(pId1))
 		})
 	})
 })
