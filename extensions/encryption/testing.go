@@ -24,21 +24,21 @@ func MockQuery(cc *testing.MockStub, encKey []byte, args ...interface{}) peer.Re
 	return cc.WithTransient(TransientMapWithKey(encKey)).QueryBytes(encArgs...)
 }
 
-// EncMockStub wrapper for querying and invoking encrypted chaincode
-type EncMockStub struct {
-	CC     *testing.MockStub
-	EncKey []byte
+// MockStub wrapper for querying and invoking encrypted chaincode
+type MockStub struct {
+	MockStub *testing.MockStub
+	EncKey   []byte
 }
 
-// NewEncMockStub creates wrapper for querying and invoking encrypted chaincode
-func NewEncMockStub(cc *testing.MockStub, encKey []byte) *EncMockStub {
-	return &EncMockStub{cc, encKey}
+// NewMockStub creates wrapper for querying and invoking encrypted chaincode
+func NewMockStub(mockStub *testing.MockStub, encKey []byte) *MockStub {
+	return &MockStub{mockStub, encKey}
 }
 
-func (ecc *EncMockStub) Invoke(args ...interface{}) peer.Response {
-	return MockInvoke(ecc.CC, ecc.EncKey, args...)
+func (s *MockStub) Invoke(args ...interface{}) peer.Response {
+	return MockInvoke(s.MockStub, s.EncKey, args...)
 }
 
-func (ecc *EncMockStub) Query(args ...interface{}) peer.Response {
-	return MockQuery(ecc.CC, ecc.EncKey, args...)
+func (s *MockStub) Query(args ...interface{}) peer.Response {
+	return MockQuery(s.MockStub, s.EncKey, args...)
 }

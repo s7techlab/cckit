@@ -53,7 +53,7 @@ var _ = Describe(`Router`, func() {
 	encryptOnDemandPaymentCC = testcc.NewMockStub(`paymentsEncOnDemand`, encryption.NewEncryptOnDemandPaymentCC())
 	encryptPaymentCC = testcc.NewMockStub(`paymentsEnc`, encryption.NewEncryptPaymentCC())
 	encryptPaymentCCWithEncStateContext = testcc.NewMockStub(`paymentsEnc`, encryption.NewEncryptedPaymentCCWithEncStateContext())
-	encCCInvoker := encryption.NewEncMockStub(encryptPaymentCCWithEncStateContext, encKey)
+	encCCInvoker := encryption.NewMockStub(encryptPaymentCCWithEncStateContext, encKey)
 
 	BeforeSuite(func() {
 		encryptedPType, err = encryption.Encrypt(encKey, pType)
