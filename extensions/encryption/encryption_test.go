@@ -2,9 +2,8 @@ package encryption_test
 
 import (
 	"encoding/base64"
-	"testing"
-
 	"math/rand"
+	"testing"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -45,15 +44,16 @@ var (
 
 var _ = Describe(`Router`, func() {
 
-	//Create chaincode mock
-	encryptOnDemandPaymentCC = testcc.NewMockStub(`paymentsEncOnDemand`, encryption.NewEncryptOnDemandPaymentCC())
-	encryptPaymentCC = testcc.NewMockStub(`paymentsEnc`, encryption.NewEncryptPaymentCC())
-	encryptPaymentCCWithEncStateContext = testcc.NewMockStub(`paymentsEnc`, encryption.NewEncryptedPaymentCCWithEncStateContext())
-
 	// Create encode key. In real case it can be calculated via ECDH
 	encKey = make([]byte, 32)
 	rand.Seed(time.Now().UnixNano())
 	rand.Read(encKey)
+
+	//Create chaincode mock
+	encryptOnDemandPaymentCC = testcc.NewMockStub(`paymentsEncOnDemand`, encryption.NewEncryptOnDemandPaymentCC())
+	encryptPaymentCC = testcc.NewMockStub(`paymentsEnc`, encryption.NewEncryptPaymentCC())
+	encryptPaymentCCWithEncStateContext = testcc.NewMockStub(`paymentsEnc`, encryption.NewEncryptedPaymentCCWithEncStateContext())
+	encCCInvoker := encryption.NewEncMockStub(encryptPaymentCCWithEncStateContext, encKey)
 
 	BeforeSuite(func() {
 		encryptedPType, err = encryption.Encrypt(encKey, pType)
@@ -180,7 +180,7 @@ var _ = Describe(`Router`, func() {
 		})
 
 		It("Allow to get encrypted payments by type as unencrypted values", func() {
-			payments := expectcc.PayloadIs(encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentList`, pType), &[]encryption.Payment{}).([]encryption.Payment)
+			payments := expectcc.PayloadIs(encCCInvoker.Invoke(`paymentList`, pType), &[]encryption.Payment{}).([]encryption.Payment)
 
 			Expect(len(payments)).To(Equal(1))
 			// Returned value is not encrypted
@@ -189,9 +189,7 @@ var _ = Describe(`Router`, func() {
 
 		It("Allow to get payment by type and id", func() {
 			//returns unencrypted
-			paymentFromCC := expectcc.PayloadIs(
-				encryption.MockQuery(encryptPaymentCCWithEncStateContext, encKey, `paymentGet`, pType, pId1), &encryption.Payment{}).(encryption.Payment)
-
+			paymentFromCC := expectcc.PayloadIs(encCCInvoker.Query(`paymentGet`, pType, pId1), &encryption.Payment{}).(encryption.Payment)
 			Expect(string(paymentFromCC.Id)).To(Equal(pId1))
 		})
 	})

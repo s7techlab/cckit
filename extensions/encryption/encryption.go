@@ -3,11 +3,8 @@ package encryption
 import (
 	"github.com/hyperledger/fabric/bccsp/factory"
 	"github.com/hyperledger/fabric/core/chaincode/shim/ext/entities"
-	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
-	"github.com/s7techlab/cckit/response"
-	"github.com/s7techlab/cckit/testing"
 )
 
 const TransientMapKey = `ENCODE_KEY`
@@ -77,22 +74,4 @@ func Decrypt(key, value []byte) ([]byte, error) {
 // TransientMapWithKey creates transient map with encrypting/decrypting key
 func TransientMapWithKey(key []byte) map[string][]byte {
 	return map[string][]byte{TransientMapKey: key}
-}
-
-// MockInvoke helper for invoking MockStub with transient key and encrypted args
-func MockInvoke(cc *testing.MockStub, encKey []byte, args ...interface{}) peer.Response {
-	encArgs, err := EncryptArgs(encKey, args...)
-	if err != nil {
-		return response.Error(`unable to encrypt input args`)
-	}
-	return cc.WithTransient(TransientMapWithKey(encKey)).InvokeBytes(encArgs...)
-}
-
-// MockQuery helper for querying MockStub with transient key and encrypted args
-func MockQuery(cc *testing.MockStub, encKey []byte, args ...interface{}) peer.Response {
-	encArgs, err := EncryptArgs(encKey, args...)
-	if err != nil {
-		return response.Error(`unable to encrypt input args`)
-	}
-	return cc.WithTransient(TransientMapWithKey(encKey)).QueryBytes(encArgs...)
 }
