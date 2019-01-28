@@ -6,8 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/s7techlab/cckit/identity"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/encryption"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -22,6 +25,8 @@ var (
 	encryptOnDemandPaymentCC            *testcc.MockStub
 	encryptPaymentCC                    *testcc.MockStub
 	encryptPaymentCCWithEncStateContext *testcc.MockStub
+
+	actors identity.Actors
 
 	pType  = `SALE`
 	encKey []byte
@@ -56,6 +61,12 @@ var _ = Describe(`Router`, func() {
 	encCCInvoker := encryption.NewMockStub(encryptPaymentCCWithEncStateContext, encKey)
 
 	BeforeSuite(func() {
+
+		actors, err = identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+			`owner`:   `s7techlab.pem`,
+			`someone`: `victor-nosov.pem`}, examplecert.Content)
+		Expect(err).To(BeNil())
+
 		encryptedPType, err = encryption.Encrypt(encKey, pType)
 		Expect(err).To(BeNil())
 
@@ -189,7 +200,7 @@ var _ = Describe(`Router`, func() {
 
 		It("Allow to get payment by type and id", func() {
 			//returns unencrypted
-			paymentFromCC := expectcc.PayloadIs(encCCInvoker.Query(`paymentGet`, pType, pId1), &encryption.Payment{}).(encryption.Payment)
+			paymentFromCC := expectcc.PayloadIs(encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pId1), &encryption.Payment{}).(encryption.Payment)
 			Expect(string(paymentFromCC.Id)).To(Equal(pId1))
 		})
 	})

@@ -42,3 +42,8 @@ func (s *MockStub) Invoke(args ...interface{}) peer.Response {
 func (s *MockStub) Query(args ...interface{}) peer.Response {
 	return MockQuery(s.MockStub, s.EncKey, args...)
 }
+
+func (s *MockStub) From(args ...interface{}) *MockStub {
+	s.MockStub.From(args...)
+	return s
+}
