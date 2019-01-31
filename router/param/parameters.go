@@ -80,7 +80,3 @@ func Param(name string, paramType interface{}, argPoss ...int) router.Middleware
 		}
 	}
 }
-
-//if ph.Parameters.Length() != len(args) {
-//return nil, ErrArgsNumMismatch
-//}

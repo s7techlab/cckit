@@ -1,0 +1,10 @@
+syntax = "proto3";
+package schema;
+
+// Marble represents information about marble
+message Marble {
+    string ID = 1;
+    string Color = 2;
+    int32 Size = 3;
+    string Owner = 4;
+}
