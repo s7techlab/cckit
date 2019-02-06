@@ -20,8 +20,18 @@ func NewState(stub shim.ChaincodeStubInterface, mappings Mappings) *StateImpl {
 	}
 }
 
-func (s *StateImpl) Get(key interface{}, target ...interface{}) (result interface{}, err error) {
-	return s.state.Get(key, target...)
+func (s *StateImpl) mapIfMappingExists(entry interface{}) (mapped interface{}, err error) {
+	if !s.mappings.Exists(entry) {
+		return entry, nil
+	}
+	return s.mappings.Map(entry)
+}
+
+func (s *StateImpl) Get(entry interface{}, target ...interface{}) (result interface{}, err error) {
+	if entry, err = s.mapIfMappingExists(entry); err != nil {
+		return nil, err
+	}
+	return s.state.Get(entry, target...)
 }
 
 func (s *StateImpl) GetInt(key interface{}, defaultValue int) (result int, err error) {
@@ -33,33 +43,23 @@ func (s *StateImpl) GetHistory(key interface{}, target interface{}) (result stat
 }
 
 func (s *StateImpl) Exists(entry interface{}) (exists bool, err error) {
-	if s.mappings.Exists(entry) {
-		entry, err = s.mappings.Map(entry)
-		if err != nil {
-			return false, errors.Wrap(err, `mapping`)
-		}
+	if entry, err = s.mapIfMappingExists(entry); err != nil {
+		return false, err
 	}
 	return s.state.Exists(entry)
 }
 
 func (s *StateImpl) Put(entry interface{}, value ...interface{}) (err error) {
-	if s.mappings.Exists(entry) {
-		entry, err = s.mappings.Map(entry)
-		if err != nil {
-			return errors.Wrap(err, `mapping`)
-		}
+	if entry, err = s.mapIfMappingExists(entry); err != nil {
+		return err
 	}
 	return s.state.Put(entry, value...)
 }
 
 func (s *StateImpl) Insert(entry interface{}, value ...interface{}) (err error) {
-	if s.mappings.Exists(entry) {
-		entry, err = s.mappings.Map(entry)
-		if err != nil {
-			return errors.Wrap(err, `mapping`)
-		}
+	if entry, err = s.mapIfMappingExists(entry); err != nil {
+		return err
 	}
-
 	return s.state.Insert(entry, value...)
 }
 
@@ -78,11 +78,8 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 }
 
 func (s *StateImpl) Delete(entry interface{}) (err error) {
-	if s.mappings.Exists(entry) {
-		entry, err = s.mappings.Map(entry)
-		if err != nil {
-			return errors.Wrap(err, `mapping`)
-		}
+	if entry, err = s.mapIfMappingExists(entry); err != nil {
+		return err
 	}
 	return s.state.Delete(entry)
 }

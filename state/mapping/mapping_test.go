@@ -3,6 +3,7 @@ package mapping_test
 import (
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/s7techlab/cckit/examples/cpaper/schema"
 	"github.com/s7techlab/cckit/examples/cpaper/testdata"
 
@@ -55,6 +56,12 @@ var _ = Describe(`Mapping`, func() {
 			cpapers := expectcc.PayloadIs(cPaperCC.Invoke(`cpaperList`), &[]schema.CommercialPaper{}).([]schema.CommercialPaper)
 			Expect(len(cpapers)).To(Equal(1))
 			Expect(cpapers[0].Paper).To(Equal(testdata.CPapers[0].Paper))
+		})
+
+		It("Allow to get entry raw protobuf", func() {
+			cpaperProtoFromCC := cPaperCC.Invoke(`cpaperGet`, testdata.CPapers[0].Paper).Payload
+			book2proto, _ := proto.Marshal(&testdata.CPapers[0])
+			Expect(cpaperProtoFromCC).To(Equal(book2proto))
 		})
 	})
 

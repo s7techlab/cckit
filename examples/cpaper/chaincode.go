@@ -26,7 +26,7 @@ func NewCC() *router.Chaincode {
 
 	r.Group(`cpaper`).
 		Invoke(`List`, cpaperList).
-		//Invoke(`Get`, cpaperGet, p.String(`id`)).
+		Invoke(`Get`, cpaperGet, p.String(`paper`)).
 		Invoke(`Insert`, cpaperInsert, p.Proto(`cpaper`, &schema.CommercialPaper{}))
 	//Invoke(`Upsert`, cpaperUpsert, p.Struct(`cpaper`, &schema.CommercialPaper{})).
 	//Invoke(`Delete`, cpaperDelete, p.String(`id`))
@@ -48,9 +48,10 @@ func cpaperInsert(c router.Context) (interface{}, error) {
 //	return cpaper, c.State().Put(cpaper)
 //}
 //
-//func cpaperGet(c router.Context) (interface{}, error) {
-//	return c.State().Get(schema.cpaper{Id: c.ParamString(`id`)})
-//}
+func cpaperGet(c router.Context) (interface{}, error) {
+	return c.State().Get(&schema.CommercialPaper{Paper: c.ParamString(`paper`)})
+}
+
 //
 //func cpaperDelete(c router.Context) (interface{}, error) {
 //	return nil, c.State().Delete(schema.cpaper{Id: c.ParamString(`id`)})

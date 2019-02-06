@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/pkg/errors"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/s7techlab/cckit/state"
 )
@@ -63,7 +65,7 @@ func (smm SchemaMappings) Exists(entry interface{}) bool {
 func (smm SchemaMappings) Map(entry interface{}) (mapped state.KeyValue, err error) {
 	mapping, err := smm.Get(entry)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, `mapping`)
 	}
 
 	switch entry.(type) {
