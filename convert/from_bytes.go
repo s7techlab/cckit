@@ -87,13 +87,12 @@ func JsonUnmarshalPtr(bb []byte, to interface{}) (result interface{}, err error)
 
 // ProtoUnmarshal r unmarshalls []byte as proto.Message to pointer, and returns value pointed to
 func ProtoUnmarshal(bb []byte, messageType proto.Message) (message proto.Message, err error) {
-	targetPtr := reflect.New(reflect.ValueOf(messageType).Elem().Type()).Interface()
-	err = proto.Unmarshal(bb, messageType)
+	targetPtr := reflect.New(reflect.ValueOf(messageType).Elem().Type()).Interface().(proto.Message)
+	err = proto.Unmarshal(bb, targetPtr)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrUnableToConvertValueToStruct.Error())
 	}
-
-	return targetPtr.(proto.Message), nil
+	return targetPtr, nil
 }
 
 // FromResponse converts response.Payload to target

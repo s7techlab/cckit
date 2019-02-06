@@ -28,7 +28,7 @@ var (
 	booksCC *testcc.MockStub
 	err     error
 )
-var _ = Describe(`CRUD`, func() {
+var _ = Describe(`State`, func() {
 
 	BeforeSuite(func() {
 
@@ -39,9 +39,8 @@ var _ = Describe(`CRUD`, func() {
 		Expect(err).To(BeNil())
 
 		//Create books chaincode mock - struct based schema
-		booksCC = testcc.NewMockStub(`debuggable`, testdata.NewBooksCC())
+		booksCC = testcc.NewMockStub(`books`, testdata.NewBooksCC())
 		booksCC.From(actors[`owner`]).Init()
-
 	})
 
 	Describe(`Struct based schema`, func() {

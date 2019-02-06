@@ -18,6 +18,8 @@ type (
 		Logger() *shim.ChaincodeLogger
 		Path() string
 		State() state.State
+		UseState(state.State) state.State
+
 		Time() (time.Time, error)
 
 		ReplaceArgs(args [][]byte) Context // replace args, for usage in preMiddleware
@@ -70,7 +72,7 @@ type (
 	context struct {
 		stub   shim.ChaincodeStubInterface
 		logger *shim.ChaincodeLogger
-		state  *state.StateImpl
+		state  state.State
 		path   string
 		args   [][]byte
 		params InterfaceMap
@@ -102,6 +104,11 @@ func (c *context) State() state.State {
 	if c.state == nil {
 		c.state = state.New(c.stub)
 	}
+	return c.state
+}
+
+func (c *context) UseState(s state.State) state.State {
+	c.state = s
 	return c.state
 }
 

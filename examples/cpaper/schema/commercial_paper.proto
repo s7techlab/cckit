@@ -1,0 +1,21 @@
+syntax = "proto3";
+package schema;
+
+import "google/protobuf/timestamp.proto";
+
+message CommercialPaper {
+
+    enum State {
+        ISSUED = 0;
+        TRADING = 1;
+        REDEEMED = 2;
+    }
+
+    string paper = 1;
+    string issuer = 2;
+    string owner = 3;
+    google.protobuf.Timestamp issue_date= 4;
+    google.protobuf.Timestamp maturity_date= 5;
+    int32 face_value = 6;
+    State state = 7;
+}

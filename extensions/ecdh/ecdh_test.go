@@ -11,6 +11,9 @@ import (
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/ecdh"
 	"github.com/s7techlab/cckit/identity"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 func TestDebug(t *testing.T) {
