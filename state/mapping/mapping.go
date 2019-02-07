@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Mappings interface for mapping collection
 	Mappings interface {
 		Exists(entity interface{}) (exists bool)
 		Map(entity interface{}) (entry state.KeyValue, err error)
@@ -52,7 +53,7 @@ func (smm SchemaMappings) Add(schema interface{}, namespace []string, primaryKey
 func (smm SchemaMappings) Get(entry interface{}) (Mapping, error) {
 	m, ok := smm[mapKey(entry)]
 	if !ok {
-		return nil, fmt.Errorf(`%s: %s`, ErrEntryMappingNotDefined, mapKey(entry))
+		return nil, fmt.Errorf(`%s: %s`, ErrEntryTypeNotDefined, mapKey(entry))
 	}
 	return m, nil
 }
@@ -72,7 +73,7 @@ func (smm SchemaMappings) Map(entry interface{}) (mapped state.KeyValue, err err
 	case proto.Message:
 		return NewProtoMapper(entry, mapping)
 	default:
-		return nil, ErrEntryTypeMappingNotSupported
+		return nil, ErrEntryTypeNotSupported
 	}
 }
 

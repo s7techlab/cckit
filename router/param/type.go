@@ -5,6 +5,9 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
+// Default parameter name
+const Default = `default`
+
 // String creates middleware for converting to string chaincode method parameter
 func String(name string, argPoss ...int) router.MiddlewareFunc {
 	return Param(name, convert.TypeString, argPoss...)

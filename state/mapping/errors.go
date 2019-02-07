@@ -3,7 +3,9 @@ package mapping
 import "errors"
 
 var (
-	ErrEntryTypeMappingNotSupported = errors.New(`entry type mapping not supported`)
+	// ErrEntryTypeNotSupported entry type has no appropriate mapper type
+	ErrEntryTypeNotSupported = errors.New(`entry type not supported for mapping`)
 
-	ErrEntryMappingNotDefined = errors.New(`entry mapping not defined`)
+	// ErrEntryTypeNotDefined mapping for entry type not defined
+	ErrEntryTypeNotDefined = errors.New(`mapping for entry type not defined`)
 )

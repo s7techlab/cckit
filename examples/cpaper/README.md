@@ -1,0 +1,1 @@
+# Commercial paper example with protobuf chaincode state 

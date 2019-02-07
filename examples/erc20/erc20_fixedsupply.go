@@ -54,20 +54,20 @@ func invokeInitFixedSupply(c router.Context) (interface{}, error) {
 	}
 
 	// save token configuration in state
-	if err := c.State().Insert(SymbolKey, c.ArgString(`symbol`)); err != nil {
+	if err := c.State().Insert(SymbolKey, c.ParamString(`symbol`)); err != nil {
 		return nil, err
 	}
 
-	if err := c.State().Insert(NameKey, c.ArgString(`name`)); err != nil {
+	if err := c.State().Insert(NameKey, c.ParamString(`name`)); err != nil {
 		return nil, err
 	}
 
-	if err := c.State().Insert(TotalSupplyKey, c.ArgInt(`totalSupply`)); err != nil {
+	if err := c.State().Insert(TotalSupplyKey, c.ParamInt(`totalSupply`)); err != nil {
 		return nil, err
 	}
 
 	// set token owner initial balance
-	if err := setBalance(c, ownerIdentity.GetMSPID(), ownerIdentity.GetID(), c.ArgInt(`totalSupply`)); err != nil {
+	if err := setBalance(c, ownerIdentity.GetMSPID(), ownerIdentity.GetID(), c.ParamInt(`totalSupply`)); err != nil {
 		return nil, errors.Wrap(err, `set owner initial balance`)
 	}
 

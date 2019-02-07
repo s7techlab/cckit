@@ -69,9 +69,9 @@ func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 // Payment creation chaincode function handler - can be used in encryption and no encryption mode
 func invokePaymentCreate(c router.Context) (interface{}, error) {
 	var (
-		paymentType   = c.ArgString(`type`)
-		paymentId     = c.ArgString(`id`)
-		paymentAmount = c.ArgInt(`amount`)
+		paymentType   = c.ParamString(`type`)
+		paymentId     = c.ParamString(`id`)
+		paymentAmount = c.ParamInt(`amount`)
 		s             state.State
 		err           error
 		returnVal     []byte
@@ -93,9 +93,9 @@ func invokePaymentCreate(c router.Context) (interface{}, error) {
 
 func invokePaymentCreateWithDefaultContext(c router.Context) (interface{}, error) {
 	var (
-		paymentType   = c.ArgString(`type`)
-		paymentId     = c.ArgString(`id`)
-		paymentAmount = c.ArgInt(`amount`)
+		paymentType   = c.ParamString(`type`)
+		paymentId     = c.ParamString(`id`)
+		paymentAmount = c.ParamInt(`amount`)
 		returnVal     = []byte(paymentId) // unencrypted
 	)
 	// State use encryption setting from context
@@ -104,7 +104,7 @@ func invokePaymentCreateWithDefaultContext(c router.Context) (interface{}, error
 
 func queryPayments(c router.Context) (interface{}, error) {
 	var (
-		paymentType = c.ArgString(`type`)
+		paymentType = c.ParamString(`type`)
 		s           state.State
 		err         error
 	)
@@ -117,7 +117,7 @@ func queryPayments(c router.Context) (interface{}, error) {
 
 func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {
 	var (
-		paymentType = c.ArgString(`type`)
+		paymentType = c.ParamString(`type`)
 	)
 	// State use encryption setting from context
 	return c.State().List(paymentType, &Payment{})
@@ -126,8 +126,8 @@ func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {
 // Payment query chaincode function handler - can be used in encryption and no encryption mode
 func queryPayment(c router.Context) (interface{}, error) {
 	var (
-		paymentType = c.ArgString(`type`)
-		paymentId   = c.ArgString(`id`)
+		paymentType = c.ParamString(`type`)
+		paymentId   = c.ParamString(`id`)
 		s           state.State
 		err         error
 	)
@@ -139,8 +139,8 @@ func queryPayment(c router.Context) (interface{}, error) {
 
 func queryPaymentWithDefaultContext(c router.Context) (interface{}, error) {
 	var (
-		paymentType = c.ArgString(`type`)
-		paymentId   = c.ArgString(`id`)
+		paymentType = c.ParamString(`type`)
+		paymentId   = c.ParamString(`id`)
 	)
 
 	return c.State().Get([]string{paymentType, paymentId}, &Payment{})
