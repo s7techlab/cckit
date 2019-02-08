@@ -5,7 +5,6 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -66,13 +65,17 @@ type (
 		// Set saves data in the context.
 		Set(key string, value interface{})
 
+		// Deprecated: Use Event().Set() instead
 		SetEvent(string, interface{}) error
+
+		Event() state.Event
 	}
 
 	context struct {
 		stub   shim.ChaincodeStubInterface
 		logger *shim.ChaincodeLogger
 		state  state.State
+		event  state.Event
 		path   string
 		args   [][]byte
 		params InterfaceMap
@@ -102,7 +105,7 @@ func (c *context) Path() string {
 
 func (c *context) State() state.State {
 	if c.state == nil {
-		c.state = state.New(c.stub)
+		c.state = state.NewState(c.stub)
 	}
 	return c.state
 }
@@ -110,6 +113,13 @@ func (c *context) State() state.State {
 func (c *context) UseState(s state.State) state.State {
 	c.state = s
 	return c.state
+}
+
+func (c *context) Event() state.Event {
+	if c.event == nil {
+		c.event = state.NewEvent(c.stub)
+	}
+	return c.event
 }
 
 // Time
@@ -206,9 +216,5 @@ func (c *context) Get(key string) interface{} {
 }
 
 func (c *context) SetEvent(name string, payload interface{}) error {
-	bb, err := convert.ToBytes(payload)
-	if err != nil {
-		return err
-	}
-	return c.stub.SetEvent(name, bb)
+	return c.Event().Set(name, payload)
 }

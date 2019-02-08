@@ -15,7 +15,7 @@ type (
 
 func NewState(stub shim.ChaincodeStubInterface, mappings StateMappings) *StateImpl {
 	return &StateImpl{
-		state:    state.New(stub),
+		state:    state.NewState(stub),
 		mappings: mappings,
 	}
 }

@@ -53,8 +53,8 @@ type StateImpl struct {
 	StatePutTransformer ToBytesTransformer
 }
 
-// New creates wrapper on shim.ChaincodeStubInterface working with state
-func New(stub shim.ChaincodeStubInterface) *StateImpl {
+// NewState creates wrapper on shim.ChaincodeStubInterface for working with state
+func NewState(stub shim.ChaincodeStubInterface) *StateImpl {
 	return &StateImpl{
 		stub:                stub,
 		KeyTransformer:      ConvertKey,

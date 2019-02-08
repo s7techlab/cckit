@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// State mappings
 	StateMappings = mapping.StateMappings{}.
 			Add(&schema.CommercialPaper{},
 			[]string{`cpaper`},
@@ -32,10 +33,10 @@ func NewCC() *router.Chaincode {
 
 	r := router.New(`commercial_paper`)
 
-	// Mapping for chaincode state
+	// Mappings for chaincode state
 	r.Use(mapping.MapStates(StateMappings))
 
-	//
+	// Mappings for chaincode events
 	r.Use(mapping.MapEvents(EventMappings))
 
 	// store in chaincode state information about chaincode first instantiator

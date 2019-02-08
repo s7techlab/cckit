@@ -16,7 +16,7 @@ var (
 
 // State encrypting the data before putting to state and decrypting the data after getting from state
 func State(c router.Context, key []byte) (state.State, error) {
-	s := state.New(c.Stub())
+	s := state.NewState(c.Stub())
 
 	s.KeyTransformer = KeyPartsEncryptedWith(key)
 	s.StateGetTransformer = DecryptBytesWith(key)
