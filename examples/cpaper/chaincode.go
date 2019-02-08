@@ -12,19 +12,31 @@ import (
 	"github.com/s7techlab/cckit/state/mapping"
 )
 
-func NewCC() *router.Chaincode {
-
-	r := router.New(`commercial_paper`)
-
-	// Mapping for chaincode state
-	r.Use(mapping.MapState(mapping.SchemaMappings{}.
-		Add(&schema.CommercialPaper{},
+var (
+	StateMappings = mapping.StateMappings{}.
+			Add(&schema.CommercialPaper{},
 			[]string{`cpaper`},
 			func(e interface{}) ([]string, error) {
 				cp := e.(*schema.CommercialPaper)
 				// primary key consists of namespace, issuer and paper
 				return []string{cp.Issuer, cp.PaperNumber}, nil
-			})))
+			})
+
+	// EventMappings
+	EventMappings = mapping.Events{}.
+			Add(`issue`, &schema.IssueCommercialPaper{}) // same message as issue payload
+
+)
+
+func NewCC() *router.Chaincode {
+
+	r := router.New(`commercial_paper`)
+
+	// Mapping for chaincode state
+	r.Use(mapping.MapStates(StateMappings))
+
+	//
+	r.Use(mapping.MapEvents(EventMappings))
 
 	// store in chaincode state information about chaincode first instantiator
 	r.Init(owner.InvokeSetFromCreator)

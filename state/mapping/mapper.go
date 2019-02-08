@@ -5,20 +5,20 @@ import (
 )
 
 type (
-	ProtoMapper struct {
-		instance interface{}
-		mapping  Mapping
+	ProtoStateMapper struct {
+		instance    interface{}
+		stateMapper StateMapper
 	}
 )
 
-func NewProtoMapper(instance interface{}, mapping Mapping) (*ProtoMapper, error) {
-	return &ProtoMapper{instance, mapping}, nil
+func NewProtoStateMapper(instance interface{}, stateMapper StateMapper) (*ProtoStateMapper, error) {
+	return &ProtoStateMapper{instance, stateMapper}, nil
 }
 
-func (pm *ProtoMapper) Key() ([]string, error) {
-	return pm.mapping.PrimaryKey(pm.instance)
+func (pm *ProtoStateMapper) Key() ([]string, error) {
+	return pm.stateMapper.PrimaryKey(pm.instance)
 }
 
-func (mp *ProtoMapper) ToBytes() ([]byte, error) {
-	return proto.Marshal(mp.instance.(proto.Message))
+func (pm *ProtoStateMapper) ToBytes() ([]byte, error) {
+	return proto.Marshal(pm.instance.(proto.Message))
 }

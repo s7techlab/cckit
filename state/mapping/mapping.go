@@ -4,27 +4,36 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/pkg/errors"
-
 	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/state"
 )
 
 type (
-	// Mappings interface for mapping collection
-	Mappings interface {
-		Exists(entity interface{}) (exists bool)
-		Map(entity interface{}) (entry state.KeyValue, err error)
-		Get(entity interface{}) (mapping Mapping, err error)
+	// StateMappers interface for mappers collection
+	StateMappers interface {
+		Exists(schema interface{}) (exists bool)
+		Map(schema interface{}) (keyValue state.KeyValue, err error)
+		Get(schema interface{}) (stateMapper StateMapper, err error)
 	}
 
-	Mapping interface {
+	EventMappers interface {
+		Exists(schema interface{}) (exists bool)
+		Map(schema interface{}) (keyValue state.KeyValue, err error)
+		Get(schema interface{}) (eventMapper EventMapper, err error)
+	}
+
+	StateMapper interface {
 		Schema() interface{}
 		Namespace() []string
-		PrimaryKey(instance interface{}) ([]string, error)
+		PrimaryKey(instance interface{}) (key []string, err error)
+	}
+	EventMapper interface {
+		Schema() interface{}
+		Name() (string, error)
 	}
 
-	SchemaMapping struct {
+	StateMapping struct {
 		schema       interface{}
 		namespace    []string
 		primaryKeyer state.KeyTransformer
@@ -34,15 +43,24 @@ type (
 		//Key     []KeyTransformer
 	}
 
-	SchemaMappings map[string]*SchemaMapping
+	StateMappings map[string]*StateMapping
+
+	Namer func(entity interface{}) string
+
+	Event struct {
+		schema interface{}
+		name   string
+	}
+
+	Events map[string]*Event
 )
 
 func mapKey(entry interface{}) string {
 	return reflect.TypeOf(entry).String()
 }
 
-func (smm SchemaMappings) Add(schema interface{}, namespace []string, primaryKeyer state.KeyTransformer) SchemaMappings {
-	smm[mapKey(schema)] = &SchemaMapping{
+func (smm StateMappings) Add(schema interface{}, namespace []string, primaryKeyer state.KeyTransformer) StateMappings {
+	smm[mapKey(schema)] = &StateMapping{
 		schema:       schema,
 		namespace:    namespace,
 		primaryKeyer: primaryKeyer,
@@ -50,7 +68,7 @@ func (smm SchemaMappings) Add(schema interface{}, namespace []string, primaryKey
 	return smm
 }
 
-func (smm SchemaMappings) Get(entry interface{}) (Mapping, error) {
+func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 	m, ok := smm[mapKey(entry)]
 	if !ok {
 		return nil, fmt.Errorf(`%s: %s`, ErrEntryTypeNotDefined, mapKey(entry))
@@ -58,12 +76,12 @@ func (smm SchemaMappings) Get(entry interface{}) (Mapping, error) {
 	return m, nil
 }
 
-func (smm SchemaMappings) Exists(entry interface{}) bool {
+func (smm StateMappings) Exists(entry interface{}) bool {
 	_, err := smm.Get(entry)
 	return err == nil
 }
 
-func (smm SchemaMappings) Map(entry interface{}) (mapped state.KeyValue, err error) {
+func (smm StateMappings) Map(entry interface{}) (mapped state.KeyValue, err error) {
 	mapping, err := smm.Get(entry)
 	if err != nil {
 		return nil, errors.Wrap(err, `mapping`)
@@ -71,23 +89,31 @@ func (smm SchemaMappings) Map(entry interface{}) (mapped state.KeyValue, err err
 
 	switch entry.(type) {
 	case proto.Message:
-		return NewProtoMapper(entry, mapping)
+		return NewProtoStateMapper(entry, mapping)
 	default:
 		return nil, ErrEntryTypeNotSupported
 	}
 }
 
-func (sm *SchemaMapping) Namespace() []string {
+func (sm *StateMapping) Namespace() []string {
 	return sm.namespace
 }
-func (sm *SchemaMapping) Schema() interface{} {
+func (sm *StateMapping) Schema() interface{} {
 	return sm.schema
 }
 
-func (sm *SchemaMapping) PrimaryKey(entity interface{}) ([]string, error) {
-	key, err := sm.primaryKeyer(entity)
+func (s *StateMapping) PrimaryKey(entity interface{}) ([]string, error) {
+	key, err := s.primaryKeyer(entity)
 	if err != nil {
 		return nil, err
 	}
-	return append(sm.namespace, key...), nil
+	return append(s.namespace, key...), nil
+}
+
+func (ee Events) Add(name string, schema interface{}) Events {
+	ee[name] = &Event{
+		schema: schema,
+		name:   name,
+	}
+	return ee
 }

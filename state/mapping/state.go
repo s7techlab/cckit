@@ -9,11 +9,11 @@ import (
 type (
 	StateImpl struct {
 		state    state.State
-		mappings Mappings
+		mappings StateMappings
 	}
 )
 
-func NewState(stub shim.ChaincodeStubInterface, mappings Mappings) *StateImpl {
+func NewState(stub shim.ChaincodeStubInterface, mappings StateMappings) *StateImpl {
 	return &StateImpl{
 		state:    state.New(stub),
 		mappings: mappings,
