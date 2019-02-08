@@ -23,7 +23,7 @@ var (
 			})
 
 	// EventMappings
-	EventMappings = mapping.Events{}.
+	EventMappings = mapping.EventMappings{}.
 			Add(`issue`, &schema.IssueCommercialPaper{}) // same message as issue payload
 
 )

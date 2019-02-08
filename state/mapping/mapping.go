@@ -47,12 +47,12 @@ type (
 
 	Namer func(entity interface{}) string
 
-	Event struct {
+	EventMapping struct {
 		schema interface{}
 		name   string
 	}
 
-	Events map[string]*Event
+	EventMappings map[string]*EventMapping
 )
 
 func mapKey(entry interface{}) string {
@@ -110,10 +110,10 @@ func (s *StateMapping) PrimaryKey(entity interface{}) ([]string, error) {
 	return append(s.namespace, key...), nil
 }
 
-func (ee Events) Add(name string, schema interface{}) Events {
-	ee[name] = &Event{
+func (emm EventMappings) Add(name string, schema interface{}) EventMappings {
+	emm[name] = &EventMapping{
 		schema: schema,
 		name:   name,
 	}
-	return ee
+	return emm
 }
