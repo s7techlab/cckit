@@ -3,8 +3,6 @@ package testdata
 import (
 	"time"
 
-	"github.com/golang/protobuf/proto"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/s7techlab/cckit/examples/cpaper/schema"
 )
@@ -34,11 +32,3 @@ var (
 		MaturityDate: maturityDate3,
 	}}
 )
-
-func MustMarshalled(pb proto.Message) []byte {
-	bb, err := proto.Marshal(pb)
-	if err != nil {
-		panic(err)
-	}
-	return bb
-}
