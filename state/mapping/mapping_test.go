@@ -1,10 +1,9 @@
 package mapping_test
 
 import (
-	"context"
 	"testing"
 
-	"github.com/pkg/errors"
+	"github.com/hyperledger/fabric/protos/peer"
 
 	"github.com/golang/protobuf/ptypes"
 
@@ -50,26 +49,21 @@ var _ = Describe(`Mapping`, func() {
 	})
 
 	Describe(`Protobuf based schema`, func() {
-		It("Allow to add data to chaincode state", func() {
+		It("Allow to add data to chaincode state", func(done Done) {
 
-			cPaperEvents := cPaperCC.EventSubscription()
-			ctx, _ := context.WithTimeout(context.Background(), 1)
-
+			events := cPaperCC.EventSubscription()
 			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, &testdata.CPapers[0]))
 
-			select {
-			case event := <-cPaperEvents:
-				Expect(event.EventName).To(Equal(cpaper.EventIssueCommercialPaper))
-
-				cPaperIssueProto, _ := proto.Marshal(&testdata.CPapers[0])
-				Expect(event.Payload).To(Equal(cPaperIssueProto))
-			case <-ctx.Done():
-				Expect(errors.New(`event is not fired`)).NotTo(HaveOccurred())
-			}
+			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: cpaper.EventIssueCommercialPaper,
+				Payload:   testdata.MustMarshalled(&testdata.CPapers[0]),
+			}))
 
 			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, &testdata.CPapers[1]))
 			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, &testdata.CPapers[2]))
-		})
+
+			close(done)
+		}, 0.2)
 
 		It("Disallow to insert entries with same keys", func() {
 			expectcc.ResponseError(cPaperCC.Invoke(`issue`, &testdata.CPapers[0]))
