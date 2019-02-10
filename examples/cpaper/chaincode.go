@@ -12,11 +12,17 @@ import (
 	"github.com/s7techlab/cckit/state/mapping"
 )
 
+const (
+	NamespaceCpaper = `cpaper`
+
+	EventIssueCommercialPaper = `issue`
+)
+
 var (
 	// State mappings
 	StateMappings = mapping.StateMappings{}.
 			Add(&schema.CommercialPaper{},
-			[]string{`cpaper`},
+			[]string{NamespaceCpaper},
 			func(e interface{}) ([]string, error) {
 				cp := e.(*schema.CommercialPaper)
 				// primary key consists of namespace, issuer and paper
@@ -25,7 +31,7 @@ var (
 
 	// EventMappings
 	EventMappings = mapping.EventMappings{}.
-			Add(`issue`, &schema.IssueCommercialPaper{}) // same message as issue payload
+			Add(&schema.IssueCommercialPaper{}, EventIssueCommercialPaper) // same message as issue payload
 
 )
 
@@ -77,7 +83,12 @@ func cpaperIssue(c router.Context) (interface{}, error) {
 			FaceValue:    issue.FaceValue,
 			State:        schema.CommercialPaper_ISSUED, // initial state
 		}
+		err error
 	)
+
+	if err = c.Event().Set(issue); err != nil {
+		return nil, err
+	}
 
 	return cpaper, c.State().Insert(cpaper)
 }

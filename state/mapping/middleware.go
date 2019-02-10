@@ -16,7 +16,7 @@ func MapStates(stateMappings StateMappings) router.MiddlewareFunc {
 func MapEvents(eventMappings EventMappings) router.MiddlewareFunc {
 	return func(next router.HandlerFunc, pos ...int) router.HandlerFunc {
 		return func(c router.Context) (interface{}, error) {
-			// not really mapped yet
+			c.UseEvent(NewEvent(c.Stub(), eventMappings))
 			return next(c)
 		}
 	}

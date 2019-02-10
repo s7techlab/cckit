@@ -69,6 +69,7 @@ type (
 		SetEvent(string, interface{}) error
 
 		Event() state.Event
+		UseEvent(state.Event) state.Event
 	}
 
 	context struct {
@@ -119,6 +120,11 @@ func (c *context) Event() state.Event {
 	if c.event == nil {
 		c.event = state.NewEvent(c.stub)
 	}
+	return c.event
+}
+
+func (c *context) UseEvent(e state.Event) state.Event {
+	c.event = e
 	return c.event
 }
 

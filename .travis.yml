@@ -11,7 +11,7 @@ install:
   - dep ensure -vendor-only -v
 
 script:
-  - go test -race -v  ./...
+  - go test -v  ./...
   - $GOPATH/bin/goveralls -service=travis-ci
 
 go:

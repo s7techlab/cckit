@@ -28,6 +28,7 @@ type (
 		Key() ([]string, error)
 	}
 
+	// KeyValue interface combines Keyer as ToByter methods - state entry representation
 	KeyValue interface {
 		Keyer
 		convert.ToByter
@@ -59,7 +60,8 @@ func NewState(stub shim.ChaincodeStubInterface) *StateImpl {
 		stub:                stub,
 		KeyTransformer:      ConvertKey,
 		StateGetTransformer: ConvertFromBytes,
-		StatePutTransformer: ConvertToBytes}
+		StatePutTransformer: ConvertToBytes,
+	}
 }
 
 func (s *StateImpl) Key(key interface{}) (string, error) {
@@ -208,7 +210,7 @@ func (s *StateImpl) ArgKeyValue(arg interface{}, values []interface{}) (key inte
 			return key, arg, err
 
 		default:
-			return nil, nil, ErrKeyNotSupportKeyerInterface
+			return nil, nil, ErrStateEntryNotSupportKeyerInterface
 		}
 
 	case 1:
