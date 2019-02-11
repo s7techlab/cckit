@@ -7,7 +7,7 @@ import (
 func MapStates(stateMappings StateMappings) router.MiddlewareFunc {
 	return func(next router.HandlerFunc, pos ...int) router.HandlerFunc {
 		return func(c router.Context) (interface{}, error) {
-			c.UseState(NewState(c.Stub(), stateMappings))
+			c.UseState(WrapState(c.State(), stateMappings))
 			return next(c)
 		}
 	}

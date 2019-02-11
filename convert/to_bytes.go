@@ -42,6 +42,8 @@ func ToBytes(value interface{}) ([]byte, error) {
 		return []byte(fmt.Sprint(value.(uint))), nil
 	case int:
 		return []byte(fmt.Sprint(value.(int))), nil
+	case int32:
+		return []byte(fmt.Sprint(value.(int32))), nil
 	case []byte:
 		return value.([]byte), nil
 

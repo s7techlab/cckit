@@ -44,9 +44,13 @@ type State interface {
 	Put(entry interface{}, value ...interface{}) (err error)
 	Insert(entry interface{}, value ...interface{}) (err error)
 	List(namespace interface{}, target ...interface{}) (result []interface{}, err error)
-	Delete(entry interface{}) (err error)
-}
 
+	Delete(entry interface{}) (err error)
+
+	UseKeyTransformer(KeyTransformer) State
+	UseStateGetTransformer(FromBytesTransformer) State
+	UseStatePutTransformer(ToBytesTransformer) State
+}
 type StateImpl struct {
 	stub                shim.ChaincodeStubInterface
 	KeyTransformer      KeyTransformer
@@ -231,6 +235,7 @@ func (s *StateImpl) Put(entry interface{}, values ...interface{}) (err error) {
 	if err != nil {
 		return err
 	}
+
 	stringKey, err := s.Key(key)
 	if err != nil {
 		return err
@@ -265,6 +270,20 @@ func (s *StateImpl) Delete(key interface{}) (err error) {
 		return errors.Wrap(err, `deleting from state`)
 	}
 	return s.stub.DelState(stringKey)
+}
+
+func (s *StateImpl) UseKeyTransformer(kt KeyTransformer) State {
+	s.KeyTransformer = kt
+	return s
+}
+func (s *StateImpl) UseStateGetTransformer(fb FromBytesTransformer) State {
+	s.StateGetTransformer = fb
+	return s
+}
+
+func (s *StateImpl) UseStatePutTransformer(tb ToBytesTransformer) State {
+	s.StatePutTransformer = tb
+	return s
 }
 
 // KeyFromParts creates composite key by string slice

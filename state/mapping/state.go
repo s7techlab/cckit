@@ -1,7 +1,6 @@
 package mapping
 
 import (
-	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/state"
 )
@@ -13,9 +12,9 @@ type (
 	}
 )
 
-func NewState(stub shim.ChaincodeStubInterface, mappings StateMappings) *StateImpl {
+func WrapState(s state.State, mappings StateMappings) *StateImpl {
 	return &StateImpl{
-		state:    state.NewState(stub),
+		state:    s,
 		mappings: mappings,
 	}
 }
@@ -82,4 +81,16 @@ func (s *StateImpl) Delete(entry interface{}) (err error) {
 		return err
 	}
 	return s.state.Delete(entry)
+}
+
+func (s *StateImpl) UseKeyTransformer(kt state.KeyTransformer) state.State {
+	return s.state.UseKeyTransformer(kt)
+}
+
+func (s *StateImpl) UseStateGetTransformer(fb state.FromBytesTransformer) state.State {
+	return s.state.UseStateGetTransformer(fb)
+}
+
+func (s *StateImpl) UseStatePutTransformer(tb state.ToBytesTransformer) state.State {
+	return s.state.UseStatePutTransformer(tb)
 }

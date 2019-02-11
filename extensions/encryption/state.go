@@ -16,11 +16,12 @@ var (
 
 // State encrypting the data before putting to state and decrypting the data after getting from state
 func State(c router.Context, key []byte) (state.State, error) {
-	s := state.NewState(c.Stub())
+	//current state
+	s := c.State()
 
-	s.KeyTransformer = KeyPartsEncryptedWith(key)
-	s.StateGetTransformer = DecryptBytesWith(key)
-	s.StatePutTransformer = EncryptBytesWith(key)
+	s.UseKeyTransformer(KeyPartsEncryptedWith(key))
+	s.UseStateGetTransformer(DecryptBytesWith(key))
+	s.UseStatePutTransformer(EncryptBytesWith(key))
 
 	return s, nil
 }
@@ -67,7 +68,6 @@ func StateWithTransientKeyIfProvided(c router.Context) (state.State, error) {
 func KeyPartsEncryptedWith(encryptKey []byte) state.KeyTransformer {
 	return func(key interface{}) ([]string, error) {
 		keyParts, err := state.ConvertKey(key)
-
 		if err != nil {
 			return nil, err
 		}

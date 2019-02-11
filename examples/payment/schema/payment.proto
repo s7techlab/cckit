@@ -1,0 +1,8 @@
+syntax = "proto3";
+package schema;
+
+message Payment {
+    string type = 1;
+    string id = 2;
+    int32 amount = 3;
+}
