@@ -3,6 +3,7 @@ package mapping
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -43,6 +44,14 @@ type (
 		//Key     []KeyTransformer
 	}
 
+	StateMappingOptions struct {
+		namespace    []string
+		primaryKeyer state.KeyTransformer
+	}
+
+	StateMappingOpt func(*StateMapping)
+	EventMappingOpt func(*EventMapping)
+
 	StateMappings map[string]*StateMapping
 
 	Namer func(entity interface{}) string
@@ -59,13 +68,37 @@ func mapKey(entry interface{}) string {
 	return reflect.TypeOf(entry).String()
 }
 
-func (smm StateMappings) Add(schema interface{}, namespace []string, primaryKeyer state.KeyTransformer) StateMappings {
-	smm[mapKey(schema)] = &StateMapping{
-		schema:       schema,
-		namespace:    namespace,
-		primaryKeyer: primaryKeyer,
+func (smm StateMappings) Add(schema interface{}, opts ...StateMappingOpt) StateMappings {
+	sm := &StateMapping{
+		schema: schema,
 	}
+
+	for _, opt := range opts {
+		opt(sm)
+	}
+
+	applyStateMappingDefaults(sm)
+	smm[mapKey(schema)] = sm
 	return smm
+}
+
+func StatePKeyer(pkeyer state.KeyTransformer) StateMappingOpt {
+	return func(sm *StateMapping) {
+		sm.primaryKeyer = pkeyer
+	}
+}
+func StateNamespace(namespace []string) StateMappingOpt {
+	return func(sm *StateMapping) {
+		sm.namespace = namespace
+	}
+}
+
+func applyStateMappingDefaults(sm *StateMapping) {
+	// default namespace based on type name
+	if len(sm.namespace) == 0 {
+		t := reflect.TypeOf(sm.schema).String()
+		sm.namespace = []string{t[strings.Index(t, `.`)+1:]}
+	}
 }
 
 func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
@@ -110,12 +143,26 @@ func (s *StateMapping) PrimaryKey(entity interface{}) ([]string, error) {
 	return append(s.namespace, key...), nil
 }
 
-func (emm EventMappings) Add(schema interface{}, name string) EventMappings {
-	emm[mapKey(schema)] = &EventMapping{
+func (emm EventMappings) Add(schema interface{}, opts ...EventMappingOpt) EventMappings {
+	em := &EventMapping{
 		schema: schema,
-		name:   name,
 	}
+
+	for _, opt := range opts {
+		opt(em)
+	}
+
+	applyEventMappingDefaults(em)
+	emm[mapKey(schema)] = em
 	return emm
+}
+
+func applyEventMappingDefaults(em *EventMapping) {
+	// default namespace based on type names
+	if len(em.name) == 0 {
+		t := reflect.TypeOf(em.schema).String()
+		em.name = t[strings.Index(t, `.`)+1:]
+	}
 }
 
 func (emm EventMappings) Get(entry interface{}) (EventMapper, error) {

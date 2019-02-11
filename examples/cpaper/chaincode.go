@@ -9,29 +9,22 @@ import (
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
-	"github.com/s7techlab/cckit/state/mapping"
-)
-
-const (
-	NamespaceCpaper = `cpaper`
-
-	EventIssueCommercialPaper = `issue`
+	m "github.com/s7techlab/cckit/state/mapping"
 )
 
 var (
 	// State mappings
-	StateMappings = mapping.StateMappings{}.
-			Add(&schema.CommercialPaper{},
-			[]string{NamespaceCpaper},
-			func(e interface{}) ([]string, error) {
+	StateMappings = m.StateMappings{}.
+			Add(&schema.CommercialPaper{}, //key namespace will be []string{ CommercialPaper }
+			m.StatePKeyer(func(e interface{}) ([]string, error) {
 				cp := e.(*schema.CommercialPaper)
 				// primary key consists of namespace, issuer and paper
 				return []string{cp.Issuer, cp.PaperNumber}, nil
-			})
+			}))
 
 	// EventMappings
-	EventMappings = mapping.EventMappings{}.
-			Add(&schema.IssueCommercialPaper{}, EventIssueCommercialPaper) // same message as issue payload
+	EventMappings = m.EventMappings{}.
+			Add(&schema.IssueCommercialPaper{}) // event name will be `IssueCommercialPaper`,  payload - same as issue payload
 
 )
 
@@ -40,10 +33,10 @@ func NewCC() *router.Chaincode {
 	r := router.New(`commercial_paper`)
 
 	// Mappings for chaincode state
-	r.Use(mapping.MapStates(StateMappings))
+	r.Use(m.MapStates(StateMappings))
 
 	// Mappings for chaincode events
-	r.Use(mapping.MapEvents(EventMappings))
+	r.Use(m.MapEvents(EventMappings))
 
 	// store in chaincode state information about chaincode first instantiator
 	r.Init(owner.InvokeSetFromCreator)

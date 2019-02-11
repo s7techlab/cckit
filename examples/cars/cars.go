@@ -2,16 +2,11 @@
 package cars
 
 import (
-	"errors"
 	"time"
 
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
-)
-
-var (
-	ErrCarAlreadyExists = errors.New(`car already exists`)
 )
 
 const CarEntity = `CAR`
@@ -63,7 +58,7 @@ func invokeInit(c router.Context) (interface{}, error) {
 func queryCar(c router.Context) (interface{}, error) {
 	// get state entry by composite key using CarKeyPrefix and car.Id
 	//  and unmarshal from []byte to Car struct
-	return c.State().Get(&Car{Id: c.ArgString(`id`)})
+	return c.State().Get(&Car{Id: c.ParamString(`id`)})
 }
 
 // cars car list chaincode method handler
@@ -76,7 +71,7 @@ func queryCars(c router.Context) (interface{}, error) {
 // carRegister car register chaincode method handler
 func invokeCarRegister(c router.Context) (interface{}, error) {
 	// arg name defined in router method definition
-	p := c.Arg(`car`).(CarPayload)
+	p := c.Param(`car`).(CarPayload)
 
 	t, _ := c.Time() // tx time
 	car := &Car{     // data for chaincode state
@@ -87,7 +82,9 @@ func invokeCarRegister(c router.Context) (interface{}, error) {
 	}
 
 	// trigger event
-	c.SetEvent(CarRegisteredEvent, car)
+	if err := c.Event().Set(CarRegisteredEvent, car); err != nil {
+		return nil, err
+	}
 
 	return car, // peer.Response payload will be json serialized car data
 		//put json serialized data to state

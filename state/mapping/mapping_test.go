@@ -55,7 +55,7 @@ var _ = Describe(`Mapping`, func() {
 			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, &testdata.CPapers[0]))
 
 			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cpaper.EventIssueCommercialPaper,
+				EventName: `IssueCommercialPaper`,
 				Payload:   testcc.MustProtoMarshal(&testdata.CPapers[0]),
 			}))
 
