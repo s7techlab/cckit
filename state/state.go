@@ -53,15 +53,17 @@ type State interface {
 }
 type StateImpl struct {
 	stub                shim.ChaincodeStubInterface
+	logger              *shim.ChaincodeLogger
 	KeyTransformer      KeyTransformer
 	StateGetTransformer FromBytesTransformer
 	StatePutTransformer ToBytesTransformer
 }
 
 // NewState creates wrapper on shim.ChaincodeStubInterface for working with state
-func NewState(stub shim.ChaincodeStubInterface) *StateImpl {
+func NewState(stub shim.ChaincodeStubInterface, logger *shim.ChaincodeLogger) *StateImpl {
 	return &StateImpl{
 		stub:                stub,
+		logger:              logger,
 		KeyTransformer:      ConvertKey,
 		StateGetTransformer: ConvertFromBytes,
 		StatePutTransformer: ConvertToBytes,
@@ -163,6 +165,7 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 		return nil, errors.Wrap(err, `prepare list key parts`)
 	}
 
+	s.logger.Debugf(`state LIST with composite key  %s`, keyParts)
 	iter, err := s.stub.GetStateByPartialCompositeKey(keyParts[0], keyParts[1:])
 	if err != nil {
 		return nil, errors.Wrap(err, `create list iterator`)
@@ -240,6 +243,8 @@ func (s *StateImpl) Put(entry interface{}, values ...interface{}) (err error) {
 	if err != nil {
 		return err
 	}
+
+	s.logger.Debugf(`state PUT with key %s`, stringKey)
 	return s.stub.PutState(stringKey, bb)
 }
 

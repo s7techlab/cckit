@@ -106,7 +106,7 @@ func (c *context) Path() string {
 
 func (c *context) State() state.State {
 	if c.state == nil {
-		c.state = state.NewState(c.stub)
+		c.state = state.NewState(c.stub, c.logger)
 	}
 	return c.state
 }
