@@ -34,7 +34,7 @@ func (p Parameter) ValueFromContext(c router.Context) (arg interface{}, err erro
 	//}
 	argPos := p.ArgPos
 	if argPos == -1 {
-		lastPos, ok := c.Arg(LastPosKey).(int)
+		lastPos, ok := c.Param(LastPosKey).(int)
 		if !ok {
 			argPos = 0
 		} else {

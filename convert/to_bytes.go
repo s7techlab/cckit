@@ -32,10 +32,8 @@ func ToBytes(value interface{}) ([]byte, error) {
 	// first priority if value implements ToByter interface
 	case ToByter:
 		return value.(ToByter).ToBytes()
-
 	case proto.Message:
-		return proto.Marshal(value.(proto.Message))
-
+		return proto.Marshal(proto.Clone(value.(proto.Message)))
 	case string:
 		return []byte(value.(string)), nil
 	case uint:
