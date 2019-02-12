@@ -103,7 +103,7 @@ func (s *StateImpl) Key(key interface{}) (string, error) {
 		return ``, errors.Wrap(err, `key normalizing`)
 	}
 
-	s.logger.Debugf(`state KEY %s`, normKey)
+	s.logger.Debugf(`state KEY: %s`, normKey)
 	return s.KeyFromParts(normKey)
 }
 
@@ -200,8 +200,14 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 	if err != nil {
 		return nil, errors.Wrap(err, `prepare list key parts`)
 	}
+	s.logger.Debugf(`state LIST namespace: %s`, key)
 
-	s.logger.Debugf(`state LIST with composite key  %s`, key)
+	key, err = s.StateKeyTransformer(key)
+	if err != nil {
+		return nil, err
+	}
+	s.logger.Debugf(`state LIST with composite key: %s`, key)
+
 	iter, err := s.stub.GetStateByPartialCompositeKey(key[0], key[1:])
 	if err != nil {
 		return nil, errors.Wrap(err, `create list iterator`)
@@ -270,7 +276,7 @@ func (s *StateImpl) Put(entry interface{}, values ...interface{}) (err error) {
 		return err
 	}
 
-	s.logger.Debugf(`state PUT with string key %s`, stringKey)
+	s.logger.Debugf(`state PUT with string key: %s`, stringKey)
 	return s.stub.PutState(stringKey, bb)
 }
 
@@ -297,7 +303,7 @@ func (s *StateImpl) Delete(key interface{}) (err error) {
 		return errors.Wrap(err, `deleting from state`)
 	}
 
-	s.logger.Debugf(`state DELETE with string key %s`, strKey)
+	s.logger.Debugf(`state DELETE with string key: %s`, strKey)
 	return s.stub.DelState(strKey)
 }
 

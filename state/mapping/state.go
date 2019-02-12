@@ -71,7 +71,7 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 		}
 
 		namespace = m.Namespace()
-		s.Logger().Debugf(`state mapped LIST with namespace %s`, namespace)
+		s.Logger().Debugf(`state mapped LIST with namespace: %s`, namespace)
 
 		target = []interface{}{m.Schema()}
 	}
