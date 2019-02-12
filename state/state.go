@@ -47,6 +47,8 @@ type State interface {
 
 	Delete(entry interface{}) (err error)
 
+	Logger() *shim.ChaincodeLogger
+
 	UseKeyTransformer(KeyTransformer) State
 	UseStateGetTransformer(FromBytesTransformer) State
 	UseStatePutTransformer(ToBytesTransformer) State
@@ -68,6 +70,10 @@ func NewState(stub shim.ChaincodeStubInterface, logger *shim.ChaincodeLogger) *S
 		StateGetTransformer: ConvertFromBytes,
 		StatePutTransformer: ConvertToBytes,
 	}
+}
+
+func (s *StateImpl) Logger() *shim.ChaincodeLogger {
+	return s.logger
 }
 
 func (s *StateImpl) Key(key interface{}) (string, error) {
@@ -239,12 +245,13 @@ func (s *StateImpl) Put(entry interface{}, values ...interface{}) (err error) {
 		return err
 	}
 
+	s.logger.Debugf(`state PUT with key %s`, key)
 	stringKey, err := s.Key(key)
 	if err != nil {
 		return err
 	}
 
-	s.logger.Debugf(`state PUT with key %s`, stringKey)
+	s.logger.Debugf(`state PUT with string key %s`, stringKey)
 	return s.stub.PutState(stringKey, bb)
 }
 
@@ -274,6 +281,8 @@ func (s *StateImpl) Delete(key interface{}) (err error) {
 	if err != nil {
 		return errors.Wrap(err, `deleting from state`)
 	}
+
+	s.logger.Debugf(`state DELETE with string key %s`, stringKey)
 	return s.stub.DelState(stringKey)
 }
 

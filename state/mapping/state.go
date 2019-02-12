@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/state"
 )
@@ -70,6 +71,8 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 		}
 
 		namespace = m.Namespace()
+		s.Logger().Debugf(`state mapped LIST with namespace %s`, namespace)
+
 		target = []interface{}{m.Schema()}
 	}
 
@@ -81,6 +84,10 @@ func (s *StateImpl) Delete(entry interface{}) (err error) {
 		return err
 	}
 	return s.state.Delete(entry)
+}
+
+func (s *StateImpl) Logger() *shim.ChaincodeLogger {
+	return s.state.Logger()
 }
 
 func (s *StateImpl) UseKeyTransformer(kt state.KeyTransformer) state.State {
