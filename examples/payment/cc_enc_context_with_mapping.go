@@ -40,7 +40,7 @@ func invokePaymentCreateWithDefaultContext(c router.Context) (interface{}, error
 	)
 	// State use encryption setting from context
 	// and state key set manually
-	return returnVal, c.State().Put(&schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)})
+	return returnVal, c.State().Insert(&schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)})
 }
 
 func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {

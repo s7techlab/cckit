@@ -31,13 +31,12 @@ type (
 func NewEvent(stub shim.ChaincodeStubInterface) *EventImpl {
 	return &EventImpl{
 		stub:                stub,
-		NameTransformer:     ConvertName,
+		NameTransformer:     NameAsIs,
 		EventSetTransformer: ConvertToBytes,
 	}
 }
 
 func (e *EventImpl) Set(entry interface{}, values ...interface{}) error {
-
 	name, value, err := e.ArgNameValue(entry, values)
 
 	nameStr, err := e.NameTransformer(name)
@@ -53,34 +52,31 @@ func (e *EventImpl) Set(entry interface{}, values ...interface{}) error {
 	return e.stub.SetEvent(nameStr, bb)
 }
 
-func (s *EventImpl) ArgNameValue(arg interface{}, values []interface{}) (name interface{}, value interface{}, err error) {
-	switch len(values) {
-
-	// key is struct implementing keyer interface or has mapping instructions
-	case 0:
-
-		switch arg.(type) {
-
-		case NameValue:
-			name, err = arg.(NameValue).Name()
-			if err != nil {
-				return nil, nil, err
-			}
-
-			value, err := arg.(NameValue).ToBytes()
-			if err != nil {
-				return nil, nil, err
-			}
-
-			return name, value, nil
-
-		default:
-			return nil, nil, ErrEventEntryNotSupportNamerInterface
-		}
-
-	case 1:
-		return arg, values[0], nil
-	default:
-		return nil, nil, ErrAllowOnlyOneValue
+func (e *EventImpl) ArgNameValue(arg interface{}, values []interface{}) (name string, value interface{}, err error) {
+	// name must be
+	name, err = NormalizeEventName(arg)
+	if err != nil {
+		return
 	}
+
+	switch len(values) {
+	// arg is name and  value
+	case 0:
+		return name, arg, nil
+	case 1:
+		return name, values[0], nil
+	default:
+		return ``, nil, ErrAllowOnlyOneValue
+	}
+}
+
+func NormalizeEventName(name interface{}) (string, error) {
+	switch name.(type) {
+	case Namer:
+		return name.(Namer).Name()
+	case string:
+		return name.(string), nil
+	}
+
+	return ``, ErrUnableToCreateEventName
 }

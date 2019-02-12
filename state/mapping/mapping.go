@@ -34,10 +34,12 @@ type (
 		Name(instance interface{}) (string, error)
 	}
 
+	InstanceKeyer func(instance interface{}) (key []string, err error)
+
 	StateMapping struct {
 		schema       interface{}
 		namespace    []string
-		primaryKeyer state.KeyTransformer
+		primaryKeyer InstanceKeyer
 		//PKStringer KeyerFunc
 		//PKToString KeyerFunc
 		//niqKey []KeyTransformer
@@ -82,7 +84,7 @@ func (smm StateMappings) Add(schema interface{}, opts ...StateMappingOpt) StateM
 	return smm
 }
 
-func StatePKeyer(pkeyer state.KeyTransformer) StateMappingOpt {
+func StatePKeyer(pkeyer InstanceKeyer) StateMappingOpt {
 	return func(sm *StateMapping) {
 		sm.primaryKeyer = pkeyer
 	}

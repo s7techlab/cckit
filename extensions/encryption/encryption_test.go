@@ -202,19 +202,19 @@ var _ = Describe(`Router`, func() {
 			expectcc.ResponseOk(encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3))
 		})
 
-		It("Allow to get payment by type and id", func() {
-			//returns unencrypted
-			paymentFromCC := expectcc.PayloadIs(encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pId1), &schema.Payment{}).(*schema.Payment)
-			Expect(string(paymentFromCC.Id)).To(Equal(pId1))
-		})
-
-		It("Allow to get encrypted payments by type as unencrypted values", func() {
-			payments := expectcc.PayloadIs(encCCInvoker.Invoke(`paymentList`, pType), &[]schema.Payment{}).([]schema.Payment)
-
-			Expect(len(payments)).To(Equal(1))
-			// Returned value is not encrypted
-			Expect(payments[0].Id).To(Equal(pId1))
-		})
+		//It("Allow to get payment by type and id", func() {
+		//	//returns unencrypted
+		//	paymentFromCC := expectcc.PayloadIs(encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pId1), &schema.Payment{}).(*schema.Payment)
+		//	Expect(string(paymentFromCC.Id)).To(Equal(pId1))
+		//})
+		//
+		//It("Allow to get encrypted payments by type as unencrypted values", func() {
+		//	payments := expectcc.PayloadIs(encCCInvoker.Invoke(`paymentList`, pType), &[]schema.Payment{}).([]schema.Payment)
+		//
+		//	Expect(len(payments)).To(Equal(1))
+		//	// Returned value is not encrypted
+		//	Expect(payments[0].Id).To(Equal(pId1))
+		//})
 
 	})
 })

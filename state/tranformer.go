@@ -10,10 +10,10 @@ type (
 	ToBytesTransformer func(v interface{}, config ...interface{}) ([]byte, error)
 
 	// KeyTransformer is used before putState operation for convert key
-	KeyTransformer func(key interface{}) ([]string, error)
+	KeyTransformer func(key []string) ([]string, error)
 
 	// NameTransformer is used before setEvent operation for convert name
-	NameTransformer func(name interface{}) (string, error)
+	NameTransformer func(name string) (string, error)
 )
 
 func ConvertFromBytes(bb []byte, config ...interface{}) (interface{}, error) {
@@ -29,26 +29,10 @@ func ConvertToBytes(v interface{}, config ...interface{}) ([]byte, error) {
 }
 
 //  ConvertKey returns string parts of composite key
-func ConvertKey(key interface{}) ([]string, error) {
-	switch key.(type) {
-	case Keyer:
-		return key.(Keyer).Key()
-	case string:
-		return []string{key.(string)}, nil
-	case []string:
-		return key.([]string), nil
-	}
-
-	return nil, ErrUnableToCreateStateKey
+func KeyAsIs(key []string) ([]string, error) {
+	return key, nil
 }
 
-func ConvertName(name interface{}) (string, error) {
-	switch name.(type) {
-	case Namer:
-		return name.(Namer).Name()
-	case string:
-		return name.(string), nil
-	}
-
-	return ``, ErrUnableToCreateEventName
+func NameAsIs(name string) (string, error) {
+	return name, nil
 }

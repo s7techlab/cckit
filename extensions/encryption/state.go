@@ -66,11 +66,7 @@ func StateWithTransientKeyIfProvided(c router.Context) (state.State, error) {
 
 // KeyPartsEncryptedWith encrypts key parts
 func KeyPartsEncryptedWith(encryptKey []byte) state.KeyTransformer {
-	return func(key interface{}) ([]string, error) {
-		keyParts, err := state.ConvertKey(key)
-		if err != nil {
-			return nil, err
-		}
+	return func(keyParts []string) ([]string, error) {
 		for i, p := range keyParts {
 			encP, err := Encrypt(encryptKey, p)
 			if err != nil {
