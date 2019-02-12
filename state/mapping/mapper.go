@@ -2,6 +2,7 @@ package mapping
 
 import (
 	"github.com/golang/protobuf/proto"
+	"github.com/s7techlab/cckit/state"
 )
 
 type (
@@ -20,7 +21,7 @@ func NewProtoStateMapper(instance interface{}, stateMapper StateMapper) (*ProtoS
 	return &ProtoStateMapper{instance, stateMapper}, nil
 }
 
-func (pm *ProtoStateMapper) Key() ([]string, error) {
+func (pm *ProtoStateMapper) Key() (state.Key, error) {
 	return pm.stateMapper.PrimaryKey(pm.instance)
 }
 

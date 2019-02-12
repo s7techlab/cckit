@@ -14,7 +14,7 @@ var (
 	// State mappings
 	StateMappings = m.StateMappings{}.
 			Add(&schema.CommercialPaper{}, //key namespace will be []string{ CommercialPaper }
-			m.StatePKeyer(func(e interface{}) ([]string, error) {
+			m.UseStatePKeyer(func(e interface{}) ([]string, error) {
 				cp := e.(*schema.CommercialPaper)
 				// primary key consists of namespace, issuer and paper
 				return []string{cp.Issuer, cp.PaperNumber}, nil

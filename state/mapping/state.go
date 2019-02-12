@@ -7,6 +7,11 @@ import (
 )
 
 type (
+	MappedState interface {
+		state.State
+		MappingNamespace(schema interface{}) (state.Key, error)
+	}
+
 	StateImpl struct {
 		state    state.State
 		mappings StateMappings
@@ -18,6 +23,15 @@ func WrapState(s state.State, mappings StateMappings) *StateImpl {
 		state:    s,
 		mappings: mappings,
 	}
+}
+
+func (s *StateImpl) MappingNamespace(schema interface{}) (state.Key, error) {
+	m, err := s.mappings.Get(schema)
+	if err != nil {
+		return nil, err
+	}
+
+	return m.Namespace(), nil
 }
 
 func (s *StateImpl) mapIfMappingExists(entry interface{}) (mapped interface{}, err error) {

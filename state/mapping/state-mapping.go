@@ -18,27 +18,17 @@ type (
 		Get(schema interface{}) (stateMapper StateMapper, err error)
 	}
 
-	EventMappers interface {
-		Exists(schema interface{}) (exists bool)
-		Map(schema interface{}) (keyValue state.KeyValue, err error)
-		Get(schema interface{}) (eventMapper EventMapper, err error)
-	}
-
 	StateMapper interface {
 		Schema() interface{}
-		Namespace() []string
+		Namespace() state.Key
 		PrimaryKey(instance interface{}) (key []string, err error)
-	}
-	EventMapper interface {
-		Schema() interface{}
-		Name(instance interface{}) (string, error)
 	}
 
 	InstanceKeyer func(instance interface{}) (key []string, err error)
 
 	StateMapping struct {
 		schema       interface{}
-		namespace    []string
+		namespace    state.Key
 		primaryKeyer InstanceKeyer
 		//PKStringer KeyerFunc
 		//PKToString KeyerFunc
@@ -46,24 +36,14 @@ type (
 		//Key     []KeyTransformer
 	}
 
+	StateMappings map[string]*StateMapping
+
 	StateMappingOptions struct {
 		namespace    []string
 		primaryKeyer state.KeyTransformer
 	}
 
 	StateMappingOpt func(*StateMapping)
-	EventMappingOpt func(*EventMapping)
-
-	StateMappings map[string]*StateMapping
-
-	Namer func(entity interface{}) string
-
-	EventMapping struct {
-		schema interface{}
-		name   string
-	}
-
-	EventMappings map[string]*EventMapping
 )
 
 func mapKey(entry interface{}) string {
@@ -82,17 +62,6 @@ func (smm StateMappings) Add(schema interface{}, opts ...StateMappingOpt) StateM
 	applyStateMappingDefaults(sm)
 	smm[mapKey(schema)] = sm
 	return smm
-}
-
-func StatePKeyer(pkeyer InstanceKeyer) StateMappingOpt {
-	return func(sm *StateMapping) {
-		sm.primaryKeyer = pkeyer
-	}
-}
-func StateNamespace(namespace []string) StateMappingOpt {
-	return func(sm *StateMapping) {
-		sm.namespace = namespace
-	}
 }
 
 func applyStateMappingDefaults(sm *StateMapping) {
@@ -130,7 +99,7 @@ func (smm StateMappings) Map(entry interface{}) (mapped state.KeyValue, err erro
 	}
 }
 
-func (sm *StateMapping) Namespace() []string {
+func (sm *StateMapping) Namespace() state.Key {
 	return sm.namespace
 }
 func (sm *StateMapping) Schema() interface{} {
@@ -145,59 +114,13 @@ func (s *StateMapping) PrimaryKey(entity interface{}) ([]string, error) {
 	return append(s.namespace, key...), nil
 }
 
-func (emm EventMappings) Add(schema interface{}, opts ...EventMappingOpt) EventMappings {
-	em := &EventMapping{
-		schema: schema,
-	}
-
-	for _, opt := range opts {
-		opt(em)
-	}
-
-	applyEventMappingDefaults(em)
-	emm[mapKey(schema)] = em
-	return emm
-}
-
-func applyEventMappingDefaults(em *EventMapping) {
-	// default namespace based on type names
-	if len(em.name) == 0 {
-		t := reflect.TypeOf(em.schema).String()
-		em.name = t[strings.Index(t, `.`)+1:]
+func UseStatePKeyer(pkeyer InstanceKeyer) StateMappingOpt {
+	return func(sm *StateMapping) {
+		sm.primaryKeyer = pkeyer
 	}
 }
-
-func (emm EventMappings) Get(entry interface{}) (EventMapper, error) {
-	m, ok := emm[mapKey(entry)]
-	if !ok {
-		return nil, fmt.Errorf(`%s: %s`, ErrEntryTypeNotDefined, mapKey(entry))
+func UseStateNamespace(namespace state.Key) StateMappingOpt {
+	return func(sm *StateMapping) {
+		sm.namespace = namespace
 	}
-	return m, nil
-}
-
-func (emm EventMappings) Exists(entry interface{}) bool {
-	_, err := emm.Get(entry)
-	return err == nil
-}
-
-func (emm EventMappings) Map(entry interface{}) (mapped state.NameValue, err error) {
-	mapping, err := emm.Get(entry)
-	if err != nil {
-		return nil, errors.Wrap(err, `mapping`)
-	}
-
-	switch entry.(type) {
-	case proto.Message:
-		return NewProtoEventMapper(entry, mapping)
-	default:
-		return nil, ErrEntryTypeNotSupported
-	}
-}
-
-func (em EventMapping) Schema() interface{} {
-	return em.schema
-}
-
-func (em EventMapping) Name(instance interface{}) (string, error) {
-	return em.name, nil
 }

@@ -1,6 +1,8 @@
 package state
 
 import (
+	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -20,11 +22,18 @@ type HistoryEntry struct {
 type HistoryEntryList []HistoryEntry
 
 type (
+	Key []string
+
 	//KeyerFunc func(string) ([]string, error)
-	KeyFunc func() ([]string, error)
+	KeyFunc func() (Key, error)
 
 	// Keyer interface for entity containing logic of its key creation
 	Keyer interface {
+		Key() (Key, error)
+	}
+
+	// StringsKeys interface for entity containing logic of its key creationn - backward compatibility
+	StringsKeyer interface {
 		Key() ([]string, error)
 	}
 
@@ -53,6 +62,11 @@ type State interface {
 	UseStateGetTransformer(FromBytesTransformer) State
 	UseStatePutTransformer(ToBytesTransformer) State
 }
+
+func (k Key) Add(part string) Key {
+	return append(k, part)
+}
+
 type StateImpl struct {
 	stub                shim.ChaincodeStubInterface
 	logger              *shim.ChaincodeLogger
@@ -76,23 +90,23 @@ func (s *StateImpl) Logger() *shim.ChaincodeLogger {
 	return s.logger
 }
 
-func (s *StateImpl) KeyFromParts(keyParts []string) (string, error) {
-	keyParts, err := s.StateKeyTransformer(keyParts)
+func (s *StateImpl) StringKey(key Key) (string, error) {
+	keyParts, err := s.StateKeyTransformer(key)
 	if err != nil {
 		return ``, err
 	}
 
-	return KeyFromParts(s.stub, keyParts)
+	return StringKey(s.stub, keyParts)
 }
 
-func KeyFromParts(stub shim.ChaincodeStubInterface, keyParts []string) (string, error) {
-	switch len(keyParts) {
+func StringKey(stub shim.ChaincodeStubInterface, key Key) (string, error) {
+	switch len(key) {
 	case 0:
 		return ``, ErrKeyPartsLength
 	case 1:
-		return keyParts[0], nil
+		return key[0], nil
 	default:
-		return stub.CreateCompositeKey(keyParts[0], keyParts[1:])
+		return stub.CreateCompositeKey(key[0], key[1:])
 	}
 }
 
@@ -104,7 +118,7 @@ func (s *StateImpl) Key(key interface{}) (string, error) {
 	}
 
 	s.logger.Debugf(`state KEY: %s`, normKey)
-	return s.KeyFromParts(normKey)
+	return s.StringKey(normKey)
 }
 
 // Get data by key from state, trying to convert to target interface
@@ -230,19 +244,23 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 	return entries, nil
 }
 
-func NormalizeStateKey(key interface{}) ([]string, error) {
+func NormalizeStateKey(key interface{}) (Key, error) {
 	switch key.(type) {
+	case Key:
+		return key.(Key), nil
 	case Keyer:
 		return key.(Keyer).Key()
+	case StringsKeyer:
+		return key.(StringsKeyer).Key()
 	case string:
-		return []string{key.(string)}, nil
+		return Key{key.(string)}, nil
 	case []string:
 		return key.([]string), nil
 	}
-	return nil, ErrUnableToCreateStateKey
+	return nil, fmt.Errorf(`%s: %s`, ErrUnableToCreateStateKey, reflect.TypeOf(key))
 }
 
-func (s *StateImpl) ArgKeyValue(arg interface{}, values []interface{}) (key []string, value interface{}, err error) {
+func (s *StateImpl) argKeyValue(arg interface{}, values []interface{}) (key Key, value interface{}, err error) {
 	// key must be
 	key, err = NormalizeStateKey(arg)
 	if err != nil {
@@ -262,7 +280,7 @@ func (s *StateImpl) ArgKeyValue(arg interface{}, values []interface{}) (key []st
 
 // Put data value in state with key, trying convert data to []byte
 func (s *StateImpl) Put(entry interface{}, values ...interface{}) (err error) {
-	key, value, err := s.ArgKeyValue(entry, values)
+	key, value, err := s.argKeyValue(entry, values)
 	if err != nil {
 		return err
 	}
@@ -289,7 +307,7 @@ func (s *StateImpl) Insert(entry interface{}, values ...interface{}) (err error)
 		return errors.Wrap(KeyError(strKey), ErrKeyAlreadyExists.Error())
 	}
 
-	key, value, err := s.ArgKeyValue(entry, values)
+	key, value, err := s.argKeyValue(entry, values)
 	if err != nil {
 		return err
 	}

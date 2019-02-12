@@ -44,11 +44,16 @@ func invokePaymentCreateWithDefaultContext(c router.Context) (interface{}, error
 }
 
 func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {
-	var (
-	//paymentType = c.ParamString(`type`)
-	)
+
+	paymentType := c.ParamString(`type`)
+	namespace, err := c.State().(m.MappedState).MappingNamespace(&schema.Payment{})
+
+	if err != nil {
+		return nil, err
+	}
+
 	// State use encryption setting from context
-	return c.State().List(&schema.Payment{})
+	return c.State().List(namespace.Add(paymentType), &schema.Payment{})
 }
 
 func queryPaymentWithDefaultContext(c router.Context) (interface{}, error) {
