@@ -47,7 +47,6 @@ func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {
 
 	paymentType := c.ParamString(`type`)
 	namespace, err := c.State().(m.MappedState).MappingNamespace(&schema.Payment{})
-
 	if err != nil {
 		return nil, err
 	}

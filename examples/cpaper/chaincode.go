@@ -7,6 +7,7 @@ import (
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
+	"github.com/s7techlab/cckit/state"
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
@@ -14,7 +15,7 @@ var (
 	// State mappings
 	StateMappings = m.StateMappings{}.
 			Add(&schema.CommercialPaper{}, //key namespace will be []string{ CommercialPaper }
-			m.UseStatePKeyer(func(e interface{}) ([]string, error) {
+			m.UseStatePKeyer(func(e interface{}) (state.Key, error) {
 				cp := e.(*schema.CommercialPaper)
 				// primary key consists of namespace, issuer and paper
 				return []string{cp.Issuer, cp.PaperNumber}, nil

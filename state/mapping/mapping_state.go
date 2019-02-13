@@ -10,6 +10,10 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
+var (
+	ErrFieldNotExists = errors.New(`field is not exists`)
+)
+
 type (
 	// StateMappers interface for mappers collection
 	StateMappers interface {
@@ -21,10 +25,10 @@ type (
 	StateMapper interface {
 		Schema() interface{}
 		Namespace() state.Key
-		PrimaryKey(instance interface{}) (key []string, err error)
+		PrimaryKey(instance interface{}) (key state.Key, err error)
 	}
 
-	InstanceKeyer func(instance interface{}) (key []string, err error)
+	InstanceKeyer func(instance interface{}) (key state.Key, err error)
 
 	StateMapping struct {
 		schema       interface{}
@@ -39,7 +43,7 @@ type (
 	StateMappings map[string]*StateMapping
 
 	StateMappingOptions struct {
-		namespace    []string
+		namespace    state.Key
 		primaryKeyer state.KeyTransformer
 	}
 
@@ -68,7 +72,7 @@ func applyStateMappingDefaults(sm *StateMapping) {
 	// default namespace based on type name
 	if len(sm.namespace) == 0 {
 		t := reflect.TypeOf(sm.schema).String()
-		sm.namespace = []string{t[strings.Index(t, `.`)+1:]}
+		sm.namespace = state.Key{t[strings.Index(t, `.`)+1:]}
 	}
 }
 
@@ -106,7 +110,7 @@ func (sm *StateMapping) Schema() interface{} {
 	return sm.schema
 }
 
-func (s *StateMapping) PrimaryKey(entity interface{}) ([]string, error) {
+func (s *StateMapping) PrimaryKey(entity interface{}) (state.Key, error) {
 	key, err := s.primaryKeyer(entity)
 	if err != nil {
 		return nil, err
@@ -119,8 +123,26 @@ func UseStatePKeyer(pkeyer InstanceKeyer) StateMappingOpt {
 		sm.primaryKeyer = pkeyer
 	}
 }
-func UseStateNamespace(namespace state.Key) StateMappingOpt {
+func StateNamespace(namespace state.Key) StateMappingOpt {
 	return func(sm *StateMapping) {
 		sm.namespace = namespace
+	}
+}
+
+func StatePKeyFromAttrs(attrs ...string) StateMappingOpt {
+	return func(sm *StateMapping) {
+		sm.primaryKeyer = func(instance interface{}) (state.Key, error) {
+			r := reflect.ValueOf(instance)
+			var k state.Key
+			for _, attr := range attrs {
+				f := reflect.Indirect(r).FieldByName(attr)
+
+				if !f.IsValid() {
+					return nil, fmt.Errorf(`%s: %s`, ErrFieldNotExists, attr)
+				}
+				k = append(k, f.String())
+			}
+			return k, nil
+		}
 	}
 }
