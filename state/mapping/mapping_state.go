@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	ErrFieldNotExists = errors.New(`field is not exists`)
+	ErrFieldNotExists         = errors.New(`field is not exists`)
+	ErrPrimaryKeyerNotDefined = errors.New(`primary keyer is not defined`)
 )
 
 type (
@@ -47,7 +48,7 @@ type (
 		primaryKeyer state.KeyTransformer
 	}
 
-	StateMappingOpt func(*StateMapping)
+	StateMappingOpt func(*StateMapping, StateMappings)
 )
 
 func mapKey(entry interface{}) string {
@@ -60,7 +61,7 @@ func (smm StateMappings) Add(schema interface{}, opts ...StateMappingOpt) StateM
 	}
 
 	for _, opt := range opts {
-		opt(sm)
+		opt(sm, smm)
 	}
 
 	applyStateMappingDefaults(sm)
@@ -71,9 +72,13 @@ func (smm StateMappings) Add(schema interface{}, opts ...StateMappingOpt) StateM
 func applyStateMappingDefaults(sm *StateMapping) {
 	// default namespace based on type name
 	if len(sm.namespace) == 0 {
-		t := reflect.TypeOf(sm.schema).String()
-		sm.namespace = state.Key{t[strings.Index(t, `.`)+1:]}
+		sm.namespace = schemaNamespace(sm.schema)
 	}
+}
+
+func schemaNamespace(schema interface{}) state.Key {
+	t := reflect.TypeOf(schema).String()
+	return state.Key{t[strings.Index(t, `.`)+1:]}
 }
 
 func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
@@ -110,39 +115,63 @@ func (sm *StateMapping) Schema() interface{} {
 	return sm.schema
 }
 
-func (s *StateMapping) PrimaryKey(entity interface{}) (state.Key, error) {
-	key, err := s.primaryKeyer(entity)
+func (sm *StateMapping) PrimaryKey(entity interface{}) (state.Key, error) {
+	if sm.primaryKeyer == nil {
+		return nil, fmt.Errorf(`%s: schema "%s", namespace : "%s"`, ErrPrimaryKeyerNotDefined, sm.schema, sm.namespace)
+	}
+	key, err := sm.primaryKeyer(entity)
 	if err != nil {
 		return nil, err
 	}
-	return append(s.namespace, key...), nil
+	return append(sm.namespace, key...), nil
 }
 
-func UseStatePKeyer(pkeyer InstanceKeyer) StateMappingOpt {
-	return func(sm *StateMapping) {
+func PKeyer(pkeyer InstanceKeyer) StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
 		sm.primaryKeyer = pkeyer
 	}
 }
 func StateNamespace(namespace state.Key) StateMappingOpt {
-	return func(sm *StateMapping) {
+	return func(sm *StateMapping, smm StateMappings) {
 		sm.namespace = namespace
 	}
 }
 
-func StatePKeyFromAttrs(attrs ...string) StateMappingOpt {
-	return func(sm *StateMapping) {
-		sm.primaryKeyer = func(instance interface{}) (state.Key, error) {
-			r := reflect.ValueOf(instance)
-			var k state.Key
-			for _, attr := range attrs {
-				f := reflect.Indirect(r).FieldByName(attr)
+func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 
-				if !f.IsValid() {
-					return nil, fmt.Errorf(`%s: %s`, ErrFieldNotExists, attr)
-				}
-				k = append(k, f.String())
+	var attrs []string
+	// fields from pkey schema
+	s := reflect.ValueOf(pkeySchema).Elem().Type()
+	for i := 0; i < s.NumField(); i++ {
+		attrs = append(attrs, s.Field(i).Name)
+	}
+
+	return func(sm *StateMapping, smm StateMappings) {
+		sm.primaryKeyer = attrsPKeyer(attrs)
+
+		//add mapping namespace for id schema same as schema
+		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrs...))
+	}
+}
+
+func PKeyAttr(attrs ...string) StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
+		sm.primaryKeyer = attrsPKeyer(attrs)
+	}
+}
+
+func attrsPKeyer(attrs []string) InstanceKeyer {
+	return func(instance interface{}) (state.Key, error) {
+		r := reflect.ValueOf(instance)
+		var k state.Key
+		for _, attr := range attrs {
+			f := reflect.Indirect(r).FieldByName(attr)
+
+			if !f.IsValid() {
+				return nil, fmt.Errorf(`%s: %s`, ErrFieldNotExists, attr)
 			}
-			return k, nil
+			k = append(k, f.String())
 		}
+		return k, nil
 	}
 }

@@ -80,13 +80,9 @@ func cpaperRedeem(c router.Context) (interface{}, error) {
 }
 
 func cpaperGet(c router.Context) (interface{}, error) {
-	return c.State().Get(&schema.CommercialPaper{
-		Issuer:      c.ParamString(`issuer`),
-		PaperNumber: c.ParamString(`paperNumber`)})
+	return c.State().Get(c.Param(p.Default).(*schema.CommercialPaperId))
 }
 
 func cpaperDelete(c router.Context) (interface{}, error) {
-	return nil, c.State().Delete(&schema.CommercialPaper{
-		Issuer:      c.ParamString(`issuer`),
-		PaperNumber: c.ParamString(`paperNumber`)})
+	return nil, c.State().Delete(c.Param(p.Default).(*schema.CommercialPaperId))
 }

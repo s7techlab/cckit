@@ -20,4 +20,8 @@ message CommercialPaper {
     State state = 7;
 }
 
-
+// CommercialPaperId identifier part
+message CommercialPaperId {
+    string issuer = 1;
+    string paper_number = 2;
+}

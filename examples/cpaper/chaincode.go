@@ -7,19 +7,13 @@ import (
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
-	"github.com/s7techlab/cckit/state"
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
 var (
 	// State mappings
 	StateMappings = m.StateMappings{}.
-			Add(&schema.CommercialPaper{}, //key namespace will be []string{ CommercialPaper }
-			m.UseStatePKeyer(func(e interface{}) (state.Key, error) {
-				cp := e.(*schema.CommercialPaper)
-				// primary key consists of namespace, issuer and paper
-				return []string{cp.Issuer, cp.PaperNumber}, nil
-			}))
+			Add(&schema.CommercialPaper{}, m.PKeySchema(&schema.CommercialPaperId{})) //key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
 
 	// EventMappings
 	EventMappings = m.EventMappings{}.
@@ -48,13 +42,13 @@ func NewCC() *router.Chaincode {
 		Query(`list`, cpaperList).
 
 		// Get method has 2 params - commercial paper primary key components
-		Query(`get`, cpaperGet, p.String(`issuer`), p.String(`paperNumber`)).
+		Query(`get`, cpaperGet, p.Proto(p.Default, &schema.CommercialPaperId{})).
 
 		// txn methods
 		Invoke(`issue`, cpaperIssue, p.Proto(p.Default, &schema.IssueCommercialPaper{})).
 		Invoke(`buy`, cpaperBuy, p.Proto(p.Default, &schema.BuyCommercialPaper{})).
 		Invoke(`redeem`, cpaperRedeem, p.Proto(p.Default, &schema.RedeemCommercialPaper{})).
-		Invoke(`delete`, cpaperDelete, p.String(`issuer`), p.String(`paperNumber`))
+		Invoke(`delete`, cpaperDelete, p.Proto(p.Default, &schema.CommercialPaperId{}))
 
 	return router.NewChaincode(r)
 }
@@ -83,7 +77,7 @@ func NewEncryptedCC() *router.Chaincode {
 		Query(`list`, cpaperList).
 
 		// Get method has 2 params - commercial paper primary key components
-		Query(`get`, cpaperGet, p.String(`issuer`), p.String(`paperNumber`)).
+		Query(`get`, cpaperGet, p.Proto(p.Default, &schema.CommercialPaperId{})).
 
 		// txn methods
 		Invoke(`issue`, cpaperIssue, p.Proto(p.Default, &schema.IssueCommercialPaper{})).

@@ -8,5 +8,9 @@ import (
 var (
 	// State mappings
 	StateMappings = m.StateMappings{}.
-		Add(&schema.Payment{}, m.StatePKeyFromAttrs(`Type`, `Id`)) //key will be <'Payment',Type, Id>
+
+		// same same
+		//Add(&schema.Payment{}, m.PKeySchema(&schema.PaymentId{}))
+
+		Add(&schema.Payment{}, m.PKeyAttr(`Type`, `Id`)) //key will be <'Payment',Type, Id>
 )

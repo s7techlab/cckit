@@ -77,16 +77,16 @@ var _ = Describe(`Mapping`, func() {
 		})
 
 		It("Allow to get entry raw protobuf", func() {
-			issue := testdata.CPapers[0]
-			cpaperProtoFromCC := cPaperCC.Query(`get`, issue.Issuer, issue.PaperNumber).Payload
+			cp := testdata.CPapers[0]
+			cpaperProtoFromCC := cPaperCC.Query(`get`, &schema.CommercialPaperId{Issuer: cp.Issuer, PaperNumber: cp.PaperNumber}).Payload
 
 			stateCpaper := &schema.CommercialPaper{
-				Issuer:       issue.Issuer,
-				PaperNumber:  issue.PaperNumber,
-				Owner:        issue.Issuer,
-				IssueDate:    issue.IssueDate,
-				MaturityDate: issue.MaturityDate,
-				FaceValue:    issue.FaceValue,
+				Issuer:       cp.Issuer,
+				PaperNumber:  cp.PaperNumber,
+				Owner:        cp.Issuer,
+				IssueDate:    cp.IssueDate,
+				MaturityDate: cp.MaturityDate,
+				FaceValue:    cp.FaceValue,
 				State:        schema.CommercialPaper_ISSUED, // initial state
 			}
 			cPaperProto, _ := proto.Marshal(stateCpaper)
@@ -94,17 +94,19 @@ var _ = Describe(`Mapping`, func() {
 		})
 
 		It("Allow update data in chaincode state", func() {
-			cpaper := testdata.CPapers[0]
+			cp := testdata.CPapers[0]
 			expectcc.ResponseOk(cPaperCC.Invoke(`buy`, &schema.BuyCommercialPaper{
-				Issuer:       cpaper.Issuer,
-				PaperNumber:  cpaper.PaperNumber,
-				CurrentOwner: cpaper.Issuer,
+				Issuer:       cp.Issuer,
+				PaperNumber:  cp.PaperNumber,
+				CurrentOwner: cp.Issuer,
 				NewOwner:     `some-new-owner`,
-				Price:        cpaper.FaceValue - 10,
+				Price:        cp.FaceValue - 10,
 				PurchaseDate: ptypes.TimestampNow(),
 			}))
 
-			cpaperFromCC := expectcc.PayloadIs(cPaperCC.Query(`get`, cpaper.Issuer, cpaper.PaperNumber), &schema.CommercialPaper{}).(*schema.CommercialPaper)
+			cpaperFromCC := expectcc.PayloadIs(
+				cPaperCC.Query(`get`, &schema.CommercialPaperId{Issuer: cp.Issuer, PaperNumber: cp.PaperNumber}),
+				&schema.CommercialPaper{}).(*schema.CommercialPaper)
 
 			// state is updated
 			Expect(cpaperFromCC.State).To(Equal(schema.CommercialPaper_TRADING))
@@ -112,11 +114,15 @@ var _ = Describe(`Mapping`, func() {
 		})
 
 		It("Allow to delete entry", func() {
-			expectcc.ResponseOk(cPaperCC.Invoke(`delete`, testdata.CPapers[0].Issuer, testdata.CPapers[0].PaperNumber))
+
+			cp := testdata.CPapers[0]
+			toDelete := &schema.CommercialPaperId{Issuer: cp.Issuer, PaperNumber: cp.PaperNumber}
+
+			expectcc.ResponseOk(cPaperCC.Invoke(`delete`, toDelete))
 			cpapers := expectcc.PayloadIs(cPaperCC.Invoke(`list`), &[]schema.CommercialPaper{}).([]schema.CommercialPaper)
 
 			Expect(len(cpapers)).To(Equal(2))
-			expectcc.ResponseError(cPaperCC.Invoke(`get`, testdata.CPapers[0].Issuer, testdata.CPapers[0].PaperNumber), state.ErrKeyNotFound)
+			expectcc.ResponseError(cPaperCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
 		})
 	})
 
