@@ -9,7 +9,10 @@ import (
 type (
 	MappedState interface {
 		state.State
+		// MappingNamespace returns mapping for schema
 		MappingNamespace(schema interface{}) (state.Key, error)
+		// ListWith extends schema namespace with key
+		ListWith(schema interface{}, key state.Key) (result []interface{}, err error)
 	}
 
 	StateImpl struct {
@@ -91,6 +94,14 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 	}
 
 	return s.state.List(namespace, target...)
+}
+
+func (s *StateImpl) ListWith(schema interface{}, key state.Key) (result []interface{}, err error) {
+	namespace, err := s.MappingNamespace(schema)
+	if err != nil {
+		return nil, err
+	}
+	return s.state.List(namespace.Append(key), schema)
 }
 
 func (s *StateImpl) Delete(entry interface{}) (err error) {

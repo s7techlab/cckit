@@ -6,6 +6,7 @@ import (
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
+	"github.com/s7techlab/cckit/state"
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
@@ -45,14 +46,16 @@ func invokePaymentCreateWithDefaultContext(c router.Context) (interface{}, error
 
 func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {
 
-	paymentType := c.ParamString(`type`)
-	namespace, err := c.State().(m.MappedState).MappingNamespace(&schema.Payment{})
-	if err != nil {
-		return nil, err
-	}
+	//paymentType := c.ParamString(`type`)
+	//namespace, err := c.State().(m.MappedState).MappingNamespace(&schema.Payment{})
+	//if err != nil {
+	//	return nil, err
+	//}
+	//return c.State().List(namespace.Append(state.Key { paymentType }), &schema.Payment{})
 
-	// State use encryption setting from context
-	return c.State().List(namespace.Add(paymentType), &schema.Payment{})
+	// some sugar to previous
+
+	return c.State().(m.MappedState).ListWith(&schema.Payment{}, state.Key{c.ParamString(`type`)})
 }
 
 func queryPaymentWithDefaultContext(c router.Context) (interface{}, error) {

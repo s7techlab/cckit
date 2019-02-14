@@ -63,8 +63,8 @@ type State interface {
 	UseStatePutTransformer(ToBytesTransformer) State
 }
 
-func (k Key) Add(part string) Key {
-	return append(k, part)
+func (k Key) Append(key Key) Key {
+	return append(k, key...)
 }
 
 type StateImpl struct {
