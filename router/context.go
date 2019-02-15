@@ -8,6 +8,9 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
+// Default parameter name
+const DefaultParam = `default`
+
 type (
 	// Context of chaincode invoke
 	Context interface {
@@ -46,7 +49,7 @@ type (
 		Params() InterfaceMap
 
 		// Param returns parameter value.
-		Param(name string) interface{}
+		Param(name ...string) interface{}
 
 		// ParamString returns parameter value as string.
 		ParamString(name string) string
@@ -176,8 +179,12 @@ func (c *context) Arg(name string) interface{} {
 	return c.Param(name)
 }
 
-func (c *context) Param(name string) interface{} {
-	return c.params[name]
+func (c *context) Param(name ...string) interface{} {
+	var pname = DefaultParam
+	if len(name) > 0 {
+		pname = name[0]
+	}
+	return c.params[pname]
 }
 
 // Deprecated: Use ParamString instead.

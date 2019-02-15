@@ -6,7 +6,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/examples/cpaper/schema"
 	"github.com/s7techlab/cckit/router"
-	p "github.com/s7techlab/cckit/router/param"
 )
 
 func cpaperList(c router.Context) (interface{}, error) {
@@ -15,7 +14,7 @@ func cpaperList(c router.Context) (interface{}, error) {
 
 func cpaperIssue(c router.Context) (interface{}, error) {
 	var (
-		issue  = c.Param(p.Default).(*schema.IssueCommercialPaper)
+		issue  = c.Param().(*schema.IssueCommercialPaper)
 		cpaper = &schema.CommercialPaper{
 			Issuer:       issue.Issuer,
 			PaperNumber:  issue.PaperNumber,
@@ -41,7 +40,7 @@ func cpaperBuy(c router.Context) (interface{}, error) {
 		cpaper *schema.CommercialPaper
 
 		// but tx payload
-		buy = c.Param(p.Default).(*schema.BuyCommercialPaper)
+		buy = c.Param().(*schema.BuyCommercialPaper)
 
 		// current commercial paper state
 		cp, err = c.State().Get(&schema.CommercialPaper{
@@ -80,9 +79,9 @@ func cpaperRedeem(c router.Context) (interface{}, error) {
 }
 
 func cpaperGet(c router.Context) (interface{}, error) {
-	return c.State().Get(c.Param(p.Default).(*schema.CommercialPaperId))
+	return c.State().Get(c.Param().(*schema.CommercialPaperId))
 }
 
 func cpaperDelete(c router.Context) (interface{}, error) {
-	return nil, c.State().Delete(c.Param(p.Default).(*schema.CommercialPaperId))
+	return nil, c.State().Delete(c.Param().(*schema.CommercialPaperId))
 }

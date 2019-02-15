@@ -6,7 +6,7 @@ import (
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
-	p "github.com/s7techlab/cckit/router/param"
+	"github.com/s7techlab/cckit/router/param/defparam"
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
@@ -42,13 +42,13 @@ func NewCC() *router.Chaincode {
 		Query(`list`, cpaperList).
 
 		// Get method has 2 params - commercial paper primary key components
-		Query(`get`, cpaperGet, p.Proto(p.Default, &schema.CommercialPaperId{})).
+		Query(`get`, cpaperGet, defparam.Proto(&schema.CommercialPaperId{})).
 
 		// txn methods
-		Invoke(`issue`, cpaperIssue, p.Proto(p.Default, &schema.IssueCommercialPaper{})).
-		Invoke(`buy`, cpaperBuy, p.Proto(p.Default, &schema.BuyCommercialPaper{})).
-		Invoke(`redeem`, cpaperRedeem, p.Proto(p.Default, &schema.RedeemCommercialPaper{})).
-		Invoke(`delete`, cpaperDelete, p.Proto(p.Default, &schema.CommercialPaperId{}))
+		Invoke(`issue`, cpaperIssue, defparam.Proto(&schema.IssueCommercialPaper{})).
+		Invoke(`buy`, cpaperBuy, defparam.Proto(&schema.BuyCommercialPaper{})).
+		Invoke(`redeem`, cpaperRedeem, defparam.Proto(&schema.RedeemCommercialPaper{})).
+		Invoke(`delete`, cpaperDelete, defparam.Proto(&schema.CommercialPaperId{}))
 
 	return router.NewChaincode(r)
 }
@@ -77,13 +77,13 @@ func NewEncryptedCC() *router.Chaincode {
 		Query(`list`, cpaperList).
 
 		// Get method has 2 params - commercial paper primary key components
-		Query(`get`, cpaperGet, p.Proto(p.Default, &schema.CommercialPaperId{})).
+		Query(`get`, cpaperGet, defparam.Proto(&schema.CommercialPaperId{})).
 
 		// txn methods
-		Invoke(`issue`, cpaperIssue, p.Proto(p.Default, &schema.IssueCommercialPaper{})).
-		Invoke(`buy`, cpaperBuy, p.Proto(p.Default, &schema.BuyCommercialPaper{})).
-		Invoke(`redeem`, cpaperRedeem, p.Proto(p.Default, &schema.RedeemCommercialPaper{})).
-		Invoke(`delete`, cpaperDelete, p.String(`issuer`), p.String(`paperNumber`))
+		Invoke(`issue`, cpaperIssue, defparam.Proto(&schema.IssueCommercialPaper{})).
+		Invoke(`buy`, cpaperBuy, defparam.Proto(&schema.BuyCommercialPaper{})).
+		Invoke(`redeem`, cpaperRedeem, defparam.Proto(&schema.RedeemCommercialPaper{})).
+		Invoke(`delete`, cpaperDelete, defparam.Proto(&schema.CommercialPaperId{}))
 
 	return router.NewChaincode(r)
 }
