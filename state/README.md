@@ -41,42 +41,42 @@ With `ChaincodeStubInterface` methods these operations looks like
 
 ```go
     ct := ContractType{}
-
-	err := json.Unmarshal([]byte(args[0]), &req)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	key, err := stub.CreateCompositeKey(prefixContractType, []string{req.UUID})
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	valAsBytes, err := stub.GetState(key)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	if len(valAsBytes) == 0 {
-		return shim.Error("Contract Type could not be found")
-	}
-	err = json.Unmarshal(valAsBytes, &ct)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	ct.Active = req.Active
-
-	valAsBytes, err = json.Marshal(ct)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	err = stub.PutState(key, valAsBytes)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	return shim.Success(nil)
+    
+    err := json.Unmarshal([]byte(args[0]), &req)
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+    
+    key, err := stub.CreateCompositeKey(prefixContractType, []string{req.UUID})
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+    
+    valAsBytes, err := stub.GetState(key)
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+    if len(valAsBytes) == 0 {
+        return shim.Error("Contract Type could not be found")
+    }
+    err = json.Unmarshal(valAsBytes, &ct)
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+    
+    ct.Active = req.Active
+    
+    valAsBytes, err = json.Marshal(ct)
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+    
+    err = stub.PutState(key, valAsBytes)
+    if err != nil {
+        return shim.Error(err.Error())
+    }
+    
+    return shim.Success(nil)
 ```
 
 In the example above smart contract code explicitly performs many auxiliary actions:
@@ -89,22 +89,49 @@ In the example above smart contract code explicitly performs many auxiliary acti
 
 ### State methods wrapper
 
-CCKit contains wrapper on `ChaincodeStubInterface` methods to working with chaincode state.
+CCKit contains [wrapper](state.go) on `ChaincodeStubInterface` methods to working with chaincode state.
 
 ```go
 type State interface {
+	// Get returns value from state, converted to target type
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	Get(entry interface{}, target ...interface{}) (result interface{}, err error)
+	
+    // Get returns value from state, converted to int
+    // entry can be Key (string or []string) or type implementing Keyer interface
 	GetInt(entry interface{}, defaultValue int) (result int, err error)
+	
+	// GetHistory returns slice of history records for entry, with values converted to target type
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	GetHistory(entry interface{}, target interface{}) (result HistoryEntryList, err error)
+	
+	// Exists returns entry existence in state 
+    // entry can be Key (string or []string) or type implementing Keyer interface
 	Exists(entry interface{}) (exists bool, err error)
+	
+    // Put returns result of putting entry to state
+    // entry can be Key (string or []string) or type implementing Keyer interface
+    // if entry is implements Keyer interface and it's struct or type implementing
+    // ToByter interface value can be omitted
 	Put(entry interface{}, value ...interface{}) (err error)
+	
+	// Insert returns result of inserting entry to state
+	// If same key exists in state error wil be returned
+    // entry can be Key (string or []string) or type implementing Keyer interface
+    // if entry is implements Keyer interface and it's struct or type implementing
+    // ToByter interface value can be omitted
 	Insert(entry interface{}, value ...interface{}) (err error)
+	
+	// List returns slice of target type
+	// namespace can be part of key (string or []string) or entity with defined mapping
 	List(namespace interface{}, target ...interface{}) (result []interface{}, err error)
+	
+	// Delete returns result of deleting entry from state
+    // entry can be Key (string or []string) or type implementing Keyer interface
 	Delete(entry interface{}) (err error)
 	
 	...
 }
-
 ``` 
 
 ### Converting from/to bytes while operating with chaincode state

@@ -46,13 +46,41 @@ type (
 
 // State interface for chain code CRUD operations
 type State interface {
+	// Get returns value from state, converted to target type
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	Get(entry interface{}, target ...interface{}) (result interface{}, err error)
+
+	// Get returns value from state, converted to int
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	GetInt(entry interface{}, defaultValue int) (result int, err error)
+
+	// GetHistory returns slice of history records for entry, with values converted to target type
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	GetHistory(entry interface{}, target interface{}) (result HistoryEntryList, err error)
+
+	// Exists returns entry existence in state
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	Exists(entry interface{}) (exists bool, err error)
+
+	// Put returns result of putting entry to state
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	// if entry is implements Keyer interface and it's struct or type implementing
+	// ToByter interface value can be omitted
 	Put(entry interface{}, value ...interface{}) (err error)
+
+	// Insert returns result of inserting entry to state
+	// If same key exists in state error wil be returned
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	// if entry is implements Keyer interface and it's struct or type implementing
+	// ToByter interface value can be omitted
 	Insert(entry interface{}, value ...interface{}) (err error)
+
+	// List returns slice of target type
+	// namespace can be part of key (string or []string) or entity with defined mapping
 	List(namespace interface{}, target ...interface{}) (result []interface{}, err error)
+
+	// Delete returns result of deleting entry from state
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	Delete(entry interface{}) (err error)
 
 	Logger() *shim.ChaincodeLogger
