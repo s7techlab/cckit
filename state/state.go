@@ -53,7 +53,6 @@ type State interface {
 	Put(entry interface{}, value ...interface{}) (err error)
 	Insert(entry interface{}, value ...interface{}) (err error)
 	List(namespace interface{}, target ...interface{}) (result []interface{}, err error)
-
 	Delete(entry interface{}) (err error)
 
 	Logger() *shim.ChaincodeLogger

@@ -8,40 +8,41 @@
 
 ## Overview
 
+A [smart contract](https://hyperledger-fabric.readthedocs.io/en/latest/glossary.html#smart-contract) is code – 
+invoked by a client application external to the blockchain network – that manages access and modifications to a set of
+key-value pairs in the World State.  In Hyperledger Fabric, smart contracts are referred to as chaincode.
+
 ### CCKit features 
 
 * Centralized chaincode invocation handling [via router](router)
+* [Chaincode state modelling](state) via automatic conversion from/to golang structures
 * [MockStub testing](testing), allowing to immediately receive test results
 * Middleware support
 * Chaincode method access control
-* Automatic data structures conversion
 
 
 ### Problems with existing chaincode examples
 
-There are several chaincode examples available : 
+There are several chaincode examples available: 
 
+* [Commercial paper](https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/smartcontract.html) from official [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io)
 * [Blockchain insurance application](https://github.com/IBM/build-blockchain-insurance-app) ( testing tutorial:  how to [write tests for "insurance" chaincode](examples/insurance) )
 * [Marbles from hyperledger](https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go)
 * [Marbles from IBM-Blockchain](https://github.com/IBM-Blockchain/marbles/blob/master/chaincode/src/marbles/marbles.go)
-* [Car-lease-demo from IBM-Blockchain](https://github.com/IBM-Blockchain-Archive/car-lease-demo/blob/master/Chaincode/src/vehicle_code/vehicles.go)
 
 
-main problems: 
+Main problems: 
 
-* Absence of chaincode methods routing
+* Chaincode methods routing appeared only in HLF 1.4 and only in Node.Js chaincode
 * Lots of code duplication (json marshalling / unmarshalling, validation, access control etc)
 * Uncompleted testing tools (MockStub)
 
 
 
-### Publications
-
-* [CCKit: Routing and middleware for Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/routing-and-middleware-for-developing-hyperledger-fabric-chaincode-written-in-go-90913951bf08)
-* [ERC20 token as Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339)
-* [Developing and testing Hyperledger Fabric smart contracts](https://habr.com/post/426705/) [RUS]
-
 ## Example based on CCKit
+
+Basic task
+
 
 ### Chaincode "Cars" 
 
@@ -116,7 +117,7 @@ func invokeInit(c router.Context) (interface{}, error) {
 func queryCar(c router.Context) (interface{}, error) {
 	// get state entry by composite key using CarKeyPrefix and car.Id
 	//  and unmarshal from []byte to Car struct
-	return c.State().Get(&Car{Id: c.ArgString(`id`)})
+	return c.State().Get(&Car{Id: c.ParamString(`id`)})
 }
 
 // cars car list chaincode method handler
@@ -129,7 +130,7 @@ func queryCars(c router.Context) (interface{}, error) {
 // carRegister car register chaincode method handler
 func invokeCarRegister(c router.Context) (interface{}, error) {
 	// arg name defined in router method definition
-	p := c.Arg(`car`).(CarPayload)
+	p := c.Param(`car`).(CarPayload)
 
 	t, _ := c.Time() // tx time
 	car := &Car{     // data for chaincode state
@@ -140,7 +141,7 @@ func invokeCarRegister(c router.Context) (interface{}, error) {
 	}
 
 	// trigger event
-	c.SetEvent(CarRegisteredEvent, car)
+	c.Event().Set(CarRegisteredEvent, car)
 
 	return car, // peer.Response payload will be json serialized car data
 		//put json serialized data to state
@@ -251,5 +252,10 @@ var _ = Describe(`Cars`, func() {
 		})
 	})
 })
-
 ```
+
+### Publications
+
+* [CCKit: Routing and middleware for Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/routing-and-middleware-for-developing-hyperledger-fabric-chaincode-written-in-go-90913951bf08)
+* [ERC20 token as Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339)
+* [Developing and testing Hyperledger Fabric smart contracts](https://habr.com/post/426705/) [RUS]

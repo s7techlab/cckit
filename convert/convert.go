@@ -19,13 +19,13 @@ const TypeInt = 1
 const TypeString = ``
 const TypeBool = true
 
-// FromByter interface supports FromBytes func for converting to structure
 type (
+	// FromByter interface supports FromBytes func for converting from slice of bytes to target type
 	FromByter interface {
 		FromBytes([]byte) (interface{}, error)
 	}
 
-	// ToByter interface supports ToBytes func, marshalling to []byte (json.Marshall)
+	// ToByter interface supports ToBytes func for converting to slice of bytes from source type
 	ToByter interface {
 		ToBytes() ([]byte, error)
 	}

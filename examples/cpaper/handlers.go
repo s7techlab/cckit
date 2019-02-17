@@ -9,12 +9,17 @@ import (
 )
 
 func cpaperList(c router.Context) (interface{}, error) {
+	// commercial paper key is composite key <`CommercialPaper`>, {Issuer}, {PaperNumber} >
+	// where `CommercialPaper` - namespace of this type
+	// list method retrieves entries from chaincode state
+	// using GetStateByPartialCompositeKey method, then unmarshal received from state bytes via proto.Ummarshal method
+	// and creates slice of *schema.CommercialPaper
 	return c.State().List(&schema.CommercialPaper{})
 }
 
 func cpaperIssue(c router.Context) (interface{}, error) {
 	var (
-		issue  = c.Param().(*schema.IssueCommercialPaper)
+		issue  = c.Param().(*schema.IssueCommercialPaper) //default parameter
 		cpaper = &schema.CommercialPaper{
 			Issuer:       issue.Issuer,
 			PaperNumber:  issue.PaperNumber,
