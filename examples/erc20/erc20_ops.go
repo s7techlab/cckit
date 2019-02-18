@@ -49,13 +49,13 @@ func queryBalanceOf(c r.Context) (interface{}, error) {
 
 func invokeTransfer(c r.Context) (interface{}, error) {
 	// transfer target
-	toMspId := c.ArgString(`toMspId`)
-	toCertId := c.ArgString(`toCertId`)
+	toMspId := c.ParamString(`toMspId`)
+	toCertId := c.ParamString(`toCertId`)
 
 	//transfer amount
-	amount := c.ArgInt(`amount`)
+	amount := c.ParamInt(`amount`)
 
-	// get informartion about tx creator
+	// get information about tx creator
 	invoker, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return nil, err
@@ -84,11 +84,16 @@ func invokeTransfer(c r.Context) (interface{}, error) {
 	}
 
 	// Update payer and recipient balance
-	setBalance(c, invoker.GetMSPID(), invoker.GetID(), invokerBalance-amount)
-	setBalance(c, toMspId, toCertId, recipientBalance+amount)
+	if err = setBalance(c, invoker.GetMSPID(), invoker.GetID(), invokerBalance-amount); err != nil {
+		return nil, err
+	}
+
+	if err = setBalance(c, toMspId, toCertId, recipientBalance+amount); err != nil {
+		return nil, err
+	}
 
 	// Trigger event with name "transfer" and payload - serialized to json Transfer structure
-	c.SetEvent(`transfer`, &Transfer{
+	if err = c.SetEvent(`transfer`, &Transfer{
 		From: identity.Id{
 			MSP:  invoker.GetMSPID(),
 			Cert: invoker.GetID(),
@@ -98,29 +103,33 @@ func invokeTransfer(c r.Context) (interface{}, error) {
 			Cert: toCertId,
 		},
 		Amount: amount,
-	})
+	}); err != nil {
+		return nil, err
+	}
 
 	// return current invoker balance
 	return invokerBalance - amount, nil
 }
 
 func queryAllowance(c r.Context) (interface{}, error) {
-	return getAllowance(c, c.ArgString(`ownerMspId`), c.ArgString(`ownerCertId`), c.ArgString(`spenderMspId`), c.ArgString(`spenderCertId`))
+	return getAllowance(c, c.ParamString(`ownerMspId`), c.ParamString(`ownerCertId`), c.ParamString(`spenderMspId`), c.ParamString(`spenderCertId`))
 }
 
 func invokeApprove(c r.Context) (interface{}, error) {
-	spenderMspId := c.ArgString(`spenderMspId`)
-	spenderCertId := c.ArgString(`spenderCertId`)
-	amount := c.ArgInt(`amount`)
+	spenderMspId := c.ParamString(`spenderMspId`)
+	spenderCertId := c.ParamString(`spenderCertId`)
+	amount := c.ParamInt(`amount`)
 
 	invoker, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return nil, err
 	}
 
-	setAllowance(c, invoker.GetMSPID(), invoker.GetID(), spenderMspId, spenderCertId, amount)
+	if err = setAllowance(c, invoker.GetMSPID(), invoker.GetID(), spenderMspId, spenderCertId, amount); err != nil {
+		return nil, err
+	}
 
-	c.SetEvent(`approve`, &Approve{
+	if err = c.SetEvent(`approve`, &Approve{
 		From: identity.Id{
 			MSP:  invoker.GetMSPID(),
 			Cert: invoker.GetID(),
@@ -130,18 +139,20 @@ func invokeApprove(c r.Context) (interface{}, error) {
 			Cert: spenderCertId,
 		},
 		Amount: amount,
-	})
+	}); err != nil {
+		return nil, err
+	}
 
 	return true, nil
 }
 
 func invokeTransferFrom(c r.Context) (interface{}, error) {
 
-	fromMspId := c.ArgString(`fromMspId`)
-	fromCertId := c.ArgString(`fromCertId`)
-	toMspId := c.ArgString(`toMspId`)
-	toCertId := c.ArgString(`toCertId`)
-	amount := c.ArgInt(`amount`)
+	fromMspId := c.ParamString(`fromMspId`)
+	fromCertId := c.ParamString(`fromCertId`)
+	toMspId := c.ParamString(`toMspId`)
+	toCertId := c.ParamString(`toCertId`)
+	amount := c.ParamInt(`amount`)
 
 	invoker, err := identity.FromStub(c.Stub())
 	if err != nil {
@@ -172,11 +183,17 @@ func invokeTransferFrom(c r.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	setBalance(c, fromMspId, fromCertId, balance-amount)
-	setBalance(c, toMspId, toCertId, recipientBalance+amount)
-	setAllowance(c, fromMspId, fromCertId, invoker.GetID(), invoker.GetID(), allowance-amount)
+	if err = setBalance(c, fromMspId, fromCertId, balance-amount); err != nil {
+		return nil, err
+	}
+	if err = setBalance(c, toMspId, toCertId, recipientBalance+amount); err != nil {
+		return nil, err
+	}
+	if err = setAllowance(c, fromMspId, fromCertId, invoker.GetID(), invoker.GetID(), allowance-amount); err != nil {
+		return nil, err
+	}
 
-	c.SetEvent(`transfer`, &Transfer{
+	if err = c.SetEvent(`transfer`, &Transfer{
 		From: identity.Id{
 			MSP:  fromMspId,
 			Cert: fromCertId,
@@ -186,7 +203,9 @@ func invokeTransferFrom(c r.Context) (interface{}, error) {
 			Cert: toCertId,
 		},
 		Amount: amount,
-	})
+	}); err != nil {
+		return nil, err
+	}
 
 	// return current invoker balance
 	return balance - amount, nil
@@ -199,8 +218,8 @@ func balanceKey(ownerMspId, ownerCertId string) []string {
 	return []string{BalancePrefix, ownerMspId, ownerCertId}
 }
 
-func allowanceKey(ownerMspId, owneCertId, spenderMspId, spenderCertId string) []string {
-	return []string{AllowancePrefix, ownerMspId, owneCertId, spenderMspId, spenderCertId}
+func allowanceKey(ownerMspId, ownerCertId, spenderMspId, spenderCertId string) []string {
+	return []string{AllowancePrefix, ownerMspId, ownerCertId, spenderMspId, spenderCertId}
 }
 
 func getBalance(c r.Context, mspId, certId string) (int, error) {
@@ -212,10 +231,10 @@ func setBalance(c r.Context, mspId, certId string, balance int) error {
 	return c.State().Put(balanceKey(mspId, certId), balance)
 }
 
-func getAllowance(c r.Context, ownerMspId, owneCertId, spenderMspId, spenderCertId string) (int, error) {
-	return c.State().GetInt(allowanceKey(ownerMspId, owneCertId, spenderMspId, spenderCertId), 0)
+func getAllowance(c r.Context, ownerMspId, ownerCertId, spenderMspId, spenderCertId string) (int, error) {
+	return c.State().GetInt(allowanceKey(ownerMspId, ownerCertId, spenderMspId, spenderCertId), 0)
 }
 
-func setAllowance(c r.Context, ownerMspId, owneCertId, spenderMspId, spenderCertId string, amount int) error {
-	return c.State().Put(allowanceKey(ownerMspId, owneCertId, spenderMspId, spenderCertId), amount)
+func setAllowance(c r.Context, ownerMspId, ownerCertId, spenderMspId, spenderCertId string, amount int) error {
+	return c.State().Put(allowanceKey(ownerMspId, ownerCertId, spenderMspId, spenderCertId), amount)
 }

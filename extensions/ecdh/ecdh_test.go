@@ -4,11 +4,16 @@ import (
 	"crypto/ecdsa"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"crypto/elliptic"
+
+	"fmt"
+
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/ecdh"
 	"github.com/s7techlab/cckit/identity"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 func TestDebug(t *testing.T) {
@@ -18,29 +23,74 @@ func TestDebug(t *testing.T) {
 
 var _ = Describe(`ECDH`, func() {
 
-	It("Allow to create shared key", func() {
+	//load actor certificates
+	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+		`authority`: `s7techlab.pem`,
+		`someone1`:  `victor-nosov.pem`,
+		`someone2`:  `some-person.pem`,
+	}, examplecert.Content)
+	if err != nil {
+		panic(err)
+	}
 
-		//load actor certificates
-		actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
-			`authority`: `s7techlab.pem`,
-			`someone`:   `victor-nosov.pem`}, examplecert.Content)
-		if err != nil {
-			panic(err)
-		}
+	pubKey1 := actors[`authority`].GetPublicKey().(*ecdsa.PublicKey)
+	pubKey2 := actors[`someone1`].GetPublicKey().(*ecdsa.PublicKey)
+	pubKey3 := actors[`someone2`].GetPublicKey().(*ecdsa.PublicKey)
 
-		pubKey1 := actors[`authority`].GetPublicKey().(*ecdsa.PublicKey)
-		pubKey2 := actors[`someone`].GetPublicKey().(*ecdsa.PublicKey)
+	privKey1Bytes, _ := examplecert.Content(`s7techlab.key.pem`)
+	privKey1, err := ecdh.PrivateKey(privKey1Bytes)
 
-		privKey1Bytes, _ := examplecert.Content(`s7techlab.key.pem`)
-		privKey1, err := ecdh.PrivateKey(privKey1Bytes)
+	if err != nil {
+		panic(err)
+	}
 
-		privKey2Bytes, _ := examplecert.Content(`victor-nosov.key.pem`)
+	privKey2Bytes, _ := examplecert.Content(`victor-nosov.key.pem`)
+	privKey2, err := ecdh.PrivateKey(privKey2Bytes)
+	if err != nil {
+		panic(err)
+	}
 
-		privKey2, _ := ecdh.PrivateKey(privKey2Bytes)
+	privKey3Bytes, _ := examplecert.Content(`some-person.key.pem`)
+	privKey3, err := ecdh.PrivateKey(privKey3Bytes)
+	if err != nil {
+		panic(err)
+	}
 
-		secret1, err := ecdh.GenerateSharedSecret(privKey1, pubKey2)
-		secret2, err := ecdh.GenerateSharedSecret(privKey2, pubKey1)
-		Expect(secret1).To(Equal(secret2))
+	It("Allow to create shared key for 2 parties", func() {
+
+		secret12, err := ecdh.GenerateSharedSecret(privKey1, pubKey2)
+		Expect(err).To(BeNil())
+		secret21, err := ecdh.GenerateSharedSecret(privKey2, pubKey1)
+		Expect(err).To(BeNil())
+
+		Expect(secret12).To(Equal(secret21))
+
+		secret23, err := ecdh.GenerateSharedSecret(privKey2, pubKey3)
+		Expect(err).To(BeNil())
+		secret32, err := ecdh.GenerateSharedSecret(privKey3, pubKey2)
+		Expect(err).To(BeNil())
+
+		Expect(secret23).To(Equal(secret32))
+
+	})
+
+	It("Allow to create shared key for 3 parties", func() {
+
+		secret12, err := ecdh.GenerateSharedSecret(privKey1, pubKey2)
+		Expect(err).To(BeNil())
+
+		x, y := elliptic.Unmarshal(pubKey1.Curve, secret12)
+
+		fmt.Println(x, y)
+		//if x == nil || y == nil {
+		//	return key, false
+		//}
+		//key = &ellipticPublicKey{
+		//	Curve: e.curve,
+		//	X:     x,
+		//	Y:     y,
+		//}
+
 	})
 
 })

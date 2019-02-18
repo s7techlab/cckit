@@ -5,9 +5,11 @@ import (
 
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/state"
 )
+
+// Default parameter name
+const DefaultParam = `default`
 
 type (
 	// Context of chaincode invoke
@@ -18,31 +20,70 @@ type (
 		Logger() *shim.ChaincodeLogger
 		Path() string
 		State() state.State
+		UseState(state.State) state.State
+
 		Time() (time.Time, error)
 
 		ReplaceArgs(args [][]byte) Context // replace args, for usage in preMiddleware
 		GetArgs() [][]byte
 
-		// to remove, be only get/set
+		// Deprecated: Use Params instead.
 		Args() InterfaceMap
+
+		// Deprecated: Use Arg instead.
 		Arg(string) interface{}
+
+		// Deprecated: Use ParamString instead.
 		ArgString(string) string
+
+		// Deprecated: Use ParamBytes instead.
 		ArgBytes(string) []byte
+
+		// Deprecated: Use ParamInt instead.
 		ArgInt(string) int
+
+		// Deprecated: Use SetParam instead.
 		SetArg(string, interface{})
 
-		Get(string) interface{}
-		Set(string, interface{})
+		// Params returns parameter values.
+		Params() InterfaceMap
+
+		// Param returns parameter value.
+		Param(name ...string) interface{}
+
+		// ParamString returns parameter value as string.
+		ParamString(name string) string
+
+		// ParamBytes returns parameter value as bytes.
+		ParamBytes(name string) []byte
+
+		// ParamInt returns parameter value as bytes.
+		ParamInt(name string) int
+
+		// SetParam sets parameter value.
+		SetParam(name string, value interface{})
+
+		// Get retrieves data from the context.
+		Get(key string) interface{}
+		// Set saves data in the context.
+		Set(key string, value interface{})
+
+		// Deprecated: Use Event().Set() instead
 		SetEvent(string, interface{}) error
+
+		Event() state.Event
+		UseEvent(state.Event) state.Event
 	}
 
 	context struct {
-		stub       shim.ChaincodeStubInterface
-		logger     *shim.ChaincodeLogger
-		path       string
-		args       [][]byte
-		invokeArgs InterfaceMap
-		store      InterfaceMap
+		stub   shim.ChaincodeStubInterface
+		logger *shim.ChaincodeLogger
+		state  state.State
+		event  state.Event
+		path   string
+		args   [][]byte
+		params InterfaceMap
+		store  InterfaceMap
 	}
 )
 
@@ -67,7 +108,27 @@ func (c *context) Path() string {
 }
 
 func (c *context) State() state.State {
-	return state.New(c.stub)
+	if c.state == nil {
+		c.state = state.NewState(c.stub, c.logger)
+	}
+	return c.state
+}
+
+func (c *context) UseState(s state.State) state.State {
+	c.state = s
+	return c.state
+}
+
+func (c *context) Event() state.Event {
+	if c.event == nil {
+		c.event = state.NewEvent(c.stub)
+	}
+	return c.event
+}
+
+func (c *context) UseEvent(e state.Event) state.Event {
+	c.event = e
+	return c.event
 }
 
 // Time
@@ -92,33 +153,67 @@ func (c *context) GetArgs() [][]byte {
 	return c.stub.GetArgs()
 }
 
+// Deprecated: Use Params instead.
 func (c *context) Args() InterfaceMap {
-	return c.invokeArgs
+	return c.Params()
 }
 
+func (c *context) Params() InterfaceMap {
+	return c.params
+}
+
+// Deprecated: Use SetParam instead.
 func (c *context) SetArg(name string, value interface{}) {
-	if c.invokeArgs == nil {
-		c.invokeArgs = make(InterfaceMap)
+	c.SetParam(name, value)
+}
+
+func (c *context) SetParam(name string, value interface{}) {
+	if c.params == nil {
+		c.params = make(InterfaceMap)
 	}
-	c.invokeArgs[name] = value
+	c.params[name] = value
 }
 
+// Deprecated: Use Param instead.
 func (c *context) Arg(name string) interface{} {
-	return c.invokeArgs[name]
+	return c.Param(name)
 }
 
+func (c *context) Param(name ...string) interface{} {
+	var pname = DefaultParam
+	if len(name) > 0 {
+		pname = name[0]
+	}
+	return c.params[pname]
+}
+
+// Deprecated: Use ParamString instead.
 func (c *context) ArgString(name string) string {
-	out, _ := c.Arg(name).(string)
+	return c.ParamString(name)
+}
+
+func (c *context) ParamString(name string) string {
+	out, _ := c.Param(name).(string)
 	return out
 }
 
+// Deprecated: Use ParamBytes instead.
 func (c *context) ArgBytes(name string) []byte {
-	out, _ := c.Arg(name).([]byte)
+	return c.ParamBytes(name)
+}
+
+func (c *context) ParamBytes(name string) []byte {
+	out, _ := c.Param(name).([]byte)
 	return out
 }
 
+// Deprecated: Use ParamInt instead.
 func (c *context) ArgInt(name string) int {
-	out, _ := c.Arg(name).(int)
+	return c.ParamInt(name)
+}
+
+func (c *context) ParamInt(name string) int {
+	out, _ := c.Param(name).(int)
 	return out
 }
 
@@ -134,9 +229,5 @@ func (c *context) Get(key string) interface{} {
 }
 
 func (c *context) SetEvent(name string, payload interface{}) error {
-	bb, err := convert.ToBytes(payload)
-	if err != nil {
-		return err
-	}
-	return c.stub.SetEvent(name, bb)
+	return c.Event().Set(name, payload)
 }

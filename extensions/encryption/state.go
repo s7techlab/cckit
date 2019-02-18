@@ -16,11 +16,12 @@ var (
 
 // State encrypting the data before putting to state and decrypting the data after getting from state
 func State(c router.Context, key []byte) (state.State, error) {
-	s := state.New(c.Stub())
+	//current state
+	s := c.State()
 
-	s.KeyParts = KeyPartsEncryptedWith(key)
-	s.StateGetTransformer = DecryptBytesWith(key)
-	s.StatePutTransformer = EncryptBytesWith(key)
+	s.UseKeyTransformer(KeyPartsEncryptedWith(key))
+	s.UseStateGetTransformer(DecryptBytesWith(key))
+	s.UseStatePutTransformer(EncryptBytesWith(key))
 
 	return s, nil
 }
@@ -64,21 +65,18 @@ func StateWithTransientKeyIfProvided(c router.Context) (state.State, error) {
 }
 
 // KeyPartsEncryptedWith encrypts key parts
-func KeyPartsEncryptedWith(encryptKey []byte) state.KeyPartsTransformer {
-	return func(key interface{}) ([]string, error) {
-		keyParts, err := state.KeyParts(key)
+func KeyPartsEncryptedWith(encryptKey []byte) state.KeyTransformer {
+	return func(keyParts []string) ([]string, error) {
+		keyPartsEnc := make([]string, len(keyParts))
 
-		if err != nil {
-			return nil, err
-		}
 		for i, p := range keyParts {
-			encP, err := Encrypt(encryptKey, p)
+			keyPartEnc, err := Encrypt(encryptKey, p)
 			if err != nil {
 				return nil, errors.Wrap(err, `key part encrypt error`)
 			}
-			keyParts[i] = base64.StdEncoding.EncodeToString(encP)
+			keyPartsEnc[i] = base64.StdEncoding.EncodeToString(keyPartEnc)
 		}
-		return keyParts, nil
+		return keyPartsEnc, nil
 	}
 }
 

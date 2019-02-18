@@ -34,13 +34,13 @@ func (p Parameter) ValueFromContext(c router.Context) (arg interface{}, err erro
 	//}
 	argPos := p.ArgPos
 	if argPos == -1 {
-		lastPos, ok := c.Arg(LastPosKey).(int)
+		lastPos, ok := c.Param(LastPosKey).(int)
 		if !ok {
 			argPos = 0
 		} else {
 			argPos = lastPos + 1
 		}
-		c.SetArg(LastPosKey, argPos)
+		c.SetParam(LastPosKey, argPos)
 	}
 
 	args := c.GetArgs()[argsStartsFrom:] // first arg is chaincode function name
@@ -75,12 +75,8 @@ func Param(name string, paramType interface{}, argPoss ...int) router.Middleware
 			if err != nil {
 				return nil, err
 			}
-			c.SetArg(name, arg)
+			c.SetParam(name, arg)
 			return next(c)
 		}
 	}
 }
-
-//if ph.Parameters.Length() != len(args) {
-//return nil, ErrArgsNumMismatch
-//}
