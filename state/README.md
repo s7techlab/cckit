@@ -89,7 +89,8 @@ In the example above smart contract code explicitly performs many auxiliary acti
 
 ### State methods wrapper
 
-CCKit contains [wrapper](state.go) on `ChaincodeStubInterface` methods to working with chaincode state.
+CCKit contains [wrapper](state.go) on `ChaincodeStubInterface` methods to working with chaincode state. This methods
+simplifies chaincode key creation and data transformation during working with chaincode state.
 
 ```go
 type State interface {
@@ -158,13 +159,39 @@ type (
 * [Protobuf](https://developers.google.com/protocol-buffers/docs/gotutorial) golang struct
 
 
-
 Golang structs [automatically](../convert) marshals/ unmarshals using [json.Marshal](https://golang.org/pkg/encoding/json/#Marshal) and
 and [json.Umarshal](https://golang.org/pkg/encoding/json/#Unmarshal) methods. 
 [proto.Marshal](https://godoc.org/github.com/golang/protobuf/proto#Marshal) and 
 [proto.Unmarshal](https://godoc.org/github.com/golang/protobuf/proto#Unmarshal) is used to convert protobuf.
 
 ### Creating state keys
+
+
+In the chaincode data model we often need to store many instances of one type on the ledger, such as multiple commercial papers,
+letters of credit, and so on.  In this case, the keys of those instances will be typically constructed from a combination of attributes—
+for example:
+
+> `CommercialPaper` + {Issuer} + {PaperId}
+
+yielding series of chaincode state entries keys [ `CommercialPaperIssuer1Id1`, `CommercialPaperIssuer2Id2`, ...]
+
+
+The logic of creation primary key of an instance can be customized in the code, or API functions can be provided in SHIM to
+construct a composite key (in other words, a unique key) of an instance based on
+a combination of several attributes. Composite keys can then be used as a normal string key to
+record and retrieve values using the PutState() and GetState() functions.
+
+The following snippet shows a list of functions that create and work with composite keys:
+
+```go
+// The function creates a key by combining the attributes into a single string.
+// The arguments must be valid utf8 strings and must not contain U+0000 (nil byte) and U+10FFFF charactres.
+func CreateCompositeKey(objectType string, attributes []string) (string, error)
+
+// The function splits the compositeKey into attributes from which the key was formed.
+// This function is useful for extracting attributes from keys returned by range queries.
+func SplitCompositeKey(compositeKey string) (string, []string, error)
+````
 
 When putting or getting data to/from chaincode state you must provide key. CCKit have 3 options for dealing with entries key:
  
@@ -186,6 +213,8 @@ c.State().Put ( `my-key`, &myStructInstance)
     }
 ````
 
+`Key` type - is essentially slice of string, this slice will be automatically converted to string using `shim.CreateCompositeKey` method.
+
 and in chaincode you need to provide only type instance
 ```go
 c.State().Put (&myStructInstance)
@@ -193,9 +222,19 @@ c.State().Put (&myStructInstance)
 
 * Type can have associate mapping
 
-Mapping defines rules for namespace, primary and other key creation.
+Mapping defines rules for namespace, primary and other key creation. Mapping mainly used with `protobuf` state schema.
 
+### Range queries
 
+As well as retrieving assets with a unique key, SHIM offers API functions the opportunity to retrieve sets of assets based on a range criteria. 
+Moreover, composite keys can be modeled to enable queries against multiple components of the key.
+
+The range functions return an iterator (StateQueryIteratorInterface) over a set of keys matching the query criteria. The returned keys are in lexical order. 
+Additionally, when a composite key has multiple attributes, the range query function, `GetStateByPartialCompositeKey()`, can be used to search for keys matching a
+subset of the attributes.
+
+For example, the key of a `CommercialPapaer` composed of `Issuer` and `PaperId` attributes can be searched for entries only from one Issuer.
+  
 ## Protobuf state example
 
 This example uses [Commercial paper scenario](https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/scenario.html) and
@@ -203,11 +242,30 @@ implements same functionality as [Node.JS](https://github.com/hyperledger/fabric
 chaincode sample from official documentation. Example code located [here](../examples/cpaper).
 
 
+Protobuf schema advantages:
+
+1. Schema abstraction layer
+
+Encoding the semantics of your business objects once,  in proto format, is enough to help ensure that the signal doesn’t get lost between applications, 
+and that the boundaries you create enforce your business rules.
+
+2. Extensions - validators etc
+
+Protobuf v3 does not support validating required parameters, but there are third party projects for proto validation, for example
+https://github.com/mwitkow/go-proto-validators. It allows to encode, at the schema level, the shape of your data structure, and the validation rules.
+
+3. Easy Language Interoperability
+Because Protocol Buffers are implemented in a variety of languages, they make interoperability between polyglot applications in your architecture that much simpler. 
+If you’re introducing a new service using Java or Node.Js SDK  you simply have to hand the proto file to the code generator written in the target language and you
+have guarantees about the safety and interoperability between those architectures. 
+
+
 
 ### Defining model
 
+Protobuf (short for Protocol buffers) is a way of encoding structured data in an efficient and extensible format. 
 With protocol buffers, you write a .proto description of the data structure you wish to store. 
-From that, the protocol buffer compiler creates a class that implements automatic encoding and parsing 
+From that, the protocol buffer compiler creates a golang struct  (or ant) that implements automatic encoding and parsing 
 of the protocol buffer data with an efficient binary format. The generated class provides getters and setters 
 for the fields that make up a protocol buffer and takes care of the details of reading and writing the protocol
  buffer as a unit.
@@ -272,6 +330,28 @@ message RedeemCommercialPaper {
 ```
 
 
+
+### Defining protobuf schema mapping 
+
+An schema to chaincode  mapper can be used to store schema instances in chaincode state. Every schema type (protobuf or struct) can have mapping rules:
+
+* Primary key creation logic
+* Namespace logic
+* Secondary key creation logic
+
+```go
+var (
+	// State mappings
+	StateMappings = m.StateMappings{}.
+			Add(&schema.CommercialPaper{}, m.PKeySchema(&schema.CommercialPaperId{})) //key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
+
+	// EventMappings
+	EventMappings = m.EventMappings{}.
+			Add(&schema.IssueCommercialPaper{}) // event name will be `IssueCommercialPaper`,  payload - same as issue payload
+
+)
+```
+
 ### Chaincode
 
 ```go
@@ -290,16 +370,7 @@ import (
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
-var (
-	// State mappings
-	StateMappings = m.StateMappings{}.
-			Add(&schema.CommercialPaper{}, m.PKeySchema(&schema.CommercialPaperId{})) //key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
 
-	// EventMappings
-	EventMappings = m.EventMappings{}.
-			Add(&schema.IssueCommercialPaper{}) // event name will be `IssueCommercialPaper`,  payload - same as issue payload
-
-)
 
 func NewCC() *router.Chaincode {
 
