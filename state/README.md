@@ -341,14 +341,14 @@ An schema to chaincode  mapper can be used to store schema instances in chaincod
 
 ```go
 var (
-	// State mappings
-	StateMappings = m.StateMappings{}.
-			Add(&schema.CommercialPaper{}, m.PKeySchema(&schema.CommercialPaperId{})) //key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
-
-	// EventMappings
-	EventMappings = m.EventMappings{}.
-			Add(&schema.IssueCommercialPaper{}) // event name will be `IssueCommercialPaper`,  payload - same as issue payload
-
+    // State mappings
+    StateMappings = m.StateMappings{}.
+            Add(&schema.CommercialPaper{}, 
+                m.PKeySchema(&schema.CommercialPaperId{})) //key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
+    
+    // EventMappings
+    EventMappings = m.EventMappings{}.
+            Add(&schema.IssueCommercialPaper{}) // event name will be `IssueCommercialPaper`,  payload - same as issue payload
 )
 ```
 
