@@ -12,5 +12,7 @@ install:
 
 script:
   - go test -v  ./...
+  - $GOPATH/bin/goveralls -service=travis-ci || true
+
 go:
   - 1.10.x
