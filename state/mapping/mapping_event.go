@@ -59,7 +59,7 @@ func applyEventMappingDefaults(em *EventMapping) {
 func (emm EventMappings) Get(entry interface{}) (EventMapper, error) {
 	m, ok := emm[mapKey(entry)]
 	if !ok {
-		return nil, fmt.Errorf(`%s: %s`, ErrEntryTypeNotDefined, mapKey(entry))
+		return nil, fmt.Errorf(`%s: %s`, ErrEventMappingNotFound, mapKey(entry))
 	}
 	return m, nil
 }

@@ -84,7 +84,7 @@ func schemaNamespace(schema interface{}) state.Key {
 func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 	m, ok := smm[mapKey(entry)]
 	if !ok {
-		return nil, fmt.Errorf(`%s: %s`, ErrEntryTypeNotDefined, mapKey(entry))
+		return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, mapKey(entry))
 	}
 	return m, nil
 }

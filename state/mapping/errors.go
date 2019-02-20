@@ -6,6 +6,9 @@ var (
 	// ErrEntryTypeNotSupported entry type has no appropriate mapper type
 	ErrEntryTypeNotSupported = errors.New(`entry type not supported for mapping`)
 
-	// ErrEntryTypeNotDefined mapping for entry type not defined
-	ErrEntryTypeNotDefined = errors.New(`mapping for entry type not defined`)
+	// ErrEntryTypeNotDefined
+	ErrStateMappingNotFound = errors.New(`state mapping not found`)
+
+	// ErrEventMappingNotFound
+	ErrEventMappingNotFound = errors.New(`event mapping not found`)
 )
