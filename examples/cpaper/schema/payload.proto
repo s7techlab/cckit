@@ -3,12 +3,7 @@ package schema;
 
 import "google/protobuf/timestamp.proto";
 
-
-message CommercialPaperKey {
-    string issuer = 1;
-    string paper_number = 2;
-}
-
+// IssueCommercialPaper event
 message IssueCommercialPaper {
     string issuer = 1;
     string paper_number = 2;
@@ -17,6 +12,7 @@ message IssueCommercialPaper {
     int32 face_value = 5;
 }
 
+// BuyCommercialPaper event
 message BuyCommercialPaper {
     string issuer = 1;
     string paper_number = 2;
@@ -26,6 +22,7 @@ message BuyCommercialPaper {
     google.protobuf.Timestamp purchase_date = 6;
 }
 
+// RedeemCommercialPaper event
 message RedeemCommercialPaper {
     string issuer = 1;
     string paper_number = 2;

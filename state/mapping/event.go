@@ -1,6 +1,8 @@
 package mapping
 
 import (
+	"fmt"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/s7techlab/cckit/state"
 )
@@ -34,7 +36,7 @@ func (e *EventImpl) Set(entry interface{}, value ...interface{}) error {
 	}
 
 	if !exists && len(value) == 0 {
-		return ErrEventMappingNotFound
+		return fmt.Errorf(`%s: %s`, ErrEventMappingNotFound, mapKey(entry))
 	}
 	return e.event.Set(mapped, value...)
 }

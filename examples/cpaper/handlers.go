@@ -75,6 +75,10 @@ func cpaperBuy(c router.Context) (interface{}, error) {
 		return nil, fmt.Errorf(`paper %s %s is not trading.current state = %s`, cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
 	}
 
+	if err = c.Event().Set(buy); err != nil {
+		return nil, err
+	}
+
 	return cpaper, c.State().Put(cpaper)
 }
 
