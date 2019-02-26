@@ -25,7 +25,8 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 		return bb, nil
 	case int:
 		return strconv.Atoi(string(bb))
-
+	case bool:
+		return strconv.ParseBool(string(bb))
 	case []string:
 		arrInterface, err := JsonUnmarshalPtr(bb, &target)
 

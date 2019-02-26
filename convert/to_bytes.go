@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/pkg/errors"
 
@@ -34,6 +35,8 @@ func ToBytes(value interface{}) ([]byte, error) {
 		return value.(ToByter).ToBytes()
 	case proto.Message:
 		return proto.Marshal(proto.Clone(value.(proto.Message)))
+	case bool:
+		return []byte(strconv.FormatBool(value.(bool))), nil
 	case string:
 		return []byte(value.(string)), nil
 	case uint:

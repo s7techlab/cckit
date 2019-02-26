@@ -1,8 +1,16 @@
 package param
 
 import (
+	"fmt"
+
+	"github.com/gogo/protobuf/proto"
+	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
+)
+
+var (
+	ErrProtoExpected = errors.New(`protobuf expected`)
 )
 
 // String creates middleware for converting to string chaincode method parameter
@@ -36,5 +44,16 @@ func Bytes(name string, argPoss ...int) router.MiddlewareFunc {
 
 // Proto creates middleware for converting to protobuf chaincode method parameter
 func Proto(name string, target interface{}, argPoss ...int) router.MiddlewareFunc {
+	if _, ok := target.(proto.Message); !ok {
+		TypeErrorMiddleware(name, ErrProtoExpected)
+	}
 	return Param(name, target, argPoss...)
+}
+
+func TypeErrorMiddleware(name string, err error) router.MiddlewareFunc {
+	return func(next router.HandlerFunc, pos ...int) router.HandlerFunc {
+		return func(c router.Context) (interface{}, error) {
+			return nil, fmt.Errorf(`%s: %s`, err, name)
+		}
+	}
 }
