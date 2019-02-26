@@ -14,10 +14,10 @@ key-value pairs in the World State.  In Hyperledger Fabric, smart contracts are 
 
 ### CCKit features 
 
-* Centralized chaincode invocation handling [via router](router)
-* [Chaincode state modelling](state) via automatic conversion from/to golang structures
+* [Centralized chaincode invocation handling](router) with methods routing and middleware capabilities 
+* [Chaincode state modelling](state) using protocol buffers / json marshalling
 * [MockStub testing](testing), allowing to immediately receive test results
-* Middleware support
+* [Data encryption](extensions/encryption) on application level
 * Chaincode method access control
 
 
@@ -37,17 +37,18 @@ Main problems:
 * Lots of code duplication (json marshalling / unmarshalling, validation, access control etc)
 * Uncompleted testing tools (MockStub)
 
+### Publications
 
+* [Hyperledger Fabric smart contract data model: protobuf to chaincode state mapping](https://medium.com/coinmonks/hyperledger-fabric-smart-contract-data-model-protobuf-to-chaincode-state-mapping-191cdcfa0b78)
+* [ERC20 token as Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339)
+* [CCKit: Routing and middleware for Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/routing-and-middleware-for-developing-hyperledger-fabric-chaincode-written-in-go-90913951bf08)
+* [Developing and testing Hyperledger Fabric smart contracts](https://habr.com/post/426705/) [RUS]
 
 ## Example based on CCKit
-
-Basic task
-
-
+ 
 ### Chaincode "Cars" 
 
-Car registration chaincode. Only authority can register car information, all can view information about registered cars.
-
+Car registration chaincode use simple golang structure with json marshalling. Example with protobuf model is [here](state).
 
 [source code](examples/cars/cars.go),  [tests](examples/cars/cars_test.go)
 
@@ -98,10 +99,13 @@ func New() *router.Chaincode {
 	r.Init(invokeInit)
 
 	r.Group(`car`).
+		// everyone  can view information about registered cars.
 		Query(`List`, queryCars).                                             // chain code method name is carList
 		Query(`Get`, queryCar, p.String(`id`)).                               // chain code method name is carGet, method has 1 string argument "id"
+		
 		Invoke(`Register`, invokeCarRegister, p.Struct(`car`, &CarPayload{}), // 1 struct argument
 			owner.Only) // allow access to method only for chaincode owner (authority)
+			            // Only authority can register car information
 
 	return router.NewChaincode(r)
 }
@@ -254,8 +258,3 @@ var _ = Describe(`Cars`, func() {
 })
 ```
 
-### Publications
-
-* [CCKit: Routing and middleware for Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/routing-and-middleware-for-developing-hyperledger-fabric-chaincode-written-in-go-90913951bf08)
-* [ERC20 token as Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339)
-* [Developing and testing Hyperledger Fabric smart contracts](https://habr.com/post/426705/) [RUS]

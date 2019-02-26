@@ -48,9 +48,9 @@ func cpaperBuy(c router.Context) (interface{}, error) {
 		buy = c.Param().(*schema.BuyCommercialPaper)
 
 		// current commercial paper state
-		cp, err = c.State().Get(&schema.CommercialPaper{
-			Issuer:      buy.Issuer,
-			PaperNumber: buy.PaperNumber}, &schema.CommercialPaper{})
+		cp, err = c.State().Get(
+			&schema.CommercialPaperId{Issuer: buy.Issuer, PaperNumber: buy.PaperNumber},
+			&schema.CommercialPaper{})
 	)
 
 	if err != nil {
