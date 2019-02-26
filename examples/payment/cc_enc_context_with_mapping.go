@@ -41,6 +41,7 @@ func invokePaymentCreateWithDefaultContext(c router.Context) (interface{}, error
 	)
 	// State use encryption setting from context
 	// and state key set manually
+	// returned value will be placed in ledger - so in can be encrypted or unencrypted
 	return returnVal, c.State().Insert(&schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)})
 }
 
