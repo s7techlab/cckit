@@ -44,7 +44,7 @@ Proposal contains:
      * `Args` - the set of arguments for this chaincode invocation.
     
      
-> For encrypting data can be used contents of `Trasiend Map` field - data (e.g. cryptographic material) that might be used to implement 
+> For encrypting data can be used contents of `Trasient Map` field - data (e.g. cryptographic material) that might be used to implement 
 some form of application-level confidentiality. 
 
 > The contents of this field are supposed to always be omitted from the transaction and
@@ -67,7 +67,7 @@ ProposalResponse
  \_ ProposalResponsePayload                      (the payload of the proposal response)
 ```
 
-#### 3. Client assembles endorsements into a transaction
+### 3. Client assembles endorsements into a transaction
  
 A transaction message assembles one or more proposals and corresponding responses into a message to be sent to orderers. 
 After ordering, (batches of) transactions are delivered to committing peers for validation and final delivery into the ledger. 
