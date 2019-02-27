@@ -207,21 +207,15 @@ var _ = Describe(`Router`, func() {
 			expectcc.ResponseOk(encryption.MockInvoke(
 				encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3))
 
-			encryptedEventName, err := encryption.Encrypt(encKey, `PaymentEvent`)
-			Expect(err).NotTo(HaveOccurred())
-
-			encryptedEventPayload, err := encryption.Encrypt(encKey, testcc.MustProtoMarshal(&schema.PaymentEvent{
-				Type:   pType,
-				Id:     pId1,
-				Amount: pAmount3,
-			}))
-			Expect(err).NotTo(HaveOccurred())
-
 			// event name and payload is encrypted with key
-			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: string(encryptedEventName),
-				Payload:   encryptedEventPayload,
-			}))
+			Expect(<-events).To(BeEquivalentTo(encryption.MustEncryptEvent(encKey, &peer.ChaincodeEvent{
+				EventName: `PaymentEvent`,
+				Payload: testcc.MustProtoMarshal(&schema.PaymentEvent{
+					Type:   pType,
+					Id:     pId1,
+					Amount: pAmount3,
+				}),
+			})))
 
 			close(done)
 		}, 0.2)
