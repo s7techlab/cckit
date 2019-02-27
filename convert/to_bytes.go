@@ -28,6 +28,10 @@ func ArgsToBytes(iargs ...interface{}) (aa [][]byte, err error) {
 
 // ToBytes converts inteface{} (string, []byte , struct to ToByter interface to []byte for storing in state
 func ToBytes(value interface{}) ([]byte, error) {
+	if value == nil {
+		return nil, nil
+	}
+
 	switch value.(type) {
 
 	// first priority if value implements ToByter interface

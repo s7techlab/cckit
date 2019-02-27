@@ -45,4 +45,10 @@ var _ = Describe(`Convert`, func() {
 		Expect(eStr.(string)).To(Equal(MyStr))
 	})
 
+	It(`Nil`, func() {
+		bNil, err := convert.ToBytes(nil)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(bNil).To(Equal([]byte{}))
+	})
+
 })
