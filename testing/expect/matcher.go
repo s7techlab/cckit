@@ -12,23 +12,25 @@ import (
 )
 
 // ResponseOk expects peer.Response has shim.OK status and message has okSubstr prefix
-func ResponseOk(response peer.Response, okSubstr ...string) {
+func ResponseOk(response peer.Response, okSubstr ...string) peer.Response {
 	g.Expect(int(response.Status)).To(g.Equal(shim.OK), response.Message)
 
 	if len(okSubstr) > 0 {
 		g.Expect(response.Message).To(g.HavePrefix(okSubstr[0]), "ok message not match: "+response.Message)
 	}
-
+	return response
 }
 
 // ResponseError expects peer.Response has shim.ERROR status and message has errorSubstr prefix
-func ResponseError(response peer.Response, errorSubstr ...interface{}) {
+func ResponseError(response peer.Response, errorSubstr ...interface{}) peer.Response {
 	g.Expect(int(response.Status)).To(g.Equal(shim.ERROR), response.Message)
 
 	if len(errorSubstr) > 0 {
 		g.Expect(response.Message).To(g.HavePrefix(fmt.Sprintf(`%s`, errorSubstr[0])),
 			"error message not match: "+response.Message)
 	}
+
+	return response
 }
 
 // PayloadIs expects peer.Response payload can be marshalled to target interface{} and returns converted value

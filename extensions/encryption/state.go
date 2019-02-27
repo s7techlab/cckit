@@ -19,9 +19,9 @@ func State(c router.Context, key []byte) (state.State, error) {
 	//current state
 	s := c.State()
 
-	s.UseKeyTransformer(KeyPartsEncryptedWith(key))
-	s.UseStateGetTransformer(DecryptBytesWith(key))
-	s.UseStatePutTransformer(EncryptBytesWith(key))
+	s.UseKeyTransformer(KeyPartsEncryptor(key))
+	s.UseStateGetTransformer(FromBytesDecryptor(key))
+	s.UseStatePutTransformer(ToBytesEncryptor(key))
 
 	return s, nil
 }
@@ -65,7 +65,7 @@ func StateWithTransientKeyIfProvided(c router.Context) (state.State, error) {
 }
 
 // KeyPartsEncryptedWith encrypts key parts
-func KeyPartsEncryptedWith(encryptKey []byte) state.KeyTransformer {
+func KeyPartsEncryptor(encryptKey []byte) state.KeyTransformer {
 	return func(keyParts []string) ([]string, error) {
 		keyPartsEnc := make([]string, len(keyParts))
 
@@ -80,8 +80,8 @@ func KeyPartsEncryptedWith(encryptKey []byte) state.KeyTransformer {
 	}
 }
 
-// DecryptBytesWith decrypts by with key - used for decrypting data after reading from state
-func DecryptBytesWith(key []byte) state.FromBytesTransformer {
+// DecryptTransformer returns state.FromBytesTransformer - used for decrypting data after reading from state
+func FromBytesDecryptor(key []byte) state.FromBytesTransformer {
 	return func(bb []byte, config ...interface{}) (interface{}, error) {
 		decrypted, err := Decrypt(key, bb)
 		if err != nil {
@@ -94,8 +94,8 @@ func DecryptBytesWith(key []byte) state.FromBytesTransformer {
 	}
 }
 
-// EncryptBytesWith encrypts bytes with key - used for encrypting data for state
-func EncryptBytesWith(key []byte) state.ToBytesTransformer {
+// EncryptTransformer returns state.ToBytesTransformer - used for encrypting data for state
+func ToBytesEncryptor(key []byte) state.ToBytesTransformer {
 	return func(v interface{}, config ...interface{}) ([]byte, error) {
 		bb, err := convert.ToBytes(v)
 		if err != nil {
@@ -103,4 +103,16 @@ func EncryptBytesWith(key []byte) state.ToBytesTransformer {
 		}
 		return Encrypt(key, bb)
 	}
+}
+
+func EncryptWithTransientKey(c router.Context, val interface{}) (encrypted []byte, err error) {
+	var (
+		key []byte
+	)
+
+	if key, err = KeyFromTransient(c); err != nil {
+		return
+	}
+
+	return ToBytesEncryptor(key)(val)
 }

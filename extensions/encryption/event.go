@@ -18,13 +18,13 @@ func EventWithTransientKey(c router.Context) (state.Event, error) {
 func Event(c router.Context, key []byte) (state.Event, error) {
 	//current state
 	s := c.Event()
-	s.UseSetTransformer(EncryptBytesWith(key))
-	s.UseNameTransformer(EncryptStringWith(key))
+	s.UseSetTransformer(ToBytesEncryptor(key))
+	s.UseNameTransformer(StringEncryptor(key))
 	return s, nil
 }
 
 // EncryptStringWith returns state.StringTransformer encrypting string with provided key
-func EncryptStringWith(key []byte) state.StringTransformer {
+func StringEncryptor(key []byte) state.StringTransformer {
 	return func(s string) (encrypted string, err error) {
 		var (
 			enc []byte

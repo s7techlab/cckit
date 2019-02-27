@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/s7techlab/cckit/convert"
+
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/state/mapping"
 
@@ -200,12 +202,24 @@ var _ = Describe(`Router`, func() {
 		})
 		//
 		It("Allow to create payment providing key in encryptPaymentCC ", func(done Done) {
-			// encode all arguments
 
 			events := encryptPaymentCCWithEncStateContext.EventSubscription()
 
-			expectcc.ResponseOk(encryption.MockInvoke(
-				encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3))
+			// response paylad in encrypted initially
+			responsePayload, err := encryption.Decrypt(encKey, expectcc.ResponseOk(
+				// encode all arguments
+				encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3)).
+				Payload)
+
+			Expect(err).NotTo(HaveOccurred())
+			p, err := convert.FromBytes(responsePayload, &schema.Payment{})
+			Expect(err).NotTo(HaveOccurred())
+
+			decryptedResponse := p.(*schema.Payment)
+
+			Expect(decryptedResponse.Id).To(Equal(pId1))
+			Expect(decryptedResponse.Type).To(Equal(pType))
+			Expect(decryptedResponse.Amount).To(Equal(pAmount3))
 
 			// event name and payload is encrypted with key
 			Expect(<-events).To(BeEquivalentTo(encryption.MustEncryptEvent(encKey, &peer.ChaincodeEvent{

@@ -24,6 +24,8 @@ func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 	debug.AddHandlers(r, `debug`)
 
 	r.Group(`payment`).
+		// use multiple separate params
+		// better way - to use single protobuf "payload" parameter
 		Invoke(`Create`, invokePaymentCreateWithDefaultContext, p.String(`type`), p.String(`id`), p.Int(`amount`)).
 		Query(`List`, queryPaymentsWithDefaultContext, p.String(`type`)).
 		Query(`Get`, queryPaymentWithDefaultContext, p.String(`type`), p.String(`id`))
@@ -32,24 +34,26 @@ func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 }
 
 func invokePaymentCreateWithDefaultContext(c router.Context) (res interface{}, err error) {
+	// params comes unencrypted - "before" middleware decrypts its using key from transient map
 	var (
-		paymentType   = c.ParamString(`type`)
-		paymentId     = c.ParamString(`id`)
-		paymentAmount = c.ParamInt(`amount`)
-		returnVal     = []byte(paymentId) // unencrypted
+		paymentType     = c.ParamString(`type`)
+		paymentId       = c.ParamString(`id`)
+		paymentAmount   = c.ParamInt(`amount`)
+		payment         = &schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)}
+		event           = &schema.PaymentEvent{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)}
+		responsePayload []byte
 	)
 
-	if err = c.Event().Set(&schema.PaymentEvent{
-		Type:   paymentType,
-		Id:     paymentId,
-		Amount: int32(paymentAmount),
-	}); err != nil {
+	if err = c.Event().Set(event); err != nil {
 		return
 	}
-	// State use encryption setting from context
-	// and state key set manually
-	// returned value will be placed in ledger - so in can be encrypted or unencrypted
-	return returnVal, c.State().Insert(&schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)})
+	// State use encryption setting from context, state key sets manually
+	// returned value will be placed in ledger - so if we don't want to show in in ledger - we must encrypt it
+	if responsePayload, err = encryption.EncryptWithTransientKey(c, payment); err != nil {
+		return
+	}
+
+	return responsePayload, c.State().Insert(payment)
 }
 
 func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {
