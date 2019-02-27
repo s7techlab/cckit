@@ -27,16 +27,34 @@ func MockQuery(cc *testing.MockStub, encKey []byte, args ...interface{}) peer.Re
 // MockStub wrapper for querying and invoking encrypted chaincode
 type MockStub struct {
 	MockStub *testing.MockStub
-	EncKey   []byte
+	//EncKey key for encrypt data before query/invoke
+	EncKey []byte
+
+	// DecryptInvokeResponse decrypts invoker responses
+	DecryptInvokeResponse bool
 }
 
 // NewMockStub creates wrapper for querying and invoking encrypted chaincode
 func NewMockStub(mockStub *testing.MockStub, encKey []byte) *MockStub {
-	return &MockStub{mockStub, encKey}
+	return &MockStub{MockStub: mockStub, EncKey: encKey}
 }
 
-func (s *MockStub) Invoke(args ...interface{}) peer.Response {
-	return MockInvoke(s.MockStub, s.EncKey, args...)
+func (s *MockStub) Invoke(args ...interface{}) (response peer.Response) {
+	var (
+		err error
+	)
+	// first we encrypt all args
+	response = MockInvoke(s.MockStub, s.EncKey, args...)
+
+	//after receiving response we can decrypt received peer responce
+	// actual only for invoke, query responses are not encrypted
+	if s.DecryptInvokeResponse {
+		if response.Payload, err = Decrypt(s.EncKey, response.Payload); err != nil {
+			panic(err)
+		}
+	}
+
+	return response
 }
 
 func (s *MockStub) Query(args ...interface{}) peer.Response {

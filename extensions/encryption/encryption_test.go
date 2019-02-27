@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/s7techlab/cckit/convert"
-
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/state/mapping"
 
@@ -69,8 +67,11 @@ var _ = Describe(`Router`, func() {
 	//Create chaincode mock
 	encryptOnDemandPaymentCC = testcc.NewMockStub(`paymentsEncOnDemand`, payment.NewEncryptOnDemandPaymentCC())
 	encryptPaymentCC = testcc.NewMockStub(`paymentsEnc`, payment.NewEncryptPaymentCC())
+
 	encryptPaymentCCWithEncStateContext = testcc.NewMockStub(`paymentsEncWithContext`, payment.NewEncryptedPaymentCCWithEncStateContext())
+
 	encCCInvoker = encryption.NewMockStub(encryptPaymentCCWithEncStateContext, encKey)
+	encCCInvoker.DecryptInvokeResponse = true
 
 	BeforeSuite(func() {
 
@@ -205,21 +206,27 @@ var _ = Describe(`Router`, func() {
 
 			events := encryptPaymentCCWithEncStateContext.EventSubscription()
 
-			// response paylad in encrypted initially
-			responsePayload, err := encryption.Decrypt(encKey, expectcc.ResponseOk(
-				// encode all arguments
-				encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3)).
-				Payload)
+			// response paylad in encrypted initially i
+			// if we don't use enctyption.MoclStub DecryptInvokeResponse feature
 
-			Expect(err).NotTo(HaveOccurred())
-			p, err := convert.FromBytes(responsePayload, &schema.Payment{})
-			Expect(err).NotTo(HaveOccurred())
+			//responsePayload, err := encryption.Decrypt(encKey, expectcc.ResponseOk(
+			//	// encode all arguments
+			//	encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3)).
+			//	Payload)
+			//
+			//Expect(err).NotTo(HaveOccurred())
+			//p, err := convert.FromBytes(responsePayload, &schema.Payment{})
+			//Expect(err).NotTo(HaveOccurred())
+			//
+			//decryptedResponse := p.(*schema.Payment)
 
-			decryptedResponse := p.(*schema.Payment)
+			responsePayment := expectcc.PayloadIs(
+				encCCInvoker.From(actors[`owner`]).Invoke(`paymentCreate`, pType, pId1, pAmount3),
+				&schema.Payment{}).(*schema.Payment)
 
-			Expect(decryptedResponse.Id).To(Equal(pId1))
-			Expect(decryptedResponse.Type).To(Equal(pType))
-			Expect(decryptedResponse.Amount).To(Equal(pAmount3))
+			Expect(responsePayment.Id).To(Equal(pId1))
+			Expect(responsePayment.Type).To(Equal(pType))
+			Expect(responsePayment.Amount).To(Equal(pAmount3))
 
 			// event name and payload is encrypted with key
 			Expect(<-events).To(BeEquivalentTo(encryption.MustEncryptEvent(encKey, &peer.ChaincodeEvent{
@@ -241,7 +248,7 @@ var _ = Describe(`Router`, func() {
 		})
 
 		It("Allow to get encrypted payments by type as unencrypted values", func() {
-			payments := expectcc.PayloadIs(encCCInvoker.Invoke(`paymentList`, pType), &[]schema.Payment{}).([]schema.Payment)
+			payments := expectcc.PayloadIs(encCCInvoker.Query(`paymentList`, pType), &[]schema.Payment{}).([]schema.Payment)
 
 			Expect(len(payments)).To(Equal(1))
 			// Returned value is not encrypted
