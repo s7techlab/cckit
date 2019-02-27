@@ -48,7 +48,7 @@ func (s *MockStub) Invoke(args ...interface{}) (response peer.Response) {
 
 	//after receiving response we can decrypt received peer responce
 	// actual only for invoke, query responses are not encrypted
-	if s.DecryptInvokeResponse {
+	if s.DecryptInvokeResponse && len(response.Payload) > 0 {
 		if response.Payload, err = Decrypt(s.EncKey, response.Payload); err != nil {
 			panic(err)
 		}
