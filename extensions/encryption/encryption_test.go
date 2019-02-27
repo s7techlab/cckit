@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/state/mapping"
 
 	"github.com/s7techlab/cckit/examples/payment/schema"
@@ -198,10 +199,32 @@ var _ = Describe(`Router`, func() {
 			expectcc.ResponseOk(encryptPaymentCCWithEncStateContext.WithTransient(encryption.TransientMapWithKey(encKey)).Init())
 		})
 		//
-		It("Allow to create payment providing key in encryptPaymentCC ", func() {
+		It("Allow to create payment providing key in encryptPaymentCC ", func(done Done) {
 			// encode all arguments
-			expectcc.ResponseOk(encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3))
-		})
+
+			events := encryptPaymentCCWithEncStateContext.EventSubscription()
+
+			expectcc.ResponseOk(encryption.MockInvoke(
+				encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3))
+
+			encryptedEventName, err := encryption.Encrypt(encKey, `PaymentEvent`)
+			Expect(err).NotTo(HaveOccurred())
+
+			encryptedEventPayload, err := encryption.Encrypt(encKey, testcc.MustProtoMarshal(&schema.PaymentEvent{
+				Type:   pType,
+				Id:     pId1,
+				Amount: pAmount3,
+			}))
+			Expect(err).NotTo(HaveOccurred())
+
+			// event name and payload is encrypted with key
+			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: string(encryptedEventName),
+				Payload:   encryptedEventPayload,
+			}))
+
+			close(done)
+		}, 0.2)
 
 		It("Allow to get payment by type and id", func() {
 			//returns unencrypted

@@ -17,10 +17,9 @@ func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 		Pre(encryption.ArgsDecrypt).
 		Init(router.EmptyContextHandler)
 
-	r.Use(m.MapStates(StateMappings))
-	r.Use(encryption.EncStateContext)
-	// use state mappings
-	// default Context replaced with EncryptedStateContext
+	r.Use(m.MapStates(StateMappings)) // use state mappings
+	r.Use(m.MapEvents(EventMappings))
+	r.Use(encryption.EncStateContext) // default Context replaced with EncryptedStateContext
 
 	debug.AddHandlers(r, `debug`)
 
@@ -32,13 +31,21 @@ func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 	return router.NewChaincode(r)
 }
 
-func invokePaymentCreateWithDefaultContext(c router.Context) (interface{}, error) {
+func invokePaymentCreateWithDefaultContext(c router.Context) (res interface{}, err error) {
 	var (
 		paymentType   = c.ParamString(`type`)
 		paymentId     = c.ParamString(`id`)
 		paymentAmount = c.ParamInt(`amount`)
 		returnVal     = []byte(paymentId) // unencrypted
 	)
+
+	if err = c.Event().Set(&schema.PaymentEvent{
+		Type:   paymentType,
+		Id:     paymentId,
+		Amount: int32(paymentAmount),
+	}); err != nil {
+		return
+	}
 	// State use encryption setting from context
 	// and state key set manually
 	// returned value will be placed in ledger - so in can be encrypted or unencrypted

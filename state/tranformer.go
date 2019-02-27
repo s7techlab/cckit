@@ -13,7 +13,7 @@ type (
 	KeyTransformer func(key []string) ([]string, error)
 
 	// NameTransformer is used before setEvent operation for convert name
-	NameTransformer func(name string) (string, error)
+	StringTransformer func(name string) (string, error)
 )
 
 func ConvertFromBytes(bb []byte, config ...interface{}) (interface{}, error) {

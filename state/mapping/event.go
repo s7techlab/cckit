@@ -40,3 +40,11 @@ func (e *EventImpl) Set(entry interface{}, value ...interface{}) error {
 	}
 	return e.event.Set(mapped, value...)
 }
+
+func (e *EventImpl) UseNameTransformer(nt state.StringTransformer) state.Event {
+	return e.event.UseNameTransformer(nt)
+}
+
+func (e *EventImpl) UseSetTransformer(tb state.ToBytesTransformer) state.Event {
+	return e.event.UseSetTransformer(tb)
+}

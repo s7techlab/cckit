@@ -9,6 +9,8 @@ type (
 	// Event interface for working with events in chaincode
 	Event interface {
 		Set(entry interface{}, value ...interface{}) error
+		UseSetTransformer(ToBytesTransformer) Event
+		UseNameTransformer(StringTransformer) Event
 	}
 
 	Namer interface {
@@ -21,19 +23,29 @@ type (
 	}
 
 	EventImpl struct {
-		stub                shim.ChaincodeStubInterface
-		NameTransformer     NameTransformer
-		EventSetTransformer ToBytesTransformer
+		stub            shim.ChaincodeStubInterface
+		NameTransformer StringTransformer
+		SetTransformer  ToBytesTransformer
 	}
 )
 
 // NewEvent creates wrapper on shim.ChaincodeStubInterface for working with events
 func NewEvent(stub shim.ChaincodeStubInterface) *EventImpl {
 	return &EventImpl{
-		stub:                stub,
-		NameTransformer:     NameAsIs,
-		EventSetTransformer: ConvertToBytes,
+		stub:            stub,
+		NameTransformer: NameAsIs,
+		SetTransformer:  ConvertToBytes,
 	}
+}
+
+func (e *EventImpl) UseSetTransformer(tb ToBytesTransformer) Event {
+	e.SetTransformer = tb
+	return e
+}
+
+func (e *EventImpl) UseNameTransformer(nt StringTransformer) Event {
+	e.NameTransformer = nt
+	return e
 }
 
 func (e *EventImpl) Set(entry interface{}, values ...interface{}) error {
@@ -44,7 +56,7 @@ func (e *EventImpl) Set(entry interface{}, values ...interface{}) error {
 		return err
 	}
 
-	bb, err := e.EventSetTransformer(value)
+	bb, err := e.SetTransformer(value)
 	if err != nil {
 		return err
 	}

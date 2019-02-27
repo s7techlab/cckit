@@ -6,3 +6,10 @@ message Payment {
     string id = 2;
     int32 amount = 3;
 }
+
+
+message PaymentEvent {
+    string type = 1;
+    string id = 2;
+    int32 amount = 3;
+}
