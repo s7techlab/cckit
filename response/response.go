@@ -17,6 +17,8 @@ func Error(err interface{}) peer.Response {
 // Success returns shim.Success with serialized json if necessary
 func Success(data interface{}) peer.Response {
 	switch data.(type) {
+	case nil:
+		return shim.Success([]byte{})
 	case string:
 		return shim.Success([]byte(data.(string)))
 	case []byte:
