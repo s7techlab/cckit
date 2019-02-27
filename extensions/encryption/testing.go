@@ -1,6 +1,8 @@
 package encryption
 
 import (
+	"fmt"
+
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/testing"
@@ -50,7 +52,7 @@ func (s *MockStub) Invoke(args ...interface{}) (response peer.Response) {
 	// actual only for invoke, query responses are not encrypted
 	if s.DecryptInvokeResponse && len(response.Payload) > 0 {
 		if response.Payload, err = Decrypt(s.EncKey, response.Payload); err != nil {
-			panic(err)
+			panic(fmt.Sprintf(`decrypt mock invoke error with payload %s (%d): %s`, string(response.Payload)[0:20], len(response.Payload), err))
 		}
 	}
 
