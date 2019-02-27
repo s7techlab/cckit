@@ -43,7 +43,8 @@ func NewMockStub(mockStub *testing.MockStub, encKey []byte) *MockStub {
 
 func (s *MockStub) Invoke(args ...interface{}) (response peer.Response) {
 	var (
-		err error
+		err       error
+		decrypted []byte
 	)
 	// first we encrypt all args
 	response = MockInvoke(s.MockStub, s.EncKey, args...)
@@ -51,9 +52,11 @@ func (s *MockStub) Invoke(args ...interface{}) (response peer.Response) {
 	//after receiving response we can decrypt received peer responce
 	// actual only for invoke, query responses are not encrypted
 	if s.DecryptInvokeResponse && len(response.Payload) > 0 {
-		if response.Payload, err = Decrypt(s.EncKey, response.Payload); err != nil {
+		if decrypted, err = Decrypt(s.EncKey, response.Payload); err != nil {
 			panic(fmt.Sprintf(`decrypt mock invoke error with payload %s (%d): %s`, string(response.Payload), len(response.Payload), err))
 		}
+
+		response.Payload = decrypted
 	}
 
 	return response
