@@ -13,14 +13,10 @@ func StateNamespace(namespace state.Key) StateMappingOpt {
 	}
 }
 
+// PKeySchema registers all fields from pkeySchema as part of primary key
+// also register keyer for pkeySchema with with namespace from current schema
 func PKeySchema(pkeySchema interface{}) StateMappingOpt {
-
-	var attrs []string
-	// fields from pkey schema
-	s := reflect.ValueOf(pkeySchema).Elem().Type()
-	for i := 0; i < s.NumField(); i++ {
-		attrs = append(attrs, s.Field(i).Name)
-	}
+	attrs := attrsFrom(pkeySchema)
 
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.primaryKeyer = attrsPKeyer(attrs)
@@ -28,6 +24,16 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 		//add mapping namespace for id schema same as schema
 		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrs...))
 	}
+}
+
+func attrsFrom(schema interface{}) (attrs []string) {
+	// fields from schema
+	s := reflect.ValueOf(schema).Elem().Type()
+	for i := 0; i < s.NumField(); i++ {
+		attrs = append(attrs, s.Field(i).Name)
+	}
+
+	return
 }
 
 func PKeyAttr(attrs ...string) StateMappingOpt {
@@ -38,6 +44,13 @@ func PKeyAttr(attrs ...string) StateMappingOpt {
 
 func PKeyId() StateMappingOpt {
 	return PKeyAttr(`Id`)
+}
+
+func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
+		sm.primaryKeyer = attrsPKeyer([]string{`Id`})
+		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrsFrom(pkeySchema)...))
+	}
 }
 
 func attrsPKeyer(attrs []string) InstanceKeyer {

@@ -3,11 +3,12 @@ package mapping_test
 import (
 	"testing"
 
-	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
-
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
+
+	"github.com/s7techlab/cckit/state"
+	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
@@ -15,7 +16,6 @@ import (
 	cpaper_schema "github.com/s7techlab/cckit/examples/cpaper/schema"
 	cpaper_testdata "github.com/s7techlab/cckit/examples/cpaper/testdata"
 	"github.com/s7techlab/cckit/identity"
-	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -93,8 +93,7 @@ var _ = Describe(`Mapping`, func() {
 				FaceValue:    cpaper1.FaceValue,
 				State:        cpaper_schema.CommercialPaper_ISSUED, // initial state
 			}
-			cPaperProto, _ := proto.Marshal(stateCpaper)
-			Expect(cpaperProtoFromCC).To(Equal(cPaperProto))
+			Expect(cpaperProtoFromCC).To(Equal(testcc.MustProtoMarshal(stateCpaper)))
 		})
 
 		It("Allow update data in chaincode state", func() {
@@ -130,8 +129,10 @@ var _ = Describe(`Mapping`, func() {
 
 	Describe(`Entity with complex id`, func() {
 
+		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{IdPart1: `aaa`, IdPart2: `bbb`}}
+
 		It("Allow to add data to chaincode state", func() {
-			ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{IdPart1: `aaa`, IdPart2: `bbb`}}
+
 			expectcc.ResponseOk(complexIdCC.Invoke(`entityInsert`, ent1))
 
 			keys := expectcc.PayloadIs(complexIdCC.From(actors[`owner`]).Invoke(`debugStateKeys`, []string{`EntityWithComplexId`}), &[]string{}).([]string)
@@ -139,6 +140,12 @@ var _ = Describe(`Mapping`, func() {
 
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
 			Expect(keys[0]).To(Equal("\x00" + `EntityWithComplexId` + string(0) + ent1.Id.IdPart1 + string(0) + ent1.Id.IdPart2 + string(0)))
+		})
+
+		It("Allow to get entity", func() {
+			// use Id as key
+			ent1FromCC := expectcc.ResponseOk(complexIdCC.Query(`entityGet`, ent1.Id)).Payload
+			Expect(ent1FromCC).To(Equal(testcc.MustProtoMarshal(ent1)))
 		})
 	})
 

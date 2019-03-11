@@ -13,7 +13,7 @@ var (
 	// State mappings
 	StateMappings = m.StateMappings{}.
 		//key namespace will be <`EntityWithComplexId`, {Id.IdPart1}, {Id.IdPart2} >
-		Add(&schema.EntityWithComplexId{}, m.PKeyId())
+		Add(&schema.EntityWithComplexId{}, m.PKeyComplexId(&schema.EntityComplexId{}))
 )
 
 func NewComplexIdCC() *router.Chaincode {
@@ -48,5 +48,5 @@ func entityGet(c router.Context) (interface{}, error) {
 	var (
 		id = c.Param()
 	)
-	return c.State().Get(id, &schema.EntityWithComplexId{})
+	return c.State().Get(id)
 }
