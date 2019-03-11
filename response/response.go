@@ -1,9 +1,10 @@
 package response
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/s7techlab/cckit/convert"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
@@ -16,20 +17,11 @@ func Error(err interface{}) peer.Response {
 
 // Success returns shim.Success with serialized json if necessary
 func Success(data interface{}) peer.Response {
-	switch data.(type) {
-	case nil:
-		return shim.Success([]byte{})
-	case string:
-		return shim.Success([]byte(data.(string)))
-	case []byte:
-		return shim.Success(data.([]byte))
-	default:
-		b, err := json.Marshal(data)
-		if err != nil {
-			return shim.Success(nil)
-		}
-		return shim.Success(b)
+	bb, err := convert.ToBytes(data)
+	if err != nil {
+		return shim.Success(nil)
 	}
+	return shim.Success(bb)
 }
 
 // Create returns peer.Response (Success or Error) depending on value of err

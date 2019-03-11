@@ -63,18 +63,17 @@ func ToBytes(value interface{}) ([]byte, error) {
 			fallthrough
 		case reflect.Array:
 			fallthrough
+		case reflect.Map:
+			fallthrough
 		case reflect.Slice:
-
-			//TODO: problems when struct includes anonymous struct - anonymous struct is in separate field
 			return json.Marshal(value)
-
 			// used when type based on string
 		case reflect.String:
 			return []byte(reflect.ValueOf(value).String()), nil
 
 		default:
 			return nil, fmt.Errorf(
-				`toBytes converting supports ToByter interface,struct,array,slice and string, current type is %s`,
+				`toBytes converting supports ToByter interface,struct,array,slice,bool and string, current type is %s`,
 				valueType)
 		}
 

@@ -84,3 +84,8 @@ SignedTransaction
 ```
 
 
+## Chaincode state encryption 
+
+Encrypter entity from [chaincode/shim/entities](https://github.com/hyperledger/fabric/tree/master/core/chaincode/shim/ext/entities) 
+package is capable of performing AES 256 bit encryption using PKCS#7 padding.
+Optionally, the IV can be provided in which case it is used during the encryption; othjerwise, a random one is generated.

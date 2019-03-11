@@ -41,7 +41,7 @@ var _ = Describe(`Router`, func() {
 
 		Expect(cc.Invoke(`empty`)).To(BeEquivalentTo(peer.Response{
 			Status:  shim.OK,
-			Payload: []byte{},
+			Payload: nil,
 			Message: ``,
 		}))
 	})
