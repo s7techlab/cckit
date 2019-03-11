@@ -42,15 +42,30 @@ func PKeyId() StateMappingOpt {
 
 func attrsPKeyer(attrs []string) InstanceKeyer {
 	return func(instance interface{}) (state.Key, error) {
-		r := reflect.ValueOf(instance)
+		inst := reflect.Indirect(reflect.ValueOf(instance))
 		var k state.Key
 		for _, attr := range attrs {
-			f := reflect.Indirect(r).FieldByName(attr)
-
+			f := inst.FieldByName(attr)
 			if !f.IsValid() {
 				return nil, fmt.Errorf(`%s: %s`, ErrFieldNotExists, attr)
 			}
-			k = append(k, f.String())
+
+			switch f.Type().String() {
+			case `string`, `int32`, `bool`:
+				k = append(k, f.String())
+				continue
+			}
+
+			valueType := reflect.TypeOf(f).Kind()
+
+			switch valueType {
+			case reflect.Struct:
+				s := reflect.ValueOf(f.Interface()).Elem().Type()
+				for i := 0; i < s.NumField(); i++ {
+					k = append(k, reflect.Indirect(f).Field(i).String())
+				}
+			}
+
 		}
 		return k, nil
 	}

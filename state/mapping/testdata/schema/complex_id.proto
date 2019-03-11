@@ -1,0 +1,15 @@
+syntax = "proto3";
+package schema;
+
+import "google/protobuf/timestamp.proto";
+
+message EntityWithComplexId {
+    EntityComplexId Id = 1;
+    google.protobuf.Timestamp some_date = 2;
+}
+
+// EntityComplexId
+message EntityComplexId {
+    string idPart1 = 1;
+    string idPart2 = 2;
+}

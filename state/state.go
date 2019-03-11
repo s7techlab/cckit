@@ -32,7 +32,7 @@ type (
 		Key() (Key, error)
 	}
 
-	// StringsKeys interface for entity containing logic of its key creationn - backward compatibility
+	// StringsKeys interface for entity containing logic of its key creation - backward compatibility
 	StringsKeyer interface {
 		Key() ([]string, error)
 	}
