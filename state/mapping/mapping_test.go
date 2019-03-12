@@ -3,6 +3,8 @@ package mapping_test
 import (
 	"testing"
 
+	state_schema "github.com/s7techlab/cckit/state/schema"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
 
@@ -75,10 +77,10 @@ var _ = Describe(`Mapping`, func() {
 		})
 
 		It("Allow to get entry list", func() {
-			cpapers := expectcc.PayloadIs(cPaperCC.Query(`list`), &[]cpaper_schema.CommercialPaper{}).([]cpaper_schema.CommercialPaper)
-			Expect(len(cpapers)).To(Equal(3))
-			Expect(cpapers[0].Issuer).To(Equal(cpaper1.Issuer))
-			Expect(cpapers[0].PaperNumber).To(Equal(cpaper1.PaperNumber))
+			cpapers := expectcc.PayloadIs(cPaperCC.Query(`list`), &cpaper_schema.CommercialPaperList{}).(*cpaper_schema.CommercialPaperList)
+			Expect(len(cpapers.Items)).To(Equal(3))
+			Expect(cpapers.Items[0].Issuer).To(Equal(cpaper1.Issuer))
+			Expect(cpapers.Items[0].PaperNumber).To(Equal(cpaper1.PaperNumber))
 		})
 
 		It("Allow to get entry raw protobuf", func() {
@@ -120,9 +122,9 @@ var _ = Describe(`Mapping`, func() {
 			toDelete := &cpaper_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}
 
 			expectcc.ResponseOk(cPaperCC.Invoke(`delete`, toDelete))
-			cpapers := expectcc.PayloadIs(cPaperCC.Invoke(`list`), &[]cpaper_schema.CommercialPaper{}).([]cpaper_schema.CommercialPaper)
+			cpapers := expectcc.PayloadIs(cPaperCC.Invoke(`list`), &state_schema.List{}).(*state_schema.List)
 
-			Expect(len(cpapers)).To(Equal(2))
+			Expect(len(cpapers.Items)).To(Equal(2))
 			expectcc.ResponseError(cPaperCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
 		})
 	})
@@ -146,6 +148,14 @@ var _ = Describe(`Mapping`, func() {
 			// use Id as key
 			ent1FromCC := expectcc.ResponseOk(complexIdCC.Query(`entityGet`, ent1.Id)).Payload
 			Expect(ent1FromCC).To(Equal(testcc.MustProtoMarshal(ent1)))
+		})
+
+		It("Allow to list entity", func() {
+			// use Id as key
+			listFromCC := expectcc.PayloadIs(complexIdCC.Query(`entityList`), &state_schema.List{}).(*state_schema.List)
+			Expect(listFromCC.Items).To(HaveLen(1))
+
+			Expect(listFromCC.Items[0].Value).To(Equal(testcc.MustProtoMarshal(ent1)))
 		})
 	})
 

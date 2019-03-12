@@ -11,8 +11,9 @@ type (
 		state.State
 		// MappingNamespace returns mapping for schema
 		MappingNamespace(schema interface{}) (state.Key, error)
-		// ListWith extends schema namespace with key
-		ListWith(schema interface{}, key state.Key) (result []interface{}, err error)
+
+		// ListWith allows to refine search criteria by adding to namespace key parts
+		ListWith(schema interface{}, key state.Key) (result interface{}, err error)
 	}
 
 	StateImpl struct {
@@ -80,7 +81,7 @@ func (s *StateImpl) Insert(entry interface{}, value ...interface{}) (err error) 
 	return s.state.Insert(entry, value...)
 }
 
-func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result []interface{}, err error) {
+func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
 	if s.mappings.Exists(namespace) {
 		m, err := s.mappings.Get(namespace)
 		if err != nil {
@@ -89,19 +90,34 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 
 		namespace = m.Namespace()
 		s.Logger().Debugf(`state mapped LIST with namespace: %s`, namespace)
-
-		target = []interface{}{m.Schema()}
+		target = targetFromMapping(m)
 	}
 
 	return s.state.List(namespace, target...)
 }
 
-func (s *StateImpl) ListWith(schema interface{}, key state.Key) (result []interface{}, err error) {
-	namespace, err := s.MappingNamespace(schema)
-	if err != nil {
-		return nil, err
+func targetFromMapping(m StateMapper) (target []interface{}) {
+	target = []interface{}{m.Schema()}
+	if list := m.List(); list != nil {
+		target = append(target, list)
 	}
-	return s.state.List(namespace.Append(key), schema)
+	return
+}
+
+func (s *StateImpl) ListWith(schema interface{}, key state.Key) (result interface{}, err error) {
+
+	if !s.mappings.Exists(schema) {
+		return nil, ErrStateMappingNotFound
+	}
+	m, err := s.mappings.Get(schema)
+	if err != nil {
+		return nil, errors.Wrap(err, `mapping`)
+	}
+
+	namespace := m.Namespace()
+	s.Logger().Debugf(`state mapped LIST with namespace: %s`, namespace, namespace.Append(key))
+
+	return s.state.List(namespace.Append(key), targetFromMapping(m)...)
 }
 
 func (s *StateImpl) Delete(entry interface{}) (err error) {

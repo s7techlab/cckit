@@ -77,7 +77,7 @@ type State interface {
 
 	// List returns slice of target type
 	// namespace can be part of key (string or []string) or entity with defined mapping
-	List(namespace interface{}, target ...interface{}) (result []interface{}, err error)
+	List(namespace interface{}, target ...interface{}) (result interface{}, err error)
 
 	// Delete returns result of deleting entry from state
 	// entry can be Key (string or []string) or type implementing Keyer interface
@@ -235,8 +235,12 @@ func (s *StateImpl) Exists(entry interface{}) (exists bool, err error) {
 
 // List data from state using objectType prefix in composite key, trying to conver to target interface.
 // Keys -  additional components of composite key
-func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result []interface{}, err error) {
+func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
 
+	stateList, err := NewStateList(target...)
+	if err != nil {
+		return nil, err
+	}
 	key, err := NormalizeStateKey(namespace)
 	if err != nil {
 		return nil, errors.Wrap(err, `prepare list key parts`)
@@ -253,22 +257,9 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result [
 	if err != nil {
 		return nil, errors.Wrap(err, `create list iterator`)
 	}
-
-	entries := make([]interface{}, 0)
 	defer func() { _ = iter.Close() }()
 
-	for iter.HasNext() {
-		v, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-		entry, err := s.StateGetTransformer(v.Value, target...)
-		if err != nil {
-			return nil, errors.Wrap(err, `transform list entry`)
-		}
-		entries = append(entries, entry)
-	}
-	return entries, nil
+	return stateList.Fill(iter, s.StateGetTransformer)
 }
 
 func NormalizeStateKey(key interface{}) (Key, error) {

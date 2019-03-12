@@ -1,0 +1,9 @@
+syntax = "proto3";
+package schema;
+
+import "google/protobuf/any.proto";
+
+message List {
+    repeated google.protobuf.Any items = 1;
+}
+

@@ -7,6 +7,9 @@ message Payment {
     int32 amount = 3;
 }
 
+message PaymentList {
+    repeated Payment Items = 1;
+}
 
 message PaymentEvent {
     string type = 1;

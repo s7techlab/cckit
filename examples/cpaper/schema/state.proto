@@ -25,3 +25,10 @@ message CommercialPaperId {
     string issuer = 1;
     string paper_number = 2;
 }
+
+
+
+message CommercialPaperList {
+    repeated CommercialPaper items = 1;
+}
+

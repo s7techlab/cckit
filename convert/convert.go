@@ -12,7 +12,7 @@ var (
 	// ErrUnableToConvertNilToStruct - nil cannot be converted to struct
 	ErrUnableToConvertNilToStruct = errors.New(`unable to convert nil to [struct,array,slice,ptr]`)
 	// ErrUnableToConvertValueToStruct - value  cannot be converted to struct
-	ErrUnableToConvertValueToStruct = errors.New(`unable to convert value to [struct,array,slice,ptr]`)
+	ErrUnableToConvertValueToStruct = errors.New(`unable to convert value to struct`)
 )
 
 const TypeInt = 1

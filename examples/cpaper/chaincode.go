@@ -14,7 +14,7 @@ var (
 	// State mappings
 	StateMappings = m.StateMappings{}.
 		//key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
-		Add(&schema.CommercialPaper{}, m.PKeySchema(&schema.CommercialPaperId{}))
+		Add(&schema.CommercialPaper{}, m.PKeySchema(&schema.CommercialPaperId{}), m.List(&schema.CommercialPaperList{}))
 
 	// EventMappings
 	EventMappings = m.EventMappings{}.

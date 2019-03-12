@@ -14,6 +14,7 @@ It has these top-level messages:
 	RedeemCommercialPaper
 	CommercialPaper
 	CommercialPaperId
+	CommercialPaperList
 */
 package schema
 

@@ -4,12 +4,20 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/s7techlab/cckit/state"
 )
 
+// StateNamespace sets namespace for mapping
 func StateNamespace(namespace state.Key) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.namespace = namespace
+	}
+}
+
+func List(list proto.Message) StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
+		sm.list = list
 	}
 }
 

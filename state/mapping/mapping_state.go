@@ -25,6 +25,7 @@ type (
 
 	StateMapper interface {
 		Schema() interface{}
+		List() interface{}
 		Namespace() state.Key
 		PrimaryKey(instance interface{}) (key state.Key, err error)
 	}
@@ -35,6 +36,7 @@ type (
 		schema       interface{}
 		namespace    state.Key
 		primaryKeyer InstanceKeyer
+		list         interface{}
 		//PKStringer KeyerFunc
 		//PKToString KeyerFunc
 		//niqKey []KeyTransformer
@@ -113,6 +115,10 @@ func (sm *StateMapping) Namespace() state.Key {
 }
 func (sm *StateMapping) Schema() interface{} {
 	return sm.schema
+}
+
+func (sm *StateMapping) List() interface{} {
+	return sm.list
 }
 
 func (sm *StateMapping) PrimaryKey(entity interface{}) (state.Key, error) {

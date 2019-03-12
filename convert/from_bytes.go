@@ -71,7 +71,7 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 
 	default:
 		return nil, fmt.Errorf(
-			`toBytes converting supports ToByter interface,struct,array,slice and string, current type is %s`,
+			`fromBytes converting supports ToByter interface,struct,array,slice and string, current type is %s`,
 			targetType)
 	}
 }
@@ -81,7 +81,7 @@ func JsonUnmarshalPtr(bb []byte, to interface{}) (result interface{}, err error)
 	targetPtr := reflect.New(reflect.ValueOf(to).Elem().Type()).Interface()
 	err = json.Unmarshal(bb, targetPtr)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrUnableToConvertValueToStruct.Error())
+		return nil, fmt.Errorf(ErrUnableToConvertValueToStruct.Error())
 	}
 	return reflect.Indirect(reflect.ValueOf(targetPtr)).Interface(), nil
 }

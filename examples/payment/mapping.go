@@ -7,8 +7,10 @@ import (
 
 var (
 	// State mappings
-	StateMappings = m.StateMappings{}.
-			Add(&schema.Payment{}, m.PKeyAttr(`Type`, `Id`)) //key will be <'Payment',Type, Id>
+	StateMappings = m.StateMappings{}.Add(
+		&schema.Payment{},             // state entry value will contain marshaled protobuf schema.Payment
+		m.PKeyAttr(`Type`, `Id`),      // state entry key will be composite key <'Payment',{Type}, {Id}>
+		m.List(&schema.PaymentList{})) // state.list() method will return marshaled protobuf schema.PaymentList
 	// same same
 	//Add(&schema.Payment{}, m.PKeySchema(&schema.PaymentId{}))
 
