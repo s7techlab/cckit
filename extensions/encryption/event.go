@@ -1,6 +1,8 @@
 package encryption
 
 import (
+	"encoding/base64"
+
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
 )
@@ -33,6 +35,6 @@ func StringEncryptor(key []byte) state.StringTransformer {
 			return ``, err
 		}
 
-		return string(enc), nil
+		return base64.StdEncoding.EncodeToString(enc), nil
 	}
 }
