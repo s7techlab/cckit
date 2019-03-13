@@ -9,19 +9,14 @@ import (
 	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
 )
 
-var (
-	// State mappings
-	StateMappings = m.StateMappings{}.
-		//key namespace will be <`EntityWithComplexId`, {Id.IdPart1}, {Id.IdPart2} >
-		Add(&schema.EntityWithComplexId{}, m.PKeyComplexId(&schema.EntityComplexId{}))
-)
-
 func NewComplexIdCC() *router.Chaincode {
 	r := router.New(`complexId`)
 	debug.AddHandlers(r, `debug`, owner.Only)
 
 	// Mappings for chaincode state
-	r.Use(m.MapStates(StateMappings))
+	r.Use(m.MapStates(m.StateMappings{}.
+		//key will be <`EntityWithComplexId`, {Id.IdPart1}, {Id.IdPart2} >
+		Add(&schema.EntityWithComplexId{}, m.PKeyComplexId(&schema.EntityComplexId{}))))
 
 	r.Init(owner.InvokeSetFromCreator)
 

@@ -11,4 +11,7 @@ var (
 
 	// ErrEventMappingNotFound
 	ErrEventMappingNotFound = errors.New(`event mapping not found`)
+
+	// ErrFieldTypeNotSupportedForKeyExtraction key cannot extracted from field
+	ErrFieldTypeNotSupportedForKeyExtraction = errors.New(`field type not supported for key extraction`)
 )

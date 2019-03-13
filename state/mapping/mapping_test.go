@@ -29,9 +29,9 @@ func TestState(t *testing.T) {
 }
 
 var (
-	actors                identity.Actors
-	cPaperCC, complexIdCC *testcc.MockStub
-	err                   error
+	actors                           identity.Actors
+	cPaperCC, complexIdCC, sliceIdCC *testcc.MockStub
+	err                              error
 )
 var _ = Describe(`Mapping`, func() {
 
@@ -48,6 +48,9 @@ var _ = Describe(`Mapping`, func() {
 
 		complexIdCC = testcc.NewMockStub(`complexid`, testdata.NewComplexIdCC())
 		complexIdCC.From(actors[`owner`]).Init()
+
+		sliceIdCC = testcc.NewMockStub(`sliceid`, testdata.NewSliceIdCC())
+		sliceIdCC.From(actors[`owner`]).Init()
 	})
 
 	Describe(`Commercial paper, protobuf based schema`, func() {
@@ -134,9 +137,7 @@ var _ = Describe(`Mapping`, func() {
 		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{IdPart1: `aaa`, IdPart2: `bbb`}}
 
 		It("Allow to add data to chaincode state", func() {
-
 			expectcc.ResponseOk(complexIdCC.Invoke(`entityInsert`, ent1))
-
 			keys := expectcc.PayloadIs(complexIdCC.From(actors[`owner`]).Invoke(`debugStateKeys`, []string{`EntityWithComplexId`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(1))
 
@@ -159,4 +160,32 @@ var _ = Describe(`Mapping`, func() {
 		})
 	})
 
+	Describe(`Entity with slice id`, func() {
+
+		ent2 := &schema.EntityWithSliceId{Id: []string{`aa`, `bb`}, SomeDate: ptypes.TimestampNow()}
+
+		It("Allow to add data to chaincode state", func() {
+			expectcc.ResponseOk(sliceIdCC.Invoke(`entityInsert`, ent2))
+			keys := expectcc.PayloadIs(sliceIdCC.From(actors[`owner`]).Invoke(`debugStateKeys`, []string{`EntityWithSliceId`}), &[]string{}).([]string)
+
+			Expect(len(keys)).To(Equal(1))
+
+			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
+			Expect(keys[0]).To(Equal("\x00" + `EntityWithSliceId` + string(0) + ent2.Id[0] + string(0) + ent2.Id[1] + string(0)))
+		})
+
+		It("Allow to get entity", func() {
+			// use Id as key
+			ent1FromCC := expectcc.ResponseOk(sliceIdCC.Query(`entityGet`, state.StringsIdToStr(ent2.Id))).Payload
+			Expect(ent1FromCC).To(Equal(testcc.MustProtoMarshal(ent2)))
+		})
+
+		It("Allow to list entity", func() {
+			// use Id as key
+			listFromCC := expectcc.PayloadIs(sliceIdCC.Query(`entityList`), &state_schema.List{}).(*state_schema.List)
+			Expect(listFromCC.Items).To(HaveLen(1))
+
+			Expect(listFromCC.Items[0].Value).To(Equal(testcc.MustProtoMarshal(ent2)))
+		})
+	})
 })

@@ -1,0 +1,9 @@
+syntax = "proto3";
+package schema;
+
+import "google/protobuf/timestamp.proto";
+
+message EntityWithSliceId {
+    repeated string Id = 1;
+    google.protobuf.Timestamp some_date = 2;
+}
