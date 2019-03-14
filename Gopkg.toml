@@ -2,7 +2,7 @@ required = ["github.com/op/go-logging"]
 
 [[override]]
   name = "github.com/hyperledger/fabric"
-  version = "1.2.0"
+  version = "1.4.0"
 
 
 [[override]]
@@ -19,7 +19,6 @@ required = ["github.com/op/go-logging"]
   name = "gopkg.in/fsnotify.v1"
   source = "https://github.com/fsnotify/fsnotify.git"
 
-
 [[override]]
-  name = "github.com/docker/docker"
-  revision = "57142e89befe90977da6dce7762f9fcc70f28da1"
+  name = "github.com/fsouza/go-dockerclient"
+  version = "=1.2.1"
