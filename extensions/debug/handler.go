@@ -15,18 +15,48 @@ const (
 	InvokeStateDeleteFunc = `StateDelete`
 )
 
-// AddHandler adds debug handlers to router
+var (
+	// KeyParam parameter for get, put, delete data from state
+	KeyParam = param.Strings(`key`)
+
+	// PrefixParam parameter for key, value lists
+	PrefixParam = param.Strings(`prefix`)
+
+	// ValueParam  parameter for putting value in state
+	ValueParam = param.Bytes(`value`)
+)
+
+// AddHandler adds debug handlers to router, allows to add more middleware
+// for example for access control
 func AddHandlers(r *router.Group, prefix string, middleware ...router.MiddlewareFunc) {
-	r.Invoke(prefix+InvokeStateCleanFunc, InvokeStateClean,
-		append([]router.MiddlewareFunc{param.Strings(`prefix`)}, middleware...)...)
-	r.Query(prefix+QueryStateKeysFunc, QueryKeysList,
-		append([]router.MiddlewareFunc{param.Strings(`prefix`)}, middleware...)...)
-	r.Query(prefix+QueryStateGetFunc, QueryStateGet,
-		append([]router.MiddlewareFunc{param.Strings(`key`)}, middleware...)...)
-	r.Invoke(prefix+InvokeStatePutFunc, InvokeStatePut,
-		append([]router.MiddlewareFunc{param.Strings(`key`), param.Bytes(`value`)}, middleware...)...)
-	r.Invoke(prefix+InvokeStateDeleteFunc, InvokeStateDelete,
-		append([]router.MiddlewareFunc{param.Strings(`key`)}, middleware...)...)
+
+	// clear state entries by key prefixs
+	r.Invoke(
+		prefix+InvokeStateCleanFunc,
+		InvokeStateClean,
+		append([]router.MiddlewareFunc{PrefixParam}, middleware...)...)
+
+	// query keys by prefix
+	r.Query(
+		prefix+QueryStateKeysFunc,
+		QueryKeysList,
+		append([]router.MiddlewareFunc{PrefixParam}, middleware...)...)
+
+	// query value by key
+	r.Query(
+		prefix+QueryStateGetFunc,
+		QueryStateGet,
+		append([]router.MiddlewareFunc{KeyParam}, middleware...)...)
+
+	r.Invoke(
+		prefix+InvokeStatePutFunc,
+		InvokeStatePut,
+		append([]router.MiddlewareFunc{KeyParam, ValueParam}, middleware...)...)
+
+	r.Invoke(
+		prefix+InvokeStateDeleteFunc,
+		InvokeStateDelete,
+		append([]router.MiddlewareFunc{KeyParam}, middleware...)...)
 }
 
 // InvokeStateClean delete entries from state, prefix []string contains key prefixes or whole key
