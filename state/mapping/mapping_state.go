@@ -21,6 +21,7 @@ type (
 		Exists(schema interface{}) (exists bool)
 		Map(schema interface{}) (keyValue state.KeyValue, err error)
 		Get(schema interface{}) (stateMapper StateMapper, err error)
+		PrimaryKey(schema interface{}) (key state.Key, err error)
 	}
 
 	StateMapper interface {
@@ -37,8 +38,6 @@ type (
 		namespace    state.Key
 		primaryKeyer InstanceKeyer
 		list         interface{}
-		//PKStringer KeyerFunc
-		//PKToString KeyerFunc
 		//niqKey []KeyTransformer
 		//Key     []KeyTransformer
 	}
@@ -94,6 +93,14 @@ func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 func (smm StateMappings) Exists(entry interface{}) bool {
 	_, err := smm.Get(entry)
 	return err == nil
+}
+
+func (smm StateMappings) PrimaryKey(entry interface{}) (pkey state.Key, err error) {
+	var m StateMapper
+	if m, err = smm.Get(entry); err != nil {
+		return nil, err
+	}
+	return m.PrimaryKey(entry)
 }
 
 func (smm StateMappings) Map(entry interface{}) (mapped state.KeyValue, err error) {
