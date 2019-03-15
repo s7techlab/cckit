@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric/protos/peer"
+
 	"github.com/s7techlab/cckit/state/mapping"
 
 	"github.com/s7techlab/cckit/examples/payment/schema"
@@ -98,7 +99,7 @@ var _ = Describe(`Router`, func() {
 		paymentMapper, _ = payment.StateMappings.Get(&schema.Payment{})
 		Expect(err).To(BeNil())
 
-		// we know than Payment namespace contain only one part
+		// we know that Payment namespace contain only one part
 		encPaymentNamespace, err = encryption.Encrypt(encKey, paymentMapper.Namespace()[0])
 		Expect(err).To(BeNil())
 	})
@@ -144,8 +145,8 @@ var _ = Describe(`Router`, func() {
 			Expect(len(args)).To(Equal(3))
 
 			// Check that value is encrypted in chaincode state - use debugStateGet func
-			// without providing key in transient map
-
+			// without providing key in transient map - so we need to provide encrypted key
+			// and cause we dont't require key - state also returns unencrypted
 			expectcc.PayloadBytes(encryptOnDemandPaymentCC.Invoke(`debugStateGet`, []string{
 				base64.StdEncoding.EncodeToString(encPaymentNamespace),
 				base64.StdEncoding.EncodeToString(encryptedPType),
@@ -203,32 +204,19 @@ var _ = Describe(`Router`, func() {
 		})
 		//
 		It("Allow to create payment providing key in encryptPaymentCC ", func(done Done) {
-
 			events := encryptPaymentCCWithEncStateContext.EventSubscription()
 
-			// response paylad in encrypted initially i
-			// if we don't use enctyption.MoclStub DecryptInvokeResponse feature
-
-			//responsePayload, err := encryption.Decrypt(encKey, expectcc.ResponseOk(
-			//	// encode all arguments
-			//	encryption.MockInvoke(encryptPaymentCCWithEncStateContext, encKey, `paymentCreate`, pType, pId1, pAmount3)).
-			//	Payload)
-			//
-			//Expect(err).NotTo(HaveOccurred())
-			//p, err := convert.FromBytes(responsePayload, &schema.Payment{})
-			//Expect(err).NotTo(HaveOccurred())
-			//
-			//decryptedResponse := p.(*schema.Payment)
-
 			responsePayment := expectcc.PayloadIs(
+				// encCCInvoker encrypts args before passing to cc invoke and pass key in transient map
 				encCCInvoker.From(actors[`owner`]).Invoke(`paymentCreate`, pType, pId1, pAmount3),
 				&schema.Payment{}).(*schema.Payment)
 
+			// we use encryption.MockStub DecryptInvokeResponse feature
 			Expect(responsePayment.Id).To(Equal(pId1))
 			Expect(responsePayment.Type).To(Equal(pType))
 			Expect(responsePayment.Amount).To(Equal(pAmount3))
 
-			// event name and payload is encrypted with key
+			//event name and payload is encrypted with key
 			Expect(<-events).To(BeEquivalentTo(encryption.MustEncryptEvent(encKey, &peer.ChaincodeEvent{
 				EventName: `PaymentEvent`,
 				Payload: testcc.MustProtoMarshal(&schema.PaymentEvent{
@@ -242,11 +230,24 @@ var _ = Describe(`Router`, func() {
 		}, 0.2)
 
 		It("Allow to get payment by type and id", func() {
-			//returns unencrypted
+			// encCCInvoker encrypts args before passing to cc invoke and pass key in transient map
 			paymentFromCC := expectcc.PayloadIs(encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pId1), &schema.Payment{}).(*schema.Payment)
+
+			//returned payload is unencrypted
 			Expect(paymentFromCC.Id).To(Equal(pId1))
 			Expect(paymentFromCC.Type).To(Equal(pType))
 			Expect(paymentFromCC.Amount).To(Equal(pAmount3))
+		})
+
+		It("Disallow to get payment providing key using debugStateGet", func() {
+			// we didn't provide encrypting key,
+			// chaincode use ArgsDecrypt middleware, requiring key in transient map
+			// but we add exception for method debugStateGet
+			// for all chaincode methods, except stateGet @see example/payments/cc_enc_context_with_mapping.go
+			expectcc.ResponseOk(encCCInvoker.MockStub.Invoke(`debugStateGet`, []string{
+				base64.StdEncoding.EncodeToString(encPaymentNamespace),
+				base64.StdEncoding.EncodeToString(encryptedPType),
+				base64.StdEncoding.EncodeToString(encryptedPId1)}))
 		})
 
 		It("Allow to get encrypted payments by type as unencrypted values", func() {
@@ -257,6 +258,20 @@ var _ = Describe(`Router`, func() {
 			Expect(paymentsFromCC.Items[0].Id).To(Equal(pId1))
 			Expect(paymentsFromCC.Items[0].Type).To(Equal(pType))
 			Expect(paymentsFromCC.Items[0].Amount).To(Equal(pAmount3))
+		})
+
+		It("Disallow to get payment by type and id without providing encrypting key in transient map", func() {
+			expectcc.ResponseError(encCCInvoker.MockStub.From(actors[`owner`]).Query(`paymentGet`, pType, pId1),
+				encryption.ErrKeyNotDefinedInTransientMap)
+		})
+
+		It("Allow to get payment by type and id", func() {
+			//returns unencrypted
+			paymentFromCC := expectcc.PayloadIs(encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pId1),
+				&schema.Payment{}).(*schema.Payment)
+			Expect(paymentFromCC.Id).To(Equal(pId1))
+			Expect(paymentFromCC.Type).To(Equal(pType))
+			Expect(paymentFromCC.Amount).To(Equal(pAmount3))
 		})
 
 	})

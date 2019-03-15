@@ -14,7 +14,8 @@ var (
 	ErrKeyNotDefinedInTransientMap = errors.New(`encryption key is not defined in transient map`)
 )
 
-// State encrypting the data before putting to state and decrypting the data after getting from state
+// State wrapper, encrypts the data before putting to state and
+// decrypts the data after getting from state
 func State(c router.Context, key []byte) (state.State, error) {
 	//current state
 	s := c.State()
@@ -105,6 +106,7 @@ func ToBytesEncryptor(key []byte) state.ToBytesTransformer {
 	}
 }
 
+// EncryptWithTransientKey encrypts val with key from transient map
 func EncryptWithTransientKey(c router.Context, val interface{}) (encrypted []byte, err error) {
 	var (
 		key []byte

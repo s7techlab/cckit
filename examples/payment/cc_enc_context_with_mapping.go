@@ -14,12 +14,14 @@ import (
 // and required encrypting
 func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 	r := router.New(`encrypted-with-custom-context`).
-		Pre(encryption.ArgsDecrypt).
+		Pre(encryption.ArgsDecryptExcept(`debugStateGet`)). // encrypted args required, except method `stateGet`
 		Init(router.EmptyContextHandler)
 
 	r.Use(m.MapStates(StateMappings)) // use state mappings
-	r.Use(m.MapEvents(EventMappings))
-	r.Use(encryption.EncStateContext) // default Context replaced with EncryptedStateContext
+	r.Use(m.MapEvents(EventMappings)) // use event mappings
+
+	// default Context replaced with EncryptedStateContext only if key is provided in transient map
+	r.Use(encryption.EncStateContextIfKeyProvided)
 
 	debug.AddHandlers(r, `debug`)
 
