@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/s7techlab/cckit/extensions/encryption/testdata"
+
 	"github.com/hyperledger/fabric/protos/peer"
 
 	"github.com/s7techlab/cckit/state/mapping"
@@ -32,6 +34,7 @@ var (
 	encryptOnDemandPaymentCC            *testcc.MockStub
 	encryptPaymentCC                    *testcc.MockStub
 	encryptPaymentCCWithEncStateContext *testcc.MockStub
+	externalCC                          *testcc.MockStub
 
 	encCCInvoker *encryption.MockStub
 
@@ -74,6 +77,13 @@ var _ = Describe(`Router`, func() {
 	encCCInvoker = encryption.NewMockStub(encryptPaymentCCWithEncStateContext, encKey)
 	encCCInvoker.DecryptInvokeResponse = true
 
+	externalCC = testcc.NewMockStub(`external`,
+		testdata.NewExternaldCC(`paymentsEncWithContext`, `payment-channel`))
+
+	// external cc have access to encrypted payment chaincode
+	externalCC.MockPeerChaincode(
+		`paymentsEncWithContext/payment-channel`,
+		encryptPaymentCCWithEncStateContext)
 	BeforeSuite(func() {
 
 		actors, err = identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
@@ -272,6 +282,15 @@ var _ = Describe(`Router`, func() {
 			Expect(paymentFromCC.Id).To(Equal(pId1))
 			Expect(paymentFromCC.Type).To(Equal(pType))
 			Expect(paymentFromCC.Amount).To(Equal(pAmount3))
+		})
+
+		It("Allow to get payment via external chaincode", func() {
+
+			paymentFromExtCC := expectcc.PayloadIs(externalCC.WithTransient(encryption.
+				TransientMapWithKey(encKey)).Query(`checkPayment`, pType, pId1), &schema.Payment{}).(*schema.Payment)
+			Expect(paymentFromExtCC.Id).To(Equal(pId1))
+			Expect(paymentFromExtCC.Type).To(Equal(pType))
+			Expect(paymentFromExtCC.Amount).To(Equal(pAmount3))
 		})
 
 	})

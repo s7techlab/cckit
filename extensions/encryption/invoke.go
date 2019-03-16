@@ -7,17 +7,19 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
-// InvokeChaincode encrypts args before invoking external chaincode and decrypts received payload
+// InvokeChaincode decrypts received payload
 func InvokeChaincode(
 	stub shim.ChaincodeStubInterface, encKey []byte, chaincodeName string,
 	args []interface{}, channel string, target interface{}) (interface{}, error) {
 
-	encryptedArgs, err := EncryptArgs(encKey, args...)
+	// args are not encrypted cause we cannot pass encryption key in transient map while invoking cc from cc
+	// thus target cc cannot decrypt args
+	aa, err := convert.ArgsToBytes(args...)
 	if err != nil {
 		return nil, errors.Wrap(err, `encrypt args`)
 	}
 
-	response := stub.InvokeChaincode(chaincodeName, encryptedArgs, channel)
+	response := stub.InvokeChaincode(chaincodeName, aa, channel)
 	if response.Status != shim.OK {
 		return nil, errors.New(response.Message)
 	}
