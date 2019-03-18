@@ -4,8 +4,8 @@
 ![Build](https://api.travis-ci.org/s7techlab/cckit.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/s7techlab/cckit/badge.svg?branch=master)](https://coveralls.io/github/s7techlab/cckit?branch=master)
 
-**CCKit** is a **programming toolkit** for developing and testing hyperledger fabric golang chaincodeю.  It enhances
- the development experience while providing developers components fort creating more readable and secure 
+**CCKit** is a **programming toolkit** for developing and testing hyperledger fabric golang chaincodes.  It enhances
+ the development experience while providing developers components for creating more readable and secure 
  smart contracts (chaincodes).
 
 ## Overview
