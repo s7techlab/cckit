@@ -10,11 +10,6 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
-var (
-	ErrFieldNotExists         = errors.New(`field is not exists`)
-	ErrPrimaryKeyerNotDefined = errors.New(`primary keyer is not defined`)
-)
-
 type (
 	// StateMappers interface for mappers collection
 	StateMappers interface {
@@ -24,22 +19,34 @@ type (
 		PrimaryKey(schema interface{}) (key state.Key, err error)
 	}
 
+	// StateMapper
 	StateMapper interface {
 		Schema() interface{}
 		List() interface{}
 		Namespace() state.Key
 		PrimaryKey(instance interface{}) (key state.Key, err error)
+		Keys(instance interface{}) (key []state.KeyValue, err error)
 	}
 
 	InstanceKeyer func(instance interface{}) (key state.Key, err error)
 
+	StateMapped interface {
+		state.KeyValue // entry key and value
+		Mapper() StateMapper
+		Keys() ([]state.KeyValue, error)
+	}
+	// StateMapping defines metadata for mapping from schema to state keys/values
 	StateMapping struct {
 		schema       interface{}
 		namespace    state.Key
 		primaryKeyer InstanceKeyer
 		list         interface{}
-		//niqKey []KeyTransformer
-		//Key     []KeyTransformer
+		uniqKeys     []*StateKeyDefinition
+	}
+
+	StateKeyDefinition struct {
+		Name  string
+		Attrs []string
 	}
 
 	StateMappings map[string]*StateMapping
@@ -103,15 +110,15 @@ func (smm StateMappings) PrimaryKey(entry interface{}) (pkey state.Key, err erro
 	return m.PrimaryKey(entry)
 }
 
-func (smm StateMappings) Map(entry interface{}) (mapped state.KeyValue, err error) {
-	mapping, err := smm.Get(entry)
+func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) {
+	mapper, err := smm.Get(entry)
 	if err != nil {
 		return nil, errors.Wrap(err, `mapping`)
 	}
 
 	switch entry.(type) {
 	case proto.Message:
-		return NewProtoStateMapper(entry, mapping)
+		return NewProtoStateMapped(entry, mapper), nil
 	default:
 		return nil, ErrEntryTypeNotSupported
 	}
@@ -139,8 +146,26 @@ func (sm *StateMapping) PrimaryKey(entity interface{}) (state.Key, error) {
 	return append(sm.namespace, key...), nil
 }
 
-func PKeyer(pkeyer InstanceKeyer) StateMappingOpt {
-	return func(sm *StateMapping, smm StateMappings) {
-		sm.primaryKeyer = pkeyer
+func (sm *StateMapping) Keys(entity interface{}) (kv []state.KeyValue, err error) {
+	if len(sm.uniqKeys) == 0 {
+		return
 	}
+
+	pk, err := sm.PrimaryKey(entity)
+	if err != nil {
+		return
+	}
+
+	for _, k := range sm.uniqKeys {
+		// uniq key attr values
+		refKey, err := attrsPKeyer(k.Attrs)(entity)
+		if err != nil {
+			return nil, fmt.Errorf(`uniq key %s: %s`, k.Name, err)
+		}
+
+		// key will be <`_idx`,{SchemaName},{idxName}, {Key[1]},... {Key[n}}>s
+		kv = append(kv, NewKeyRefMapped(sm.schema, k.Name, refKey, pk))
+	}
+
+	return
 }

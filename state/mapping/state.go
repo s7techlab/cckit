@@ -1,6 +1,10 @@
 package mapping
 
 import (
+	"fmt"
+
+	"github.com/s7techlab/cckit/state/schema"
+
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/state"
@@ -9,11 +13,15 @@ import (
 type (
 	MappedState interface {
 		state.State
-		// MappingNamespace returns mapping for schema
-		MappingNamespace(schema interface{}) (state.Key, error)
 
 		// ListWith allows to refine search criteria by adding to namespace key parts
 		ListWith(schema interface{}, key state.Key) (result interface{}, err error)
+
+		// GetByUniqKey return one entry
+		GetByUniqKey(schema interface{}, idx string, idxVal []string) (result interface{}, err error)
+
+		// GetByUniqKey return list of entries
+		//GetByKey(schema interface{}, key string, keyValue []interface{}) (result interface{}, err error)
 	}
 
 	StateImpl struct {
@@ -38,18 +46,13 @@ func (s *StateImpl) MappingNamespace(schema interface{}) (state.Key, error) {
 	return m.Namespace(), nil
 }
 
-func (s *StateImpl) mapIfMappingExists(entry interface{}) (mapped interface{}, err error) {
-	if !s.mappings.Exists(entry) {
-		return entry, nil
-	}
-	return s.mappings.Map(entry)
-}
-
 func (s *StateImpl) Get(entry interface{}, target ...interface{}) (result interface{}, err error) {
-	if entry, err = s.mapIfMappingExists(entry); err != nil {
-		return nil, err
+	mapped, err := s.mappings.Map(entry)
+	if err != nil { // mapping is not exists
+		return s.state.Get(entry, target...) // return as is
 	}
-	return s.state.Get(entry, target...)
+
+	return s.state.Get(mapped, target...)
 }
 
 func (s *StateImpl) GetInt(key interface{}, defaultValue int) (result int, err error) {
@@ -61,24 +64,56 @@ func (s *StateImpl) GetHistory(key interface{}, target interface{}) (result stat
 }
 
 func (s *StateImpl) Exists(entry interface{}) (exists bool, err error) {
-	if entry, err = s.mapIfMappingExists(entry); err != nil {
-		return false, err
+	mapped, err := s.mappings.Map(entry)
+	if err != nil { // mapping is not exists
+		return s.state.Exists(entry) // return as is
 	}
-	return s.state.Exists(entry)
+
+	return s.state.Exists(mapped)
 }
 
 func (s *StateImpl) Put(entry interface{}, value ...interface{}) (err error) {
-	if entry, err = s.mapIfMappingExists(entry); err != nil {
-		return err
+	mapped, err := s.mappings.Map(entry)
+	if err != nil { // mapping is not exists
+		return s.state.Put(entry, value...) // return as is
 	}
-	return s.state.Put(entry, value...)
+
+	keyRefs, err := mapped.Keys() // additional keys
+	if err != nil {
+		return
+	}
+
+	// delete previous key refs if key exists
+
+	// put uniq key refs. if key already exists - error returned
+	for _, kr := range keyRefs {
+		if err = s.state.Put(kr); err != nil {
+			return fmt.Errorf(`%s: %s`, ErrMappingUniqKeyExists, err)
+		}
+	}
+
+	return s.state.Put(mapped)
 }
 
 func (s *StateImpl) Insert(entry interface{}, value ...interface{}) (err error) {
-	if entry, err = s.mapIfMappingExists(entry); err != nil {
-		return err
+	mapped, err := s.mappings.Map(entry)
+	if err != nil { // mapping is not exists
+		return s.state.Insert(entry, value...) // return as is
 	}
-	return s.state.Insert(entry, value...)
+
+	keyRefs, err := mapped.Keys() // additional keys
+	if err != nil {
+		return
+	}
+
+	// insert uniq key refs. if key already exists - error returned
+	for _, kr := range keyRefs {
+		if err = s.state.Insert(kr); err != nil {
+			return fmt.Errorf(`%s: %s`, ErrMappingUniqKeyExists, err)
+		}
+	}
+
+	return s.state.Insert(mapped)
 }
 
 func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
@@ -104,12 +139,11 @@ func targetFromMapping(m StateMapper) (target []interface{}) {
 	return
 }
 
-func (s *StateImpl) ListWith(schema interface{}, key state.Key) (result interface{}, err error) {
-
-	if !s.mappings.Exists(schema) {
+func (s *StateImpl) ListWith(entry interface{}, key state.Key) (result interface{}, err error) {
+	if !s.mappings.Exists(entry) {
 		return nil, ErrStateMappingNotFound
 	}
-	m, err := s.mappings.Get(schema)
+	m, err := s.mappings.Get(entry)
 	if err != nil {
 		return nil, errors.Wrap(err, `mapping`)
 	}
@@ -120,11 +154,27 @@ func (s *StateImpl) ListWith(schema interface{}, key state.Key) (result interfac
 	return s.state.List(namespace.Append(key), targetFromMapping(m)...)
 }
 
-func (s *StateImpl) Delete(entry interface{}) (err error) {
-	if entry, err = s.mapIfMappingExists(entry); err != nil {
-		return err
+func (s *StateImpl) GetByUniqKey(entry interface{}, idx string, idxVal []string) (result interface{}, err error) {
+	if !s.mappings.Exists(entry) {
+		return nil, ErrStateMappingNotFound
 	}
-	return s.state.Delete(entry)
+
+	keyRef, err := s.state.Get(NewKeyRefIdMapped(entry, idx, idxVal), &schema.KeyRef{})
+	if err != nil {
+		return nil, err
+	}
+
+	return s.state.Get(keyRef.(*schema.KeyRef).PKey)
+}
+
+func (s *StateImpl) Delete(entry interface{}) (err error) {
+
+	mapped, err := s.mappings.Map(entry)
+	if err != nil { // mapping is not exists
+		return s.state.Delete(entry) // return as is
+	}
+
+	return s.state.Delete(mapped)
 }
 
 func (s *StateImpl) Logger() *shim.ChaincodeLogger {

@@ -1,9 +1,11 @@
 syntax = "proto3";
-package schema;
+
+package cckit.examples.cpaper_extended.schema;
+option go_package = "schema";
 
 import "google/protobuf/timestamp.proto";
 
-// CommercialPaper state entry
+// Commercialpaper state entry
 message CommercialPaper {
 
     enum State {
@@ -21,6 +23,9 @@ message CommercialPaper {
     google.protobuf.Timestamp maturity_date = 5;
     int32 face_value = 6;
     State state = 7;
+
+    // additional uniq field for entry
+    string external_id = 8;
 }
 
 // CommercialPaperId identifier part

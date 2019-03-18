@@ -49,7 +49,7 @@ in chaincode functions. Mockstub allows you to get the test results almost immed
 
 
 MockStub contains implementation for most of `shim.ChaincodeStubInterface` function, but in the current version 
-of Hyperledger Fabric (1.2), the MockStub has not implemented some of the important methods such
+of Hyperledger Fabric (1.4), the MockStub has not implemented some of the important methods such
 as `GetCreator`, for example. Since chaincode would use this method to get tx creator certificate
 for access control, it's critical to be able to stub this method  in order to completely unit-test chaincode. 
 

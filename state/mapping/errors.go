@@ -14,4 +14,9 @@ var (
 
 	// ErrFieldTypeNotSupportedForKeyExtraction key cannot extracted from field
 	ErrFieldTypeNotSupportedForKeyExtraction = errors.New(`field type not supported for key extraction`)
+
+	ErrMappingUniqKeyExists = errors.New(`mapping uniq key exists`)
+
+	ErrFieldNotExists         = errors.New(`field is not exists`)
+	ErrPrimaryKeyerNotDefined = errors.New(`primary keyer is not defined`)
 )

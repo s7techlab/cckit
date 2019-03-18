@@ -22,3 +22,6 @@ required = ["github.com/op/go-logging"]
 [[override]]
   name = "github.com/fsouza/go-dockerclient"
   version = "=1.2.1"
+[[constraint]]
+  branch = "master"
+  name = "github.com/mwitkow/go-proto-validators"

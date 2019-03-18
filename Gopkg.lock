@@ -104,7 +104,10 @@
 [[projects]]
   digest = "1:fd53b471edb4c28c7d297f617f4da0d33402755f58d6301e7ca1197ef0a90937"
   name = "github.com/gogo/protobuf"
-  packages = ["proto"]
+  packages = [
+    "proto",
+    "protoc-gen-gogo/descriptor",
+  ]
   pruneopts = ""
   revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
   version = "v1.2.1"
@@ -248,6 +251,14 @@
   pruneopts = ""
   revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
   version = "v1.1.2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:5350b8f9bedc3e9f3d940abc6a3914c76b9ada1c0c3a8c13273d2eb2c7a16878"
+  name = "github.com/mwitkow/go-proto-validators"
+  packages = ["."]
+  pruneopts = ""
+  revision = "1f388280e944c97cc59c75d8c84a704097d1f1d6"
 
 [[projects]]
   digest = "1:a3735b0978a8b53fc2ac97a6f46ca1189f0712a00df86d6ec4cf26c1a25e6d77"
@@ -575,6 +586,7 @@
     "github.com/hyperledger/fabric/msp",
     "github.com/hyperledger/fabric/protos/msp",
     "github.com/hyperledger/fabric/protos/peer",
+    "github.com/mwitkow/go-proto-validators",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/op/go-logging",

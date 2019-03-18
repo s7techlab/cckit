@@ -15,9 +15,20 @@ func StateNamespace(namespace state.Key) StateMappingOpt {
 	}
 }
 
+// List defined list container, it must have `Items` attr
 func List(list proto.Message) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.list = list
+	}
+}
+
+func UniqKey(name string, attrs ...[]string) StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
+		aa := []string{name}
+		if len(attrs) > 0 {
+			aa = attrs[0]
+		}
+		sm.uniqKeys = append(sm.uniqKeys, &StateKeyDefinition{Name: name, Attrs: aa})
 	}
 }
 
@@ -32,16 +43,6 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 		//add mapping namespace for id schema same as schema
 		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrs...))
 	}
-}
-
-func attrsFrom(schema interface{}) (attrs []string) {
-	// fields from schema
-	s := reflect.ValueOf(schema).Elem().Type()
-	for i := 0; i < s.NumField(); i++ {
-		attrs = append(attrs, s.Field(i).Name)
-	}
-
-	return
 }
 
 func PKeyAttr(attrs ...string) StateMappingOpt {
@@ -59,6 +60,21 @@ func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 		sm.primaryKeyer = attrsPKeyer([]string{`Id`})
 		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrsFrom(pkeySchema)...))
 	}
+}
+
+func PKeyer(pkeyer InstanceKeyer) StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
+		sm.primaryKeyer = pkeyer
+	}
+}
+
+func attrsFrom(schema interface{}) (attrs []string) {
+	// fields from schema
+	s := reflect.ValueOf(schema).Elem().Type()
+	for i := 0; i < s.NumField(); i++ {
+		attrs = append(attrs, s.Field(i).Name)
+	}
+	return
 }
 
 func attrsPKeyer(attrs []string) InstanceKeyer {

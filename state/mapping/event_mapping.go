@@ -20,6 +20,10 @@ type (
 
 	EventMappings map[string]*EventMapping
 
+	EventMapped interface {
+		state.NameValue
+	}
+
 	EventMappers interface {
 		Exists(schema interface{}) (exists bool)
 		Map(schema interface{}) (keyValue state.KeyValue, err error)
@@ -69,7 +73,7 @@ func (emm EventMappings) Exists(entry interface{}) bool {
 	return err == nil
 }
 
-func (emm EventMappings) Map(entry interface{}) (mapped state.NameValue, err error) {
+func (emm EventMappings) Map(entry interface{}) (mapped EventMapped, err error) {
 	mapping, err := emm.Get(entry)
 	if err != nil {
 		return nil, errors.Wrap(err, `mapping`)
@@ -77,7 +81,7 @@ func (emm EventMappings) Map(entry interface{}) (mapped state.NameValue, err err
 
 	switch entry.(type) {
 	case proto.Message:
-		return NewProtoEventMapper(entry, mapping)
+		return NewProtoEventMapped(entry, mapping)
 	default:
 		return nil, ErrEntryTypeNotSupported
 	}
