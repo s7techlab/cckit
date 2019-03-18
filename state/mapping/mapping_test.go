@@ -3,22 +3,24 @@ package mapping_test
 import (
 	"testing"
 
-	state_schema "github.com/s7techlab/cckit/state/schema"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
-
-	"github.com/s7techlab/cckit/state"
-	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/golang/protobuf/proto"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/examples/cpaper"
 	cpaper_schema "github.com/s7techlab/cckit/examples/cpaper/schema"
 	cpaper_testdata "github.com/s7techlab/cckit/examples/cpaper/testdata"
+	"github.com/s7techlab/cckit/examples/cpaper_extended"
+	cpaper_extended_schema "github.com/s7techlab/cckit/examples/cpaper_extended/schema"
+	cpaper_extended_testdata "github.com/s7techlab/cckit/examples/cpaper_extended/testdata"
 	"github.com/s7techlab/cckit/identity"
+	"github.com/s7techlab/cckit/state"
+	"github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/state/mapping/testdata"
+	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
+	state_schema "github.com/s7techlab/cckit/state/schema"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
@@ -29,9 +31,9 @@ func TestState(t *testing.T) {
 }
 
 var (
-	actors                           identity.Actors
-	cPaperCC, complexIdCC, sliceIdCC *testcc.MockStub
-	err                              error
+	actors                                             identity.Actors
+	cPaperCC, cPaperExtendedCC, complexIdCC, sliceIdCC *testcc.MockStub
+	err                                                error
 )
 var _ = Describe(`Mapping`, func() {
 
@@ -45,6 +47,9 @@ var _ = Describe(`Mapping`, func() {
 		//Create commercial papers chaincode mock - protobuf based schema
 		cPaperCC = testcc.NewMockStub(`cpapers`, cpaper.NewCC())
 		cPaperCC.From(actors[`owner`]).Init()
+
+		cPaperExtendedCC = testcc.NewMockStub(`cpapers_extended`, cpaper_extended.NewCC())
+		cPaperExtendedCC.From(actors[`owner`]).Init()
 
 		complexIdCC = testcc.NewMockStub(`complexid`, testdata.NewComplexIdCC())
 		complexIdCC.From(actors[`owner`]).Init()
@@ -130,6 +135,65 @@ var _ = Describe(`Mapping`, func() {
 			Expect(len(cpapers.Items)).To(Equal(2))
 			expectcc.ResponseError(cPaperCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
 		})
+	})
+
+	Describe(`Commercial paper extended, protobuf based schema with additional keys`, func() {
+
+		var cpaper1 = &cpaper_extended_testdata.CPapers[0]
+
+		It("Allow to add data to chaincode state", func(done Done) {
+			events := cPaperExtendedCC.EventSubscription()
+			expectcc.ResponseOk(cPaperExtendedCC.Invoke(`issue`, cpaper1))
+
+			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: `IssueCommercialPaper`,
+				Payload:   testcc.MustProtoMarshal(cpaper1),
+			}))
+
+			close(done)
+		}, 0.2)
+
+		It("Disallow to add data to chaincode state with same primary AND  uniq key fields", func() {
+			expectcc.ResponseError(cPaperExtendedCC.Invoke(`issue`, cpaper1), mapping.ErrMappingUniqKeyExists)
+		})
+
+		It("Disallow to add data to chaincode state with same uniq key fields", func() {
+			// change PK
+			cpChanged1 := proto.Clone(cpaper1).(*cpaper_extended_schema.IssueCommercialPaper)
+			cpChanged1.PaperNumber = `some-new-number`
+
+			// errored on checking uniq key
+			expectcc.ResponseError(cPaperExtendedCC.Invoke(`issue`, cpChanged1), mapping.ErrMappingUniqKeyExists)
+		})
+
+		It("Disallow to add data to chaincode state with same primary key fields", func() {
+			// change Uniq Key
+			cpChanged2 := proto.Clone(cpaper1).(*cpaper_extended_schema.IssueCommercialPaper)
+			cpChanged2.ExternalId = `some-new-external-id`
+
+			// errored obn checkong primary key
+			expectcc.ResponseError(cPaperExtendedCC.Invoke(`issue`, cpChanged2), state.ErrKeyAlreadyExists)
+		})
+
+		It("Allow to find data by uniq key", func() {
+
+			cpaperFromCCByExtId := expectcc.PayloadIs(
+				cPaperExtendedCC.Query(`getByExternalId`, cpaper1.ExternalId),
+				&cpaper_extended_schema.CommercialPaper{}).(*cpaper_extended_schema.CommercialPaper)
+
+			cpaperFromCC := expectcc.PayloadIs(
+				cPaperExtendedCC.Query(`get`,
+					&cpaper_extended_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}),
+				&cpaper_extended_schema.CommercialPaper{}).(*cpaper_extended_schema.CommercialPaper)
+
+			Expect(cpaperFromCCByExtId).To(BeEquivalentTo(cpaperFromCC))
+		})
+
+		It("Disallow to find data by non existent uniq key", func() {
+			expectcc.ResponseError(
+				cPaperExtendedCC.Query(`getByExternalId`, `some-non-existent-id`), state.ErrKeyNotFound)
+		})
+
 	})
 
 	Describe(`Entity with complex id`, func() {

@@ -1,5 +1,7 @@
 syntax = "proto3";
-package schema;
+
+package cckit.state.schema;
+option go_package = "schema";
 
 import "google/protobuf/any.proto";
 
