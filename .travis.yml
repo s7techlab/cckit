@@ -3,11 +3,13 @@ language: go
 git:
   depth: 1
 
+env:
+  - GO111MODULE=on
+
 before_install:
   - go get github.com/mattn/goveralls
 
-install:
-  - go mod vendor
+install: true
 
 script:
   - go test -v -mod=vendor ./...
