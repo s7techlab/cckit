@@ -15,7 +15,7 @@ shows how through distributed ledger and smart contracts blockchain can transfor
 data is exchanged, claims are processed, and fraud is prevented. Blockchain can bring together developers from tech 
 companies, regulators, and insurance companies to create a valuable new insurance management asset. 
  
-![Architecture](vendor/ibm_app/images/arch-blockchain-insurance2.png)
+![Architecture](app/images/arch-blockchain-insurance2.png)
 
 
 ### Source code 
@@ -23,7 +23,7 @@ companies, regulators, and insurance companies to create a valuable new insuranc
 https://github.com/IBM/build-blockchain-insurance-app
 
 Chaincode from  https://github.com/IBM/build-blockchain-insurance-app/tree/master/web/chaincode/src/bcins is copied to  
-the [vendor/ibm-app](vendor/ibm_app) directory for sample test creation.
+the [app](app) directory for sample test creation.
 
 ## Test-driven development
 
@@ -61,11 +61,11 @@ to the original MockStub and has additional methods and properties.
 
 ## Tests for this application
 
-The tests are located in [ibm_app_test](ibm_app_test) directory:
+The tests are located in [current](.) directory:
 
-* [app_test.go](ibm_app_test/app_test.go) contains [Ginkgo](https://onsi.github.io/ginkgo/) based tests
-* [dto.go](ibm_app_test/dto.go) contains named DTO (data transfer objects) from original chaincode source code
-* [fixture.go](ibm_app_test/fixtures.go) contains fixtures for tests
+* [app_test.go](app_test.go) contains [Ginkgo](https://onsi.github.io/ginkgo/) based tests
+* [dto.go](dto.go) contains named DTO (data transfer objects) from original chaincode source code
+* [fixture.go](fixtures.go) contains fixtures for tests
 
 
 ## Getting started
@@ -92,7 +92,7 @@ testing with Ginkgo you can read on [onsi.github.io/ginkgo/](https://onsi.github
 
 ## Creating test suite 
 
-Using separate [package with tests](ibm_app_test) instead of [chaincode package](vendor/ibm_app) allows us to respect
+Using separate [package with tests](.) instead of [chaincode package](app) allows us to respect
 the encapsulation of the chaincode package: your tests will need to import chaincode and access it from the outside.
 
 Test suite bootstrap example:
@@ -103,9 +103,7 @@ package main
 import (
 	"fmt"
 	"testing"
-
-	"ibm_app"
-
+	"github.com/s7techlab/cckit/examples/insurance/app"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -120,7 +118,7 @@ func TestInsuranceApp(t *testing.T) {
 var _ = Describe(`Insurance`, func() {
 
 	//Create chaincode mock
-	cc := testcc.NewMockStub(`insurance`, new(ibm_app.SmartContract))
+	cc := testcc.NewMockStub(`insurance`, new(app.SmartContract))
 	
 	...
 	}
@@ -166,8 +164,8 @@ Also chaincode has `init` function. So we can use them for testing insurance cha
 
 ## Data transfer objects and fixtures
 
-In this example we use [Data Transfer Objects](ibm_app_test/dto.go) (DTO) for creating chaincode args and
-[fixtures](ibm_app_test/fixtures.go)
+In this example we use [Data Transfer Objects](dto.go) (DTO) for creating chaincode args and
+[fixtures](fixtures.go)
 
 
 ## Test init function

@@ -1,9 +1,9 @@
-package main
+package insurance
 
 import (
 	"testing"
 
-	"ibm_app"
+	"github.com/s7techlab/cckit/examples/insurance/app"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,7 +19,7 @@ func TestInsuranceApp(t *testing.T) {
 var _ = Describe(`Insurance`, func() {
 
 	//Create chaincode mock
-	cc := testcc.NewMockStub(`insurance`, new(ibm_app.SmartContract))
+	cc := testcc.NewMockStub(`insurance`, new(app.SmartContract))
 
 	Describe("Chaincode initialization ", func() {
 		It("Allow to provide contract types attributes  during chaincode creation [init]", func() {

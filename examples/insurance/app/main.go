@@ -1,4 +1,4 @@
-package ibm_app
+package app
 
 import (
 	"encoding/json"

@@ -6,33 +6,10 @@ import (
 
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/s7techlab/hlf-sdk-go/api"
 )
 
 type (
-	// Types from hlf-sdk-go
-
-	ChaincodeTx string
-
-	// Invoker interface describes common operations for chaincode
-	Invoker interface {
-		// Invoke method allows to invoke chaincode
-		Invoke(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte) (*peer.Response, ChaincodeTx, error)
-		// Query method allows to query chaincode without sending response to orderer
-		Query(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte) (*peer.Response, error)
-		// Subscribe allows to subscribe on chaincode events
-		Subscribe(ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (EventCCSubscription, error)
-	}
-
-	// EventCCSubscription describes chaincode events subscription
-	EventCCSubscription interface {
-		// Events initiates internal GRPC stream and returns channel on chaincode events
-		Events() chan *peer.ChaincodeEvent
-		// Errors returns errors associated with this subscription
-		Errors() chan error
-		// Close cancels current subscription
-		Close() error
-	}
-
 	ChannelMockStubs map[string]*MockStub
 
 	ChannelsMockStubs map[string]ChannelMockStubs
@@ -77,7 +54,7 @@ func (mi *MockInvoker) WithChannel(channel string, mockStubs ...*MockStub) *Mock
 	return mi
 }
 
-func (mi *MockInvoker) Invoke(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte) (*peer.Response, ChaincodeTx, error) {
+func (mi *MockInvoker) Invoke(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte) (*peer.Response, api.ChaincodeTx, error) {
 	mockStub, err := mi.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, ``, err
@@ -85,7 +62,7 @@ func (mi *MockInvoker) Invoke(ctx context.Context, from msp.SigningIdentity, cha
 
 	response := mockStub.From(from).InvokeBytes(append([][]byte{[]byte(fn)}, args...)...)
 
-	return &response, ChaincodeTx(mockStub.TxID), nil
+	return &response, api.ChaincodeTx(mockStub.TxID), nil
 }
 
 func (mi *MockInvoker) Query(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte) (*peer.Response, error) {
@@ -98,7 +75,7 @@ func (mi *MockInvoker) Query(ctx context.Context, from msp.SigningIdentity, chan
 	return &response, nil
 }
 
-func (mi *MockInvoker) Subscribe(ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (EventCCSubscription, error) {
+func (mi *MockInvoker) Subscribe(ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (api.EventCCSubscription, error) {
 	mockStub, err := mi.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err

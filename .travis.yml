@@ -4,16 +4,15 @@ git:
   depth: 1
 
 before_install:
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - go get github.com/mattn/goveralls
 
 install:
-  - dep ensure -vendor-only -v
-
+  - gp mod vendor
+  -
 script:
-  - go test -v  ./...
+  - go test -v -mod=vendor ./...
   - $GOPATH/bin/goveralls -service=travis-ci || true
 
 go:
-  - 1.10.x
   - 1.11.x
+  - 1.12.x

@@ -1,15 +1,16 @@
-package main
+package insurance
 
 import (
-	"ibm_app"
 	"time"
+
+	"github.com/s7techlab/cckit/examples/insurance/app"
 )
 
 var (
 	// ContractType fixture
 	ContractType1 = ContractTypeDTO{
 		UUID: `12345`,
-		ContractType: &ibm_app.ContractType{
+		ContractType: &app.ContractType{
 			ShopType:        `shop-type-1`,
 			FormulaPerDay:   `aaa`,
 			MaxSumInsured:   12345,
@@ -23,7 +24,7 @@ var (
 
 	ContractType2 = ContractTypeDTO{
 		UUID: `7890`,
-		ContractType: &ibm_app.ContractType{
+		ContractType: &app.ContractType{
 			ShopType:        `shop-type-2`,
 			FormulaPerDay:   `bbb`,
 			MaxSumInsured:   777,
@@ -43,7 +44,7 @@ var (
 		Password:         `Root123AsUsual`,
 		FirstName:        `Victor`,
 		LastName:         `Nosov`,
-		Item: ibm_app.Item{
+		Item: app.Item{
 			ID:          1,
 			Brand:       `NoName`,
 			Model:       `Model-XYZ`,

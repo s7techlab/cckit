@@ -1,4 +1,4 @@
-package ibm_app
+package app
 
 import "github.com/hyperledger/fabric/core/chaincode/shim"
 import (

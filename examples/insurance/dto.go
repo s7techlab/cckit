@@ -1,8 +1,9 @@
-package main
+package insurance
 
 import (
-	"ibm_app"
 	"time"
+
+	"github.com/s7techlab/cckit/examples/insurance/app"
 )
 
 // ContractTypesDTO type used in in "Init" func (arg) in main.go and in "listContractTypes" (return) in "invoke_insurance.go"
@@ -10,7 +11,7 @@ type ContractTypesDTO []ContractTypeDTO
 
 type ContractTypeDTO struct {
 	UUID string `json:"uuid"`
-	*ibm_app.ContractType
+	*app.ContractType
 }
 
 type ContractTypeActiveDTO struct {
@@ -24,15 +25,15 @@ type ShopTypeDTO struct {
 
 // CreateContractDTO type used in in "createContract" func (arg) in invoke_shop.go
 type CreateContractDTO struct {
-	UUID             string       `json:"uuid"`
-	ContractTypeUUID string       `json:"contract_type_uuid"`
-	Username         string       `json:"username"`
-	Password         string       `json:"password"`
-	FirstName        string       `json:"first_name"`
-	LastName         string       `json:"last_name"`
-	Item             ibm_app.Item `json:"item"`
-	StartDate        time.Time    `json:"start_date"`
-	EndDate          time.Time    `json:"end_date"`
+	UUID             string    `json:"uuid"`
+	ContractTypeUUID string    `json:"contract_type_uuid"`
+	Username         string    `json:"username"`
+	Password         string    `json:"password"`
+	FirstName        string    `json:"first_name"`
+	LastName         string    `json:"last_name"`
+	Item             app.Item  `json:"item"`
+	StartDate        time.Time `json:"start_date"`
+	EndDate          time.Time `json:"end_date"`
 }
 
 // ContractCreateResponse type used in in "createContract" func in invoke_shop.go
