@@ -7,8 +7,8 @@ before_install:
   - go get github.com/mattn/goveralls
 
 install:
-  - gp mod vendor
-  -
+  - go mod vendor
+
 script:
   - go test -v -mod=vendor ./...
   - $GOPATH/bin/goveralls -service=travis-ci || true
