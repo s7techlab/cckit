@@ -12,4 +12,8 @@ var Payloads = []*Car{{
 	Id:    `O222OO177`,
 	Title: `Lambo`,
 	Owner: `hodl`,
+}, {
+	Id:    `E333KX177`,
+	Title: `Aurus`,
+	Owner: `bigboss`,
 }}

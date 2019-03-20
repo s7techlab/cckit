@@ -10,7 +10,6 @@ import (
 	"github.com/s7techlab/cckit/state/testdata"
 
 	examplecert "github.com/s7techlab/cckit/examples/cert"
-	"github.com/s7techlab/cckit/identity"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 
@@ -24,7 +23,7 @@ func TestState(t *testing.T) {
 }
 
 var (
-	actors  identity.Actors
+	actors  testcc.Identities
 	booksCC *testcc.MockStub
 	err     error
 )
@@ -32,7 +31,7 @@ var _ = Describe(`State`, func() {
 
 	BeforeSuite(func() {
 
-		actors, err = identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+		actors, err = testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
 			`owner`: `s7techlab.pem`,
 		}, examplecert.Content)
 

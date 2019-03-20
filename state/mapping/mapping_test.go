@@ -5,8 +5,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/golang/protobuf/proto"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/examples/cpaper"
@@ -15,7 +13,6 @@ import (
 	"github.com/s7techlab/cckit/examples/cpaper_extended"
 	cpaper_extended_schema "github.com/s7techlab/cckit/examples/cpaper_extended/schema"
 	cpaper_extended_testdata "github.com/s7techlab/cckit/examples/cpaper_extended/testdata"
-	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/state/mapping/testdata"
@@ -31,14 +28,14 @@ func TestState(t *testing.T) {
 }
 
 var (
-	actors                                             identity.Actors
+	actors                                             testcc.Identities
 	cPaperCC, cPaperExtendedCC, complexIdCC, sliceIdCC *testcc.MockStub
 	err                                                error
 )
 var _ = Describe(`Mapping`, func() {
 
 	BeforeSuite(func() {
-		actors, err = identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+		actors, err = testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
 			`owner`: `s7techlab.pem`,
 		}, examplecert.Content)
 

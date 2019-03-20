@@ -14,10 +14,6 @@ import (
 
 	"github.com/s7techlab/cckit/examples/payment/schema"
 
-	"github.com/s7techlab/cckit/identity"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/examples/payment"
 	"github.com/s7techlab/cckit/extensions/encryption"
@@ -38,7 +34,7 @@ var (
 
 	encCCInvoker *encryption.MockStub
 
-	actors identity.Actors
+	actors testcc.Identities
 
 	pType  = `SALE`
 	encKey []byte
@@ -84,9 +80,10 @@ var _ = Describe(`Router`, func() {
 	externalCC.MockPeerChaincode(
 		`paymentsEncWithContext/payment-channel`,
 		encryptPaymentCCWithEncStateContext)
+
 	BeforeSuite(func() {
 
-		actors, err = identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+		actors, err = testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
 			`owner`:   `s7techlab.pem`,
 			`someone`: `victor-nosov.pem`}, examplecert.Content)
 		Expect(err).To(BeNil())

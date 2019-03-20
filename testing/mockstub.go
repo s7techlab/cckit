@@ -37,7 +37,7 @@ type MockStub struct {
 
 type CreatorTransformer func(...interface{}) (mspID string, certPEM []byte, err error)
 
-// NewMockStub creates MockStub
+// NewMockStub creates chaincode imitation
 func NewMockStub(name string, cc shim.Chaincode) *MockStub {
 	return &MockStub{
 		MockStub:                *shim.NewMockStub(name, cc),
@@ -111,8 +111,6 @@ func (stub *MockStub) MockedPeerChancodes() []string {
 
 // InvokeChaincode using another MockStub
 func (stub *MockStub) InvokeChaincode(chaincodeName string, args [][]byte, channel string) peer.Response {
-
-	// TODO "args" here should possibly be a serialized pb.ChaincodeInput
 	// Internally we use chaincode name as a composite name
 	ccName := chaincodeName
 	if channel != "" {

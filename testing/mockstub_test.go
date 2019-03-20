@@ -1,19 +1,17 @@
 package testing
 
 import (
+	"context"
 	"testing"
+
+	"github.com/hyperledger/fabric/protos/peer"
 
 	"github.com/s7techlab/cckit/examples/cars"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 
-	"time"
-
-	"context"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/s7techlab/cckit/identity"
 )
 
 func TestMockstub(t *testing.T) {
@@ -21,85 +19,147 @@ func TestMockstub(t *testing.T) {
 	RunSpecs(t, "Mockstub Suite")
 }
 
-var _ = Describe(`Mockstub`, func() {
+const Channel = `my_channel`
+const ChaincodeName = `cars`
+const ChaincodeProxyName = `cars_proxy`
+
+var _ = Describe(`Testing`, func() {
 
 	//Create chaincode mocks
-	cc := NewMockStub(`cars`, cars.New())
+	cc := NewMockStub(ChaincodeName, cars.New())
+	ccproxy := NewMockStub(ChaincodeProxyName, cars.NewProxy(Channel, ChaincodeName))
+
+	// ccproxy can invoke cc and vice versa
+	invoker := NewInvoker().WithChannel(Channel, cc, ccproxy)
 
 	// load actor certificates
-	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+	actors, err := IdentitiesFromFiles(`SOME_MSP`, map[string]string{
 		`authority`: `s7techlab.pem`,
 		`someone`:   `victor-nosov.pem`}, examplecert.Content)
 	if err != nil {
 		panic(err)
 	}
 
-	It("Allow to init chaincode", func() {
-		//invoke chaincode method from authority actor
-		expectcc.ResponseOk(cc.From(actors[`authority`]).Init()) // init chaincode from authority
+	Describe(`Mockstub`, func() {
+
+		It("Allow to init chaincode", func() {
+			//invoke chaincode method from authority actor
+			expectcc.ResponseOk(cc.From(actors[`authority`]).Init()) // init chaincode from authority
+		})
+
+		It("Allow to get last event while chaincode invoke ", func() {
+
+			expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[0]))
+			event := expectcc.EventPayloadIs(cc.ChaincodeEvent, &cars.Car{}).(cars.Car)
+
+			Expect(cc.ChaincodeEvent.EventName).To(Equal(cars.CarRegisteredEvent))
+			Expect(event.Id).To(Equal(cars.Payloads[0].Id))
+
+			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(1))
+
+		})
+
+		It("Allow to clear events channel", func() {
+			cc.ClearEvents()
+			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
+
+		})
+
+		It("Allow to get events via events channel", func(done Done) {
+			resp := expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[1]))
+
+			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: cars.CarRegisteredEvent,
+				Payload:   resp.Payload,
+			}))
+
+			close(done)
+		}, 0.2)
+
+		It("Allow to use multiple events subscriptions", func(done Done) {
+			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
+
+			sub1 := cc.EventSubscription()
+			sub2 := cc.EventSubscription()
+
+			Expect(len(sub1)).To(Equal(0))
+			Expect(len(sub2)).To(Equal(0))
+
+			resp := expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[2]))
+
+			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(1))
+			Expect(len(sub1)).To(Equal(1))
+			Expect(len(sub2)).To(Equal(1))
+
+			Expect(<-sub1).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: cars.CarRegisteredEvent,
+				Payload:   resp.Payload,
+			}))
+
+			Expect(<-sub2).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: cars.CarRegisteredEvent,
+				Payload:   resp.Payload,
+			}))
+
+			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: cars.CarRegisteredEvent,
+				Payload:   resp.Payload,
+			}))
+
+			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
+			Expect(len(sub1)).To(Equal(0))
+			Expect(len(sub2)).To(Equal(0))
+
+			close(done)
+		}, 0.2)
+
 	})
 
-	It("Allow to get last event while chaincode invoke ", func() {
+	Describe(`Mockstub invoker`, func() {
 
-		expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[0]))
-		event := expectcc.EventPayloadIs(cc.ChaincodeEvent, &cars.Car{}).(cars.Car)
+		It("Allow to invoke mocked chaincode ", func(done Done) {
+			ctx := context.Background()
 
-		Expect(cc.ChaincodeEvent.EventName).To(Equal(cars.CarRegisteredEvent))
-		Expect(event.Id).To(Equal(cars.Payloads[0].Id))
+			events, err := invoker.Subscribe(ctx, actors[`authority`], Channel, ChaincodeName)
+			Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(1))
+			resp, _, err := invoker.Invoke(ctx, actors[`authority`], Channel, ChaincodeName, `carRegister`, [][]byte{MustJsonMarshal(cars.Payloads[3])})
+			Expect(err).NotTo(HaveOccurred())
 
-	})
+			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
 
-	It("Allow to clear events channel", func() {
-		cc.ClearEvents()
-		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
+			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
+			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
 
-	})
+			Expect(<-events.Events()).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: cars.CarRegisteredEvent,
+				Payload:   resp.Payload,
+			}))
 
-	It("Allow to get events via events channel", func() {
+			close(done)
 
-		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*10)
+		}, 0.3)
 
-		expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[1]))
+		It("Allow to query mocked chaincode ", func() {
+			resp, err := invoker.Query(context.Background(), actors[`authority`], Channel, ChaincodeName, `carGet`, [][]byte{[]byte(cars.Payloads[3].Id)})
+			Expect(err).NotTo(HaveOccurred())
 
-		select {
-		case ccEvent := <-cc.ChaincodeEventsChannel:
-			Expect(ccEvent.EventName).To(Equal(cars.CarRegisteredEvent))
-			event := expectcc.EventPayloadIs(ccEvent, &cars.Car{}).(cars.Car)
-			Expect(event.Id).To(Equal(cars.Payloads[1].Id))
-		case <-ctx.Done():
-			Expect(true).To(Equal(false), `Event not received`)
-		}
+			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
 
-	})
+			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
+			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
+		})
 
-	It("Allow to use multiple events subscriptions", func() {
-		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
+		It("Allow to query mocked chaincode from chaincode", func() {
+			resp, err := invoker.Query(context.Background(), actors[`authority`], Channel, ChaincodeProxyName, `carGet`, [][]byte{[]byte(cars.Payloads[3].Id)})
+			Expect(err).NotTo(HaveOccurred())
 
-		sub1 := cc.EventSubscription()
-		sub2 := cc.EventSubscription()
+			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
 
-		Expect(len(sub1)).To(Equal(0))
-		Expect(len(sub2)).To(Equal(0))
+			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
+			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
+		})
 
-		expectcc.ResponseOk(cc.From(actors[`authority`]).Invoke(`carRegister`, cars.Payloads[2]))
-
-		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(1))
-		Expect(len(sub1)).To(Equal(1))
-		Expect(len(sub2)).To(Equal(1))
-
-		event1 := <-sub1
-		event2 := <-sub2
-		event := <-cc.ChaincodeEventsChannel
-
-		Expect(event1.Payload).To(Equal(event.Payload))
-		Expect(event2.Payload).To(Equal(event.Payload))
-		Expect(event1.Payload).To(Equal(event2.Payload))
-
-		Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
-		Expect(len(sub1)).To(Equal(0))
-		Expect(len(sub2)).To(Equal(0))
 	})
 
 })

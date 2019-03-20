@@ -3,11 +3,8 @@ package cars
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/owner"
-	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -25,7 +22,7 @@ var _ = Describe(`Cars`, func() {
 	ccWithoutAC := testcc.NewMockStub(`cars`, NewWithoutAccessControl())
 
 	// load actor certificates
-	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+	actors, err := testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
 		`authority`: `s7techlab.pem`,
 		`someone`:   `victor-nosov.pem`}, examplecert.Content)
 	if err != nil {

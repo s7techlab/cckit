@@ -10,10 +10,7 @@ import (
 
 	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/ecdh"
-	"github.com/s7techlab/cckit/identity"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	testcc "github.com/s7techlab/cckit/testing"
 )
 
 func TestDebug(t *testing.T) {
@@ -24,7 +21,7 @@ func TestDebug(t *testing.T) {
 var _ = Describe(`ECDH`, func() {
 
 	//load actor certificates
-	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
+	actors, err := testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
 		`authority`: `s7techlab.pem`,
 		`someone1`:  `victor-nosov.pem`,
 		`someone2`:  `some-person.pem`,
@@ -33,9 +30,9 @@ var _ = Describe(`ECDH`, func() {
 		panic(err)
 	}
 
-	pubKey1 := actors[`authority`].GetPublicKey().(*ecdsa.PublicKey)
-	pubKey2 := actors[`someone1`].GetPublicKey().(*ecdsa.PublicKey)
-	pubKey3 := actors[`someone2`].GetPublicKey().(*ecdsa.PublicKey)
+	pubKey1 := actors[`authority`].Certificate.PublicKey.(*ecdsa.PublicKey)
+	pubKey2 := actors[`someone1`].Certificate.PublicKey.(*ecdsa.PublicKey)
+	pubKey3 := actors[`someone2`].Certificate.PublicKey.(*ecdsa.PublicKey)
 
 	privKey1Bytes, _ := examplecert.Content(`s7techlab.key.pem`)
 	privKey1, err := ecdh.PrivateKey(privKey1Bytes)

@@ -37,6 +37,8 @@ type Identity interface {
 	Is(i Identity) bool
 }
 
+type GetContent func(string) ([]byte, error)
+
 // New creates CertIdentity struct from an mspID and certificate
 func New(mspID string, certPEM []byte) (ci *CertIdentity, err error) {
 	cert, err := Certificate(certPEM)
