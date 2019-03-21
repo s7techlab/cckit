@@ -32,7 +32,6 @@ There are several chaincode examples available:
 * [Marbles from hyperledger](https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go)
 * [Marbles from IBM-Blockchain](https://github.com/IBM-Blockchain/marbles/blob/master/chaincode/src/marbles/marbles.go)
 
-
 Main problems: 
 
 * Chaincode methods routing appeared only in HLF 1.4 and only in Node.Js chaincode
@@ -45,6 +44,22 @@ Main problems:
 * [ERC20 token as Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339)
 * [CCKit: Routing and middleware for Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/routing-and-middleware-for-developing-hyperledger-fabric-chaincode-written-in-go-90913951bf08)
 * [Developing and testing Hyperledger Fabric smart contracts](https://habr.com/post/426705/) [RUS]
+
+
+## Installation
+
+CCKit required Go 1.11+ with modules support
+
+### Standalone
+ 
+`git clone git@github.com:s7techlab/cckit.git`
+
+`go mod vendor`
+
+### As dependency
+
+`go get -u github.com/s7techlab/cckit`
+
 
 ## Example based on CCKit
  

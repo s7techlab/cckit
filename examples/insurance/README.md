@@ -76,7 +76,7 @@ Before you begin, be sure to get `CCkit`:
 
 and get dependencies using `dep` command:
 
-`dep ensure -vendor-only`
+`go mod vendor`
 
 
 CCkit repository contains several examples:
