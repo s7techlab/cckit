@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/s7techlab/hlf-sdk-go/api"
+
 	"github.com/hyperledger/fabric/protos/peer"
 
 	"github.com/s7techlab/cckit/examples/cars"
@@ -123,7 +125,8 @@ var _ = Describe(`Testing`, func() {
 			events, err := invoker.Subscribe(ctx, actors[`authority`], Channel, ChaincodeName)
 			Expect(err).NotTo(HaveOccurred())
 
-			resp, _, err := invoker.Invoke(ctx, actors[`authority`], Channel, ChaincodeName, `carRegister`, [][]byte{MustJsonMarshal(cars.Payloads[3])})
+			// double check interface api.Invoker
+			resp, _, err := interface{}(invoker).(api.Invoker).Invoke(ctx, actors[`authority`], Channel, ChaincodeName, `carRegister`, [][]byte{MustJsonMarshal(cars.Payloads[3])}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -141,7 +144,7 @@ var _ = Describe(`Testing`, func() {
 		}, 0.3)
 
 		It("Allow to query mocked chaincode ", func() {
-			resp, err := invoker.Query(context.Background(), actors[`authority`], Channel, ChaincodeName, `carGet`, [][]byte{[]byte(cars.Payloads[3].Id)})
+			resp, err := invoker.Query(context.Background(), actors[`authority`], Channel, ChaincodeName, `carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -151,7 +154,7 @@ var _ = Describe(`Testing`, func() {
 		})
 
 		It("Allow to query mocked chaincode from chaincode", func() {
-			resp, err := invoker.Query(context.Background(), actors[`authority`], Channel, ChaincodeProxyName, `carGet`, [][]byte{[]byte(cars.Payloads[3].Id)})
+			resp, err := invoker.Query(context.Background(), actors[`authority`], Channel, ChaincodeProxyName, `carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)

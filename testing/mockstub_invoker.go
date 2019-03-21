@@ -3,6 +3,7 @@ package testing
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/peer"
@@ -17,6 +18,7 @@ type (
 	MockInvoker struct {
 		// channel name -> chaincode name
 		ChannelCC ChannelsMockStubs
+		m         sync.Mutex
 	}
 
 	EventSubscription struct {
@@ -54,24 +56,27 @@ func (mi *MockInvoker) WithChannel(channel string, mockStubs ...*MockStub) *Mock
 	return mi
 }
 
-func (mi *MockInvoker) Invoke(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte) (*peer.Response, api.ChaincodeTx, error) {
+func (mi *MockInvoker) Invoke(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, api.ChaincodeTx, error) {
+	mi.m.Lock()
+	defer mi.m.Unlock()
 	mockStub, err := mi.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, ``, err
 	}
 
-	response := mockStub.From(from).InvokeBytes(append([][]byte{[]byte(fn)}, args...)...)
-
+	response := mockStub.From(from).WithTransient(transArgs).InvokeBytes(append([][]byte{[]byte(fn)}, args...)...)
 	return &response, api.ChaincodeTx(mockStub.TxID), nil
 }
 
-func (mi *MockInvoker) Query(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte) (*peer.Response, error) {
+func (mi *MockInvoker) Query(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, error) {
+	mi.m.Lock()
+	defer mi.m.Unlock()
 	mockStub, err := mi.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err
 	}
 
-	response := mockStub.From(from).QueryBytes(append([][]byte{[]byte(fn)}, args...)...)
+	response := mockStub.From(from).WithTransient(transArgs).QueryBytes(append([][]byte{[]byte(fn)}, args...)...)
 	return &response, nil
 }
 
