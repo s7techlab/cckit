@@ -18,7 +18,7 @@ type (
 		ListWith(schema interface{}, key state.Key) (result interface{}, err error)
 
 		// GetByUniqKey return one entry
-		GetByUniqKey(schema interface{}, idx string, idxVal []string) (result interface{}, err error)
+		GetByUniqKey(schema interface{}, idx string, idxVal []string, target ...interface{}) (result interface{}, err error)
 
 		// GetByUniqKey return list of entries
 		//GetByKey(schema interface{}, key string, keyValue []interface{}) (result interface{}, err error)
@@ -154,7 +154,7 @@ func (s *StateImpl) ListWith(entry interface{}, key state.Key) (result interface
 	return s.state.List(namespace.Append(key), targetFromMapping(m)...)
 }
 
-func (s *StateImpl) GetByUniqKey(entry interface{}, idx string, idxVal []string) (result interface{}, err error) {
+func (s *StateImpl) GetByUniqKey(entry interface{}, idx string, idxVal []string, target ...interface{}) (result interface{}, err error) {
 	if !s.mappings.Exists(entry) {
 		return nil, ErrStateMappingNotFound
 	}
@@ -164,7 +164,7 @@ func (s *StateImpl) GetByUniqKey(entry interface{}, idx string, idxVal []string)
 		return nil, err
 	}
 
-	return s.state.Get(keyRef.(*schema.KeyRef).PKey)
+	return s.state.Get(keyRef.(*schema.KeyRef).PKey, target...)
 }
 
 func (s *StateImpl) Delete(entry interface{}) (err error) {

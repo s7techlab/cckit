@@ -48,7 +48,7 @@ Main problems:
 
 ## Installation
 
-CCKit required Go 1.11+ with modules support
+CCKit requires Go 1.11+ with modules support
 
 ### Standalone
  

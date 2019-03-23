@@ -15,7 +15,7 @@ type (
 
 	ChannelsMockStubs map[string]ChannelMockStubs
 
-	MockInvoker struct {
+	MockedPeer struct {
 		// channel name -> chaincode name
 		ChannelCC ChannelsMockStubs
 		m         sync.Mutex
@@ -27,14 +27,14 @@ type (
 	}
 )
 
-// NewInvoker implements hlf-sdk-go
-func NewInvoker() *MockInvoker {
-	return &MockInvoker{
+// NewInvoker implements Invoker interface from hlf-sdk-go
+func NewPeer() *MockedPeer {
+	return &MockedPeer{
 		ChannelCC: make(ChannelsMockStubs),
 	}
 }
 
-func (mi *MockInvoker) WithChannel(channel string, mockStubs ...*MockStub) *MockInvoker {
+func (mi *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *MockedPeer {
 	if _, ok := mi.ChannelCC[channel]; !ok {
 		mi.ChannelCC[channel] = make(ChannelMockStubs)
 	}
@@ -56,7 +56,7 @@ func (mi *MockInvoker) WithChannel(channel string, mockStubs ...*MockStub) *Mock
 	return mi
 }
 
-func (mi *MockInvoker) Invoke(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, api.ChaincodeTx, error) {
+func (mi *MockedPeer) Invoke(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, api.ChaincodeTx, error) {
 	mi.m.Lock()
 	defer mi.m.Unlock()
 	mockStub, err := mi.Chaincode(channel, chaincode)
@@ -68,7 +68,7 @@ func (mi *MockInvoker) Invoke(ctx context.Context, from msp.SigningIdentity, cha
 	return &response, api.ChaincodeTx(mockStub.TxID), nil
 }
 
-func (mi *MockInvoker) Query(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, error) {
+func (mi *MockedPeer) Query(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, error) {
 	mi.m.Lock()
 	defer mi.m.Unlock()
 	mockStub, err := mi.Chaincode(channel, chaincode)
@@ -80,7 +80,7 @@ func (mi *MockInvoker) Query(ctx context.Context, from msp.SigningIdentity, chan
 	return &response, nil
 }
 
-func (mi *MockInvoker) Subscribe(ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (api.EventCCSubscription, error) {
+func (mi *MockedPeer) Subscribe(ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (api.EventCCSubscription, error) {
 	mockStub, err := mi.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (mi *MockInvoker) Subscribe(ctx context.Context, from msp.SigningIdentity, 
 	}, nil
 }
 
-func (mi *MockInvoker) Chaincode(channel string, chaincode string) (*MockStub, error) {
+func (mi *MockedPeer) Chaincode(channel string, chaincode string) (*MockStub, error) {
 	ms, exists := mi.ChannelCC[channel][chaincode]
 	if !exists {
 		return nil, fmt.Errorf(`%s: channell=%s, chaincode=%s`, ErrChaincodeNotExists, channel, chaincode)
