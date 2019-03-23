@@ -23,16 +23,29 @@ type (
 	}
 )
 
+func MustIdentityFromPem(mspId string, certPEM []byte) *Identity {
+	if id, err := IdentityFromPem(mspId, certPEM); err != nil {
+		panic(err)
+	} else {
+		return id
+	}
+}
+
+func IdentityFromPem(mspId string, certPEM []byte) (*Identity, error) {
+	certIdentity, err := identity.New(mspId, certPEM)
+	if err != nil {
+		return nil, err
+	}
+	return NewIdentity(mspId, certIdentity.Cert), nil
+}
+
 // ActorsFromPem returns CertIdentity (MSP ID and X.509 cert) converted PEM content
-func IdentitiesFromPem(mspID string, certPEMs map[string][]byte) (Identities, error) {
+func IdentitiesFromPem(mspId string, certPEMs map[string][]byte) (ids Identities, err error) {
 	identities := make(Identities)
 	for role, certPEM := range certPEMs {
-		ci, err := identity.New(mspID, certPEM)
-		if err != nil {
-			return nil, err
+		if identities[role], err = IdentityFromPem(mspId, certPEM); err != nil {
+			return
 		}
-
-		identities[role] = NewIdentity(ci.MspID, ci.Cert)
 	}
 	return identities, nil
 }
@@ -48,6 +61,16 @@ func IdentitiesFromFiles(mspID string, files map[string]string, getContent ident
 		contents[key] = content
 	}
 	return IdentitiesFromPem(mspID, contents)
+}
+
+//  MustIdentitiesFromFiles
+func MustIdentitiesFromFiles(mspID string, files map[string]string, getContent identity.GetContent) Identities {
+	ids, err := IdentitiesFromFiles(mspID, files, getContent)
+	if err != nil {
+		panic(err)
+	} else {
+		return ids
+	}
 }
 
 func NewIdentity(mspId string, cert *x509.Certificate) *Identity {

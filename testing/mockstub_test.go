@@ -35,12 +35,9 @@ var _ = Describe(`Testing`, func() {
 	mockedPeer := NewPeer().WithChannel(Channel, cc, ccproxy)
 
 	// load actor certificates
-	actors, err := IdentitiesFromFiles(`SOME_MSP`, map[string]string{
+	actors := MustIdentitiesFromFiles(`SOME_MSP`, map[string]string{
 		`authority`: `s7techlab.pem`,
 		`someone`:   `victor-nosov.pem`}, examplecert.Content)
-	if err != nil {
-		panic(err)
-	}
 
 	Describe(`Mockstub`, func() {
 
