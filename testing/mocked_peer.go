@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/pkg/errors"
+
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/hlf-sdk-go/api"
@@ -65,7 +68,11 @@ func (mi *MockedPeer) Invoke(ctx context.Context, from msp.SigningIdentity, chan
 	}
 
 	response := mockStub.From(from).WithTransient(transArgs).InvokeBytes(append([][]byte{[]byte(fn)}, args...)...)
-	return &response, api.ChaincodeTx(mockStub.TxID), nil
+	if response.Status == shim.ERROR {
+		err = errors.New(response.Message)
+	}
+
+	return &response, api.ChaincodeTx(mockStub.TxID), err
 }
 
 func (mi *MockedPeer) Query(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, error) {
@@ -77,7 +84,10 @@ func (mi *MockedPeer) Query(ctx context.Context, from msp.SigningIdentity, chann
 	}
 
 	response := mockStub.From(from).WithTransient(transArgs).QueryBytes(append([][]byte{[]byte(fn)}, args...)...)
-	return &response, nil
+	if response.Status == shim.ERROR {
+		err = errors.New(response.Message)
+	}
+	return &response, err
 }
 
 func (mi *MockedPeer) Subscribe(ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (api.EventCCSubscription, error) {
