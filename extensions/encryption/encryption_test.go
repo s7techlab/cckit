@@ -142,9 +142,16 @@ var _ = Describe(`Router`, func() {
 				encryptOnDemandPaymentCC.WithTransient(encryption.TransientMapWithKey(encKey)).
 					InvokeBytes(args...), encryptedPId1)
 
+			encEvent := <-encryptOnDemandPaymentCC.ChaincodeEventsChannel
+			decryptedEvent := encryption.MustDecryptEvent(encKey, encEvent)
+
+			Expect(decryptedEvent.Payload).To(BeEquivalentTo(
+				testcc.MustProtoMarshal(&schema.PaymentEvent{Type: pType, Id: pId1, Amount: pAmount1})))
+
+			Expect(decryptedEvent.EventName).To(Equal(`PaymentEvent`))
+
 			decryptedPaymentId, err := encryption.Decrypt(encKey, ccPId)
 			Expect(err).To(BeNil())
-
 			Expect(string(decryptedPaymentId)).To(Equal(pId1))
 		})
 

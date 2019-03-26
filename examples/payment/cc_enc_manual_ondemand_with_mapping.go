@@ -20,6 +20,7 @@ func NewEncryptOnDemandPaymentCC() *router.Chaincode {
 	debug.AddHandlers(r, `debug`)
 
 	r.Use(m.MapStates(StateMappings)) // use state mappings
+	r.Use(m.MapEvents(EventMappings)) // use state mappings
 
 	r.Group(`payment`).
 		Invoke(`Create`, invokePaymentCreateManualEncryptWithMapping, p.String(`type`), p.String(`id`), p.Int(`amount`)).
@@ -36,6 +37,7 @@ func invokePaymentCreateManualEncryptWithMapping(c router.Context) (interface{},
 		paymentId     = c.ParamString(`id`)
 		paymentAmount = c.ParamInt(`amount`)
 		s             state.State
+		e             state.Event
 		err           error
 		returnVal     []byte
 	)
@@ -51,6 +53,13 @@ func invokePaymentCreateManualEncryptWithMapping(c router.Context) (interface{},
 		returnVal, err = encryption.Encrypt(key, paymentId)
 	}
 
+	if e, err = encryption.EventWithTransientKeyIfProvided(c); err != nil {
+		return nil, err
+	}
+
+	if err = e.Set(&schema.PaymentEvent{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)}); err != nil {
+		return nil, err
+	}
 	return returnVal, s.Put(&schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)})
 }
 

@@ -1,11 +1,8 @@
 package encryption
 
 import (
-	"encoding/base64"
-
 	"github.com/hyperledger/fabric/bccsp/factory"
 	"github.com/hyperledger/fabric/core/chaincode/shim/ext/entities"
-	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 )
@@ -77,39 +74,4 @@ func Decrypt(key, value []byte) ([]byte, error) {
 // TransientMapWithKey creates transient map with encrypting/decrypting key
 func TransientMapWithKey(key []byte) map[string][]byte {
 	return map[string][]byte{TransientMapKey: key}
-}
-
-// EncryptEvent encrypts event payload and event name. Event name also base64 encoded.
-// ChaincodeId and TxId remains unencrypted
-func EncryptEvent(encKey []byte, event *peer.ChaincodeEvent) (encrypted *peer.ChaincodeEvent, err error) {
-	var (
-		encName, encPayload []byte
-	)
-
-	if encName, err = Encrypt(encKey, []byte(event.EventName)); err != nil {
-		return nil, err
-	}
-
-	if encPayload, err = Encrypt(encKey, event.Payload); err != nil {
-		return nil, err
-	}
-
-	return &peer.ChaincodeEvent{
-		ChaincodeId: event.ChaincodeId,
-		TxId:        event.TxId,
-		EventName:   base64.StdEncoding.EncodeToString(encName),
-		Payload:     encPayload,
-	}, nil
-}
-
-// MustEncryptEvent helper for EncryptEvent. Panics in case of error.
-func MustEncryptEvent(encKey []byte, event *peer.ChaincodeEvent) (encrypted *peer.ChaincodeEvent) {
-	var (
-		err error
-	)
-	if encrypted, err = EncryptEvent(encKey, event); err != nil {
-		panic(err)
-	}
-
-	return encrypted
 }
