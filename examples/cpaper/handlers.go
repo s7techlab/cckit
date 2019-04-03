@@ -83,7 +83,7 @@ func cpaperBuy(c router.Context) (interface{}, error) {
 }
 
 func cpaperRedeem(c router.Context) (interface{}, error) {
-
+	// implement me
 	return nil, nil
 }
 

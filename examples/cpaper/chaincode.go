@@ -11,16 +11,16 @@ import (
 
 var (
 	// State mappings
-	StateMappings = m.StateMappings{}.
-		//key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
-		Add(&schema.CommercialPaper{}, m.PKeySchema(&schema.CommercialPaperId{}), m.List(&schema.CommercialPaperList{}))
+	StateMappings = m.StateMappings{}.Add(
+		&schema.CommercialPaper{},                 // define mapping for this structure
+		m.PKeySchema(&schema.CommercialPaperId{}), // key  will be <`CommercialPaper`, Issuer, PaperNumber>
+		m.List(&schema.CommercialPaperList{}))     // structure-result of list method
 
 	// EventMappings
 	EventMappings = m.EventMappings{}.
-		// event name will be `IssueCommercialPaper`,  payload - same as issue payload
-		Add(&schema.IssueCommercialPaper{}).
-		Add(&schema.BuyCommercialPaper{}).
-		Add(&schema.RedeemCommercialPaper{})
+			Add(&schema.IssueCommercialPaper{}). // event name will be `IssueCommercialPaper`,  payload - same as issue payload
+			Add(&schema.BuyCommercialPaper{}).
+			Add(&schema.RedeemCommercialPaper{})
 )
 
 func NewCC() *router.Chaincode {

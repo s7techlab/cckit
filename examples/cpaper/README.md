@@ -1,4 +1,4 @@
-# Commercial paper example with protobuf chaincode state 
+# Commercial paper Hyperledger Fabric chaincode example with protobuf based state schema
 
 https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/scenario.html
 

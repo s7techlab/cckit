@@ -84,6 +84,7 @@ func MustEncryptEvent(encKey []byte, event *peer.ChaincodeEvent) (encrypted *pee
 
 // MustDecryptEvent helper for DecryptEvent. Panics in case of error.
 func MustDecryptEvent(encKey []byte, event *peer.ChaincodeEvent) (decrypted *peer.ChaincodeEvent) {
+
 	var (
 		err error
 	)

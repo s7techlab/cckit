@@ -29,8 +29,6 @@ message CommercialPaperId {
     string paper_number = 2;
 }
 
-
-
 message CommercialPaperList {
     repeated CommercialPaper items = 1;
 }
