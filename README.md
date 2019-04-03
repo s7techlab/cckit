@@ -4,15 +4,15 @@
 ![Build](https://api.travis-ci.org/s7techlab/cckit.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/s7techlab/cckit/badge.svg?branch=master)](https://coveralls.io/github/s7techlab/cckit?branch=master)
 
-**CCKit** is a **programming toolkit** for developing and testing hyperledger fabric golang chaincodes.  It enhances
- the development experience while providing developers components for creating more readable and secure 
- smart contracts (chaincodes).
-
 ## Overview
 
-A [smart contract](https://hyperledger-fabric.readthedocs.io/en/latest/glossary.html#smart-contract) is code – 
+A [smart contract](https://hyperledger-fabric.readthedocs.io/en/latest/glossary.html#smart-contract) is code, 
 invoked by a client application external to the blockchain network – that manages access and modifications to a set of
 key-value pairs in the World State.  In Hyperledger Fabric, smart contracts are referred to as chaincode.
+
+**CCKit** is a **programming toolkit** for developing and testing hyperledger fabric golang chaincodes.  It enhances
+ the development experience while providing developers components for creating more readable and secure 
+ smart contracts.
 
 ## Chaincode examples
 
@@ -20,7 +20,6 @@ There are several chaincode examples available:
 
 * [Commercial paper](https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/smartcontract.html) from official [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io)
 * [Blockchain insurance application](https://github.com/IBM/build-blockchain-insurance-app) ( testing tutorial:  how to [write tests for "insurance" chaincode](examples/insurance) )
-* [Marbles](https://github.com/hyperledger/fabric/blob/release-1.1/examples/chaincode/go/marbles02/marbles_chaincode.go)
 
 and [others](docs/chaincode-examples.md)
 
@@ -48,8 +47,8 @@ and [others](docs/chaincode-examples.md)
 
 ## Examples based on CCKit
 
-* [Commercial paper](examples/cpaper) - chaincode with
-* [Cars](examples/cars) - chaincode witht information about cars ownership
+* [Commercial paper](examples/cpaper) - describes commercial paper lifecycle
+* [Cars](examples/cars) - car registration chaincode
 * [ERC-20](examples/erc20) - token smart contract, implementing ERC-20 interface
 * [Payment](examples/payment) - a few examples of chaincodes with encrypted state 
  
@@ -86,7 +85,7 @@ programming language.  Steps of chaincode development:
 1. Define chaincode model - schema for state entries, input payload and events
 2. Define chaincode interface
 3. Implement chaincode instantiate method
-4. Implement chaincode methods, implementing target business logic
+4. Implement chaincode methods with business logic
 5. Create tests
 
 
@@ -95,8 +94,6 @@ programming language.  Steps of chaincode development:
 With protocol buffers, you write a `.proto` description of the data structure you wish to store. 
 From that, the protocol buffer compiler creates a golang struct that implements automatic encoding 
 and parsing of the protocol buffer data with an efficient binary format (or json). 
-The generated class provides getters and setters for the fields that make up a protocol buffer
-and takes care of the details of reading and writing the protocol buffer as a unit.
 
 Code generation can be simplified with short [Makefile](examples/cpaper/schema):
 
@@ -225,7 +222,6 @@ func NewCC() *router.Chaincode {
 		// read methods
 		Query(`list`, cpaperList).
 
-		// Get method has 2 params - commercial paper primary key components
 		Query(`get`, cpaperGet, defparam.Proto(&schema.CommercialPaperId{})).
 
 		// txn methods
@@ -246,8 +242,8 @@ of MSP  and certificate identifiers) that is the owner and can do administrative
 approach is perfectly reasonable for contracts that only have a single administrative user.
 
 CCKit provides `owner` extension for implementing ownership and access control in Hyperledger Fabric chaincodes.
-In this example we use [owner.InvokeSetFromCreator](extensions/owner/handler.go) method, storing information about owner in the
-chaincode state as a `init` method.
+In this example we use as a `init` method [owner.InvokeSetFromCreator](extensions/owner/handler.go), storing information about owner in the
+chaincode state.
 
 ### Implement business rules as chaincode methods
 
