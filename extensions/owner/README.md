@@ -1,6 +1,7 @@
 # Owner - access control hyperledger fabric chaincode extension
 
-Access control — that is, "who is allowed to do this thing"—is incredibly important in the world of smart contracts.
+In many cases during chaincode instantiating we need to define permissions for chaincode functions -
+"who is allowed to do this thing", incredibly important in the world of smart contracts.
 
 The most common and basic form of access control is the concept of `ownership`: there's one account (combination
 of MSP  and certificate identifiers) that is the owner and can do administrative tasks on contracts. This 

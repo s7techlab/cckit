@@ -74,7 +74,7 @@ Before you begin, be sure to get `CCkit`:
 
 `git clone git@github.com:s7techlab/cckit.git`
 
-and get dependencies using `dep` command:
+and get dependencies using `go mod` command:
 
 `go mod vendor`
 
