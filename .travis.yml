@@ -3,6 +3,8 @@ language: go
 git:
   depth: 1
 
+dist: xenial
+
 env:
   - GO111MODULE=on
 
