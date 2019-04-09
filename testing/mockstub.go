@@ -167,6 +167,11 @@ func (stub *MockStub) Init(iargs ...interface{}) peer.Response {
 	return stub.MockInit(stub.generateTxUID(), args)
 }
 
+// InitBytes init func with ...[]byte args
+func (stub *MockStub) InitBytes(args ...[]byte) peer.Response {
+	return stub.MockInit(stub.generateTxUID(), args)
+}
+
 // MockInit mocked init function
 func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
 	stub.SetArgs(args)
