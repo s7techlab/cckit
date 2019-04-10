@@ -27,6 +27,7 @@ type (
 	EventSubscription struct {
 		events chan *peer.ChaincodeEvent
 		errors chan error
+		closer sync.Once
 	}
 )
 
@@ -96,10 +97,18 @@ func (mi *MockedPeer) Subscribe(ctx context.Context, from msp.SigningIdentity, c
 		return nil, err
 	}
 
-	return &EventSubscription{
+	sub := &EventSubscription{
 		events: mockStub.EventSubscription(),
 		errors: make(chan error),
-	}, nil
+	}
+
+	go func() {
+		<-ctx.Done()
+		close(sub.events)
+		close(sub.errors)
+	}()
+
+	return sub, nil
 }
 
 func (mi *MockedPeer) Chaincode(channel string, chaincode string) (*MockStub, error) {
@@ -120,5 +129,9 @@ func (es *EventSubscription) Errors() chan error {
 }
 
 func (es *EventSubscription) Close() error {
+	es.closer.Do(func() {
+		close(es.events)
+		close(es.errors)
+	})
 	return nil
 }
