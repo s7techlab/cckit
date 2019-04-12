@@ -62,11 +62,23 @@ type (
 	}
 )
 
+func (g *Group) buildHandler() ContextHandlerFunc {
+	return func(c Context) peer.Response {
+		h := g.HandleContext
+		for i := len(g.preMiddleware) - 1; i >= 0; i-- {
+			h = g.preMiddleware[i](h, i)
+		}
+		return h(c)
+	}
+}
+
 // HandleInit handle chaincode init method
 func (g *Group) HandleInit(stub shim.ChaincodeStubInterface) peer.Response {
-	return g.HandleContext(g.Context(stub).ReplaceArgs(
-		// add "init" as first arg
-		append([][]byte{[]byte(InitFunc)}, stub.GetArgs()...)))
+	// Pre context handling middleware
+	h := g.buildHandler()
+
+	// add "init" as first arg
+	return h(g.Context(stub).ReplaceArgs(append([][]byte{[]byte(InitFunc)}, stub.GetArgs()...)))
 }
 
 // Handle used for using in CC Invoke function
@@ -77,14 +89,7 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 		return response.Error(ErrEmptyArgs)
 	}
 
-	// Pre context handling middleware
-	h := func(c Context) peer.Response {
-		h := g.HandleContext
-		for i := len(g.preMiddleware) - 1; i >= 0; i-- {
-			h = g.preMiddleware[i](h, i)
-		}
-		return h(c)
-	}
+	h := g.buildHandler()
 	return h(g.Context(stub))
 }
 
@@ -181,7 +186,7 @@ func (g *Group) Invoke(path string, handler HandlerFunc, middleware ...Middlewar
 }
 
 func (g *Group) Init(handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
-	return g.Invoke(`init`, handler, middleware...)
+	return g.Invoke(InitFunc, handler, middleware...)
 }
 
 // Context returns chain code invoke context  for provided path and stub

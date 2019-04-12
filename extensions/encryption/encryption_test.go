@@ -116,7 +116,7 @@ var _ = Describe(`Router`, func() {
 
 	Describe("Encrypting in demand with state mapping", func() {
 
-		It("Allow to init encrypt-on-demand payment chaincode", func() {
+		It("Allow to init encrypt-on-demand payment chaincode without key in transient map", func() {
 			expectcc.ResponseOk(encryptOnDemandPaymentCC.Init())
 		})
 
@@ -200,8 +200,12 @@ var _ = Describe(`Router`, func() {
 
 	Describe("Encrypting required", func() {
 
-		It("Allow to init encrypt payment chaincodes", func() {
-			expectcc.ResponseOk(encryptPaymentCC.Init())
+		It("Disallow to init without key in transient map", func() {
+			expectcc.ResponseError(encryptPaymentCC.Init())
+		})
+
+		It("Allow to init with key in transient map", func() {
+			expectcc.ResponseOk(encryptPaymentCC.WithTransient(encryption.TransientMapWithKey(encKey)).Init())
 		})
 
 		It("Disallow to create payment without providing key in encryptPaymentCC ", func() {

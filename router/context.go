@@ -104,6 +104,9 @@ func (c *context) Logger() *shim.ChaincodeLogger {
 }
 
 func (c *context) Path() string {
+	if len(c.GetArgs()) == 0 {
+		return ``
+	}
 	return string(c.GetArgs()[0])
 }
 

@@ -25,7 +25,7 @@ func ArgsDecryptExcept(exceptMethod ...string) router.ContextMiddlewareFunc {
 }
 
 func decryptReplaceArgs(key []byte, c router.Context) error {
-	args, err := DecryptArgs(key, c.Stub().GetArgs())
+	args, err := DecryptArgs(key, c.GetArgs())
 	if err != nil {
 		return errors.Wrap(err, `args`)
 	}
@@ -35,17 +35,19 @@ func decryptReplaceArgs(key []byte, c router.Context) error {
 
 func argsDecryptor(next router.ContextHandlerFunc, keyShouldBeProvided bool, exceptMethod []string) router.ContextHandlerFunc {
 	return func(c router.Context) peer.Response {
-		if args := c.GetArgs(); len(exceptMethod) > 0 && len(args) > 0 {
+
+		// method exception - disable args decrypting
+		if len(exceptMethod) > 0 && len(c.GetArgs()) > 0 {
 			for _, m := range exceptMethod {
-				if string(args[0]) == m {
+				if string(c.Path()) == m {
 					return next(c)
 				}
 			}
 		}
 
 		key, err := KeyFromTransient(c)
-		// no key provided
 
+		// no key provided
 		if err != nil {
 			c.Logger().Debugf(`no decrypt key provided: %s`, err)
 			if err == ErrKeyNotDefinedInTransientMap && keyShouldBeProvided {

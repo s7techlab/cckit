@@ -5,6 +5,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim/ext/entities"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
+	"github.com/s7techlab/cckit/router"
 )
 
 const TransientMapKey = `ENCODE_KEY`
@@ -35,6 +36,13 @@ func EncryptArgs(key []byte, args ...interface{}) ([][]byte, error) {
 func DecryptArgs(key []byte, args [][]byte) ([][]byte, error) {
 	dargs := make([][]byte, len(args))
 	for i, a := range args {
+
+		// do not try to decrypt init function
+		if i == 0 && string(a) == router.InitFunc {
+			dargs[i] = a
+			continue
+		}
+
 		decrypted, err := Decrypt(key, a)
 		if err != nil {
 			return nil, errors.Wrap(err, `decryption error`)
