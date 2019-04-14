@@ -12,7 +12,8 @@ var (
 
 // InvokeChaincode locally calls the specified chaincode and converts result into target data type
 func InvokeChaincode(
-	stub shim.ChaincodeStubInterface, chaincodeName string, args []interface{}, channel string, target interface{}) (interface{}, error) {
+	stub shim.ChaincodeStubInterface, chaincodeName string, args []interface{},
+	channel string, target interface{}) (interface{}, error) {
 
 	convArgs, err := convert.ArgsToBytes(args...)
 	if err != nil {

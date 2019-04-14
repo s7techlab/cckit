@@ -1,9 +1,8 @@
 package testing
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/msp"
@@ -19,7 +18,6 @@ var (
 	ErrChaincodeNotExists = errors.New(`chaincode not exists`)
 	// ErrUnknownFromArgsType occurs when attempting to set unknown args in From func
 	ErrUnknownFromArgsType = errors.New(`unknown args type to cckit.MockStub.From func`)
-
 	// ErrKeyAlreadyExistsInTransientMap occurs when attempting to set existing key in transient map
 	ErrKeyAlreadyExistsInTransientMap = errors.New(`key already exists in transient map`)
 )
@@ -43,9 +41,10 @@ type CreatorTransformer func(...interface{}) (mspID string, certPEM []byte, err 
 // NewMockStub creates chaincode imitation
 func NewMockStub(name string, cc shim.Chaincode) *MockStub {
 	return &MockStub{
-		MockStub:                *shim.NewMockStub(name, cc),
-		cc:                      cc,
-		ClearCreatorAfterInvoke: true, // by default tx creator data and transient map are cleared after each cc method query/invoke
+		MockStub: *shim.NewMockStub(name, cc),
+		cc:       cc,
+		// by default tx creator data and transient map are cleared after each cc method query/invoke
+		ClearCreatorAfterInvoke: true,
 		InvokablesFull:          make(map[string]*MockStub),
 	}
 }
@@ -121,7 +120,8 @@ func (stub *MockStub) InvokeChaincode(chaincodeName string, args [][]byte, chann
 
 	otherStub, exists := stub.InvokablesFull[chaincodeName]
 	if !exists {
-		return shim.Error(fmt.Sprintf(`%s: try to invoke chaincode "%s" in channel "%s" (%s). Available mocked chaincodes are: %s`,
+		return shim.Error(fmt.Sprintf(
+			`%s: try to invoke chaincode "%s" in channel "%s" (%s). Available mocked chaincodes are: %s`,
 			ErrChaincodeNotExists, ccName, channel, chaincodeName, stub.MockedPeerChaincodes()))
 	}
 
@@ -154,8 +154,9 @@ func (stub *MockStub) MockCreator(mspID string, certPEM []byte) {
 
 func (stub *MockStub) generateTxUID() string {
 	id := make([]byte, 32)
-	rand.Seed(time.Now().UnixNano())
-	rand.Read(id)
+	if _, err := rand.Read(id); err != nil {
+		panic(err)
+	}
 	return fmt.Sprintf("0x%x", id)
 }
 

@@ -11,7 +11,7 @@ import (
 const OwnerStateKey = `OWNER`
 
 var (
-	// ErrOwnerNotProvided
+	// ErrOwnerNotProvided occurs when providing owner identity in init arguments
 	ErrOwnerNotProvided = errors.New(`owner not provided`)
 
 	// ErrOwnerAlreadySetted owner already setted

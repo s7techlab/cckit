@@ -29,20 +29,19 @@ func Success(data interface{}) peer.Response {
 func Create(data interface{}, err interface{}) peer.Response {
 	var errObj error
 
-	switch err.(type) {
-
+	switch e := err.(type) {
 	case nil:
 		errObj = nil
 	case bool:
-		if !err.(bool) {
+		if !e {
 			errObj = errors.New(`boolean error: false`)
 		}
 	case string:
-		if err.(string) != `` {
-			errObj = errors.New(err.(string))
+		if e != `` {
+			errObj = errors.New(e)
 		}
 	case error:
-		errObj = err.(error)
+		errObj = e
 	default:
 		panic(fmt.Sprintf(`unknowm error type %s`, err))
 

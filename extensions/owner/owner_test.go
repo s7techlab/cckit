@@ -62,7 +62,8 @@ var _ = Describe(`Ownable`, func() {
 		})
 
 		It("Owner can be queried", func() {
-			ownerIdentity := expectcc.PayloadIs(cc1.From(actors[`someone`]).Invoke(QueryMethod), &identity.Entry{}).(identity.Entry)
+			ownerIdentity := expectcc.PayloadIs(
+				cc1.From(actors[`someone`]).Invoke(QueryMethod), &identity.Entry{}).(identity.Entry)
 			Expect(ownerIdentity.GetSubject()).To(Equal(owner.GetSubject()))
 			Expect(ownerIdentity.GetMSPID()).To(Equal(owner.MspId))
 			Expect(ownerIdentity.GetPublicKey()).To(Equal(owner.Certificate.PublicKey))
@@ -73,7 +74,8 @@ var _ = Describe(`Ownable`, func() {
 
 		It("Allow to set owner during chaincode init", func() {
 			//invoke chaincode method from someone, but pass owner mspId and cert to init
-			ownerEntry := expectcc.PayloadIs(cc2.From(actors[`someone`]).Init(owner.MspId, owner.GetPEM()), &identity.Entry{}).(identity.Entry)
+			ownerEntry := expectcc.PayloadIs(
+				cc2.From(actors[`someone`]).Init(owner.MspId, owner.GetPEM()), &identity.Entry{}).(identity.Entry)
 			Expect(ownerEntry.GetSubject()).To(Equal(owner.GetSubject()))
 		})
 
@@ -88,7 +90,8 @@ var _ = Describe(`Ownable`, func() {
 		})
 
 		It("Owner can be queried", func() {
-			ownerIdentity := expectcc.PayloadIs(cc2.From(actors[`someone`]).Invoke(QueryMethod), &identity.Entry{}).(identity.Entry)
+			ownerIdentity := expectcc.PayloadIs(
+				cc2.From(actors[`someone`]).Invoke(QueryMethod), &identity.Entry{}).(identity.Entry)
 			Expect(ownerIdentity.GetSubject()).To(Equal(owner.GetSubject()))
 			Expect(ownerIdentity.GetMSPID()).To(Equal(owner.MspId))
 			Expect(ownerIdentity.GetPublicKey()).To(Equal(owner.Certificate.PublicKey))

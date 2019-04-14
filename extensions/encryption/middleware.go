@@ -13,7 +13,8 @@ func ArgsDecryptIfKeyProvided(next router.ContextHandlerFunc, pos ...int) router
 	return argsDecryptor(next, false, nil)
 }
 
-// ArgsDecryptIfKeyProvided  - pre middleware, decrypts chaincode method arguments, key must be provided in transient map
+// ArgsDecryptIfKeyProvided - pre middleware, decrypts chaincode method arguments,
+// key must be provided in transient map
 func ArgsDecrypt(next router.ContextHandlerFunc, pos ...int) router.ContextHandlerFunc {
 	return argsDecryptor(next, true, nil)
 }
@@ -33,24 +34,24 @@ func decryptReplaceArgs(key []byte, c router.Context) error {
 	return nil
 }
 
-func argsDecryptor(next router.ContextHandlerFunc, keyShouldBeProvided bool, exceptMethod []string) router.ContextHandlerFunc {
+func argsDecryptor(next router.ContextHandlerFunc, keyShouldBe bool, exceptMethod []string) router.ContextHandlerFunc {
+
 	return func(c router.Context) peer.Response {
 
 		// method exception - disable args decrypting
 		if len(exceptMethod) > 0 && len(c.GetArgs()) > 0 {
 			for _, m := range exceptMethod {
-				if string(c.Path()) == m {
+				if c.Path() == m {
 					return next(c)
 				}
 			}
 		}
 
 		key, err := KeyFromTransient(c)
-
 		// no key provided
 		if err != nil {
 			c.Logger().Debugf(`no decrypt key provided: %s`, err)
-			if err == ErrKeyNotDefinedInTransientMap && keyShouldBeProvided {
+			if err == ErrKeyNotDefinedInTransientMap && keyShouldBe {
 				return response.Error(err)
 			}
 			return next(c)

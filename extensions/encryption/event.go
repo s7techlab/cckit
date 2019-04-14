@@ -18,8 +18,8 @@ func EventWithTransientKey(c router.Context) (state.Event, error) {
 	return Event(c, key)
 }
 
-// EventWithTransientKeyIfProvided returns encrypted event wrapper if key for symmetric encryption/decryption is provided
-// otherwise return default event wrapper
+// EventWithTransientKeyIfProvided returns encrypted event wrapper if key for symmetric
+// encryption/decryption is provided, otherwise return default event wrapper
 func EventWithTransientKeyIfProvided(c router.Context) (state.Event, error) {
 	key, err := KeyFromTransient(c)
 	switch err {

@@ -23,27 +23,27 @@ type (
 	}
 )
 
-func MustIdentityFromPem(mspId string, certPEM []byte) *Identity {
-	if id, err := IdentityFromPem(mspId, certPEM); err != nil {
+func MustIdentityFromPem(mspID string, certPEM []byte) *Identity {
+	if id, err := IdentityFromPem(mspID, certPEM); err != nil {
 		panic(err)
 	} else {
 		return id
 	}
 }
 
-func IdentityFromPem(mspId string, certPEM []byte) (*Identity, error) {
-	certIdentity, err := identity.New(mspId, certPEM)
+func IdentityFromPem(mspID string, certPEM []byte) (*Identity, error) {
+	certIdentity, err := identity.New(mspID, certPEM)
 	if err != nil {
 		return nil, err
 	}
-	return NewIdentity(mspId, certIdentity.Cert), nil
+	return NewIdentity(mspID, certIdentity.Cert), nil
 }
 
 // ActorsFromPem returns CertIdentity (MSP ID and X.509 cert) converted PEM content
-func IdentitiesFromPem(mspId string, certPEMs map[string][]byte) (ids Identities, err error) {
+func IdentitiesFromPem(mspID string, certPEMs map[string][]byte) (ids Identities, err error) {
 	identities := make(Identities)
 	for role, certPEM := range certPEMs {
-		if identities[role], err = IdentityFromPem(mspId, certPEM); err != nil {
+		if identities[role], err = IdentityFromPem(mspID, certPEM); err != nil {
 			return
 		}
 	}
@@ -73,9 +73,9 @@ func MustIdentitiesFromFiles(mspID string, files map[string]string, getContent i
 	}
 }
 
-func NewIdentity(mspId string, cert *x509.Certificate) *Identity {
+func NewIdentity(mspID string, cert *x509.Certificate) *Identity {
 	return &Identity{
-		MspId:       mspId,
+		MspId:       mspID,
 		Certificate: cert,
 	}
 }
@@ -120,13 +120,7 @@ func (i *Identity) Serialize() ([]byte, error) {
 		return nil, errors.New("encoding of identity failed")
 	}
 
-	sId := &msppb.SerializedIdentity{Mspid: i.MspId, IdBytes: pemBytes}
-	idBytes, err := proto.Marshal(sId)
-	if err != nil {
-		return nil, err
-	}
-
-	return idBytes, nil
+	return proto.Marshal(&msppb.SerializedIdentity{Mspid: i.MspId, IdBytes: pemBytes})
 }
 
 func (i *Identity) SatisfiesPrincipal(principal *msppb.MSPPrincipal) error {

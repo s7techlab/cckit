@@ -123,7 +123,9 @@ var _ = Describe(`Testing`, func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// double check interface api.Invoker
-			resp, _, err := interface{}(mockedPeer).(api.Invoker).Invoke(ctx, actors[`authority`], Channel, ChaincodeName, `carRegister`, [][]byte{MustJsonMarshal(cars.Payloads[3])}, nil)
+			resp, _, err := interface{}(mockedPeer).(api.Invoker).Invoke(
+				ctx, actors[`authority`], Channel, ChaincodeName, `carRegister`,
+				[][]byte{MustJSONMarshal(cars.Payloads[3])}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -141,7 +143,9 @@ var _ = Describe(`Testing`, func() {
 		}, 0.3)
 
 		It("Allow to query mocked chaincode ", func() {
-			resp, err := mockedPeer.Query(context.Background(), actors[`authority`], Channel, ChaincodeName, `carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+			resp, err := mockedPeer.Query(
+				context.Background(), actors[`authority`], Channel, ChaincodeName,
+				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -151,7 +155,9 @@ var _ = Describe(`Testing`, func() {
 		})
 
 		It("Allow to query mocked chaincode from chaincode", func() {
-			resp, err := mockedPeer.Query(context.Background(), actors[`authority`], Channel, ChaincodeProxyName, `carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+			resp, err := mockedPeer.Query(
+				context.Background(), actors[`authority`], Channel, ChaincodeProxyName,
+				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)

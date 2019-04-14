@@ -41,7 +41,9 @@ func Ping(c r.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	c.SetEvent(PingEvent, pingInfo)
+	if err := c.Event().Set(PingEvent, pingInfo); err != nil {
+		return nil, err
+	}
 	return pingInfo, c.State().Put(pingInfo, pingInfo)
 }
 

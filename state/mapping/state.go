@@ -24,20 +24,20 @@ type (
 		//GetByKey(schema interface{}, key string, keyValue []interface{}) (result interface{}, err error)
 	}
 
-	StateImpl struct {
+	Impl struct {
 		state    state.State
 		mappings StateMappings
 	}
 )
 
-func WrapState(s state.State, mappings StateMappings) *StateImpl {
-	return &StateImpl{
+func WrapState(s state.State, mappings StateMappings) *Impl {
+	return &Impl{
 		state:    s,
 		mappings: mappings,
 	}
 }
 
-func (s *StateImpl) MappingNamespace(schema interface{}) (state.Key, error) {
+func (s *Impl) MappingNamespace(schema interface{}) (state.Key, error) {
 	m, err := s.mappings.Get(schema)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (s *StateImpl) MappingNamespace(schema interface{}) (state.Key, error) {
 	return m.Namespace(), nil
 }
 
-func (s *StateImpl) Get(entry interface{}, target ...interface{}) (result interface{}, err error) {
+func (s *Impl) Get(entry interface{}, target ...interface{}) (result interface{}, err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
 		return s.state.Get(entry, target...) // return as is
@@ -55,15 +55,15 @@ func (s *StateImpl) Get(entry interface{}, target ...interface{}) (result interf
 	return s.state.Get(mapped, target...)
 }
 
-func (s *StateImpl) GetInt(key interface{}, defaultValue int) (result int, err error) {
+func (s *Impl) GetInt(key interface{}, defaultValue int) (result int, err error) {
 	return s.state.GetInt(key, defaultValue)
 }
 
-func (s *StateImpl) GetHistory(key interface{}, target interface{}) (result state.HistoryEntryList, err error) {
+func (s *Impl) GetHistory(key interface{}, target interface{}) (result state.HistoryEntryList, err error) {
 	return s.state.GetHistory(key, target)
 }
 
-func (s *StateImpl) Exists(entry interface{}) (exists bool, err error) {
+func (s *Impl) Exists(entry interface{}) (exists bool, err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
 		return s.state.Exists(entry) // return as is
@@ -72,7 +72,7 @@ func (s *StateImpl) Exists(entry interface{}) (exists bool, err error) {
 	return s.state.Exists(mapped)
 }
 
-func (s *StateImpl) Put(entry interface{}, value ...interface{}) (err error) {
+func (s *Impl) Put(entry interface{}, value ...interface{}) (err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
 		return s.state.Put(entry, value...) // return as is
@@ -95,7 +95,7 @@ func (s *StateImpl) Put(entry interface{}, value ...interface{}) (err error) {
 	return s.state.Put(mapped)
 }
 
-func (s *StateImpl) Insert(entry interface{}, value ...interface{}) (err error) {
+func (s *Impl) Insert(entry interface{}, value ...interface{}) (err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
 		return s.state.Insert(entry, value...) // return as is
@@ -116,7 +116,7 @@ func (s *StateImpl) Insert(entry interface{}, value ...interface{}) (err error) 
 	return s.state.Insert(mapped)
 }
 
-func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
+func (s *Impl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
 	if s.mappings.Exists(namespace) {
 		m, err := s.mappings.Get(namespace)
 		if err != nil {
@@ -139,7 +139,7 @@ func targetFromMapping(m StateMapper) (target []interface{}) {
 	return
 }
 
-func (s *StateImpl) ListWith(entry interface{}, key state.Key) (result interface{}, err error) {
+func (s *Impl) ListWith(entry interface{}, key state.Key) (result interface{}, err error) {
 	if !s.mappings.Exists(entry) {
 		return nil, ErrStateMappingNotFound
 	}
@@ -154,12 +154,14 @@ func (s *StateImpl) ListWith(entry interface{}, key state.Key) (result interface
 	return s.state.List(namespace.Append(key), targetFromMapping(m)...)
 }
 
-func (s *StateImpl) GetByUniqKey(entry interface{}, idx string, idxVal []string, target ...interface{}) (result interface{}, err error) {
+func (s *Impl) GetByUniqKey(
+	entry interface{}, idx string, idxVal []string, target ...interface{}) (result interface{}, err error) {
+
 	if !s.mappings.Exists(entry) {
 		return nil, ErrStateMappingNotFound
 	}
 
-	keyRef, err := s.state.Get(NewKeyRefIdMapped(entry, idx, idxVal), &schema.KeyRef{})
+	keyRef, err := s.state.Get(NewKeyRefIDMapped(entry, idx, idxVal), &schema.KeyRef{})
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +169,7 @@ func (s *StateImpl) GetByUniqKey(entry interface{}, idx string, idxVal []string,
 	return s.state.Get(keyRef.(*schema.KeyRef).PKey, target...)
 }
 
-func (s *StateImpl) Delete(entry interface{}) (err error) {
+func (s *Impl) Delete(entry interface{}) (err error) {
 
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
@@ -177,18 +179,18 @@ func (s *StateImpl) Delete(entry interface{}) (err error) {
 	return s.state.Delete(mapped)
 }
 
-func (s *StateImpl) Logger() *shim.ChaincodeLogger {
+func (s *Impl) Logger() *shim.ChaincodeLogger {
 	return s.state.Logger()
 }
 
-func (s *StateImpl) UseKeyTransformer(kt state.KeyTransformer) state.State {
+func (s *Impl) UseKeyTransformer(kt state.KeyTransformer) state.State {
 	return s.state.UseKeyTransformer(kt)
 }
 
-func (s *StateImpl) UseStateGetTransformer(fb state.FromBytesTransformer) state.State {
+func (s *Impl) UseStateGetTransformer(fb state.FromBytesTransformer) state.State {
 	return s.state.UseStateGetTransformer(fb)
 }
 
-func (s *StateImpl) UseStatePutTransformer(tb state.ToBytesTransformer) state.State {
+func (s *Impl) UseStatePutTransformer(tb state.ToBytesTransformer) state.State {
 	return s.state.UseStatePutTransformer(tb)
 }

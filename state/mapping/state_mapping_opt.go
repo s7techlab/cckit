@@ -78,7 +78,7 @@ func attrsFrom(schema interface{}) (attrs []string) {
 }
 
 func attrsPKeyer(attrs []string) InstanceKeyer {
-	return func(instance interface{}) (state.Key, error) {
+	return func(instance interface{}) (key state.Key, err error) {
 		inst := reflect.Indirect(reflect.ValueOf(instance))
 		var pkey state.Key
 		for _, attr := range attrs {
@@ -87,11 +87,10 @@ func attrsPKeyer(attrs []string) InstanceKeyer {
 				return nil, fmt.Errorf(`%s: %s`, ErrFieldNotExists, attr)
 			}
 
-			if key, err := keyFromValue(v); err != nil {
+			if key, err = keyFromValue(v); err != nil {
 				return nil, fmt.Errorf(`key from field %s.%s: %s`, mapKey(instance), attr, err)
-			} else {
-				pkey = pkey.Append(key)
 			}
+			pkey = pkey.Append(key)
 		}
 		return pkey, nil
 	}
@@ -108,8 +107,7 @@ func keyFromValue(v reflect.Value) (key state.Key, err error) {
 		return key, nil
 	}
 
-	switch v.Kind() {
-	case reflect.Ptr:
+	if v.Kind() == reflect.Ptr {
 		s := reflect.ValueOf(v.Interface()).Elem().Type()
 		// get all field values from struct
 		for i := 0; i < s.NumField(); i++ {

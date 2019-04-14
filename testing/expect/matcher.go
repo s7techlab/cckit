@@ -68,7 +68,8 @@ func PayloadInt(response peer.Response, expectedValue int) int {
 	return d
 }
 
-// EventPayloadIs expects peer.ChaincodeEvent payload can be marshalled to target interface{} and returns converted value
+// EventPayloadIs expects peer.ChaincodeEvent payload can be marshaled to
+// target interface{} and returns converted value
 func EventPayloadIs(event *peer.ChaincodeEvent, target interface{}) interface{} {
 	g.Expect(event).NotTo(g.BeNil())
 	data, err := convert.FromBytes(event.Payload, target)

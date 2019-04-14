@@ -6,10 +6,10 @@ var (
 	// ErrEntryTypeNotSupported entry type has no appropriate mapper type
 	ErrEntryTypeNotSupported = errors.New(`entry type not supported for mapping`)
 
-	// ErrEntryTypeNotDefined
+	// ErrStateMappingNotFound  occurs when mapping for state entry is not defined
 	ErrStateMappingNotFound = errors.New(`state mapping not found`)
 
-	// ErrEventMappingNotFound
+	// ErrEventMappingNotFound occurs when mapping for event is not defined
 	ErrEventMappingNotFound = errors.New(`event mapping not found`)
 
 	// ErrFieldTypeNotSupportedForKeyExtraction key cannot extracted from field

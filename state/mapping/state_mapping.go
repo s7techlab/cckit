@@ -51,11 +51,6 @@ type (
 
 	StateMappings map[string]*StateMapping
 
-	StateMappingOptions struct {
-		namespace    state.Key
-		primaryKeyer state.KeyTransformer
-	}
-
 	StateMappingOpt func(*StateMapping, StateMappings)
 )
 

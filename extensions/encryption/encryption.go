@@ -11,7 +11,9 @@ import (
 const TransientMapKey = `ENCODE_KEY`
 
 func init() {
-	factory.InitFactories(nil)
+	if err := factory.InitFactories(nil); err != nil {
+		panic(err)
+	}
 }
 
 // EncryptArgs encrypt args

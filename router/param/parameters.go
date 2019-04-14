@@ -45,7 +45,9 @@ func (p Parameter) ValueFromContext(c router.Context) (arg interface{}, err erro
 
 	args := c.GetArgs()[argsStartsFrom:] // first arg is chaincode function name
 	if argPos >= len(args) {
-		return nil, fmt.Errorf(`method "%s", param "%s" not exists, param expected at pos : %d, stub args length: %d`, c.Path(), p.Name, argPos, len(args))
+		return nil, fmt.Errorf(
+			`method "%s", param "%s" not exists, param expected at pos : %d, stub args length: %d`,
+			c.Path(), p.Name, argPos, len(args))
 	}
 
 	return convert.FromBytes(args[argPos], p.Type) //first arg is function name

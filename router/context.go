@@ -80,7 +80,6 @@ type (
 		logger *shim.ChaincodeLogger
 		state  state.State
 		event  state.Event
-		path   string
 		args   [][]byte
 		params InterfaceMap
 		store  InterfaceMap

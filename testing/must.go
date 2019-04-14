@@ -21,7 +21,7 @@ func MustProtoMarshal(pb proto.Message) []byte {
 	return bb
 }
 
-func MustJsonMarshal(val interface{}) []byte {
+func MustJSONMarshal(val interface{}) []byte {
 	bb, err := json.Marshal(val)
 	if err != nil {
 		panic(err)

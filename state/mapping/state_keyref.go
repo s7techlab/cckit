@@ -7,18 +7,18 @@ import (
 
 const KeyRefNamespace = `_idx`
 
-var KeyRefIdKeyer = attrsPKeyer([]string{`Schema`, `Idx`, `RefKey`})
+var KeyRefIDKeyer = attrsPKeyer([]string{`Schema`, `Idx`, `RefKey`})
 
 var KeyRefMapper = &StateMapping{
 	schema:       &schema.KeyRef{},
 	namespace:    state.Key{KeyRefNamespace},
-	primaryKeyer: KeyRefIdKeyer,
+	primaryKeyer: KeyRefIDKeyer,
 }
 
-var KeyRefIdMapper = &StateMapping{
+var KeyRefIDMapper = &StateMapping{
 	schema:       &schema.KeyRefId{},
 	namespace:    state.Key{KeyRefNamespace},
-	primaryKeyer: KeyRefIdKeyer,
+	primaryKeyer: KeyRefIDKeyer,
 }
 
 func NewKeyRef(target interface{}, idx string, refKey, pKey state.Key) *schema.KeyRef {
@@ -30,7 +30,7 @@ func NewKeyRef(target interface{}, idx string, refKey, pKey state.Key) *schema.K
 	}
 }
 
-func NewKeyRefId(target interface{}, idx string, refKey state.Key) *schema.KeyRefId {
+func NewKeyRefID(target interface{}, idx string, refKey state.Key) *schema.KeyRefId {
 	return &schema.KeyRefId{
 		Schema: mapKey(target),
 		Idx:    idx,
@@ -42,6 +42,6 @@ func NewKeyRefMapped(target interface{}, idx string, refKey, pKey state.Key) *Pr
 	return NewProtoStateMapped(NewKeyRef(target, idx, refKey, pKey), KeyRefMapper)
 }
 
-func NewKeyRefIdMapped(target interface{}, idx string, refKey state.Key) *ProtoStateMapped {
-	return NewProtoStateMapped(NewKeyRefId(target, idx, refKey), KeyRefIdMapper)
+func NewKeyRefIDMapped(target interface{}, idx string, refKey state.Key) *ProtoStateMapped {
+	return NewProtoStateMapped(NewKeyRefID(target, idx, refKey), KeyRefIDMapper)
 }

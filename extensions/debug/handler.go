@@ -64,7 +64,8 @@ func InvokeStateClean(c router.Context) (interface{}, error) {
 	return DelStateByPrefixes(c.Stub(), c.Param(`prefix`).([]string))
 }
 
-// InvokeValueByKeyPut router handler puts value in chaincode state with composite key, created with key parts ([]string)
+// InvokeValueByKeyPut router handler puts value in chaincode state with composite key,
+// created with key parts ([]string)
 func InvokeStatePut(c router.Context) (interface{}, error) {
 	key, err := state.StringKey(c.Stub(), c.Param(`key`).([]string))
 	if err != nil {

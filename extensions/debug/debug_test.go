@@ -44,8 +44,9 @@ var _ = Describe(`Debuggable`, func() {
 	Describe("Debug", func() {
 
 		It("Allow to clean empty state", func() {
-			emptyResult := expectcc.PayloadIs(
-				cc.From(owner).Invoke(`debugStateClean`, []string{`some`, `non existent`, `keys`}), new(map[string]int)).(map[string]int)
+			emptyResult := expectcc.PayloadIs(cc.From(owner).Invoke(
+				`debugStateClean`,
+				[]string{`some`, `non existent`, `keys`}), new(map[string]int)).(map[string]int)
 
 			Expect(emptyResult[`some`]).To(Equal(0))
 			Expect(len(emptyResult)).To(Equal(3))
@@ -53,12 +54,18 @@ var _ = Describe(`Debuggable`, func() {
 
 		It("Allow put value in state", func() {
 			for i := 0; i < 5; i++ {
-				expectcc.ResponseOk(cc.From(owner).Invoke(`debugStatePut`, []string{`prefixA`, `key` + strconv.Itoa(i)}, []byte(`value`+strconv.Itoa(i))))
+				expectcc.ResponseOk(cc.From(owner).Invoke(
+					`debugStatePut`,
+					[]string{`prefixA`, `key` + strconv.Itoa(i)}, []byte(`value`+strconv.Itoa(i))))
 			}
 
 			for i := 0; i < 7; i++ {
-				expectcc.ResponseOk(cc.From(owner).Invoke(`debugStatePut`, []string{`prefixB`, `subprefixA`, `key` + strconv.Itoa(i)}, []byte(`value`+strconv.Itoa(i))))
-				expectcc.ResponseOk(cc.From(owner).Invoke(`debugStatePut`, []string{`prefixB`, `subprefixB`, `key` + strconv.Itoa(i)}, []byte(`value`+strconv.Itoa(i))))
+				expectcc.ResponseOk(cc.From(owner).Invoke(
+					`debugStatePut`,
+					[]string{`prefixB`, `subprefixA`, `key` + strconv.Itoa(i)}, []byte(`value`+strconv.Itoa(i))))
+				expectcc.ResponseOk(cc.From(owner).Invoke(
+					`debugStatePut`,
+					[]string{`prefixB`, `subprefixB`, `key` + strconv.Itoa(i)}, []byte(`value`+strconv.Itoa(i))))
 			}
 
 			cc.From(owner).Invoke(`debugStatePut`, []string{`keyA`}, []byte(`valueKeyA`))
@@ -79,7 +86,8 @@ var _ = Describe(`Debuggable`, func() {
 			Expect(key0).To(Equal(`prefixA`))
 			Expect(key0rest).To(Equal([]string{`key0`}))
 
-			keys = expectcc.PayloadIs(cc.From(owner).Invoke(`debugStateKeys`, []string{`prefixB`, `subprefixB`}), &[]string{}).([]string)
+			keys = expectcc.PayloadIs(cc.From(owner).Invoke(
+				`debugStateKeys`, []string{`prefixB`, `subprefixB`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(7))
 		})
 

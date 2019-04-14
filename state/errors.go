@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	// ErrUnableToCreateKey can occurs while creating composite key for entry
+	// ErrUnableToCreateStateKey can occurs while creating composite key for entry
 	ErrUnableToCreateStateKey = errors.New(`unable to create state key`)
 
 	// ErrUnableToCreateEventName can occurs while creating composite key for entry
@@ -20,7 +20,8 @@ var (
 	// ErrAllowOnlyOneValue can occurs when trying to call Insert or Put with more than 2 arguments
 	ErrAllowOnlyOneValue = errors.New(`allow only one value`)
 
-	// ErrKeyNotSupportKeyerInterface can occurs when trying to Insert or Put struct without providing key and struct not support Keyer interface
+	// ErrStateEntryNotSupportKeyerInterface can occurs when trying to Insert or Put struct
+	// providing key and struct without Keyer interface support
 	ErrStateEntryNotSupportKeyerInterface = errors.New(`state entry not support keyer interface`)
 
 	ErrEventEntryNotSupportNamerInterface = errors.New(`event entry not support name interface`)

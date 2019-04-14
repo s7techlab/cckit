@@ -32,40 +32,27 @@ func ToBytes(value interface{}) ([]byte, error) {
 		return nil, nil
 	}
 
-	switch value.(type) {
+	switch v := value.(type) {
 
 	// first priority if value implements ToByter interface
 	case ToByter:
-		return value.(ToByter).ToBytes()
+		return v.ToBytes()
 	case proto.Message:
-		return proto.Marshal(proto.Clone(value.(proto.Message)))
+		return proto.Marshal(proto.Clone(v))
 	case bool:
-		return []byte(strconv.FormatBool(value.(bool))), nil
+		return []byte(strconv.FormatBool(v)), nil
 	case string:
-		return []byte(value.(string)), nil
-	case uint:
-		return []byte(fmt.Sprint(value.(uint))), nil
-	case int:
-		return []byte(fmt.Sprint(value.(int))), nil
-	case int32:
-		return []byte(fmt.Sprint(value.(int32))), nil
+		return []byte(v), nil
+	case uint, int, int32:
+		return []byte(fmt.Sprint(v)), nil
 	case []byte:
-		return value.([]byte), nil
+		return v, nil
 
 	default:
 		valueType := reflect.TypeOf(value).Kind()
 
 		switch valueType {
-
-		case reflect.Ptr:
-			fallthrough
-		case reflect.Struct:
-			fallthrough
-		case reflect.Array:
-			fallthrough
-		case reflect.Map:
-			fallthrough
-		case reflect.Slice:
+		case reflect.Ptr, reflect.Struct, reflect.Array, reflect.Map, reflect.Slice:
 			return json.Marshal(value)
 			// used when type based on string
 		case reflect.String:

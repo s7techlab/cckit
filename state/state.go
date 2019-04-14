@@ -94,7 +94,7 @@ func (k Key) Append(key Key) Key {
 	return append(k, key...)
 }
 
-type StateImpl struct {
+type Impl struct {
 	stub                shim.ChaincodeStubInterface
 	logger              *shim.ChaincodeLogger
 	StateKeyTransformer KeyTransformer
@@ -103,8 +103,8 @@ type StateImpl struct {
 }
 
 // NewState creates wrapper on shim.ChaincodeStubInterface for working with state
-func NewState(stub shim.ChaincodeStubInterface, logger *shim.ChaincodeLogger) *StateImpl {
-	return &StateImpl{
+func NewState(stub shim.ChaincodeStubInterface, logger *shim.ChaincodeLogger) *Impl {
+	return &Impl{
 		stub:                stub,
 		logger:              logger,
 		StateKeyTransformer: KeyAsIs,
@@ -113,11 +113,11 @@ func NewState(stub shim.ChaincodeStubInterface, logger *shim.ChaincodeLogger) *S
 	}
 }
 
-func (s *StateImpl) Logger() *shim.ChaincodeLogger {
+func (s *Impl) Logger() *shim.ChaincodeLogger {
 	return s.logger
 }
 
-func (s *StateImpl) StringKey(key Key) (string, error) {
+func (s *Impl) StringKey(key Key) (string, error) {
 	keyParts, err := s.StateKeyTransformer(key)
 	if err != nil {
 		return ``, err
@@ -137,7 +137,7 @@ func StringKey(stub shim.ChaincodeStubInterface, key Key) (string, error) {
 	}
 }
 
-func (s *StateImpl) Key(key interface{}) (string, error) {
+func (s *Impl) Key(key interface{}) (string, error) {
 	// normalized key - []string
 	normKey, err := NormalizeStateKey(key)
 	if err != nil {
@@ -149,7 +149,7 @@ func (s *StateImpl) Key(key interface{}) (string, error) {
 }
 
 // Get data by key from state, trying to convert to target interface
-func (s *StateImpl) Get(key interface{}, config ...interface{}) (result interface{}, err error) {
+func (s *Impl) Get(key interface{}, config ...interface{}) (result interface{}, err error) {
 	strKey, err := s.Key(key)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (s *StateImpl) Get(key interface{}, config ...interface{}) (result interfac
 	if err != nil {
 		return
 	}
-	if bb == nil || len(bb) == 0 {
+	if len(bb) == 0 {
 		// config[1] default value
 		if len(config) >= 2 {
 			return config[1], nil
@@ -173,7 +173,7 @@ func (s *StateImpl) Get(key interface{}, config ...interface{}) (result interfac
 	return s.StateGetTransformer(bb, config...)
 }
 
-func (s *StateImpl) GetInt(key interface{}, defaultValue int) (result int, err error) {
+func (s *Impl) GetInt(key interface{}, defaultValue int) (result int, err error) {
 	val, err := s.Get(key, convert.TypeInt, defaultValue)
 	if err != nil {
 		return 0, err
@@ -182,7 +182,7 @@ func (s *StateImpl) GetInt(key interface{}, defaultValue int) (result int, err e
 }
 
 // GetHistory by key from state, trying to convert to target interface
-func (s *StateImpl) GetHistory(key interface{}, target interface{}) (result HistoryEntryList, err error) {
+func (s *Impl) GetHistory(key interface{}, target interface{}) (result HistoryEntryList, err error) {
 	strKey, err := s.Key(key)
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func (s *StateImpl) GetHistory(key interface{}, target interface{}) (result Hist
 }
 
 // Exists check entry with key exists in chaincode state
-func (s *StateImpl) Exists(entry interface{}) (exists bool, err error) {
+func (s *Impl) Exists(entry interface{}) (exists bool, err error) {
 	strKey, err := s.Key(entry)
 	if err != nil {
 		return false, err
@@ -230,12 +230,12 @@ func (s *StateImpl) Exists(entry interface{}) (exists bool, err error) {
 	if err != nil {
 		return false, err
 	}
-	return !(bb == nil || len(bb) == 0), nil
+	return len(bb) != 0, nil
 }
 
 // List data from state using objectType prefix in composite key, trying to conver to target interface.
 // Keys -  additional components of composite key
-func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
+func (s *Impl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
 
 	stateList, err := NewStateList(target...)
 	if err != nil {
@@ -263,22 +263,22 @@ func (s *StateImpl) List(namespace interface{}, target ...interface{}) (result i
 }
 
 func NormalizeStateKey(key interface{}) (Key, error) {
-	switch key.(type) {
+	switch k := key.(type) {
 	case Key:
-		return key.(Key), nil
+		return k, nil
 	case Keyer:
-		return key.(Keyer).Key()
+		return k.Key()
 	case StringsKeyer:
-		return key.(StringsKeyer).Key()
+		return k.Key()
 	case string:
-		return Key{key.(string)}, nil
+		return Key{k}, nil
 	case []string:
-		return key.([]string), nil
+		return k, nil
 	}
 	return nil, fmt.Errorf(`%s: %s`, ErrUnableToCreateStateKey, reflect.TypeOf(key))
 }
 
-func (s *StateImpl) argKeyValue(arg interface{}, values []interface{}) (key Key, value interface{}, err error) {
+func (s *Impl) argKeyValue(arg interface{}, values []interface{}) (key Key, value interface{}, err error) {
 	// key must be
 	key, err = NormalizeStateKey(arg)
 	if err != nil {
@@ -297,7 +297,7 @@ func (s *StateImpl) argKeyValue(arg interface{}, values []interface{}) (key Key,
 }
 
 // Put data value in state with key, trying convert data to []byte
-func (s *StateImpl) Put(entry interface{}, values ...interface{}) (err error) {
+func (s *Impl) Put(entry interface{}, values ...interface{}) (err error) {
 	key, value, err := s.argKeyValue(entry, values)
 	if err != nil {
 		return err
@@ -317,7 +317,7 @@ func (s *StateImpl) Put(entry interface{}, values ...interface{}) (err error) {
 }
 
 // Insert value into chaincode state, returns error if key already exists
-func (s *StateImpl) Insert(entry interface{}, values ...interface{}) (err error) {
+func (s *Impl) Insert(entry interface{}, values ...interface{}) (err error) {
 	if exists, err := s.Exists(entry); err != nil {
 		return err
 	} else if exists {
@@ -333,7 +333,7 @@ func (s *StateImpl) Insert(entry interface{}, values ...interface{}) (err error)
 }
 
 // Delete entry from state
-func (s *StateImpl) Delete(key interface{}) (err error) {
+func (s *Impl) Delete(key interface{}) (err error) {
 	strKey, err := s.Key(key)
 	if err != nil {
 		return errors.Wrap(err, `deleting from state`)
@@ -343,16 +343,16 @@ func (s *StateImpl) Delete(key interface{}) (err error) {
 	return s.stub.DelState(strKey)
 }
 
-func (s *StateImpl) UseKeyTransformer(kt KeyTransformer) State {
+func (s *Impl) UseKeyTransformer(kt KeyTransformer) State {
 	s.StateKeyTransformer = kt
 	return s
 }
-func (s *StateImpl) UseStateGetTransformer(fb FromBytesTransformer) State {
+func (s *Impl) UseStateGetTransformer(fb FromBytesTransformer) State {
 	s.StateGetTransformer = fb
 	return s
 }
 
-func (s *StateImpl) UseStatePutTransformer(tb ToBytesTransformer) State {
+func (s *Impl) UseStatePutTransformer(tb ToBytesTransformer) State {
 	s.StatePutTransformer = tb
 	return s
 }

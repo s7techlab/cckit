@@ -14,7 +14,7 @@ type Entry struct {
 	Subject string
 	Issuer  string
 	PEM     []byte
-	cert    *x509.Certificate `json:"-"` // temporary cert
+	Cert    *x509.Certificate `json:"-"` // temporary cert
 }
 
 // Id structure defines short id representation
@@ -57,17 +57,17 @@ func (e Entry) GetPEM() []byte {
 
 func (e Entry) GetPublicKey() interface{} {
 
-	if e.cert == nil {
+	if e.Cert == nil {
 		cert, err := Certificate(e.PEM)
 
 		if err != nil {
 			return err
 		}
 
-		e.cert = cert
+		e.Cert = cert
 	}
 
-	return e.cert.PublicKey
+	return e.Cert.PublicKey
 }
 
 // Is checks IdentityEntry is equal to an other Identity

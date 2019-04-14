@@ -32,7 +32,7 @@ func TestState(t *testing.T) {
 
 var (
 	actors                                             testcc.Identities
-	cPaperCC, cPaperExtendedCC, complexIdCC, sliceIdCC *testcc.MockStub
+	cPaperCC, cPaperExtendedCC, complexIDCC, sliceIDCC *testcc.MockStub
 	err                                                error
 )
 var _ = Describe(`Mapping`, func() {
@@ -51,11 +51,11 @@ var _ = Describe(`Mapping`, func() {
 		cPaperExtendedCC = testcc.NewMockStub(`cpapers_extended`, cpaper_extended.NewCC())
 		cPaperExtendedCC.From(actors[`owner`]).Init()
 
-		complexIdCC = testcc.NewMockStub(`complexid`, testdata.NewComplexIdCC())
-		complexIdCC.From(actors[`owner`]).Init()
+		complexIDCC = testcc.NewMockStub(`complexid`, testdata.NewComplexIdCC())
+		complexIDCC.From(actors[`owner`]).Init()
 
-		sliceIdCC = testcc.NewMockStub(`sliceid`, testdata.NewSliceIdCC())
-		sliceIdCC.From(actors[`owner`]).Init()
+		sliceIDCC = testcc.NewMockStub(`sliceid`, testdata.NewSliceIdCC())
+		sliceIDCC.From(actors[`owner`]).Init()
 	})
 
 	Describe(`Commercial paper, protobuf based schema`, func() {
@@ -85,14 +85,16 @@ var _ = Describe(`Mapping`, func() {
 		})
 
 		It("Allow to get entry list", func() {
-			cpapers := expectcc.PayloadIs(cPaperCC.Query(`list`), &cpaper_schema.CommercialPaperList{}).(*cpaper_schema.CommercialPaperList)
+			cpapers := expectcc.PayloadIs(cPaperCC.Query(`list`),
+				&cpaper_schema.CommercialPaperList{}).(*cpaper_schema.CommercialPaperList)
 			Expect(len(cpapers.Items)).To(Equal(3))
 			Expect(cpapers.Items[0].Issuer).To(Equal(cpaper1.Issuer))
 			Expect(cpapers.Items[0].PaperNumber).To(Equal(cpaper1.PaperNumber))
 		})
 
 		It("Allow to get entry raw protobuf", func() {
-			cpaperProtoFromCC := cPaperCC.Query(`get`, &cpaper_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}).Payload
+			cpaperProtoFromCC := cPaperCC.Query(`get`,
+				&cpaper_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}).Payload
 
 			stateCpaper := &cpaper_schema.CommercialPaper{
 				Issuer:       cpaper1.Issuer,
@@ -177,7 +179,7 @@ var _ = Describe(`Mapping`, func() {
 
 		It("Allow to find data by uniq key", func() {
 
-			cpaperFromCCByExtId := expectcc.PayloadIs(
+			cpaperFromCCByExtID := expectcc.PayloadIs(
 				cPaperExtendedCC.Query(`getByExternalId`, cpaper1.ExternalId),
 				&cpaper_extended_schema.CommercialPaper{}).(*cpaper_extended_schema.CommercialPaper)
 
@@ -186,7 +188,7 @@ var _ = Describe(`Mapping`, func() {
 					&cpaper_extended_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}),
 				&cpaper_extended_schema.CommercialPaper{}).(*cpaper_extended_schema.CommercialPaper)
 
-			Expect(cpaperFromCCByExtId).To(BeEquivalentTo(cpaperFromCC))
+			Expect(cpaperFromCCByExtID).To(BeEquivalentTo(cpaperFromCC))
 		})
 
 		It("Disallow to find data by non existent uniq key", func() {
@@ -201,23 +203,25 @@ var _ = Describe(`Mapping`, func() {
 		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{IdPart1: `aaa`, IdPart2: `bbb`}}
 
 		It("Allow to add data to chaincode state", func() {
-			expectcc.ResponseOk(complexIdCC.Invoke(`entityInsert`, ent1))
-			keys := expectcc.PayloadIs(complexIdCC.From(actors[`owner`]).Invoke(`debugStateKeys`, []string{`EntityWithComplexId`}), &[]string{}).([]string)
+			expectcc.ResponseOk(complexIDCC.Invoke(`entityInsert`, ent1))
+			keys := expectcc.PayloadIs(complexIDCC.From(actors[`owner`]).Invoke(
+				`debugStateKeys`, []string{`EntityWithComplexId`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(1))
 
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
-			Expect(keys[0]).To(Equal("\x00" + `EntityWithComplexId` + string(0) + ent1.Id.IdPart1 + string(0) + ent1.Id.IdPart2 + string(0)))
+			Expect(keys[0]).To(Equal(
+				"\x00" + `EntityWithComplexId` + string(0) + ent1.Id.IdPart1 + string(0) + ent1.Id.IdPart2 + string(0)))
 		})
 
 		It("Allow to get entity", func() {
 			// use Id as key
-			ent1FromCC := expectcc.ResponseOk(complexIdCC.Query(`entityGet`, ent1.Id)).Payload
+			ent1FromCC := expectcc.ResponseOk(complexIDCC.Query(`entityGet`, ent1.Id)).Payload
 			Expect(ent1FromCC).To(Equal(testcc.MustProtoMarshal(ent1)))
 		})
 
 		It("Allow to list entity", func() {
 			// use Id as key
-			listFromCC := expectcc.PayloadIs(complexIdCC.Query(`entityList`), &state_schema.List{}).(*state_schema.List)
+			listFromCC := expectcc.PayloadIs(complexIDCC.Query(`entityList`), &state_schema.List{}).(*state_schema.List)
 			Expect(listFromCC.Items).To(HaveLen(1))
 
 			Expect(listFromCC.Items[0].Value).To(Equal(testcc.MustProtoMarshal(ent1)))
@@ -229,8 +233,9 @@ var _ = Describe(`Mapping`, func() {
 		ent2 := &schema.EntityWithSliceId{Id: []string{`aa`, `bb`}, SomeDate: ptypes.TimestampNow()}
 
 		It("Allow to add data to chaincode state", func() {
-			expectcc.ResponseOk(sliceIdCC.Invoke(`entityInsert`, ent2))
-			keys := expectcc.PayloadIs(sliceIdCC.From(actors[`owner`]).Invoke(`debugStateKeys`, []string{`EntityWithSliceId`}), &[]string{}).([]string)
+			expectcc.ResponseOk(sliceIDCC.Invoke(`entityInsert`, ent2))
+			keys := expectcc.PayloadIs(sliceIDCC.From(actors[`owner`]).Invoke(
+				`debugStateKeys`, []string{`EntityWithSliceId`}), &[]string{}).([]string)
 
 			Expect(len(keys)).To(Equal(1))
 
@@ -240,13 +245,13 @@ var _ = Describe(`Mapping`, func() {
 
 		It("Allow to get entity", func() {
 			// use Id as key
-			ent1FromCC := expectcc.ResponseOk(sliceIdCC.Query(`entityGet`, state.StringsIdToStr(ent2.Id))).Payload
+			ent1FromCC := expectcc.ResponseOk(sliceIDCC.Query(`entityGet`, state.StringsIdToStr(ent2.Id))).Payload
 			Expect(ent1FromCC).To(Equal(testcc.MustProtoMarshal(ent2)))
 		})
 
 		It("Allow to list entity", func() {
 			// use Id as key
-			listFromCC := expectcc.PayloadIs(sliceIdCC.Query(`entityList`), &state_schema.List{}).(*state_schema.List)
+			listFromCC := expectcc.PayloadIs(sliceIDCC.Query(`entityList`), &state_schema.List{}).(*state_schema.List)
 			Expect(listFromCC.Items).To(HaveLen(1))
 
 			Expect(listFromCC.Items[0].Value).To(Equal(testcc.MustProtoMarshal(ent2)))

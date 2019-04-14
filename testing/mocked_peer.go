@@ -60,7 +60,10 @@ func (mi *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *Mocke
 	return mi
 }
 
-func (mi *MockedPeer) Invoke(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, api.ChaincodeTx, error) {
+func (mi *MockedPeer) Invoke(
+	ctx context.Context, from msp.SigningIdentity, channel string, chaincode string,
+	fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, api.ChaincodeTx, error) {
+
 	mi.m.Lock()
 	defer mi.m.Unlock()
 	mockStub, err := mi.Chaincode(channel, chaincode)
@@ -76,7 +79,9 @@ func (mi *MockedPeer) Invoke(ctx context.Context, from msp.SigningIdentity, chan
 	return &response, api.ChaincodeTx(mockStub.TxID), err
 }
 
-func (mi *MockedPeer) Query(ctx context.Context, from msp.SigningIdentity, channel string, chaincode string, fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, error) {
+func (mi *MockedPeer) Query(
+	ctx context.Context, from msp.SigningIdentity, channel string, chaincode string,
+	fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, error) {
 	mi.m.Lock()
 	defer mi.m.Unlock()
 	mockStub, err := mi.Chaincode(channel, chaincode)
@@ -91,7 +96,8 @@ func (mi *MockedPeer) Query(ctx context.Context, from msp.SigningIdentity, chann
 	return &response, err
 }
 
-func (mi *MockedPeer) Subscribe(ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (api.EventCCSubscription, error) {
+func (mi *MockedPeer) Subscribe(
+	ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (api.EventCCSubscription, error) {
 	mockStub, err := mi.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err

@@ -50,6 +50,9 @@ func (e *EventImpl) UseNameTransformer(nt StringTransformer) Event {
 
 func (e *EventImpl) Set(entry interface{}, values ...interface{}) error {
 	name, value, err := e.ArgNameValue(entry, values)
+	if err != nil {
+		return err
+	}
 
 	nameStr, err := e.NameTransformer(name)
 	if err != nil {
@@ -83,11 +86,11 @@ func (e *EventImpl) ArgNameValue(arg interface{}, values []interface{}) (name st
 }
 
 func NormalizeEventName(name interface{}) (string, error) {
-	switch name.(type) {
+	switch n := name.(type) {
 	case Namer:
-		return name.(Namer).Name()
+		return n.Name()
 	case string:
-		return name.(string), nil
+		return n, nil
 	}
 
 	return ``, ErrUnableToCreateEventName

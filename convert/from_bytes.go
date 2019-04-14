@@ -18,7 +18,7 @@ import (
 func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 	// create copy
 
-	switch target.(type) {
+	switch t := target.(type) {
 	case string:
 		return string(bb), nil
 	case []byte:
@@ -28,22 +28,22 @@ func FromBytes(bb []byte, target interface{}) (result interface{}, err error) {
 	case bool:
 		return strconv.ParseBool(string(bb))
 	case []string:
-		arrInterface, err := JsonUnmarshalPtr(bb, &target)
+		arrInterface, err := JSONUnmarshalPtr(bb, &target)
 
 		if err != nil {
 			return nil, err
 		}
-		arrString := []string{}
+		var arrString []string
 		for _, v := range arrInterface.([]interface{}) {
 			arrString = append(arrString, v.(string))
 		}
 		return arrString, nil
 
 	case FromByter:
-		return target.(FromByter).FromBytes(bb)
+		return t.FromBytes(bb)
 
 	case proto.Message:
-		return ProtoUnmarshal(bb, target.(proto.Message))
+		return ProtoUnmarshal(bb, t)
 
 	default:
 		return FromBytesToStruct(bb, target)
@@ -65,9 +65,9 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 		fallthrough
 	case reflect.Slice:
 		// will be map[string]interface{}
-		return JsonUnmarshalPtr(bb, &target)
+		return JSONUnmarshalPtr(bb, &target)
 	case reflect.Ptr:
-		return JsonUnmarshalPtr(bb, target)
+		return JSONUnmarshalPtr(bb, target)
 
 	default:
 		return nil, fmt.Errorf(
@@ -77,7 +77,7 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 }
 
 // JsonUnmarshalPtr unmarshalls []byte as json to pointer, and returns value pointed to
-func JsonUnmarshalPtr(bb []byte, to interface{}) (result interface{}, err error) {
+func JSONUnmarshalPtr(bb []byte, to interface{}) (result interface{}, err error) {
 	targetPtr := reflect.New(reflect.ValueOf(to).Elem().Type()).Interface()
 	err = json.Unmarshal(bb, targetPtr)
 	if err != nil {
