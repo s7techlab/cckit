@@ -16,14 +16,20 @@ func init() {
 	}
 }
 
-// EncryptArgs encrypt args
+// EncryptArgs convert args to [][]byte and encrypt args with key
 func EncryptArgs(key []byte, args ...interface{}) ([][]byte, error) {
 	argBytes, err := convert.ArgsToBytes(args...)
 	if err != nil {
 		return nil, err
 	}
-	eargs := make([][]byte, len(args))
-	for i, bb := range argBytes {
+
+	return EncryptArgsBytes(key, argBytes)
+}
+
+// EncryptArgsBytes encrypt args with key
+func EncryptArgsBytes(key []byte, argsBytes [][]byte) ([][]byte, error) {
+	eargs := make([][]byte, len(argsBytes))
+	for i, bb := range argsBytes {
 		encrypted, err := Encrypt(key, bb)
 		if err != nil {
 			return nil, errors.Wrap(err, `encryption error`)
