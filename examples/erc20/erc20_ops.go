@@ -165,35 +165,44 @@ func invokeTransferFrom(c r.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	if allowance <= amount {
+	// transfer amount must be less or equal allowance
+	if allowance < amount {
 		return nil, ErrSpenderNotHaveAllowance
 	}
 
+	// current payer balance
 	balance, err := getBalance(c, fromMspId, fromCertId)
 	if err != nil {
 		return nil, err
 	}
 
+	// payer balance must be greater or equal amount
 	if balance-amount < 0 {
 		return nil, ErrNotEnoughFunds
 	}
 
+	// current recipient balance
 	recipientBalance, err := getBalance(c, toMspId, toCertId)
 	if err != nil {
 		return nil, err
 	}
 
+	// decrease payer balance
 	if err = setBalance(c, fromMspId, fromCertId, balance-amount); err != nil {
 		return nil, err
 	}
+
+	// increase recipient balance
 	if err = setBalance(c, toMspId, toCertId, recipientBalance+amount); err != nil {
 		return nil, err
 	}
+
+	// decrease invoker allowance
 	if err = setAllowance(c, fromMspId, fromCertId, invoker.GetID(), invoker.GetID(), allowance-amount); err != nil {
 		return nil, err
 	}
 
-	if err = c.SetEvent(`transfer`, &Transfer{
+	if err = c.Event().Set(`transfer`, &Transfer{
 		From: identity.Id{
 			MSP:  fromMspId,
 			Cert: fromCertId,
