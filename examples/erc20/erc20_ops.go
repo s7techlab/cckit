@@ -198,7 +198,7 @@ func invokeTransferFrom(c r.Context) (interface{}, error) {
 	}
 
 	// decrease invoker allowance
-	if err = setAllowance(c, fromMspId, fromCertId, invoker.GetID(), invoker.GetID(), allowance-amount); err != nil {
+	if err = setAllowance(c, fromMspId, fromCertId, invoker.GetMSPID(), invoker.GetID(), allowance-amount); err != nil {
 		return nil, err
 	}
 
