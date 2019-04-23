@@ -37,11 +37,12 @@ type (
 	}
 	// StateMapping defines metadata for mapping from schema to state keys/values
 	StateMapping struct {
-		schema       interface{}
-		namespace    state.Key
-		primaryKeyer InstanceKeyer
-		list         interface{}
-		uniqKeys     []*StateKeyDefinition
+		schema        interface{}
+		namespace     state.Key
+		isKeyerSchema bool //schema is keyer for another schema
+		primaryKeyer  InstanceKeyer
+		list          interface{}
+		uniqKeys      []*StateKeyDefinition
 	}
 
 	StateKeyDefinition struct {
@@ -90,6 +91,15 @@ func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 		return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, mapKey(entry))
 	}
 	return m, nil
+}
+
+func (smm StateMappings) GetByNamespace(namespace state.Key) (StateMapper, error) {
+	for _, m := range smm {
+		if !m.isKeyerSchema && reflect.DeepEqual(m.namespace, namespace) {
+			return m, nil
+		}
+	}
+	return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, namespace)
 }
 
 func (smm StateMappings) Exists(entry interface{}) bool {

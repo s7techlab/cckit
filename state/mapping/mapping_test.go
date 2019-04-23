@@ -64,6 +64,12 @@ var _ = Describe(`Mapping`, func() {
 		var cpaper2 = &cpaper_testdata.CPapers[1]
 		var cpaper3 = &cpaper_testdata.CPapers[2]
 
+		It("Allow to get mapping data by namespace", func() {
+			mapping, err := cpaper.StateMappings.GetByNamespace(state.Key{`CommercialPaper`})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(mapping.Schema()).To(BeEquivalentTo(&cpaper_schema.CommercialPaper{}))
+		})
+
 		It("Allow to add data to chaincode state", func(done Done) {
 
 			events := cPaperCC.EventSubscription()

@@ -15,6 +15,12 @@ func StateNamespace(namespace state.Key) StateMappingOpt {
 	}
 }
 
+func IsKeyerSchema() StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
+		sm.isKeyerSchema = true
+	}
+}
+
 // List defined list container, it must have `Items` attr
 func List(list proto.Message) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
@@ -41,7 +47,7 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 		sm.primaryKeyer = attrsPKeyer(attrs)
 
 		//add mapping namespace for id schema same as schema
-		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrs...))
+		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrs...), IsKeyerSchema())
 	}
 }
 
