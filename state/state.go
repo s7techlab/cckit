@@ -89,11 +89,33 @@ type State interface {
 	UseStateGetTransformer(FromBytesTransformer) State
 	UseStatePutTransformer(ToBytesTransformer) State
 
+	// GetPrivate returns value from private state, converted to target type
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	GetPrivate(collection string, entry interface{}, target ...interface{}) (result interface{}, err error)
+
+	// PutPrivate returns result of putting entry to private state
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	// if entry is implements Keyer interface and it's struct or type implementing
+	// ToByter interface value can be omitted
 	PutPrivate(collection string, entry interface{}, value ...interface{}) (err error)
+
+	// InsertPrivate returns result of inserting entry to private state
+	// If same key exists in state error wil be returned
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	// if entry is implements Keyer interface and it's struct or type implementing
+	// ToByter interface value can be omitted
 	InsertPrivate(collection string, entry interface{}, value ...interface{}) (err error)
+
+	// ListPrivate returns slice of target type from private state
+	// namespace can be part of key (string or []string) or entity with defined mapping
 	ListPrivate(collection string, namespace interface{}, target ...interface{}) (result interface{}, err error)
+
+	// DeletePrivate returns result of deleting entry from private state
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	DeletePrivate(collection string, entry interface{}) (err error)
+
+	// ExistsPrivate returns entry existence in private state
+	// entry can be Key (string or []string) or type implementing Keyer interface
 	ExistsPrivate(collection string, entry interface{}) (exists bool, err error)
 }
 
