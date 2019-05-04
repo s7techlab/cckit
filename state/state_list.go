@@ -50,6 +50,15 @@ func (sl *StateList) Fill(
 	return sl.Get()
 }
 
+func (sl *StateList) FillPrivate(
+	data []interface{}, fromBytes FromBytesTransformer) (list interface{}, err error) {
+
+	for _, item := range data {
+		sl.list = append(sl.list, item)
+	}
+	return sl.Get()
+}
+
 func (sl *StateList) Get() (list interface{}, err error) {
 
 	// custom list proto.Message
@@ -77,8 +86,4 @@ func (sl *StateList) Get() (list interface{}, err error) {
 	}
 
 	return sl.list, nil
-}
-
-func (sl *StateList) GetItemTarget() (itemTarget interface{}) {
-	return sl.itemTarget
 }

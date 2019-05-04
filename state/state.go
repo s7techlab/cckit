@@ -431,7 +431,6 @@ func (s *Impl) ListPrivate(collection string, namespace interface{}, target ...i
 	if err != nil {
 		return nil, err
 	}
-	itemTarget := stateList.GetItemTarget()
 	key, err := NormalizeStateKey(namespace)
 	if err != nil {
 		return nil, errors.Wrap(err, `prepare list key parts`)
@@ -462,14 +461,14 @@ func (s *Impl) ListPrivate(collection string, namespace interface{}, target ...i
 		for _, part := range keyParts {
 			curCompositeKey = append(curCompositeKey, part)
 		}
-		object, err := s.GetPrivate(collection, curCompositeKey, itemTarget)
+		object, err := s.GetPrivate(collection, curCompositeKey, target...)
 		if err != nil {
 			return nil, err
 		}
 		results = append(results, object)
 	}
 
-	return results, nil
+	return stateList.FillPrivate(results, s.StateGetTransformer)
 }
 
 // Put data value in private state with key, trying convert data to []byte

@@ -294,3 +294,17 @@ func (stub *MockStub) AddTransient(transient map[string][]byte) *MockStub {
 //	stub.TxTimestamp = txTimestamp
 //	return stub
 //}
+
+// DelPrivateData mocked
+func (stub *MockStub) DelPrivateData(collection string, key string) error {
+	m, in := stub.PvtState[collection]
+	if !in {
+		return errors.Errorf("Collection %s not found.", collection)
+	}
+
+	if _, ok := m[key]; !ok {
+		return errors.Errorf("Key %s not found.", key)
+	}
+	delete(m, key)
+	return nil
+}
