@@ -8,6 +8,8 @@ import (
 	"github.com/s7techlab/cckit/state/testdata/schema"
 )
 
+const collection = "SampleCollection"
+
 func NewBooksCC() *router.Chaincode {
 	r := router.New(`books`)
 	debug.AddHandlers(r, `debug`, owner.Only)
@@ -17,7 +19,12 @@ func NewBooksCC() *router.Chaincode {
 		Invoke(`bookGet`, bookGet, p.String(`id`)).
 		Invoke(`bookInsert`, bookInsert, p.Struct(`book`, &schema.Book{})).
 		Invoke(`bookUpsert`, bookUpsert, p.Struct(`book`, &schema.Book{})).
-		Invoke(`bookDelete`, bookDelete, p.String(`id`))
+		Invoke(`bookDelete`, bookDelete, p.String(`id`)).
+		Invoke(`privateBookList`, privateBookList).
+		Invoke(`privateBookGet`, privateBookGet, p.String(`id`)).
+		Invoke(`privateBookInsert`, privateBookInsert, p.Struct(`book`, &schema.PrivateBook{})).
+		Invoke(`privateBookUpsert`, privateBookUpsert, p.Struct(`book`, &schema.PrivateBook{})).
+		Invoke(`privateBookDelete`, privateBookDelete, p.String(`id`))
 
 	return router.NewChaincode(r)
 }
@@ -42,4 +49,26 @@ func bookGet(c router.Context) (interface{}, error) {
 
 func bookDelete(c router.Context) (interface{}, error) {
 	return nil, c.State().Delete(schema.Book{Id: c.ParamString(`id`)})
+}
+
+func privateBookList(c router.Context) (interface{}, error) {
+	return c.State().ListPrivate(collection, schema.PrivateBookEntity, &schema.PrivateBook{})
+}
+
+func privateBookInsert(c router.Context) (interface{}, error) {
+	book := c.Param(`book`)
+	return book, c.State().InsertPrivate(collection, book)
+}
+
+func privateBookUpsert(c router.Context) (interface{}, error) {
+	book := c.Param(`book`)
+	return book, c.State().PutPrivate(collection, book)
+}
+
+func privateBookGet(c router.Context) (interface{}, error) {
+	return c.State().GetPrivate(collection, schema.PrivateBook{Id: c.ParamString(`id`)})
+}
+
+func privateBookDelete(c router.Context) (interface{}, error) {
+	return nil, c.State().DeletePrivate(collection, schema.PrivateBook{Id: c.ParamString(`id`)})
 }
