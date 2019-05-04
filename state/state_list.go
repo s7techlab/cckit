@@ -78,3 +78,7 @@ func (sl *StateList) Get() (list interface{}, err error) {
 
 	return sl.list, nil
 }
+
+func (sl *StateList) GetItemTarget() (itemTarget interface{}) {
+	return sl.itemTarget
+}
