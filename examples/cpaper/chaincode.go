@@ -14,16 +14,21 @@ import (
 
 var (
 	// State mappings
-	StateMappings = m.StateMappings{}.Add(
-		&schema.CommercialPaper{},                 // define mapping for this structure
-		m.PKeySchema(&schema.CommercialPaperId{}), // key  will be <`CommercialPaper`, Issuer, PaperNumber>
-		m.List(&schema.CommercialPaperList{}))     // structure-result of list method
+	StateMappings = m.StateMappings{}.
+		//  Create mapping for Commercial Paper entity
+		Add(&schema.CommercialPaper{},
+			m.PKeySchema(&schema.CommercialPaperId{}), // Key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
+			m.List(&schema.CommercialPaperList{}),     // Structure of result for List method
+		)
 
 	// EventMappings
 	EventMappings = m.EventMappings{}.
-			Add(&schema.IssueCommercialPaper{}). // event name will be `IssueCommercialPaper`,  payload - same as issue payload
-			Add(&schema.BuyCommercialPaper{}).
-			Add(&schema.RedeemCommercialPaper{})
+		// Event name will be `IssueCommercialPaper`, payload - same as issue payload
+		Add(&schema.IssueCommercialPaper{}).
+		// Event name will be `BuyCommercialPaper`
+		Add(&schema.BuyCommercialPaper{}).
+		// Event name will be `RedeemCommercialPaper`
+		Add(&schema.RedeemCommercialPaper{})
 )
 
 func NewCC() *router.Chaincode {
@@ -36,20 +41,20 @@ func NewCC() *router.Chaincode {
 	// Mappings for chaincode events
 	r.Use(m.MapEvents(EventMappings))
 
-	// store in chaincode state information about chaincode first instantiator
+	// Store on the ledger the information about chaincode instantiator
 	r.Init(owner.InvokeSetFromCreator)
 
-	// method for debug chaincode state
+	// Method for debug chaincode state
 	debug.AddHandlers(r, `debug`, owner.Only)
 
 	r.
-		// read methods
+		// Read methods
 		Query(`list`, cpaperList).
 
 		// Get method has 2 params - commercial paper primary key components
 		Query(`get`, cpaperGet, defparam.Proto(&schema.CommercialPaperId{})).
 
-		// txn methods
+		// Transaction methods
 		Invoke(`issue`, cpaperIssue, defparam.Proto(&schema.IssueCommercialPaper{})).
 		Invoke(`buy`, cpaperBuy, defparam.Proto(&schema.BuyCommercialPaper{})).
 		Invoke(`redeem`, cpaperRedeem, defparam.Proto(&schema.RedeemCommercialPaper{})).
@@ -59,17 +64,16 @@ func NewCC() *router.Chaincode {
 }
 
 func cpaperList(c router.Context) (interface{}, error) {
-	// commercial paper key is composite key <`CommercialPaper`>, {Issuer}, {PaperNumber} >
-	// where `CommercialPaper` - namespace of this type
-	// list method retrieves entries from chaincode state
-	// using GetStateByPartialCompositeKey method, then unmarshal received from state bytes via proto.Ummarshal method
-	// and creates slice of *schema.CommercialPaper
+	// List method retrieves all entries from the ledger using GetStateByPartialCompositeKey method and passing it the
+	// namespace of our contract type, in this example that's `CommercialPaper`, then it unmarshals received bytes via
+	// proto.Ummarshal method and creates a []schema.CommercialPaperList as defined in the
+	// `StateMappings` variable at the top of the file
 	return c.State().List(&schema.CommercialPaper{})
 }
 
 func cpaperIssue(c router.Context) (interface{}, error) {
 	var (
-		issue  = c.Param().(*schema.IssueCommercialPaper) //default parameter
+		issue  = c.Param().(*schema.IssueCommercialPaper) // Assert the chaincode parameter
 		cpaper = &schema.CommercialPaper{
 			Issuer:       issue.Issuer,
 			PaperNumber:  issue.PaperNumber,
@@ -77,7 +81,7 @@ func cpaperIssue(c router.Context) (interface{}, error) {
 			IssueDate:    issue.IssueDate,
 			MaturityDate: issue.MaturityDate,
 			FaceValue:    issue.FaceValue,
-			State:        schema.CommercialPaper_ISSUED, // initial state
+			State:        schema.CommercialPaper_ISSUED, // Initial state
 		}
 		err error
 	)
@@ -94,10 +98,10 @@ func cpaperBuy(c router.Context) (interface{}, error) {
 	var (
 		cpaper *schema.CommercialPaper
 
-		// but tx payload
+		// Buy transaction payload
 		buy = c.Param().(*schema.BuyCommercialPaper)
 
-		// current commercial paper state
+		// Get the current commercial paper state
 		cp, err = c.State().Get(
 			&schema.CommercialPaperId{Issuer: buy.Issuer, PaperNumber: buy.PaperNumber},
 			&schema.CommercialPaper{})

@@ -18,16 +18,18 @@ var (
 	StateMappings = m.StateMappings{}.
 		//  Create mapping for Commercial Paper entity
 		Add(&schema.CommercialPaper{},
-			m.PKeySchema(&schema.CommercialPaperId{}), //key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
-			m.List(&schema.CommercialPaperList{}),     // list container
-			m.UniqKey(`ExternalId`),                   // external is uniq
+			m.PKeySchema(&schema.CommercialPaperId{}), // Key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
+			m.List(&schema.CommercialPaperList{}),     // Structure of result for List method
+			m.UniqKey(`ExternalId`),                   // External Id is unique
 		)
 
 	// EventMappings
 	EventMappings = m.EventMappings{}.
-		// event name will be `IssueCommercialPaper`,  payload - same as issue payload
+		// Event name will be `IssueCommercialPaper`, payload - same as issue payload
 		Add(&schema.IssueCommercialPaper{}).
+		// Event name will be `BuyCommercialPaper`
 		Add(&schema.BuyCommercialPaper{}).
+		// Event name will be `RedeemCommercialPaper`
 		Add(&schema.RedeemCommercialPaper{})
 )
 
@@ -41,10 +43,10 @@ func NewCC() *router.Chaincode {
 	// Mappings for chaincode events
 	r.Use(m.MapEvents(EventMappings))
 
-	// store in chaincode state information about chaincode first instantiator
+	// Store on the ledger the information about chaincode instantiator
 	r.Init(owner.InvokeSetFromCreator)
 
-	// method for debug chaincode state
+	// Method for debug chaincode state
 	debug.AddHandlers(r, `debug`, owner.Only)
 
 	r.
@@ -65,11 +67,10 @@ func NewCC() *router.Chaincode {
 }
 
 func queryCPapers(c router.Context) (interface{}, error) {
-	// commercial paper key is composite key <`CommercialPaper`>, {Issuer}, {PaperNumber} >
-	// where `CommercialPaper` - namespace of this type
-	// list method retrieves entries from chaincode state
-	// using GetStateByPartialCompositeKey method, then unmarshal received from state bytes via proto.Ummarshal method
-	// and creates slice of *schema.CommercialPaper
+	// List method retrieves all entries from the ledger using GetStateByPartialCompositeKey method and passing it the
+	// namespace of our contract type, in this example that's `CommercialPaper`, then it unmarshals received bytes via
+	// proto.Ummarshal method and creates a []schema.CommercialPaperList as defined in the
+	// `StateMappings` variable at the top of the file
 	return c.State().List(&schema.CommercialPaper{})
 }
 
@@ -89,15 +90,15 @@ func queryCPaperGetByExternalId(c router.Context) (interface{}, error) {
 
 func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 	var (
-		// input message
+		// Input message
 		issue = c.Param().(*schema.IssueCommercialPaper) //default parameter
 	)
-	// validate input message by rules, defined in schema
+	// Validate input message using the rules defined in schema
 	if err = issue.Validate(); err != nil {
 		return err, errors.Wrap(err, `payload validation`)
 	}
 
-	// create state entry
+	// Create state entry
 	cpaper := &schema.CommercialPaper{
 		Issuer:       issue.Issuer,
 		PaperNumber:  issue.PaperNumber,
@@ -105,7 +106,7 @@ func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 		IssueDate:    issue.IssueDate,
 		MaturityDate: issue.MaturityDate,
 		FaceValue:    issue.FaceValue,
-		State:        schema.CommercialPaper_ISSUED, // initial state
+		State:        schema.CommercialPaper_ISSUED, // Initial state
 		ExternalId:   issue.ExternalId,
 	}
 
@@ -121,10 +122,10 @@ func invokeCPaperBuy(c router.Context) (interface{}, error) {
 	var (
 		cpaper *schema.CommercialPaper
 
-		// but tx payload
+		// Buy transaction payload
 		buy = c.Param().(*schema.BuyCommercialPaper)
 
-		// current commercial paper state
+		// Get the current commercial paper state
 		cp, err = c.State().Get(
 			&schema.CommercialPaperId{Issuer: buy.Issuer, PaperNumber: buy.PaperNumber},
 			&schema.CommercialPaper{})
