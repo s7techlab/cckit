@@ -470,8 +470,6 @@ func (s *Impl) ListPrivate(collection string, namespace interface{}, target ...i
 		return nil, errors.Wrap(err, `create list iterator`)
 	}
 	defer func() { _ = iter.Close() }()
-
-	var results []interface{}
 	for iter.HasNext() {
 		kv, err := iter.Next()
 		if err != nil {
@@ -487,10 +485,10 @@ func (s *Impl) ListPrivate(collection string, namespace interface{}, target ...i
 		if err != nil {
 			return nil, err
 		}
-		results = append(results, object)
+		stateList.AddElementToList(object)
 	}
 
-	return stateList.FillPrivate(results, s.StateGetTransformer)
+	return stateList.Get()
 }
 
 // Put data value in private state with key, trying convert data to []byte
