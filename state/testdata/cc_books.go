@@ -57,12 +57,12 @@ func privateBookList(c router.Context) (interface{}, error) {
 
 func privateBookInsert(c router.Context) (interface{}, error) {
 	book := c.Param(`book`)
-	return book, c.State().InsertPrivate(collection, book)
+	return book, c.State().InsertPrivate(collection, true, book)
 }
 
 func privateBookUpsert(c router.Context) (interface{}, error) {
 	book := c.Param(`book`)
-	return book, c.State().PutPrivate(collection, book)
+	return book, c.State().PutPrivate(collection, true, book)
 }
 
 func privateBookGet(c router.Context) (interface{}, error) {

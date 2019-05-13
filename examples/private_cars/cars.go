@@ -90,5 +90,5 @@ func invokeCarRegister(c router.Context) (interface{}, error) {
 	return car, // peer.Response payload will be json serialized car data
 		//put json serialized data to state
 		// create composite key using CarKeyPrefix and car.Id
-		c.State().InsertPrivate("testCollection", car)
+		c.State().InsertPrivate("testCollection", true, car)
 }

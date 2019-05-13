@@ -229,10 +229,10 @@ func (s *Impl) ListPrivate(collection string, namespace interface{}, target ...i
 	return s.state.ListPrivate(collection, namespace, target...)
 }
 
-func (s *Impl) InsertPrivate(collection string, entry interface{}, value ...interface{}) (err error) {
+func (s *Impl) InsertPrivate(collection string, putEmptyObjectInPublicState bool, entry interface{}, value ...interface{}) (err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.InsertPrivate(collection, entry, value...) // return as is
+		return s.state.InsertPrivate(collection, putEmptyObjectInPublicState, entry, value...) // return as is
 	}
 
 	keyRefs, err := mapped.Keys() // additional keys
@@ -242,18 +242,18 @@ func (s *Impl) InsertPrivate(collection string, entry interface{}, value ...inte
 
 	// insert uniq key refs. if key already exists - error returned
 	for _, kr := range keyRefs {
-		if err = s.state.InsertPrivate(collection, kr); err != nil {
+		if err = s.state.InsertPrivate(collection, putEmptyObjectInPublicState, kr); err != nil {
 			return fmt.Errorf(`%s: %s`, ErrMappingUniqKeyExists, err)
 		}
 	}
 
-	return s.state.InsertPrivate(collection, mapped)
+	return s.state.InsertPrivate(collection, putEmptyObjectInPublicState, mapped)
 }
 
-func (s *Impl) PutPrivate(collection string, entry interface{}, value ...interface{}) (err error) {
+func (s *Impl) PutPrivate(collection string, putEmptyObjectInPublicState bool, entry interface{}, value ...interface{}) (err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.PutPrivate(collection, entry, value...) // return as is
+		return s.state.PutPrivate(collection, putEmptyObjectInPublicState, entry, value...) // return as is
 	}
 
 	keyRefs, err := mapped.Keys() // additional keys
@@ -265,12 +265,12 @@ func (s *Impl) PutPrivate(collection string, entry interface{}, value ...interfa
 
 	// put uniq key refs. if key already exists - error returned
 	for _, kr := range keyRefs {
-		if err = s.state.PutPrivate(collection, kr); err != nil {
+		if err = s.state.PutPrivate(collection, putEmptyObjectInPublicState, kr); err != nil {
 			return fmt.Errorf(`%s: %s`, ErrMappingUniqKeyExists, err)
 		}
 	}
 
-	return s.state.PutPrivate(collection, mapped)
+	return s.state.PutPrivate(collection, putEmptyObjectInPublicState, mapped)
 }
 
 func (s *Impl) ExistsPrivate(collection string, entry interface{}) (exists bool, err error) {
