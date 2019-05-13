@@ -97,26 +97,20 @@ type State interface {
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	// if entry is implements Keyer interface and it's struct or type implementing
 	// ToByter interface value can be omitted
-	// NOTE: putEmptyObjectInPublicState flag used for ListPrivate
-	// if false, then used PutPrivateData only: ListPrivate will not work
-	// because the iterator in ListPrivate uses public state instead of private state
-	// https://stackoverflow.com/questions/55529996/why-hyperledger-fabric-private-data-collections-cannot-query-the-pdc-and-make
-	PutPrivate(collection string, putEmptyObjectInPublicState bool, entry interface{}, value ...interface{}) (err error)
+	PutPrivate(collection string, entry interface{}, value ...interface{}) (err error)
 
 	// InsertPrivate returns result of inserting entry to private state
 	// If same key exists in state error wil be returned
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	// if entry is implements Keyer interface and it's struct or type implementing
 	// ToByter interface value can be omitted
-	// NOTE: putEmptyObjectInPublicState flag used for ListPrivate
-	// if false, then used PutPrivateData only: ListPrivate will not work
-	// because the iterator in ListPrivate uses public state instead of private state
-	// https://stackoverflow.com/questions/55529996/why-hyperledger-fabric-private-data-collections-cannot-query-the-pdc-and-make
-	InsertPrivate(collection string, putEmptyObjectInPublicState bool, entry interface{}, value ...interface{}) (err error)
+	InsertPrivate(collection string, entry interface{}, value ...interface{}) (err error)
 
 	// ListPrivate returns slice of target type from private state
 	// namespace can be part of key (string or []string) or entity with defined mapping
-	ListPrivate(collection string, namespace interface{}, target ...interface{}) (result interface{}, err error)
+	// If usePrivateDataIterator is true, used private state for iterate over objects
+	// if false, used public state for iterate over keys and GetPrivateData for each key
+	ListPrivate(collection string, usePrivateDataIterator bool, namespace interface{}, target ...interface{}) (result interface{}, err error)
 
 	// DeletePrivate returns result of deleting entry from private state
 	// entry can be Key (string or []string) or type implementing Keyer interface
@@ -454,8 +448,9 @@ func (s *Impl) ExistsPrivate(collection string, entry interface{}) (exists bool,
 
 // List data from private state using objectType prefix in composite key, trying to convert to target interface.
 // Keys -  additional components of composite key
-// Using public state for iterate over objects
-func (s *Impl) ListPrivate(collection string, namespace interface{}, target ...interface{}) (result interface{}, err error) {
+// If usePrivateDataIterator is true, used private state for iterate over objects
+// if false, used public state for iterate over keys and GetPrivateData for each key
+func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, namespace interface{}, target ...interface{}) (result interface{}, err error) {
 
 	stateList, err := NewStateList(target...)
 	if err != nil {
@@ -472,6 +467,15 @@ func (s *Impl) ListPrivate(collection string, namespace interface{}, target ...i
 		return nil, err
 	}
 	s.logger.Debugf(`state LIST with composite key: %s`, key)
+
+	if usePrivateDataIterator {
+		iter, err := s.stub.GetPrivateDataByPartialCompositeKey(collection, key[0], key[1:])
+		if err != nil {
+			return nil, errors.Wrap(err, `create list iterator`)
+		}
+		defer func() { _ = iter.Close() }()
+		return stateList.Fill(iter, s.StateGetTransformer)
+	}
 
 	iter, err := s.stub.GetStateByPartialCompositeKey(key[0], key[1:])
 	if err != nil {
@@ -500,11 +504,7 @@ func (s *Impl) ListPrivate(collection string, namespace interface{}, target ...i
 }
 
 // Put data value in private state with key, trying convert data to []byte
-// NOTE: putEmptyObjectInPublicState flag used for ListPrivate
-// if false, then used PutPrivateData only: ListPrivate will not work
-// because the iterator in ListPrivate uses public state instead of private state
-// https://stackoverflow.com/questions/55529996/why-hyperledger-fabric-private-data-collections-cannot-query-the-pdc-and-make
-func (s *Impl) PutPrivate(collection string, putEmptyObjectInPublicState bool, entry interface{}, values ...interface{}) (err error) {
+func (s *Impl) PutPrivate(collection string, entry interface{}, values ...interface{}) (err error) {
 	key, value, err := s.argKeyValue(entry, values)
 	if err != nil {
 		return err
@@ -520,22 +520,11 @@ func (s *Impl) PutPrivate(collection string, putEmptyObjectInPublicState bool, e
 	}
 
 	s.logger.Debugf(`state PUT with string key: %s`, stringKey)
-	if putEmptyObjectInPublicState {
-		// Put empty object in public state for all orgs (to know which keys exist)
-		err = s.stub.PutState(stringKey, []byte("{}"))
-		if err != nil {
-			return err
-		}
-	}
 	return s.stub.PutPrivateData(collection, stringKey, bb)
 }
 
 // Insert value into chaincode private state, returns error if key already exists
-// NOTE: putEmptyObjectInPublicState flag used for ListPrivate
-// if false, then used PutPrivateData only: ListPrivate will not work
-// because the iterator in ListPrivate uses public state instead of private state
-// https://stackoverflow.com/questions/55529996/why-hyperledger-fabric-private-data-collections-cannot-query-the-pdc-and-make
-func (s *Impl) InsertPrivate(collection string, putEmptyObjectInPublicState bool, entry interface{}, values ...interface{}) (err error) {
+func (s *Impl) InsertPrivate(collection string, entry interface{}, values ...interface{}) (err error) {
 	if exists, err := s.ExistsPrivate(collection, entry); err != nil {
 		return err
 	} else if exists {
@@ -547,7 +536,7 @@ func (s *Impl) InsertPrivate(collection string, putEmptyObjectInPublicState bool
 	if err != nil {
 		return err
 	}
-	return s.PutPrivate(collection, putEmptyObjectInPublicState, key, value)
+	return s.PutPrivate(collection, key, value)
 }
 
 // Delete entry from private state
@@ -556,11 +545,6 @@ func (s *Impl) DeletePrivate(collection string, key interface{}) (err error) {
 	if err != nil {
 		return errors.Wrap(err, `deleting from private state`)
 	}
-
 	s.logger.Debugf(`private state DELETE with string key: %s`, strKey)
-	err = s.stub.DelState(strKey)
-	if err != nil {
-		return err
-	}
 	return s.stub.DelPrivateData(collection, strKey)
 }

@@ -65,6 +65,7 @@ func queryCar(c router.Context) (interface{}, error) {
 func queryCars(c router.Context) (interface{}, error) {
 	return c.State().ListPrivate(
 		"testCollection",
+		false,
 		CarEntity, // get list of state entries of type CarKeyPrefix
 		&Car{})    // unmarshal from []byte and append to []Car slice
 }
@@ -87,8 +88,12 @@ func invokeCarRegister(c router.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	if err := c.State().Put(car, "{}"); err != nil {
+		return nil, err
+	}
+
 	return car, // peer.Response payload will be json serialized car data
 		//put json serialized data to state
 		// create composite key using CarKeyPrefix and car.Id
-		c.State().InsertPrivate("testCollection", true, car)
+		c.State().InsertPrivate("testCollection", car)
 }

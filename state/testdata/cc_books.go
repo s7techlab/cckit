@@ -52,17 +52,25 @@ func bookDelete(c router.Context) (interface{}, error) {
 }
 
 func privateBookList(c router.Context) (interface{}, error) {
-	return c.State().ListPrivate(collection, schema.PrivateBookEntity, &schema.PrivateBook{})
+	return c.State().ListPrivate(collection, false, schema.PrivateBookEntity, &schema.PrivateBook{})
 }
 
 func privateBookInsert(c router.Context) (interface{}, error) {
 	book := c.Param(`book`)
-	return book, c.State().InsertPrivate(collection, true, book)
+	err := c.State().Insert(book, "{}")
+	if err != nil {
+		return book, err
+	}
+	return book, c.State().InsertPrivate(collection, book)
 }
 
 func privateBookUpsert(c router.Context) (interface{}, error) {
 	book := c.Param(`book`)
-	return book, c.State().PutPrivate(collection, true, book)
+	err := c.State().Put(book, "{}")
+	if err != nil {
+		return book, err
+	}
+	return book, c.State().PutPrivate(collection, book)
 }
 
 func privateBookGet(c router.Context) (interface{}, error) {
@@ -70,5 +78,6 @@ func privateBookGet(c router.Context) (interface{}, error) {
 }
 
 func privateBookDelete(c router.Context) (interface{}, error) {
+	c.State().Delete(schema.PrivateBook{Id: c.ParamString(`id`)})
 	return nil, c.State().DeletePrivate(collection, schema.PrivateBook{Id: c.ParamString(`id`)})
 }
