@@ -1,8 +1,10 @@
-# Commercial paper extended example with protobuf chaincode state 
+# Commercial paper extended example
 
-https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/scenario.html
+This is an extended example of the official [Commercial paper scenario](https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/scenario.html)
 
+### Features
 
-At the heart of a blockchain network is a smart contract. In PaperNet, the code in the commercial paper smart 
-contract defines the valid states for commercial paper, and the transaction logic that transition 
-a paper from one state to another.
+* Protobuf transaction payload and event definitions
+* Protobuf chaincode state schema
+* Event emitting
+* Unique key external reference usage
