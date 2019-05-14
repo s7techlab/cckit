@@ -64,7 +64,7 @@ func PKeyId() StateMappingOpt {
 func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.primaryKeyer = attrsPKeyer([]string{`Id`})
-		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrsFrom(pkeySchema)...))
+		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrsFrom(pkeySchema)...), IsKeyerSchema())
 	}
 }
 
