@@ -18,24 +18,24 @@ var (
 	StateMappings = m.StateMappings{}.
 		//  Create mapping for Commercial Paper entity
 		Add(&schema.CommercialPaper{},
-			m.PKeySchema(&schema.CommercialPaperId{}), // Key namespace will be <`CommercialPaper`, Issuer, PaperNumber>
+			m.PKeySchema(&schema.CommercialPaperId{}), // Key namespace will be <"CommercialPaper", Issuer, PaperNumber>
 			m.List(&schema.CommercialPaperList{}),     // Structure of result for List method
-			m.UniqKey(`ExternalId`),                   // External Id is unique
+			m.UniqKey("ExternalId"),                   // External Id is unique
 		)
 
 	// EventMappings
 	EventMappings = m.EventMappings{}.
-		// Event name will be `IssueCommercialPaper`, payload - same as issue payload
+		// Event name will be "IssueCommercialPaper", payload - same as issue payload
 		Add(&schema.IssueCommercialPaper{}).
-		// Event name will be `BuyCommercialPaper`
+		// Event name will be "BuyCommercialPaper"
 		Add(&schema.BuyCommercialPaper{}).
-		// Event name will be `RedeemCommercialPaper`
+		// Event name will be "RedeemCommercialPaper"
 		Add(&schema.RedeemCommercialPaper{})
 )
 
 func NewCC() *router.Chaincode {
 
-	r := router.New(`commercial_paper`)
+	r := router.New("commercial_paper")
 
 	// Mappings for chaincode state
 	r.Use(m.MapStates(StateMappings))
@@ -47,30 +47,30 @@ func NewCC() *router.Chaincode {
 	r.Init(owner.InvokeSetFromCreator)
 
 	// Method for debug chaincode state
-	debug.AddHandlers(r, `debug`, owner.Only)
+	debug.AddHandlers(r, "debug", owner.Only)
 
 	r.
 		// read methods
-		Query(`list`, queryCPapers).
+		Query("list", queryCPapers).
 
 		// Get method has 2 params - commercial paper primary key components
-		Query(`get`, queryCPaper, defparam.Proto(&schema.CommercialPaperId{})).
-		Query(`getByExternalId`, queryCPaperGetByExternalId, param.String(`externalId`)).
+		Query("get", queryCPaper, defparam.Proto(&schema.CommercialPaperId{})).
+		Query("getByExternalId", queryCPaperGetByExternalId, param.String("externalId")).
 
 		// txn methods
-		Invoke(`issue`, invokeCPaperIssue, defparam.Proto(&schema.IssueCommercialPaper{})).
-		Invoke(`buy`, invokeCPaperBuy, defparam.Proto(&schema.BuyCommercialPaper{})).
-		Invoke(`redeem`, invokeCPaperRedeem, defparam.Proto(&schema.RedeemCommercialPaper{})).
-		Invoke(`delete`, invokeCPaperDelete, defparam.Proto(&schema.CommercialPaperId{}))
+		Invoke("issue", invokeCPaperIssue, defparam.Proto(&schema.IssueCommercialPaper{})).
+		Invoke("buy", invokeCPaperBuy, defparam.Proto(&schema.BuyCommercialPaper{})).
+		Invoke("redeem", invokeCPaperRedeem, defparam.Proto(&schema.RedeemCommercialPaper{})).
+		Invoke("delete", invokeCPaperDelete, defparam.Proto(&schema.CommercialPaperId{}))
 
 	return router.NewChaincode(r)
 }
 
 func queryCPapers(c router.Context) (interface{}, error) {
 	// List method retrieves all entries from the ledger using GetStateByPartialCompositeKey method and passing it the
-	// namespace of our contract type, in this example that's `CommercialPaper`, then it unmarshals received bytes via
+	// namespace of our contract type, in this example that's "CommercialPaper", then it unmarshals received bytes via
 	// proto.Ummarshal method and creates a []schema.CommercialPaperList as defined in the
-	// `StateMappings` variable at the top of the file
+	// "StateMappings" variable at the top of the file
 	return c.State().List(&schema.CommercialPaper{})
 }
 
@@ -83,9 +83,9 @@ func queryCPaper(c router.Context) (interface{}, error) {
 
 func queryCPaperGetByExternalId(c router.Context) (interface{}, error) {
 	var (
-		externalId = c.ParamString(`externalId`)
+		externalId = c.ParamString("externalId")
 	)
-	return c.State().(m.MappedState).GetByUniqKey(&schema.CommercialPaper{}, `ExternalId`, []string{externalId})
+	return c.State().(m.MappedState).GetByUniqKey(&schema.CommercialPaper{}, "ExternalId", []string{externalId})
 }
 
 func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
@@ -95,7 +95,7 @@ func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 	)
 	// Validate input message using the rules defined in schema
 	if err = issue.Validate(); err != nil {
-		return err, errors.Wrap(err, `payload validation`)
+		return err, errors.Wrap(err, "payload validation")
 	}
 
 	// Create state entry
@@ -132,13 +132,16 @@ func invokeCPaperBuy(c router.Context) (interface{}, error) {
 	)
 
 	if err != nil {
-		return nil, errors.Wrap(err, `not found`)
+		return nil, errors.Wrap(err, "not found")
 	}
+
 	cpaper = cp.(*schema.CommercialPaper)
 
 	// Validate current owner
 	if cpaper.Owner != buy.CurrentOwner {
-		return nil, fmt.Errorf(`paper %s %s is not owned by %s`, cpaper.Issuer, cpaper.PaperNumber, buy.CurrentOwner)
+		return nil, fmt.Errorf(
+			"paper %s %s is not owned by %s",
+			cpaper.Issuer, cpaper.PaperNumber, buy.CurrentOwner)
 	}
 
 	// First buy moves state from ISSUED to TRADING
@@ -150,7 +153,9 @@ func invokeCPaperBuy(c router.Context) (interface{}, error) {
 	if cpaper.State == schema.CommercialPaper_TRADING {
 		cpaper.Owner = buy.NewOwner
 	} else {
-		return nil, fmt.Errorf(`paper %s %s is not trading.current state = %s`, cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
+		return nil, fmt.Errorf(
+			"paper %s %s is not trading.current state = %s",
+			cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
 	}
 
 	if err = c.Event().Set(buy); err != nil {
@@ -161,8 +166,43 @@ func invokeCPaperBuy(c router.Context) (interface{}, error) {
 }
 
 func invokeCPaperRedeem(c router.Context) (interface{}, error) {
+	var (
+		commercialPaper *schema.CommercialPaper
 
-	return nil, nil
+		// Buy transaction payload
+		redeemData = c.Param().(*schema.RedeemCommercialPaper)
+
+		// Get the current commercial paper state
+		cp, err = c.State().Get(&schema.CommercialPaper{
+			Issuer:      redeemData.Issuer,
+			PaperNumber: redeemData.PaperNumber,
+		}, &schema.CommercialPaper{})
+	)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "paper not found")
+	}
+
+	commercialPaper = cp.(*schema.CommercialPaper)
+
+	// Check paper is not REDEEMED
+	if commercialPaper.State == schema.CommercialPaper_REDEEMED {
+		return nil, fmt.Errorf(
+			"paper %s %s is already redeemed",
+			commercialPaper.Issuer, commercialPaper.PaperNumber)
+	}
+
+	// Verify that the redeemer owns the commercial paper before redeeming it
+	if commercialPaper.Owner == redeemData.RedeemingOwner {
+		commercialPaper.Owner = redeemData.Issuer
+		commercialPaper.State = schema.CommercialPaper_REDEEMED
+	} else {
+		return nil, fmt.Errorf(
+			"redeeming owner does not own paper %s %s",
+			commercialPaper.Issuer, commercialPaper.PaperNumber)
+	}
+
+	return commercialPaper, c.State().Put(commercialPaper)
 }
 
 func invokeCPaperDelete(c router.Context) (interface{}, error) {

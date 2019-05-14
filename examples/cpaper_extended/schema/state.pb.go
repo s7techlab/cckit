@@ -37,9 +37,9 @@ func (x CommercialPaper_State) String() string {
 }
 func (CommercialPaper_State) EnumDescriptor() ([]byte, []int) { return fileDescriptor1, []int{0, 0} }
 
-// Commercialpaper state entry
+// Commercial Paper state entry
 type CommercialPaper struct {
-	// issuer and paper number comprises primary key of commercial paper entry
+	// Issuer and Paper number comprises composite primary key of Commercial paper entry
 	Issuer       string                     `protobuf:"bytes,1,opt,name=issuer" json:"issuer,omitempty"`
 	PaperNumber  string                     `protobuf:"bytes,2,opt,name=paper_number,json=paperNumber" json:"paper_number,omitempty"`
 	Owner        string                     `protobuf:"bytes,3,opt,name=owner" json:"owner,omitempty"`
@@ -47,7 +47,7 @@ type CommercialPaper struct {
 	MaturityDate *google_protobuf.Timestamp `protobuf:"bytes,5,opt,name=maturity_date,json=maturityDate" json:"maturity_date,omitempty"`
 	FaceValue    int32                      `protobuf:"varint,6,opt,name=face_value,json=faceValue" json:"face_value,omitempty"`
 	State        CommercialPaper_State      `protobuf:"varint,7,opt,name=state,enum=cckit.examples.cpaper_extended.schema.CommercialPaper_State" json:"state,omitempty"`
-	// additional uniq field for entry
+	// Additional unique field for entry
 	ExternalId string `protobuf:"bytes,8,opt,name=external_id,json=externalId" json:"external_id,omitempty"`
 }
 
@@ -137,6 +137,7 @@ func (m *CommercialPaperId) GetPaperNumber() string {
 	return ""
 }
 
+// Container for returning multiple entities
 type CommercialPaperList struct {
 	Items []*CommercialPaper `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
 }

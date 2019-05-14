@@ -5,7 +5,7 @@ option go_package = "schema";
 
 import "google/protobuf/timestamp.proto";
 
-// Commercialpaper state entry
+// Commercial Paper state entry
 message CommercialPaper {
 
     enum State {
@@ -14,7 +14,7 @@ message CommercialPaper {
         REDEEMED = 2;
     }
 
-    // issuer and paper number comprises primary key of commercial paper entry
+    // Issuer and Paper number comprises composite primary key of Commercial paper entry
     string issuer = 1;
     string paper_number = 2;
 
@@ -24,7 +24,7 @@ message CommercialPaper {
     int32 face_value = 6;
     State state = 7;
 
-    // additional uniq field for entry
+    // Additional unique field for entry
     string external_id = 8;
 }
 
@@ -34,9 +34,7 @@ message CommercialPaperId {
     string paper_number = 2;
 }
 
-
-
+// Container for returning multiple entities
 message CommercialPaperList {
     repeated CommercialPaper items = 1;
 }
-

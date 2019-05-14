@@ -3,11 +3,13 @@
 
 package schema
 
-import go_proto_validators "github.com/mwitkow/go-proto-validators"
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/golang/protobuf/ptypes/timestamp"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	_ "github.com/golang/protobuf/ptypes/timestamp"
+	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,13 +18,13 @@ var _ = math.Inf
 
 func (this *CommercialPaper) Validate() error {
 	if this.IssueDate != nil {
-		if err := go_proto_validators.CallValidatorIfExists(this.IssueDate); err != nil {
-			return go_proto_validators.FieldError("IssueDate", err)
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.IssueDate); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("IssueDate", err)
 		}
 	}
 	if this.MaturityDate != nil {
-		if err := go_proto_validators.CallValidatorIfExists(this.MaturityDate); err != nil {
-			return go_proto_validators.FieldError("MaturityDate", err)
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.MaturityDate); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("MaturityDate", err)
 		}
 	}
 	return nil
@@ -33,8 +35,8 @@ func (this *CommercialPaperId) Validate() error {
 func (this *CommercialPaperList) Validate() error {
 	for _, item := range this.Items {
 		if item != nil {
-			if err := go_proto_validators.CallValidatorIfExists(item); err != nil {
-				return go_proto_validators.FieldError("Items", err)
+			if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(item); err != nil {
+				return github_com_mwitkow_go_proto_validators.FieldError("Items", err)
 			}
 		}
 	}
