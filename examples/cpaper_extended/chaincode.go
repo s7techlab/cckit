@@ -91,26 +91,26 @@ func queryCPaperGetByExternalId(c router.Context) (interface{}, error) {
 func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 	var (
 		// Input message
-		issue = c.Param().(*schema.IssueCommercialPaper) //default parameter
+		issueData = c.Param().(*schema.IssueCommercialPaper) // Default parameter
 	)
 	// Validate input message using the rules defined in schema
-	if err = issue.Validate(); err != nil {
+	if err = issueData.Validate(); err != nil {
 		return err, errors.Wrap(err, "payload validation")
 	}
 
 	// Create state entry
 	cpaper := &schema.CommercialPaper{
-		Issuer:       issue.Issuer,
-		PaperNumber:  issue.PaperNumber,
-		Owner:        issue.Issuer,
-		IssueDate:    issue.IssueDate,
-		MaturityDate: issue.MaturityDate,
-		FaceValue:    issue.FaceValue,
+		Issuer:       issueData.Issuer,
+		PaperNumber:  issueData.PaperNumber,
+		Owner:        issueData.Issuer,
+		IssueDate:    issueData.IssueDate,
+		MaturityDate: issueData.MaturityDate,
+		FaceValue:    issueData.FaceValue,
 		State:        schema.CommercialPaper_ISSUED, // Initial state
-		ExternalId:   issue.ExternalId,
+		ExternalId:   issueData.ExternalId,
 	}
 
-	if err = c.Event().Set(issue); err != nil {
+	if err = c.Event().Set(issueData); err != nil {
 		return nil, err
 	}
 
@@ -118,16 +118,15 @@ func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 }
 
 func invokeCPaperBuy(c router.Context) (interface{}, error) {
-
 	var (
 		cpaper *schema.CommercialPaper
 
 		// Buy transaction payload
-		buy = c.Param().(*schema.BuyCommercialPaper)
+		buyData = c.Param().(*schema.BuyCommercialPaper)
 
 		// Get the current commercial paper state
 		cp, err = c.State().Get(
-			&schema.CommercialPaperId{Issuer: buy.Issuer, PaperNumber: buy.PaperNumber},
+			&schema.CommercialPaperId{Issuer: buyData.Issuer, PaperNumber: buyData.PaperNumber},
 			&schema.CommercialPaper{})
 	)
 
@@ -138,27 +137,27 @@ func invokeCPaperBuy(c router.Context) (interface{}, error) {
 	cpaper = cp.(*schema.CommercialPaper)
 
 	// Validate current owner
-	if cpaper.Owner != buy.CurrentOwner {
+	if cpaper.Owner != buyData.CurrentOwner {
 		return nil, fmt.Errorf(
 			"paper %s %s is not owned by %s",
-			cpaper.Issuer, cpaper.PaperNumber, buy.CurrentOwner)
+			cpaper.Issuer, cpaper.PaperNumber, buyData.CurrentOwner)
 	}
 
-	// First buy moves state from ISSUED to TRADING
+	// First buyData moves state from ISSUED to TRADING
 	if cpaper.State == schema.CommercialPaper_ISSUED {
 		cpaper.State = schema.CommercialPaper_TRADING
 	}
 
 	// Check paper is not already REDEEMED
 	if cpaper.State == schema.CommercialPaper_TRADING {
-		cpaper.Owner = buy.NewOwner
+		cpaper.Owner = buyData.NewOwner
 	} else {
 		return nil, fmt.Errorf(
 			"paper %s %s is not trading.current state = %s",
 			cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
 	}
 
-	if err = c.Event().Set(buy); err != nil {
+	if err = c.Event().Set(buyData); err != nil {
 		return nil, err
 	}
 
@@ -200,6 +199,10 @@ func invokeCPaperRedeem(c router.Context) (interface{}, error) {
 		return nil, fmt.Errorf(
 			"redeeming owner does not own paper %s %s",
 			commercialPaper.Issuer, commercialPaper.PaperNumber)
+	}
+
+	if err = c.Event().Set(redeemData); err != nil {
+		return nil, err
 	}
 
 	return commercialPaper, c.State().Put(commercialPaper)
