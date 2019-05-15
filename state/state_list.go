@@ -78,3 +78,7 @@ func (sl *StateList) Get() (list interface{}, err error) {
 
 	return sl.list, nil
 }
+
+func (sl *StateList) AddElementToList(elem interface{}) {
+	sl.list = append(sl.list, elem)
+}

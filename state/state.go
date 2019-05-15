@@ -88,6 +88,37 @@ type State interface {
 	UseKeyTransformer(KeyTransformer) State
 	UseStateGetTransformer(FromBytesTransformer) State
 	UseStatePutTransformer(ToBytesTransformer) State
+
+	// GetPrivate returns value from private state, converted to target type
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	GetPrivate(collection string, entry interface{}, target ...interface{}) (result interface{}, err error)
+
+	// PutPrivate returns result of putting entry to private state
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	// if entry is implements Keyer interface and it's struct or type implementing
+	// ToByter interface value can be omitted
+	PutPrivate(collection string, entry interface{}, value ...interface{}) (err error)
+
+	// InsertPrivate returns result of inserting entry to private state
+	// If same key exists in state error wil be returned
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	// if entry is implements Keyer interface and it's struct or type implementing
+	// ToByter interface value can be omitted
+	InsertPrivate(collection string, entry interface{}, value ...interface{}) (err error)
+
+	// ListPrivate returns slice of target type from private state
+	// namespace can be part of key (string or []string) or entity with defined mapping
+	// If usePrivateDataIterator is true, used private state for iterate over objects
+	// if false, used public state for iterate over keys and GetPrivateData for each key
+	ListPrivate(collection string, usePrivateDataIterator bool, namespace interface{}, target ...interface{}) (result interface{}, err error)
+
+	// DeletePrivate returns result of deleting entry from private state
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	DeletePrivate(collection string, entry interface{}) (err error)
+
+	// ExistsPrivate returns entry existence in private state
+	// entry can be Key (string or []string) or type implementing Keyer interface
+	ExistsPrivate(collection string, entry interface{}) (exists bool, err error)
 }
 
 func (k Key) Append(key Key) Key {
@@ -233,7 +264,7 @@ func (s *Impl) Exists(entry interface{}) (exists bool, err error) {
 	return len(bb) != 0, nil
 }
 
-// List data from state using objectType prefix in composite key, trying to conver to target interface.
+// List data from state using objectType prefix in composite key, trying to convert to target interface.
 // Keys -  additional components of composite key
 func (s *Impl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
 
@@ -375,3 +406,145 @@ func KeyError(strKey string) error {
 //func StringKeyer(str string, keyer KeyerFunc) Keyer {
 //	return stringKeyer{str, keyer}
 //}
+
+// Get data by key from private state, trying to convert to target interface
+func (s *Impl) GetPrivate(collection string, key interface{}, config ...interface{}) (result interface{}, err error) {
+	strKey, err := s.Key(key)
+	if err != nil {
+		return nil, err
+	}
+
+	//bytes from private state
+	s.logger.Debugf(`private state GET %s`, strKey)
+	bb, err := s.stub.GetPrivateData(collection, strKey)
+	if err != nil {
+		return
+	}
+	if len(bb) == 0 {
+		// config[1] default value
+		if len(config) >= 2 {
+			return config[1], nil
+		}
+		return nil, errors.Wrap(KeyError(strKey), ErrKeyNotFound.Error())
+	}
+
+	// config[0] - target type
+	return s.StateGetTransformer(bb, config...)
+}
+
+// PrivateExists check entry with key exists in chaincode private state
+func (s *Impl) ExistsPrivate(collection string, entry interface{}) (exists bool, err error) {
+	strKey, err := s.Key(entry)
+	if err != nil {
+		return false, err
+	}
+	s.logger.Debugf(`private state check EXISTENCE %s`, strKey)
+	bb, err := s.stub.GetPrivateData(collection, strKey)
+	if err != nil {
+		return false, err
+	}
+	return len(bb) != 0, nil
+}
+
+// List data from private state using objectType prefix in composite key, trying to convert to target interface.
+// Keys -  additional components of composite key
+// If usePrivateDataIterator is true, used private state for iterate over objects
+// if false, used public state for iterate over keys and GetPrivateData for each key
+func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, namespace interface{}, target ...interface{}) (result interface{}, err error) {
+
+	stateList, err := NewStateList(target...)
+	if err != nil {
+		return nil, err
+	}
+	key, err := NormalizeStateKey(namespace)
+	if err != nil {
+		return nil, errors.Wrap(err, `prepare list key parts`)
+	}
+	s.logger.Debugf(`state LIST namespace: %s`, key)
+
+	key, err = s.StateKeyTransformer(key)
+	if err != nil {
+		return nil, err
+	}
+	s.logger.Debugf(`state LIST with composite key: %s`, key)
+
+	if usePrivateDataIterator {
+		iter, err := s.stub.GetPrivateDataByPartialCompositeKey(collection, key[0], key[1:])
+		if err != nil {
+			return nil, errors.Wrap(err, `create list iterator`)
+		}
+		defer func() { _ = iter.Close() }()
+		return stateList.Fill(iter, s.StateGetTransformer)
+	}
+
+	iter, err := s.stub.GetStateByPartialCompositeKey(key[0], key[1:])
+	if err != nil {
+		return nil, errors.Wrap(err, `create list iterator`)
+	}
+	defer func() { _ = iter.Close() }()
+	for iter.HasNext() {
+		kv, err := iter.Next()
+		if err != nil {
+			return nil, errors.Wrap(err, `get key value`)
+		}
+		objKey, keyParts, err := s.stub.SplitCompositeKey(kv.Key)
+		var curCompositeKey []string
+		curCompositeKey = append(curCompositeKey, objKey)
+		for _, part := range keyParts {
+			curCompositeKey = append(curCompositeKey, part)
+		}
+		object, err := s.GetPrivate(collection, curCompositeKey, target...)
+		if err != nil {
+			return nil, err
+		}
+		stateList.AddElementToList(object)
+	}
+
+	return stateList.Get()
+}
+
+// Put data value in private state with key, trying convert data to []byte
+func (s *Impl) PutPrivate(collection string, entry interface{}, values ...interface{}) (err error) {
+	key, value, err := s.argKeyValue(entry, values)
+	if err != nil {
+		return err
+	}
+	bb, err := s.StatePutTransformer(value)
+	if err != nil {
+		return err
+	}
+
+	stringKey, err := s.Key(key)
+	if err != nil {
+		return err
+	}
+
+	s.logger.Debugf(`state PUT with string key: %s`, stringKey)
+	return s.stub.PutPrivateData(collection, stringKey, bb)
+}
+
+// Insert value into chaincode private state, returns error if key already exists
+func (s *Impl) InsertPrivate(collection string, entry interface{}, values ...interface{}) (err error) {
+	if exists, err := s.ExistsPrivate(collection, entry); err != nil {
+		return err
+	} else if exists {
+		strKey, _ := s.Key(entry)
+		return errors.Wrap(KeyError(strKey), ErrKeyAlreadyExists.Error())
+	}
+
+	key, value, err := s.argKeyValue(entry, values)
+	if err != nil {
+		return err
+	}
+	return s.PutPrivate(collection, key, value)
+}
+
+// Delete entry from private state
+func (s *Impl) DeletePrivate(collection string, key interface{}) (err error) {
+	strKey, err := s.Key(key)
+	if err != nil {
+		return errors.Wrap(err, `deleting from private state`)
+	}
+	s.logger.Debugf(`private state DELETE with string key: %s`, strKey)
+	return s.stub.DelPrivateData(collection, strKey)
+}
