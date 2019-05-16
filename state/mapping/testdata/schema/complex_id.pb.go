@@ -6,11 +6,17 @@ Package schema is a generated protocol buffer package.
 
 It is generated from these files:
 	complex_id.proto
+	proto_schema.proto
 	slice_id.proto
 
 It has these top-level messages:
 	EntityWithComplexId
 	EntityComplexId
+	ProtoEntity
+	ProtoEntityId
+	ProtoEntityList
+	IssueProtoEntity
+	IncrementProtoEntity
 	EntityWithSliceId
 */
 package schema
