@@ -1,20 +1,14 @@
 package mapping_test
 
 import (
+	"github.com/s7techlab/cckit/state/mapping"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/opencontainers/runc/Godeps/_workspace/src/github.com/golang/protobuf/proto"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
-	"github.com/s7techlab/cckit/examples/cpaper"
-	cpaper_schema "github.com/s7techlab/cckit/examples/cpaper/schema"
-	cpaper_testdata "github.com/s7techlab/cckit/examples/cpaper/testdata"
-	"github.com/s7techlab/cckit/examples/cpaper_extended"
-	cpaper_extended_schema "github.com/s7techlab/cckit/examples/cpaper_extended/schema"
-	cpaper_extended_testdata "github.com/s7techlab/cckit/examples/cpaper_extended/testdata"
+
 	"github.com/s7techlab/cckit/state"
-	"github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/state/mapping/testdata"
 	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
 	state_schema "github.com/s7techlab/cckit/state/schema"
@@ -31,9 +25,9 @@ func TestState(t *testing.T) {
 }
 
 var (
-	actors                                             testcc.Identities
-	cPaperCC, cPaperExtendedCC, complexIDCC, sliceIDCC *testcc.MockStub
-	err                                                error
+	actors                          testcc.Identities
+	protoCC, complexIDCC, sliceIDCC *testcc.MockStub
+	err                             error
 )
 var _ = Describe(`Mapping`, func() {
 
@@ -44,12 +38,8 @@ var _ = Describe(`Mapping`, func() {
 
 		Expect(err).To(BeNil())
 
-		//Create commercial papers chaincode mock - protobuf based schema
-		cPaperCC = testcc.NewMockStub(`cpapers`, cpaper.NewCC())
-		cPaperCC.From(actors[`owner`]).Init()
-
-		cPaperExtendedCC = testcc.NewMockStub(`cpapers_extended`, cpaper_extended.NewCC())
-		cPaperExtendedCC.From(actors[`owner`]).Init()
+		protoCC = testcc.NewMockStub(`cpapers`, testdata.NewProtoCC())
+		protoCC.From(actors[`owner`]).Init()
 
 		complexIDCC = testcc.NewMockStub(`complexid`, testdata.NewComplexIdCC())
 		complexIDCC.From(actors[`owner`]).Init()
@@ -58,150 +48,132 @@ var _ = Describe(`Mapping`, func() {
 		sliceIDCC.From(actors[`owner`]).Init()
 	})
 
-	Describe(`Commercial paper, protobuf based schema`, func() {
-
-		var cpaper1 = &cpaper_testdata.CPapers[0]
-		var cpaper2 = &cpaper_testdata.CPapers[1]
-		var cpaper3 = &cpaper_testdata.CPapers[2]
+	Describe(`Commercial paper extended, protobuf based schema with additional keys`, func() {
+		issueMock1 := testdata.ProtoIssueMocks[0]
+		issueMock2 := testdata.ProtoIssueMocks[1]
+		issueMock3 := testdata.ProtoIssueMocks[2]
+		issueMockExistingExternal := testdata.ProtoIssueMockExistingExternal
+		issueMockExistingPrimary := testdata.ProtoIssueMockExistingPrimary
 
 		It("Allow to get mapping data by namespace", func() {
-			mapping, err := cpaper.StateMappings.GetByNamespace(state.Key{`CommercialPaper`})
+			mapping, err := testdata.ProtoStateMapping.GetByNamespace(state.Key{`ProtoEntity`})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(mapping.Schema()).To(BeEquivalentTo(&cpaper_schema.CommercialPaper{}))
+			Expect(mapping.Schema()).To(BeEquivalentTo(&schema.ProtoEntity{}))
 		})
 
 		It("Allow to add data to chaincode state", func(done Done) {
-
-			events := cPaperCC.EventSubscription()
-			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, cpaper1))
+			events := protoCC.EventSubscription()
+			expectcc.ResponseOk(protoCC.Invoke(`issue`, &issueMock1))
 
 			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `IssueCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(cpaper1),
+				EventName: `IssueProtoEntity`,
+				Payload:   testcc.MustProtoMarshal(&issueMock1),
 			}))
 
-			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, cpaper2))
-			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, cpaper3))
+			expectcc.ResponseOk(protoCC.Invoke(`issue`, &issueMock2))
+			expectcc.ResponseOk(protoCC.Invoke(`issue`, &issueMock3))
 
 			close(done)
 		}, 0.2)
 
-		It("Disallow to insert entries with same keys", func() {
-			expectcc.ResponseError(cPaperCC.Invoke(`issue`, cpaper1))
-		})
-
-		It("Allow to get entry list", func() {
-			cpapers := expectcc.PayloadIs(cPaperCC.Query(`list`),
-				&cpaper_schema.CommercialPaperList{}).(*cpaper_schema.CommercialPaperList)
-			Expect(len(cpapers.Items)).To(Equal(3))
-			Expect(cpapers.Items[0].Issuer).To(Equal(cpaper1.Issuer))
-			Expect(cpapers.Items[0].PaperNumber).To(Equal(cpaper1.PaperNumber))
-		})
-
-		It("Allow to get entry raw protobuf", func() {
-			cpaperProtoFromCC := cPaperCC.Query(`get`,
-				&cpaper_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}).Payload
-
-			stateCpaper := &cpaper_schema.CommercialPaper{
-				Issuer:       cpaper1.Issuer,
-				PaperNumber:  cpaper1.PaperNumber,
-				Owner:        cpaper1.Issuer,
-				IssueDate:    cpaper1.IssueDate,
-				MaturityDate: cpaper1.MaturityDate,
-				FaceValue:    cpaper1.FaceValue,
-				State:        cpaper_schema.CommercialPaper_ISSUED, // initial state
-			}
-			Expect(cpaperProtoFromCC).To(Equal(testcc.MustProtoMarshal(stateCpaper)))
-		})
-
-		It("Allow update data in chaincode state", func() {
-
-			expectcc.ResponseOk(cPaperCC.Invoke(`buy`, &cpaper_schema.BuyCommercialPaper{
-				Issuer:       cpaper1.Issuer,
-				PaperNumber:  cpaper1.PaperNumber,
-				CurrentOwner: cpaper1.Issuer,
-				NewOwner:     `some-new-owner`,
-				Price:        cpaper1.FaceValue - 10,
-				PurchaseDate: ptypes.TimestampNow(),
-			}))
-
-			cpaperFromCC := expectcc.PayloadIs(
-				cPaperCC.Query(`get`, &cpaper_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}),
-				&cpaper_schema.CommercialPaper{}).(*cpaper_schema.CommercialPaper)
-
-			// state is updated
-			Expect(cpaperFromCC.State).To(Equal(cpaper_schema.CommercialPaper_TRADING))
-			Expect(cpaperFromCC.Owner).To(Equal(`some-new-owner`))
-		})
-
-		It("Allow to delete entry", func() {
-			toDelete := &cpaper_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}
-
-			expectcc.ResponseOk(cPaperCC.Invoke(`delete`, toDelete))
-			cpapers := expectcc.PayloadIs(cPaperCC.Invoke(`list`), &state_schema.List{}).(*state_schema.List)
-
-			Expect(len(cpapers.Items)).To(Equal(2))
-			expectcc.ResponseError(cPaperCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
-		})
-	})
-
-	Describe(`Commercial paper extended, protobuf based schema with additional keys`, func() {
-
-		var cpaper1 = &cpaper_extended_testdata.CPapers[0]
-
-		It("Allow to add data to chaincode state", func(done Done) {
-			events := cPaperExtendedCC.EventSubscription()
-			expectcc.ResponseOk(cPaperExtendedCC.Invoke(`issue`, cpaper1))
-
-			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `IssueCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(cpaper1),
-			}))
-
-			close(done)
-		}, 0.2)
-
-		It("Disallow to add data to chaincode state with same primary AND  uniq key fields", func() {
-			expectcc.ResponseError(cPaperExtendedCC.Invoke(`issue`, cpaper1), mapping.ErrMappingUniqKeyExists)
+		It("Disallow to insert entries with same uniq AND primary keys", func() {
+			expectcc.ResponseError(protoCC.Invoke(`issue`, &issueMock1))
 		})
 
 		It("Disallow to add data to chaincode state with same uniq key fields", func() {
-			// change PK
-			cpChanged1 := proto.Clone(cpaper1).(*cpaper_extended_schema.IssueCommercialPaper)
-			cpChanged1.PaperNumber = `some-new-number`
-
 			// errored on checking uniq key
-			expectcc.ResponseError(cPaperExtendedCC.Invoke(`issue`, cpChanged1), mapping.ErrMappingUniqKeyExists)
+			expectcc.ResponseError(
+				protoCC.Invoke(`issue`, &issueMockExistingExternal),
+				mapping.ErrMappingUniqKeyExists)
 		})
 
-		It("Disallow to add data to chaincode state with same primary key fields", func() {
-			// change Uniq Key
-			cpChanged2 := proto.Clone(cpaper1).(*cpaper_extended_schema.IssueCommercialPaper)
-			cpChanged2.ExternalId = `some-new-external-id`
-
+		It("Disallow adding data to chaincode state with same primary key fields", func() {
 			// errored obn checkong primary key
-			expectcc.ResponseError(cPaperExtendedCC.Invoke(`issue`, cpChanged2), state.ErrKeyAlreadyExists)
+			expectcc.ResponseError(
+				protoCC.Invoke(`issue`, &issueMockExistingPrimary),
+				state.ErrKeyAlreadyExists)
 		})
 
-		It("Allow to find data by uniq key", func() {
+		It("Allow to get entry list", func() {
+			entities := expectcc.PayloadIs(protoCC.Query(`list`),
+				&schema.ProtoEntityList{}).(*schema.ProtoEntityList)
+			Expect(len(entities.Items)).To(Equal(3))
+			Expect(entities.Items[0].Name).To(Equal(issueMock1.Name))
+			Expect(entities.Items[0].Value).To(BeNumerically("==", 0))
+			Expect(entities.Items[0].ExternalId).To(Equal(issueMock1.ExternalId))
+		})
+
+		It("Allow finding data by uniq key", func() {
 
 			cpaperFromCCByExtID := expectcc.PayloadIs(
-				cPaperExtendedCC.Query(`getByExternalId`, cpaper1.ExternalId),
-				&cpaper_extended_schema.CommercialPaper{}).(*cpaper_extended_schema.CommercialPaper)
+				protoCC.Query(`getByExternalId`, issueMock1.ExternalId),
+				&schema.ProtoEntity{}).(*schema.ProtoEntity)
 
 			cpaperFromCC := expectcc.PayloadIs(
-				cPaperExtendedCC.Query(`get`,
-					&cpaper_extended_schema.CommercialPaperId{Issuer: cpaper1.Issuer, PaperNumber: cpaper1.PaperNumber}),
-				&cpaper_extended_schema.CommercialPaper{}).(*cpaper_extended_schema.CommercialPaper)
+				protoCC.Query(`get`, &schema.ProtoEntityId{
+					IdFirstPart:  issueMock1.IdFirstPart,
+					IdSecondPart: issueMock1.IdSecondPart},
+				),
+				&schema.ProtoEntity{}).(*schema.ProtoEntity)
 
 			Expect(cpaperFromCCByExtID).To(BeEquivalentTo(cpaperFromCC))
 		})
 
-		It("Disallow to find data by non existent uniq key", func() {
+		It("Disallow finding data by non existent uniq key", func() {
 			expectcc.ResponseError(
-				cPaperExtendedCC.Query(`getByExternalId`, `some-non-existent-id`), state.ErrKeyNotFound)
+				protoCC.Query(`getByExternalId`, `some-non-existent-id`), state.ErrKeyNotFound)
 		})
 
+		It("Allow to get entry raw protobuf", func() {
+			cpaperProtoFromCC := protoCC.Query(`get`,
+				&schema.ProtoEntityId{
+					IdFirstPart:  issueMock1.IdFirstPart,
+					IdSecondPart: issueMock1.IdSecondPart},
+			).Payload
+
+			stateProtoEntity := &schema.ProtoEntity{
+				IdFirstPart:  issueMock1.IdFirstPart,
+				IdSecondPart: issueMock1.IdSecondPart,
+				Name:         issueMock1.Name,
+				Value:        0,
+				ExternalId:   issueMock1.ExternalId,
+			}
+			Expect(cpaperProtoFromCC).To(Equal(testcc.MustProtoMarshal(stateProtoEntity)))
+		})
+
+		It("Allow update data in chaincode state", func() {
+			expectcc.ResponseOk(protoCC.Invoke(`increment`, &schema.IncrementProtoEntity{
+				IdFirstPart:  issueMock1.IdFirstPart,
+				IdSecondPart: issueMock1.IdSecondPart,
+				Name:         issueMock1.Name,
+			}))
+
+			entityFromCC := expectcc.PayloadIs(
+				protoCC.Query(`get`, &schema.ProtoEntityId{
+					IdFirstPart:  issueMock1.IdFirstPart,
+					IdSecondPart: issueMock1.IdSecondPart,
+				}),
+				&schema.ProtoEntity{}).(*schema.ProtoEntity)
+
+			// state is updated
+			Expect(entityFromCC.Value).To(BeNumerically("==", 1))
+		})
+
+		It("Allow to delete entry", func() {
+			toDelete := &schema.ProtoEntityId{
+				IdFirstPart:  issueMock1.IdFirstPart,
+				IdSecondPart: issueMock1.IdSecondPart,
+			}
+
+			expectcc.ResponseOk(protoCC.Invoke(`delete`, toDelete))
+			cpapers := expectcc.PayloadIs(
+				protoCC.Invoke(`list`),
+				&schema.ProtoEntityList{},
+			).(*schema.ProtoEntityList)
+
+			Expect(len(cpapers.Items)).To(Equal(2))
+			expectcc.ResponseError(protoCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
+		})
 	})
 
 	Describe(`Entity with complex id`, func() {
