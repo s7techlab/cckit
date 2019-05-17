@@ -16,7 +16,7 @@ key-value pairs in the World State.  In Hyperledger Fabric, smart contracts are 
 
 ## Chaincode examples
 
-There are several chaincode examples available: 
+There are several chaincode "official" examples available: 
 
 * [Commercial paper](https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/smartcontract.html) from official [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io)
 * [Blockchain insurance application](https://github.com/IBM/build-blockchain-insurance-app) ( testing tutorial:  how to [write tests for "insurance" chaincode](examples/insurance) )
@@ -33,7 +33,7 @@ and [others](docs/chaincode-examples.md)
 ### CCKit features 
 
 * [Centralized chaincode invocation handling](router) with methods routing and middleware capabilities 
-* [Chaincode state modelling](state) using [protocol buffers](examples/cpaper) / [golang struct to json marshalling](examples/cars)
+* [Chaincode state modelling](state) using [protocol buffers](examples/cpaper) / [golang struct to json marshalling](examples/cars), with private data support
 * [MockStub testing](testing), allowing to immediately receive test results
 * [Data encryption](extensions/encryption) on application level
 * Chaincode method [access control](extensions/owner)
@@ -47,9 +47,12 @@ and [others](docs/chaincode-examples.md)
 
 ## Examples based on CCKit
 
-* [Commercial paper](examples/cpaper) - describes commercial paper lifecycle
-* [Cars](examples/cars) - car registration chaincode
-* [ERC-20](examples/erc20) - token smart contract, implementing ERC-20 interface
+* [Cars](examples/cars) - car registration chaincode, *simplest* example
+
+* [Commercial paper](examples/cpaper) - faithful reimplementation of the official example 
+* [Commercial paper extended example](examples/cpaper_extended) with protobuf chaincode state schema and other features
+* [ERC-20](examples/erc20) - tokens smart contract, implementing ERC-20 interface
+* [Cars private](examples/private_cars) -  car registration chaincode with private data
 * [Payment](examples/payment) - a few examples of chaincodes with encrypted state 
  
 ## Installation
