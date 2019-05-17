@@ -110,15 +110,19 @@ generate:
 
 #### Chaincode state
 
-[state.proto](examples/cpaper_extended/schema/state.proto)
+The following file shows how to define the world state schema using protobuf.
+
+[examples/cpaper_extended/schema/state.proto](examples/cpaper_extended/schema/state.proto)
 
 ```proto
 syntax = "proto3";
-package schema;
+
+package cckit.examples.cpaper_extended.schema;
+option go_package = "schema";
 
 import "google/protobuf/timestamp.proto";
 
-// CommercialPaper state entry
+// Commercial Paper state entry
 message CommercialPaper {
 
     enum State {
@@ -127,7 +131,7 @@ message CommercialPaper {
         REDEEMED = 2;
     }
 
-    // issuer and paper number comprises primary key of commercial paper entry
+    // Issuer and Paper number comprises composite primary key of Commercial paper entry
     string issuer = 1;
     string paper_number = 2;
 
@@ -136,6 +140,9 @@ message CommercialPaper {
     google.protobuf.Timestamp maturity_date = 5;
     int32 face_value = 6;
     State state = 7;
+
+    // Additional unique field for entry
+    string external_id = 8;
 }
 
 // CommercialPaperId identifier part
@@ -144,16 +151,30 @@ message CommercialPaperId {
     string paper_number = 2;
 }
 
+// Container for returning multiple entities
 message CommercialPaperList {
     repeated CommercialPaper items = 1;
 }
 ```
 
-#### Chaincode input payload and events
+#### Chaincode transaction and events payload
 
-[payload.proto](examples/cpaper_extended/schema/payload.proto)
+This file defines the data payload used using in the business logic methods.
+In this example transaction and event payloads are exactly the same for the sake of brevity, but you could
+create a different schema for each type of payload.
+
+[examples/cpaper_extended/schema/payload.proto](examples/cpaper_extended/schema/payload.proto)
 
 ```proto
+// IssueCommercialPaper event
+syntax = "proto3";
+
+package cckit.examples.cpaper_extended.schema;
+option go_package = "schema";
+
+import "google/protobuf/timestamp.proto";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+
 // IssueCommercialPaper event
 message IssueCommercialPaper {
     string issuer = 1;
@@ -161,6 +182,9 @@ message IssueCommercialPaper {
     google.protobuf.Timestamp issue_date = 3;
     google.protobuf.Timestamp maturity_date = 4;
     int32 face_value = 5;
+
+    // external_id  - once more uniq id of state entry
+    string external_id = 6;
 }
 
 // BuyCommercialPaper event
@@ -184,25 +208,43 @@ message RedeemCommercialPaper {
 
 ### Define chaincode interface
 
+In [examples/cpaper_extended/chaincode.go](examples/cpaper_extended/chaincode.go) file we will define the mappings,
+chaincode initialization method and business logic in the transaction methods.
+For brevity we will only display snippets of the code here, please refer to the original file for full example.
+
+Firstly we define mapping rules. These specify the struct used to hold a specific chaincode state, it's primary key, list mapping, unique keys, etc.
+Then we define the schemas used for emitting events.
+
+```go
+var (
+	// State mappings
+	StateMappings = m.StateMappings{}.
+		//  Create mapping for Commercial Paper entity
+		Add(&schema.CommercialPaper{},
+			// Key namespace will be <"CommercialPaper", Issuer, PaperNumber>
+			m.PKeySchema(&schema.CommercialPaperId{}),
+			// Structure of result for List method
+			m.List(&schema.CommercialPaperList{}),
+			// External Id is unique
+			m.UniqKey("ExternalId"),
+		)
+
+	// EventMappings
+	EventMappings = m.EventMappings{}.
+		// Event name will be "IssueCommercialPaper", payload - same as issue payload
+		Add(&schema.IssueCommercialPaper{}).
+		// Event name will be "BuyCommercialPaper"
+		Add(&schema.BuyCommercialPaper{}).
+		// Event name will be "RedeemCommercialPaper"
+		Add(&schema.RedeemCommercialPaper{})
+)
+```
+
 CCKit uses [router](router) to define rules about how to map chaincode invocation to a particular handler,
 as well as what kind of middleware needs to be used during a request, for example how to convert incoming argument from
 []byte to target type (string, struct, etc).
 
-Also we can define mapping rules for creating chaincode state entries keys for protobuf structures.
-
 ```go
-// State mappings
-StateMappings = m.StateMappings{}.Add(
-    &schema.CommercialPaper{}, // define mapping for this structure
-    m.PKeySchema(&schema.CommercialPaperId{}),  // key  will be <`CommercialPaper`, Issuer, PaperNumber>
-    m.List(&schema.CommercialPaperList{})) // structure-result of list method
-
-// EventMappings
-EventMappings = m.EventMappings{}.
-    Add(&schema.IssueCommercialPaper{}).// event name will be `IssueCommercialPaper`,  payload - same as issue payload
-    Add(&schema.BuyCommercialPaper{}).
-    Add(&schema.RedeemCommercialPaper{})
-
 func NewCC() *router.Chaincode {
 
 	r := router.New(`commercial_paper`)
@@ -213,10 +255,10 @@ func NewCC() *router.Chaincode {
 	// Mappings for chaincode events
 	r.Use(m.MapEvents(EventMappings))
 
-	// store in chaincode state information about chaincode first instantiator
+	// Store in chaincode state information about chaincode first instantiator
 	r.Init(owner.InvokeSetFromCreator)
 
-	// method for debug chaincode state
+	// Method for debug chaincode state
 	debug.AddHandlers(r, `debug`, owner.Only)
 
 	r.
@@ -244,242 +286,117 @@ of MSP  and certificate identifiers) that is the owner and can do administrative
 approach is perfectly reasonable for contracts that only have a single administrative user.
 
 CCKit provides `owner` extension for implementing ownership and access control in Hyperledger Fabric chaincodes.
-In this example we use as a `init` method [owner.InvokeSetFromCreator](extensions/owner/handler.go), storing information
-about owner in the chaincode state.
+In the previous snippet, as an `init` method, we used [owner.InvokeSetFromCreator](extensions/owner/handler.go), storing information
+which stores the information about who is the owner into the world state upon chaincode instantiation.
 
 ### Implement business rules as chaincode methods
 
+Now we have to define the actual business logic which will modify the world state when a transaction occurs.
+In this example we will show only the `buy` method for brevity.
+Please refer to [examples/cpaper_extended/chaincode.go](examples/cpaper_extended/chaincode.go) for full implementation.
+
 ```go
-package cpaper
-
-import (
-	"fmt"
-
-	"github.com/pkg/errors"
-	"github.com/s7techlab/cckit/examples/cpaper/schema"
-	"github.com/s7techlab/cckit/router"
-)
-
-func cpaperList(c router.Context) (interface{}, error) {
-	// commercial paper key is composite key <`CommercialPaper`>, {Issuer}, {PaperNumber} >
-	// where `CommercialPaper` - namespace of this type
-	// list method retrieves entries from chaincode state
-	// using GetStateByPartialCompositeKey method, then unmarshal received from state bytes via proto.Ummarshal method
-	// and creates slice of *schema.CommercialPaper
-	return c.State().List(&schema.CommercialPaper{})
-}
-
-func cpaperIssue(c router.Context) (interface{}, error) {
-	var (
-		issue  = c.Param().(*schema.IssueCommercialPaper) //default parameter
-		cpaper = &schema.CommercialPaper{
-			Issuer:       issue.Issuer,
-			PaperNumber:  issue.PaperNumber,
-			Owner:        issue.Issuer,
-			IssueDate:    issue.IssueDate,
-			MaturityDate: issue.MaturityDate,
-			FaceValue:    issue.FaceValue,
-			State:        schema.CommercialPaper_ISSUED, // initial state
-		}
-		err error
-	)
-
-	if err = c.Event().Set(issue); err != nil {
-		return nil, err
-	}
-
-	return cpaper, c.State().Insert(cpaper)
-}
-
-func cpaperBuy(c router.Context) (interface{}, error) {
-
+func invokeCPaperBuy(c router.Context) (interface{}, error) {
 	var (
 		cpaper *schema.CommercialPaper
 
-		// but tx payload
-		buy = c.Param().(*schema.BuyCommercialPaper)
+		// Buy transaction payload
+		buyData = c.Param().(*schema.BuyCommercialPaper)
 
-		// current commercial paper state
+		// Get the current commercial paper state
 		cp, err = c.State().Get(
-			&schema.CommercialPaperId{Issuer: buy.Issuer, PaperNumber: buy.PaperNumber},
+			&schema.CommercialPaperId{Issuer: buyData.Issuer, PaperNumber: buyData.PaperNumber},
 			&schema.CommercialPaper{})
 	)
 
 	if err != nil {
-		return nil, errors.Wrap(err, `not found`)
+		return nil, errors.Wrap(err, "not found")
 	}
+
 	cpaper = cp.(*schema.CommercialPaper)
 
 	// Validate current owner
-	if cpaper.Owner != buy.CurrentOwner {
-		return nil, fmt.Errorf(`paper %s %s is not owned by %s`, cpaper.Issuer, cpaper.PaperNumber, buy.CurrentOwner)
+	if cpaper.Owner != buyData.CurrentOwner {
+		return nil, fmt.Errorf(
+			"paper %s %s is not owned by %s",
+			cpaper.Issuer, cpaper.PaperNumber, buyData.CurrentOwner)
 	}
 
-	// First buy moves state from ISSUED to TRADING
+	// First buyData moves state from ISSUED to TRADING
 	if cpaper.State == schema.CommercialPaper_ISSUED {
 		cpaper.State = schema.CommercialPaper_TRADING
 	}
 
 	// Check paper is not already REDEEMED
 	if cpaper.State == schema.CommercialPaper_TRADING {
-		cpaper.Owner = buy.NewOwner
+		cpaper.Owner = buyData.NewOwner
 	} else {
-		return nil, fmt.Errorf(`paper %s %s is not trading.current state = %s`, cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
+		return nil, fmt.Errorf(
+			"paper %s %s is not trading.current state = %s",
+			cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
 	}
 
-	if err = c.Event().Set(buy); err != nil {
+	if err = c.Event().Set(buyData); err != nil {
 		return nil, err
 	}
 
 	return cpaper, c.State().Put(cpaper)
 }
-
-func cpaperRedeem(c router.Context) (interface{}, error) {
-	// implement me
-	return nil, nil
-}
-
-func cpaperGet(c router.Context) (interface{}, error) {
-	return c.State().Get(c.Param().(*schema.CommercialPaperId))
-}
-
-func cpaperDelete(c router.Context) (interface{}, error) {
-	return nil, c.State().Delete(c.Param().(*schema.CommercialPaperId))
-}
 ```
 
 ### Test chaincode functionality
 
-CCKit support chaincode testing with [Mockstub](testing)
+And finally we should write tests to ensure our business logic is behaving as it should.
+Again, for brevity, we omitted most of the code from [examples/cpaper_extended/chaincode_test.go](examples/cpaper_extended/chaincode_test.go).
+CCKit support chaincode testing with [Mockstub](testing).
 
 ```go
-package mapping_test
-
-import (
-	"testing"
-
-	"github.com/hyperledger/fabric/protos/peer"
-
-	"github.com/golang/protobuf/ptypes"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/s7techlab/cckit/examples/cpaper/schema"
-	"github.com/s7techlab/cckit/examples/cpaper/testdata"
-	"github.com/s7techlab/cckit/state"
-
-	"github.com/s7techlab/cckit/examples/cpaper"
-
-	examplecert "github.com/s7techlab/cckit/examples/cert"
-	"github.com/s7techlab/cckit/identity"
-	testcc "github.com/s7techlab/cckit/testing"
-	expectcc "github.com/s7techlab/cckit/testing/expect"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-)
-
-func TestState(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "State suite")
-}
-
-var (
-	actors   identity.Actors
-	cPaperCC *testcc.MockStub
-	err      error
-)
-var _ = Describe(`Mapping`, func() {
+var _ = Describe(`CommercialPaper`, func() {
+	paperChaincode := testcc.NewMockStub(`commercial_paper`, NewCC())
 
 	BeforeSuite(func() {
-		actors, err = identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
-			`owner`: `s7techlab.pem`,
-		}, examplecert.Content)
-
-		Expect(err).To(BeNil())
-
-		//Create commercial papers chaincode mock - protobuf based schema
-		cPaperCC = testcc.NewMockStub(`cpapers`, cpaper.NewCC())
-		cPaperCC.From(actors[`owner`]).Init()
-
+		// Init chaincode with admin identity
+		expectcc.ResponseOk(
+			paperChaincode.
+				From(testdata.GetTestIdentity(MspName, path.Join("testdata", "admin", "admin.pem"))).
+				Init())
 	})
 
-	Describe(`Protobuf based schema`, func() {
-		It("Allow to add data to chaincode state", func(done Done) {
+	Describe("Commercial Paper lifecycle", func() {
+		// ...
 
-			events := cPaperCC.EventSubscription()
-			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, &testdata.CPapers[0]))
-
-			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `IssueCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(&testdata.CPapers[0]),
-			}))
-
-			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, &testdata.CPapers[1]))
-			expectcc.ResponseOk(cPaperCC.Invoke(`issue`, &testdata.CPapers[2]))
-
-			close(done)
-		}, 0.2)
-
-		It("Disallow to insert entries with same keys", func() {
-			expectcc.ResponseError(cPaperCC.Invoke(`issue`, &testdata.CPapers[0]))
-		})
-
-		It("Allow to get entry list", func() {
-			cpapers := expectcc.PayloadIs(cPaperCC.Query(`list`), &[]schema.CommercialPaper{}).([]schema.CommercialPaper)
-			Expect(len(cpapers)).To(Equal(3))
-			Expect(cpapers[0].Issuer).To(Equal(testdata.CPapers[0].Issuer))
-			Expect(cpapers[0].PaperNumber).To(Equal(testdata.CPapers[0].PaperNumber))
-		})
-
-		It("Allow to get entry raw protobuf", func() {
-			cp := testdata.CPapers[0]
-			cpaperProtoFromCC := cPaperCC.Query(`get`, &schema.CommercialPaperId{Issuer: cp.Issuer, PaperNumber: cp.PaperNumber}).Payload
-
-			stateCpaper := &schema.CommercialPaper{
-				Issuer:       cp.Issuer,
-				PaperNumber:  cp.PaperNumber,
-				Owner:        cp.Issuer,
-				IssueDate:    cp.IssueDate,
-				MaturityDate: cp.MaturityDate,
-				FaceValue:    cp.FaceValue,
-				State:        schema.CommercialPaper_ISSUED, // initial state
-			}
-			cPaperProto, _ := proto.Marshal(stateCpaper)
-			Expect(cpaperProtoFromCC).To(Equal(cPaperProto))
-		})
-
-		It("Allow update data in chaincode state", func() {
-			cp := testdata.CPapers[0]
-			expectcc.ResponseOk(cPaperCC.Invoke(`buy`, &schema.BuyCommercialPaper{
-				Issuer:       cp.Issuer,
-				PaperNumber:  cp.PaperNumber,
-				CurrentOwner: cp.Issuer,
-				NewOwner:     `some-new-owner`,
-				Price:        cp.FaceValue - 10,
+		It("Allow buyer to buy commercial paper", func() {
+			buyTransactionData := &schema.BuyCommercialPaper{
+				Issuer:       IssuerName,
+				PaperNumber:  "0001",
+				CurrentOwner: IssuerName,
+				NewOwner:     BuyerName,
+				Price:        95000,
 				PurchaseDate: ptypes.TimestampNow(),
+			}
+
+			expectcc.ResponseOk(paperChaincode.Invoke(`buy`, buyTransactionData))
+
+			queryResponse := paperChaincode.Query("get", &schema.CommercialPaperId{
+				Issuer:      IssuerName,
+				PaperNumber: "0001",
+			})
+
+			paper := expectcc.PayloadIs(queryResponse, &schema.CommercialPaper{}).(*schema.CommercialPaper)
+
+			Expect(paper.Owner).To(Equal(BuyerName))
+			Expect(paper.State).To(Equal(schema.CommercialPaper_TRADING))
+
+			Expect(<-paperChaincode.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
+				EventName: `BuyCommercialPaper`,
+				Payload:   testcc.MustProtoMarshal(buyTransactionData),
 			}))
 
-			cpaperFromCC := expectcc.PayloadIs(
-				cPaperCC.Query(`get`, &schema.CommercialPaperId{Issuer: cp.Issuer, PaperNumber: cp.PaperNumber}),
-				&schema.CommercialPaper{}).(*schema.CommercialPaper)
-
-			// state is updated
-			Expect(cpaperFromCC.State).To(Equal(schema.CommercialPaper_TRADING))
-			Expect(cpaperFromCC.Owner).To(Equal(`some-new-owner`))
+			paperChaincode.ClearEvents()
 		})
 
-		It("Allow to delete entry", func() {
+		// ...
 
-			cp := testdata.CPapers[0]
-			toDelete := &schema.CommercialPaperId{Issuer: cp.Issuer, PaperNumber: cp.PaperNumber}
-
-			expectcc.ResponseOk(cPaperCC.Invoke(`delete`, toDelete))
-			cpapers := expectcc.PayloadIs(cPaperCC.Invoke(`list`), &[]schema.CommercialPaper{}).([]schema.CommercialPaper)
-
-			Expect(len(cpapers)).To(Equal(2))
-			expectcc.ResponseError(cPaperCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
-		})
 	})
-
 })
 ```
