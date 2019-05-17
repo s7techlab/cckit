@@ -1,8 +1,5 @@
-# Commercial paper Hyperledger Fabric chaincode example with protobuf based state schema
+# Commercial paper Hyperledger Fabric chaincode example
 
-https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/scenario.html
+This is an faithful reimplementation of the official example [Commercial paper scenario](https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/scenario.html)
 
-
-At the heart of a blockchain network is a smart contract. In PaperNet, the code in the commercial paper smart 
-contract defines the valid states for commercial paper, and the transaction logic that transition 
-a paper from one state to another.
+Original code written in JavaScript using the Fabric Chaincode Node SDK is available [here](https://github.com/hyperledger/fabric-samples/tree/release-1.4/commercial-paper/organization/digibank/contract)
