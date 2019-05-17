@@ -10,9 +10,9 @@ A [smart contract](https://hyperledger-fabric.readthedocs.io/en/latest/glossary.
 invoked by a client application external to the blockchain network – that manages access and modifications to a set of
 key-value pairs in the World State.  In Hyperledger Fabric, smart contracts are referred to as chaincode.
 
-**CCKit** is a **programming toolkit** for developing and testing hyperledger fabric golang chaincodes.  It enhances
- the development experience while providing developers components for creating more readable and secure 
- smart contracts.
+**CCKit** is a **programming toolkit** for developing and testing Hyperledger Fabric golang chaincodes. It enhances
+the development experience while providing developers components for creating more readable and secure
+smart contracts.
 
 ## Chaincode examples
 
@@ -26,14 +26,14 @@ and [others](docs/chaincode-examples.md)
 **Main problems** with existing examples are: 
 
 * Working with chaincode state at very low level
-* Lots of code duplication (json marshalling / unmarshalling, validation, access control etc)
+* Lots of code duplication (JSON marshalling / unmarshalling, validation, access control, etc)
 * Chaincode methods routing appeared only in HLF 1.4 and only in Node.Js chaincode
 * Uncompleted testing tools (MockStub)
 
 ### CCKit features 
 
 * [Centralized chaincode invocation handling](router) with methods routing and middleware capabilities 
-* [Chaincode state modelling](state) using [protocol buffers](examples/cpaper) / [golang struct to json marshalling](examples/cars), with private data support
+* [Chaincode state modelling](state) using [protocol buffers](examples/cpaper_extended) / [golang struct to json marshalling](examples/cars),UncompletedUncompletedUncompletedUncompleted with private data support
 * [MockStub testing](testing), allowing to immediately receive test results
 * [Data encryption](extensions/encryption) on application level
 * Chaincode method [access control](extensions/owner)
@@ -50,7 +50,7 @@ and [others](docs/chaincode-examples.md)
 * [Cars](examples/cars) - car registration chaincode, *simplest* example
 
 * [Commercial paper](examples/cpaper) - faithful reimplementation of the official example 
-* [Commercial paper extended example](examples/cpaper_extended) with protobuf chaincode state schema and other features
+* [Commercial paper extended example](examples/cpaper_extended) - with protobuf chaincode state schema and other features
 * [ERC-20](examples/erc20) - tokens smart contract, implementing ERC-20 interface
 * [Cars private](examples/private_cars) -  car registration chaincode with private data
 * [Payment](examples/payment) - a few examples of chaincodes with encrypted state 
@@ -82,10 +82,10 @@ commercial paper.
 ### 5 steps to develop chaincode
 
 Chaincode is a domain specific program which relates to specific business process. The job of a smart
-contract developer is to take an existing business process  and express it as a smart contract in a 
-programming language.  Steps of chaincode development:
+contract developer is to take an existing business process  and express it as a smart contract in a
+programming language. Steps of chaincode development:
 
-1. Define chaincode model - schema for state entries, input payload and events
+1. Define chaincode model - schema for state entries, transaction payload and events
 2. Define chaincode interface
 3. Implement chaincode instantiate method
 4. Implement chaincode methods with business logic
@@ -94,11 +94,11 @@ programming language.  Steps of chaincode development:
 
 ### Define chaincode model
 
-With protocol buffers, you write a `.proto` description of the data structure you wish to store. 
-From that, the protocol buffer compiler creates a golang struct that implements automatic encoding 
-and parsing of the protocol buffer data with an efficient binary format (or json). 
+With protocol buffers, you write a `.proto` description of the data structure you wish to store.
+From that, the protocol buffer compiler creates a golang struct that implements automatic encoding
+and parsing of the protocol buffer data with an efficient binary format (or json).
 
-Code generation can be simplified with short [Makefile](examples/cpaper/schema):
+Code generation can be simplified with a short [Makefile](examples/cpaper_extended/schema):
 
 ```makefile
 .: generate
@@ -110,7 +110,7 @@ generate:
 
 #### Chaincode state
 
-[state.proto](examples/cpaper/schema/state.proto)
+[state.proto](examples/cpaper_extended/schema/state.proto)
 
 ```proto
 syntax = "proto3";
@@ -151,7 +151,7 @@ message CommercialPaperList {
 
 #### Chaincode input payload and events
 
-[payload.proto](examples/cpaper/schema/payload.proto)
+[payload.proto](examples/cpaper_extended/schema/payload.proto)
 
 ```proto
 // IssueCommercialPaper event
@@ -184,15 +184,13 @@ message RedeemCommercialPaper {
 
 ### Define chaincode interface
 
-CCKit uses [router](router) to define rules about how to map chaincode invocation to particular handler, 
-as well as what kind of middleware needs to be used during request, for example how to convert incoming argument from []byte 
-to target type (string, struct etc).
+CCKit uses [router](router) to define rules about how to map chaincode invocation to a particular handler,
+as well as what kind of middleware needs to be used during a request, for example how to convert incoming argument from
+[]byte to target type (string, struct, etc).
 
 Also we can define mapping rules for creating chaincode state entries keys for protobuf structures.
 
-
 ```go
-
 // State mappings
 StateMappings = m.StateMappings{}.Add(
     &schema.CommercialPaper{}, // define mapping for this structure
@@ -239,15 +237,15 @@ func NewCC() *router.Chaincode {
 
 ### Implement chaincode `init` method
 
-In many cases during chaincode instantiating we need to define permissions for chaincode functions -
+In many cases during chaincode instantiation we need to define permissions for chaincode functions -
 "who is allowed to do this thing", incredibly important in the world of smart contracts.
 The most common and basic form of access control is the concept of `ownership`: there's one account (combination
 of MSP  and certificate identifiers) that is the owner and can do administrative tasks on contracts. This 
 approach is perfectly reasonable for contracts that only have a single administrative user.
 
 CCKit provides `owner` extension for implementing ownership and access control in Hyperledger Fabric chaincodes.
-In this example we use as a `init` method [owner.InvokeSetFromCreator](extensions/owner/handler.go), storing information about owner in the
-chaincode state.
+In this example we use as a `init` method [owner.InvokeSetFromCreator](extensions/owner/handler.go), storing information
+about owner in the chaincode state.
 
 ### Implement business rules as chaincode methods
 
