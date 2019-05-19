@@ -19,7 +19,7 @@ smart contracts.
 There are several chaincode "official" examples available: 
 
 * [Commercial paper](https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/smartcontract.html) from official [Hyperledger Fabric documentation](https://hyperledger-fabric.readthedocs.io)
-* [Blockchain insurance application](https://github.com/IBM/build-blockchain-insurance-app) ( testing tutorial:  how to [write tests for "insurance" chaincode](examples/insurance) )
+* [Blockchain insurance application](https://github.com/IBM/build-blockchain-insurance-app) (testing tutorial: how to [write tests for "insurance" chaincode](examples/insurance))
 
 and [others](docs/chaincode-examples.md)
 
@@ -33,7 +33,7 @@ and [others](docs/chaincode-examples.md)
 ### CCKit features 
 
 * [Centralized chaincode invocation handling](router) with methods routing and middleware capabilities 
-* [Chaincode state modelling](state) using [protocol buffers](examples/cpaper_extended) / [golang struct to json marshalling](examples/cars),UncompletedUncompletedUncompletedUncompleted with private data support
+* [Chaincode state modelling](state) using [protocol buffers](examples/cpaper_extended) / [golang struct to json marshalling](examples/cars), with [private data support](examples/private_cars)
 * [MockStub testing](testing), allowing to immediately receive test results
 * [Data encryption](extensions/encryption) on application level
 * Chaincode method [access control](extensions/owner)
@@ -52,7 +52,7 @@ and [others](docs/chaincode-examples.md)
 * [Commercial paper](examples/cpaper) - faithful reimplementation of the official example 
 * [Commercial paper extended example](examples/cpaper_extended) - with protobuf chaincode state schema and other features
 * [ERC-20](examples/erc20) - tokens smart contract, implementing ERC-20 interface
-* [Cars private](examples/private_cars) -  car registration chaincode with private data
+* [Cars private](examples/private_cars) - car registration chaincode with private data
 * [Payment](examples/payment) - a few examples of chaincodes with encrypted state 
  
 ## Installation
@@ -82,7 +82,7 @@ commercial paper.
 ### 5 steps to develop chaincode
 
 Chaincode is a domain specific program which relates to specific business process. The job of a smart
-contract developer is to take an existing business process  and express it as a smart contract in a
+contract developer is to take an existing business process and express it as a smart contract in a
 programming language. Steps of chaincode development:
 
 1. Define chaincode model - schema for state entries, transaction payload and events
@@ -183,7 +183,7 @@ message IssueCommercialPaper {
     google.protobuf.Timestamp maturity_date = 4;
     int32 face_value = 5;
 
-    // external_id  - once more uniq id of state entry
+    // external_id - another unique constraint
     string external_id = 6;
 }
 
@@ -219,7 +219,7 @@ Then we define the schemas used for emitting events.
 var (
 	// State mappings
 	StateMappings = m.StateMappings{}.
-		//  Create mapping for Commercial Paper entity
+		// Create mapping for Commercial Paper entity
 		Add(&schema.CommercialPaper{},
 			// Key namespace will be <"CommercialPaper", Issuer, PaperNumber>
 			m.PKeySchema(&schema.CommercialPaperId{}),
@@ -282,7 +282,7 @@ func NewCC() *router.Chaincode {
 In many cases during chaincode instantiation we need to define permissions for chaincode functions -
 "who is allowed to do this thing", incredibly important in the world of smart contracts.
 The most common and basic form of access control is the concept of `ownership`: there's one account (combination
-of MSP  and certificate identifiers) that is the owner and can do administrative tasks on contracts. This 
+of MSP and certificate identifiers) that is the owner and can do administrative tasks on contracts. This 
 approach is perfectly reasonable for contracts that only have a single administrative user.
 
 CCKit provides `owner` extension for implementing ownership and access control in Hyperledger Fabric chaincodes.
