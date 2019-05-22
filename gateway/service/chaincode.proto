@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package service;
+
+import "github.com/hyperledger/fabric/protos/peer/proposal_response.proto";
+import "github.com/hyperledger/fabric/protos/peer/chaincode_event.proto";
+
+message ChaincodeInput  {
+    // Chaincode name
+    string chaincode = 1;
+    // Channel name
+    string channel =  2;
+
+    // Input contains the arguments for invocation.
+    repeated bytes args = 3;
+
+    // TransientMap contains data (e.g. cryptographic material) that might be used
+    // to implement some form of application-level confidentiality. The contents
+    // of this field are supposed to always be omitted from the transaction and
+    // excluded from the ledger.
+    map<string, bytes> transient = 4;
+}
+
+
+message ChaincodeLocator   {
+    // Chaincode name
+    string chaincode = 1;
+    // Channel name
+    string channel =  2;
+}
+
+
+service Chaincode {
+    // Query chaincode on home peer
+    rpc Query (ChaincodeInput) returns (protos.ProposalResponse);
+    rpc Invoke (ChaincodeInput) returns (protos.ProposalResponse);
+    rpc Events (ChaincodeLocator) returns (stream protos.ChaincodeEvent);
+}

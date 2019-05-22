@@ -1,0 +1,93 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "service.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/cpaper": {
+      "get": {
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/schemaCommercialPaperList"
+            }
+          }
+        },
+        "tags": [
+          "CPaper"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "CommercialPaperState": {
+      "type": "string",
+      "enum": [
+        "ISSUED",
+        "TRADING",
+        "REDEEMED"
+      ],
+      "default": "ISSUED"
+    },
+    "schemaCommercialPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "title": "Issuer and Paper number comprises composite primary key of Commercial paper entry"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "issue_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "maturity_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "face_value": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "state": {
+          "$ref": "#/definitions/CommercialPaperState"
+        },
+        "external_id": {
+          "type": "string",
+          "title": "Additional unique field for entry"
+        }
+      },
+      "title": "Commercial Paper state entry"
+    },
+    "schemaCommercialPaperList": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/schemaCommercialPaper"
+          }
+        }
+      },
+      "title": "Container for returning multiple entities"
+    }
+  }
+}
