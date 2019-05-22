@@ -30,6 +30,136 @@
           "CPaper"
         ]
       }
+    },
+    "/cpaper/buy": {
+      "post": {
+        "operationId": "Buy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          }
+        },
+        "tags": [
+          "CPaper"
+        ]
+      }
+    },
+    "/cpaper/extid/{id}": {
+      "get": {
+        "operationId": "GetByExternalId",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CPaper"
+        ]
+      }
+    },
+    "/cpaper/issue": {
+      "post": {
+        "operationId": "Issue",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          }
+        },
+        "tags": [
+          "CPaper"
+        ]
+      }
+    },
+    "/cpaper/redeem": {
+      "post": {
+        "operationId": "Redeem",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          }
+        },
+        "tags": [
+          "CPaper"
+        ]
+      }
+    },
+    "/cpaper/{issuer}/{paper_number}": {
+      "get": {
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issuer",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "paper_number",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CPaper"
+        ]
+      },
+      "delete": {
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issuer",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "paper_number",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CPaper"
+        ]
+      }
     }
   },
   "definitions": {

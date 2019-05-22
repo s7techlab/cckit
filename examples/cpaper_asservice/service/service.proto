@@ -16,41 +16,40 @@ service CPaper {
         };
     }
 
-//    rpc Get (cckit.examples.cpaper_asservice.service.CommercialPaperId) returns (cckit.examples.cpaper_asservice.service.CommercialPaper) {
-//        option (google.api.http) = {
-//            get: "/cpaper/{issuer}/{paper_number}"
-//        };
-//    }
-//
-//    rpc GetByExternalId  (ExternalId) returns (CommercialPaper) {
-//        option (google.api.http) = {
-//            get: "/cpaper/extid/{id}"
-//        };
-//    }
-//
-//    rpc Issue (IssueCommercialPaper) returns (CommercialPaper) {
-//        option (google.api.http) = {
-//            post : "/cpaper/issue"
-//        };
-//    }
-//
-//    rpc Buy (BuyCommercialPaper) returns (CommercialPaper) {
-//        option (google.api.http) = {
-//            post: "/cpaper/buy"
-//        };
-//    }
-//
-//    rpc Redeem (RedeemCommercialPaper) returns (CommercialPaper) {
-//        option (google.api.http) = {
-//            post: "/cpaper/redeem"
-//        };
-//    }
-//
-//    rpc Delete (CommercialPaperId) returns (CommercialPaper) {
-//        option (google.api.http) = {
-//            delete: "/cpaper/{issuer}/{paper_number}"
-//        };
-//    }
+    rpc Get (schema.CommercialPaperId) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            get: "/cpaper/{issuer}/{paper_number}"
+        };
+    }
+
+    rpc GetByExternalId  (schema.ExternalId) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            get: "/cpaper/extid/{id}"
+        };
+    }
+
+    rpc Issue (schema.IssueCommercialPaper) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            post : "/cpaper/issue"
+        };
+    }
+
+    rpc Buy (schema.BuyCommercialPaper) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            post: "/cpaper/buy"
+        };
+    }
+
+    rpc Redeem (schema.RedeemCommercialPaper) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            post: "/cpaper/redeem"
+        };
+    }
+
+    rpc Delete (schema.CommercialPaperId) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            delete: "/cpaper/{issuer}/{paper_number}"
+        };
+    }
 }
 
-//Query("getByExternalId", queryCPaperGetByExternalId, param.String("externalId")).
