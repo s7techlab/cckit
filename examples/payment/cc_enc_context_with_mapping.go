@@ -15,6 +15,7 @@ import (
 func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 	r := router.New(`encrypted-with-custom-context`).
 		Pre(encryption.ArgsDecryptExcept(`debugStateGet`)). // encrypted args required, except method `stateGet`
+		After(encryption.EncryptInvokeResponse()).
 		Init(router.EmptyContextHandler)
 
 	r.Use(m.MapStates(StateMappings)) // use state mappings
@@ -38,24 +39,24 @@ func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 func invokePaymentCreateWithDefaultContext(c router.Context) (res interface{}, err error) {
 	// params comes unencrypted - "before" middleware decrypts its using key from transient map
 	var (
-		paymentType     = c.ParamString(`type`)
-		paymentId       = c.ParamString(`id`)
-		paymentAmount   = c.ParamInt(`amount`)
-		payment         = &schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)}
-		event           = &schema.PaymentEvent{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)}
-		responsePayload []byte
+		paymentType   = c.ParamString(`type`)
+		paymentId     = c.ParamString(`id`)
+		paymentAmount = c.ParamInt(`amount`)
+		payment       = &schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)}
+		event         = &schema.PaymentEvent{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)}
 	)
+
+	// State use encryption setting from context, state key sets manually
+	if err = c.State().Insert(payment); err != nil {
+		return nil, err
+	}
 
 	if err = c.Event().Set(event); err != nil {
 		return
 	}
-	// State use encryption setting from context, state key sets manually
-	// returned value will be placed in ledger - so if we don't want to show in in ledger - we must encrypt it
-	if responsePayload, err = encryption.EncryptWithTransientKey(c, payment); err != nil {
-		return
-	}
 
-	return responsePayload, c.State().Insert(payment)
+	// returned value will be placed in ledger - so if we don't want to show in in ledger - we must encrypt it
+	return payment, nil
 }
 
 func queryPaymentsWithDefaultContext(c router.Context) (interface{}, error) {

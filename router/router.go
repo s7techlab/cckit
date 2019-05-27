@@ -2,33 +2,17 @@
 package router
 
 import (
-	"os"
-
 	"fmt"
+	"os"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/response"
 )
 
-const InitFunc = `init`
-
-var (
-	// ErrEmptyArgs occurs when trying to invoke chaincode method with empty args
-	ErrEmptyArgs = errors.New(`empty args`)
-
-	// ErrMethodNotFound occurs when trying to invoke non existent chaincode method
-	ErrMethodNotFound = errors.New(`chaincode method not found`)
-
-	// ErrArgsNumMismatch occurs when the number of declared and the number of arguments passed does not match
-	ErrArgsNumMismatch = errors.New(`chaincode method args count mismatch`)
-
-	// ErrHandlerError error in handler
-	ErrHandlerError = errors.New(`router handler error`)
-)
-
 type (
+	MethodType string
+
 	// InterfaceMap map of interfaces
 	InterfaceMap map[string]interface{}
 
@@ -42,32 +26,55 @@ type (
 	HandlerFunc func(Context) (interface{}, error)
 
 	// ContextMiddlewareFunc middleware for ContextHandlerFun
-	ContextMiddlewareFunc func(ContextHandlerFunc, ...int) ContextHandlerFunc
+	ContextMiddlewareFunc func(nextOrPrev ContextHandlerFunc, pos ...int) ContextHandlerFunc
 
 	// MiddlewareFunc middleware for HandlerFunc
 	MiddlewareFunc func(HandlerFunc, ...int) HandlerFunc
+
+	HandlerMeta struct {
+		Hdl  HandlerFunc
+		Type MethodType
+	}
 
 	// Group of chain code functions
 	Group struct {
 		logger *shim.ChaincodeLogger
 		prefix string
 
+		// mapping chaincode method  => handler
 		stubHandlers    map[string]StubHandlerFunc
 		contextHandlers map[string]ContextHandlerFunc
-		handlers        map[string]HandlerFunc
+		handlers        map[string]*HandlerMeta
 
 		contextMiddleware []ContextMiddlewareFunc
 		middleware        []MiddlewareFunc
-		preMiddleware     []ContextMiddlewareFunc
+
+		preMiddleware   []ContextMiddlewareFunc
+		afterMiddleware []MiddlewareFunc
 	}
+
+	Router interface {
+		HandleInit(shim.ChaincodeStubInterface)
+		Handle(shim.ChaincodeStubInterface)
+		Query(path string, handler HandlerFunc, middleware ...MiddlewareFunc) Router
+		Invoke(path string, handler HandlerFunc, middleware ...MiddlewareFunc) Router
+	}
+)
+
+const (
+	InitFunc                = `init`
+	MethodInvoke MethodType = `invoke`
+	MethodQuery  MethodType = `query`
 )
 
 func (g *Group) buildHandler() ContextHandlerFunc {
 	return func(c Context) peer.Response {
-		h := g.HandleContext
+		h := g.handleContext
+		// build pre part
 		for i := len(g.preMiddleware) - 1; i >= 0; i-- {
 			h = g.preMiddleware[i](h, i)
 		}
+
 		return h(c)
 	}
 }
@@ -93,7 +100,7 @@ func (g *Group) Handle(stub shim.ChaincodeStubInterface) peer.Response {
 	return h(g.Context(stub))
 }
 
-func (g *Group) HandleContext(c Context) peer.Response {
+func (g *Group) handleContext(c Context) peer.Response {
 
 	// handle standard stub handler (accepts StubInterface, returns peer.Response)
 	if stubHandler, ok := g.stubHandlers[c.Path()]; ok {
@@ -111,13 +118,21 @@ func (g *Group) HandleContext(c Context) peer.Response {
 			return h(c)
 		}
 		return h(c)
-	} else if handler, ok := g.handlers[c.Path()]; ok {
+	} else if handlerMeta, ok := g.handlers[c.Path()]; ok {
+
 		g.logger.Debug(`router handler: `, c.Path())
 		h := func(c Context) (interface{}, error) {
-			h := handler
+
+			c.SetHandler(handlerMeta)
+			h := handlerMeta.Hdl
 			for i := len(g.middleware) - 1; i >= 0; i-- {
 				h = g.middleware[i](h, i)
 			}
+
+			for i := 0; i <= len(g.afterMiddleware)-1; i++ {
+				h = g.afterMiddleware[i](h, 0)
+			}
+
 			return h(c)
 		}
 		resp := response.Create(h(c))
@@ -134,6 +149,11 @@ func (g *Group) HandleContext(c Context) peer.Response {
 
 func (g *Group) Pre(middleware ...ContextMiddlewareFunc) *Group {
 	g.preMiddleware = append(g.preMiddleware, middleware...)
+	return g
+}
+
+func (g *Group) After(middleware ...MiddlewareFunc) *Group {
+	g.afterMiddleware = append(g.afterMiddleware, middleware...)
 	return g
 }
 
@@ -168,20 +188,26 @@ func (g *Group) ContextHandler(path string, fn ContextHandlerFunc) *Group {
 	return g
 }
 
-// Query alias for invoke
+// Query defines handler and middleware for querying chaincode method (no state change, no send to orderer)
 func (g *Group) Query(path string, handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
-	return g.Invoke(path, handler, middleware...)
+	return g.addHandler(MethodQuery, path, handler, middleware...)
 }
 
-// Invoke configure handler and middleware functions for chain code function name
+// Invoke defines handler and middleware for invoke chaincode method  (state change,  need to send to orderer)
 func (g *Group) Invoke(path string, handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
-	g.handlers[g.prefix+path] = func(context Context) (interface{}, error) {
-		h := handler
-		for i := len(middleware) - 1; i >= 0; i-- {
-			h = middleware[i](h, i)
-		}
-		return h(context)
-	}
+	return g.addHandler(MethodInvoke, path, handler, middleware...)
+}
+
+func (g *Group) addHandler(t MethodType, path string, handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
+	g.handlers[g.prefix+path] = &HandlerMeta{
+		Type: t,
+		Hdl: func(context Context) (interface{}, error) {
+			h := handler
+			for i := len(middleware) - 1; i >= 0; i-- {
+				h = middleware[i](h, i)
+			}
+			return h(context)
+		}}
 	return g
 }
 
@@ -196,7 +222,6 @@ func (g *Group) Context(stub shim.ChaincodeStubInterface) Context {
 
 // New group of chain code functions
 func New(name string) *Group {
-
 	logger := shim.NewLogger(name)
 	loggingLevel, err := shim.LogLevel(os.Getenv(`CORE_CHAINCODE_LOGGING_LEVEL`))
 	if err == nil {
@@ -207,7 +232,7 @@ func New(name string) *Group {
 	g.logger = logger
 	g.stubHandlers = make(map[string]StubHandlerFunc)
 	g.contextHandlers = make(map[string]ContextHandlerFunc)
-	g.handlers = make(map[string]HandlerFunc)
+	g.handlers = make(map[string]*HandlerMeta)
 
 	return g
 }

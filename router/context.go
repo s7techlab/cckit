@@ -19,6 +19,8 @@ type (
 		Response() Response
 		Logger() *shim.ChaincodeLogger
 		Path() string
+		Handler() *HandlerMeta
+		SetHandler(*HandlerMeta)
 		State() state.State
 		UseState(state.State) state.State
 
@@ -76,13 +78,14 @@ type (
 	}
 
 	context struct {
-		stub   shim.ChaincodeStubInterface
-		logger *shim.ChaincodeLogger
-		state  state.State
-		event  state.Event
-		args   [][]byte
-		params InterfaceMap
-		store  InterfaceMap
+		stub    shim.ChaincodeStubInterface
+		handler *HandlerMeta
+		logger  *shim.ChaincodeLogger
+		state   state.State
+		event   state.Event
+		args    [][]byte
+		params  InterfaceMap
+		store   InterfaceMap
 	}
 )
 
@@ -107,6 +110,14 @@ func (c *context) Path() string {
 		return ``
 	}
 	return string(c.GetArgs()[0])
+}
+
+func (c *context) Handler() *HandlerMeta {
+	return c.handler
+}
+
+func (c *context) SetHandler(h *HandlerMeta) {
+	c.handler = h
 }
 
 func (c *context) State() state.State {
