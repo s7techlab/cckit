@@ -25,48 +25,62 @@ type CPaperChaincode interface {
 	Delete(router.Context, *schema.CommercialPaperId) (*schema.CommercialPaper, error)
 }
 
-func RegisterCPaperChaincode(r *router.Group, cc CPaperChaincode) {
+// chaincode method names without router group namespace
+const (
+	CPaperChaincode_List            = `List`
+	CPaperChaincode_Get             = `Get`
+	CPaperChaincode_GetByExternalId = `GetByExternalId`
+	CPaperChaincode_Issue           = `Issue`
+	CPaperChaincode_Buy             = `Buy`
+	CPaperChaincode_Redeem          = `Redeem`
+	CPaperChaincode_Delete          = `Delete`
+)
 
-	r.Query(`list`,
+// RegisterCPaperChaincode registers service methods as chaincode router handlers
+func RegisterCPaperChaincode(r *router.Group, cc CPaperChaincode) error {
+
+	r.Query(CPaperChaincode_List,
 		func(ctx router.Context) (interface{}, error) {
 			return cc.List(ctx, nil)
 		})
 
-	r.Query(`get`,
+	r.Query(CPaperChaincode_Get,
 		func(ctx router.Context) (interface{}, error) {
 			return cc.Get(ctx, ctx.Param().(*schema.CommercialPaperId))
 		},
 		defparam.Proto(&schema.CommercialPaperId{}))
 
-	r.Invoke(`getByExternalId`,
+	r.Invoke(CPaperChaincode_GetByExternalId,
 		func(ctx router.Context) (interface{}, error) {
 			return cc.GetByExternalId(ctx, ctx.Param().(*schema.ExternalId))
 		},
 		defparam.Proto(&schema.ExternalId{}))
 
-	r.Invoke(`issue`,
+	r.Invoke(CPaperChaincode_Issue,
 		func(ctx router.Context) (interface{}, error) {
 			return cc.Issue(ctx, ctx.Param().(*schema.IssueCommercialPaper))
 		},
 		defparam.Proto(&schema.IssueCommercialPaper{}))
 
-	r.Invoke(`buy`,
+	r.Invoke(CPaperChaincode_Buy,
 		func(ctx router.Context) (interface{}, error) {
 			return cc.Buy(ctx, ctx.Param().(*schema.BuyCommercialPaper))
 		},
 		defparam.Proto(&schema.BuyCommercialPaper{}))
 
-	r.Invoke(`redeem`,
+	r.Invoke(CPaperChaincode_Redeem,
 		func(ctx router.Context) (interface{}, error) {
 			return cc.Redeem(ctx, ctx.Param().(*schema.RedeemCommercialPaper))
 		},
 		defparam.Proto(&schema.RedeemCommercialPaper{}))
 
-	r.Invoke(`delete`,
+	r.Invoke(CPaperChaincode_Delete,
 		func(ctx router.Context) (interface{}, error) {
 			return cc.Delete(ctx, ctx.Param().(*schema.CommercialPaperId))
 		},
 		defparam.Proto(&schema.CommercialPaperId{}))
+
+	return nil
 }
 
 func NewCPaperGateway(ccService service.Chaincode, channel, chaincode string, signer msp.SigningIdentity) *CPaperGateway {
@@ -88,7 +102,7 @@ type CPaperGateway struct {
 }
 
 func (c *CPaperGateway) List(ctx context.Context, in *empty.Empty) (*schema.CommercialPaperList, error) {
-	if res, err := c.Gateway.Query(ctx, `List`, []interface{}{}, &schema.CommercialPaperList{}); err != nil {
+	if res, err := c.Gateway.Query(ctx, CPaperChaincode_List, []interface{}{}, &schema.CommercialPaperList{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaperList), nil
@@ -96,7 +110,7 @@ func (c *CPaperGateway) List(ctx context.Context, in *empty.Empty) (*schema.Comm
 }
 
 func (c *CPaperGateway) Get(ctx context.Context, in *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
-	if res, err := c.Gateway.Query(ctx, `Get`, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
+	if res, err := c.Gateway.Query(ctx, CPaperChaincode_Get, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaper), nil
@@ -104,7 +118,7 @@ func (c *CPaperGateway) Get(ctx context.Context, in *schema.CommercialPaperId) (
 }
 
 func (c *CPaperGateway) GetByExternalId(ctx context.Context, in *schema.ExternalId) (*schema.CommercialPaper, error) {
-	if res, err := c.Gateway.Query(ctx, `GetByExternalId`, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
+	if res, err := c.Gateway.Query(ctx, CPaperChaincode_GetByExternalId, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaper), nil
@@ -114,7 +128,7 @@ func (c *CPaperGateway) GetByExternalId(ctx context.Context, in *schema.External
 func (c *CPaperGateway) Issue(ctx context.Context, in *schema.IssueCommercialPaper) (*schema.CommercialPaper, error) {
 	if err := in.Validate(); err != nil {
 		return nil, err
-	} else if res, err := c.Gateway.Invoke(ctx, `Issue`, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
+	} else if res, err := c.Gateway.Invoke(ctx, CPaperChaincode_Issue, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaper), nil
@@ -124,7 +138,7 @@ func (c *CPaperGateway) Issue(ctx context.Context, in *schema.IssueCommercialPap
 func (c *CPaperGateway) Buy(ctx context.Context, in *schema.BuyCommercialPaper) (*schema.CommercialPaper, error) {
 	if err := in.Validate(); err != nil {
 		return nil, err
-	} else if res, err := c.Gateway.Invoke(ctx, `Buy`, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
+	} else if res, err := c.Gateway.Invoke(ctx, CPaperChaincode_Buy, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaper), nil
@@ -134,7 +148,7 @@ func (c *CPaperGateway) Buy(ctx context.Context, in *schema.BuyCommercialPaper) 
 func (c *CPaperGateway) Redeem(ctx context.Context, in *schema.RedeemCommercialPaper) (*schema.CommercialPaper, error) {
 	if err := in.Validate(); err != nil {
 		return nil, err
-	} else if res, err := c.Gateway.Invoke(ctx, `Redeem`, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
+	} else if res, err := c.Gateway.Invoke(ctx, CPaperChaincode_Redeem, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaper), nil
@@ -144,7 +158,7 @@ func (c *CPaperGateway) Redeem(ctx context.Context, in *schema.RedeemCommercialP
 func (c *CPaperGateway) Delete(ctx context.Context, in *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
 	if err := in.Validate(); err != nil {
 		return nil, err
-	} else if res, err := c.Gateway.Invoke(ctx, `Delete`, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
+	} else if res, err := c.Gateway.Invoke(ctx, CPaperChaincode_Delete, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaper), nil

@@ -1,20 +1,23 @@
 package cpaper_asservice_test
 
 import (
+	"crypto/rand"
 	"path"
 	"testing"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/s7techlab/cckit/examples/cpaper_asservice"
-	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
-	"github.com/s7techlab/cckit/examples/cpaper_asservice/testdata"
-	testcc "github.com/s7techlab/cckit/testing"
-	expectcc "github.com/s7techlab/cckit/testing/expect"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/s7techlab/cckit/examples/cpaper_asservice"
+	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
+	s "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
+	"github.com/s7techlab/cckit/examples/cpaper_asservice/testdata"
+	"github.com/s7techlab/cckit/extensions/encryption"
+	"github.com/s7techlab/cckit/router"
+	testcc "github.com/s7techlab/cckit/testing"
+	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
 
 const (
@@ -29,42 +32,66 @@ func TestCommercialPaper(t *testing.T) {
 	RunSpecs(t, "Commercial Paper Suite")
 }
 
+var (
+	ccImpl, ccEncImpl *router.Chaincode
+	err               error
+	cc, ccEnc         *testcc.MockStub
+
+	encKey       = make([]byte, 32)
+	ccEncWrapped *encryption.MockStub
+
+	issuePayload = &schema.IssueCommercialPaper{
+		Issuer:       IssuerName,
+		PaperNumber:  "0001",
+		IssueDate:    ptypes.TimestampNow(),
+		MaturityDate: testcc.MustProtoTimestamp(time.Now().AddDate(0, 2, 0)),
+		FaceValue:    100000,
+		ExternalId:   "EXT0001",
+	}
+)
+
 var _ = Describe(`CommercialPaper`, func() {
-	paperChaincode := testcc.NewMockStub(`cpaper_as_service`, cpaper_asservice.NewCC())
 
 	BeforeSuite(func() {
+
+		_, err = rand.Read(encKey)
+		Expect(err).NotTo(HaveOccurred())
+
+		ccImpl, err = cpaper_asservice.NewCC()
+		Expect(err).NotTo(HaveOccurred())
+
+		ccEncImpl, err = cpaper_asservice.NewCCEncrypted()
+		Expect(err).NotTo(HaveOccurred())
+
+		cc = testcc.NewMockStub(`cpaper_as_service`, ccImpl)
+		ccEnc = testcc.NewMockStub(`cpaper_as_service_encrypted`, ccEncImpl)
+
+		// all queries/invokes arguments to cc will be encrypted
+		ccEncWrapped = encryption.NewMockStub(ccEnc, encKey)
+
 		// Init chaincode with admin identity
 		expectcc.ResponseOk(
-			paperChaincode.
-				From(testdata.GetTestIdentity(MspName, path.Join("testdata", "admin", "admin.pem"))).
-				Init())
+			cc.From(testdata.GetTestIdentity(MspName, path.Join("testdata", "admin", "admin.pem"))).Init())
 	})
 
 	Describe("Commercial Paper lifecycle", func() {
-		It("Allow issuer to issue new commercial paper", func() {
-			issueTransactionData := &schema.IssueCommercialPaper{
-				Issuer:       IssuerName,
-				PaperNumber:  "0001",
-				IssueDate:    ptypes.TimestampNow(),
-				MaturityDate: testcc.MustProtoTimestamp(time.Now().AddDate(0, 2, 0)),
-				FaceValue:    100000,
-				ExternalId:   "EXT0001",
-			}
+		It("Allow issuer to issue new commercial paper", func(done Done) {
 
-			expectcc.ResponseOk(paperChaincode.Invoke(`issue`, issueTransactionData))
+			expectcc.ResponseOk(cc.Invoke(s.CPaperChaincode_Issue, issuePayload))
 
 			// Validate event has been emitted with the transaction data
-			Expect(<-paperChaincode.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
+			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
 				EventName: `IssueCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(issueTransactionData),
+				Payload:   testcc.MustProtoMarshal(issuePayload),
 			}))
 
 			// Clear events channel after a test case that emits an event
-			paperChaincode.ClearEvents()
-		})
+			cc.ClearEvents()
+			close(done)
+		}, 0.1)
 
 		It("Allow issuer to get commercial paper by composite primary key", func() {
-			queryResponse := paperChaincode.Query("get", &schema.CommercialPaperId{
+			queryResponse := cc.Query(s.CPaperChaincode_Get, &schema.CommercialPaperId{
 				Issuer:      IssuerName,
 				PaperNumber: "0001",
 			})
@@ -79,7 +106,7 @@ var _ = Describe(`CommercialPaper`, func() {
 		})
 
 		It("Allow issuer to get commercial paper by unique key", func() {
-			queryResponse := paperChaincode.Query("getByExternalId", &schema.ExternalId{Id: "EXT0001"})
+			queryResponse := cc.Query(s.CPaperChaincode_GetByExternalId, &schema.ExternalId{Id: "EXT0001"})
 
 			paper := expectcc.PayloadIs(queryResponse, &schema.CommercialPaper{}).(*schema.CommercialPaper)
 
@@ -91,7 +118,7 @@ var _ = Describe(`CommercialPaper`, func() {
 		})
 
 		It("Allow issuer to get a list of commercial papers", func() {
-			queryResponse := paperChaincode.Query("list")
+			queryResponse := cc.Query(s.CPaperChaincode_List)
 
 			papers := expectcc.PayloadIs(queryResponse, &schema.CommercialPaperList{}).(*schema.CommercialPaperList)
 
@@ -113,9 +140,9 @@ var _ = Describe(`CommercialPaper`, func() {
 				PurchaseDate: ptypes.TimestampNow(),
 			}
 
-			expectcc.ResponseOk(paperChaincode.Invoke(`buy`, buyTransactionData))
+			expectcc.ResponseOk(cc.Invoke(s.CPaperChaincode_Buy, buyTransactionData))
 
-			queryResponse := paperChaincode.Query("get", &schema.CommercialPaperId{
+			queryResponse := cc.Query(s.CPaperChaincode_Get, &schema.CommercialPaperId{
 				Issuer:      IssuerName,
 				PaperNumber: "0001",
 			})
@@ -125,12 +152,12 @@ var _ = Describe(`CommercialPaper`, func() {
 			Expect(paper.Owner).To(Equal(BuyerName))
 			Expect(paper.State).To(Equal(schema.CommercialPaper_TRADING))
 
-			Expect(<-paperChaincode.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
+			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
 				EventName: `BuyCommercialPaper`,
 				Payload:   testcc.MustProtoMarshal(buyTransactionData),
 			}))
 
-			paperChaincode.ClearEvents()
+			cc.ClearEvents()
 		})
 
 		It("Allow buyer to redeem commercial paper", func() {
@@ -141,9 +168,9 @@ var _ = Describe(`CommercialPaper`, func() {
 				RedeemDate:     ptypes.TimestampNow(),
 			}
 
-			expectcc.ResponseOk(paperChaincode.Invoke(`redeem`, redeemTransactionData))
+			expectcc.ResponseOk(cc.Invoke(s.CPaperChaincode_Redeem, redeemTransactionData))
 
-			queryResponse := paperChaincode.Query("get", &schema.CommercialPaperId{
+			queryResponse := cc.Query(s.CPaperChaincode_Get, &schema.CommercialPaperId{
 				Issuer:      IssuerName,
 				PaperNumber: "0001",
 			})
@@ -152,25 +179,42 @@ var _ = Describe(`CommercialPaper`, func() {
 			Expect(paper.Owner).To(Equal(IssuerName))
 			Expect(paper.State).To(Equal(schema.CommercialPaper_REDEEMED))
 
-			Expect(<-paperChaincode.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
+			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
 				EventName: `RedeemCommercialPaper`,
 				Payload:   testcc.MustProtoMarshal(redeemTransactionData),
 			}))
 
-			paperChaincode.ClearEvents()
+			cc.ClearEvents()
 		})
 
 		It("Allow issuer to delete commercial paper", func() {
-			expectcc.ResponseOk(paperChaincode.Invoke(`delete`, &schema.CommercialPaperId{
+			expectcc.ResponseOk(cc.Invoke(s.CPaperChaincode_Delete, &schema.CommercialPaperId{
 				Issuer:      IssuerName,
 				PaperNumber: "0001",
 			}))
 
 			// Validate there are 0 Commercial Papers in the world state
-			queryResponse := paperChaincode.Query("list")
+			queryResponse := cc.Query(s.CPaperChaincode_List)
 			papers := expectcc.PayloadIs(queryResponse, &schema.CommercialPaperList{}).(*schema.CommercialPaperList)
 
 			Expect(len(papers.Items)).To(BeNumerically("==", 0))
 		})
+	})
+
+	Describe("Commercial Paper Encrypted lifecycle", func() {
+		It("Allow issuer to issue new commercial paper", func(done Done) {
+
+			expectcc.ResponseOk(ccEncWrapped.Invoke(s.CPaperChaincode_Issue, issuePayload))
+
+			// Validate event has been emitted with the transaction data, and event name and payload is encrypted
+			Expect(<-ccEnc.ChaincodeEventsChannel).To(BeEquivalentTo(encryption.MustEncryptEvent(encKey, &peer.ChaincodeEvent{
+				EventName: `IssueCommercialPaper`,
+				Payload:   testcc.MustProtoMarshal(issuePayload),
+			})))
+
+			// Clear events channel after a test case that emits an event
+			cc.ClearEvents()
+			close(done)
+		}, 0.1)
 	})
 })

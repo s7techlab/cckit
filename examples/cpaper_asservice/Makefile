@@ -1,6 +1,7 @@
 .: generate
 
 generate:
+	@protoc --version
 	@echo "commercial paper schema proto generation"
 	@protoc -I=./schema/ \
 	-I=../../vendor \

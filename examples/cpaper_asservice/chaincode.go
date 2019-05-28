@@ -1,5 +1,7 @@
 package cpaper_asservice
 
+//go:generate make
+
 import (
 	"fmt"
 
@@ -7,29 +9,55 @@ import (
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/service"
+	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
-func NewCC() *router.Chaincode {
-
-	r := router.New("CommercialPaper")
-
+func Router(name string) (*router.Group, error) {
+	r := router.New(name)
 	// Store on the ledger the information about chaincode instantiation
 	r.Init(owner.InvokeSetFromCreator)
 
-	//service.RegisterDebug()
-	service.RegisterCPaperChaincode(r, &Chaincode{})
+	if err := service.RegisterCPaperChaincode(r, &CPaperImpl{}); err != nil {
+		return nil, err
+	}
 
-	return router.NewChaincode(r)
+	return r, nil
 }
 
-type Chaincode struct {
+func NewCC() (*router.Chaincode, error) {
+	r, err := Router(`CommercialPaper`)
+	if err != nil {
+		return nil, err
+	}
+
+	return router.NewChaincode(r), nil
 }
 
-func (cc *Chaincode) state(ctx router.Context) m.MappedState {
+func NewCCEncrypted() (*router.Chaincode, error) {
+	r, err := Router(`CommercialPaperEncrypted`)
+	if err != nil {
+		return nil, err
+	}
+
+	r.
+		// encryption key in transient map and encrypted args required
+		Pre(encryption.ArgsDecrypt).
+		// default Context replaced with EncryptedStateContext only if key is provided in transient map
+		Use(encryption.EncStateContext).
+		// invoke response will be encrypted cause it will be placed in blocks
+		After(encryption.EncryptInvokeResponse())
+
+	return router.NewChaincode(r), nil
+}
+
+type CPaperImpl struct {
+}
+
+func (cc *CPaperImpl) state(ctx router.Context) m.MappedState {
 	return m.WrapState(ctx.State(), m.StateMappings{}.
 		//  Create mapping for Commercial Paper entity
 		Add(&schema.CommercialPaper{},
@@ -39,8 +67,8 @@ func (cc *Chaincode) state(ctx router.Context) m.MappedState {
 		))
 }
 
-func (cc *Chaincode) event(ctx router.Context) state.Event {
-	return m.NewEvent(ctx.Stub(), m.EventMappings{}.
+func (cc *CPaperImpl) event(ctx router.Context) state.Event {
+	return m.WrapEvent(ctx.Event(), m.EventMappings{}.
 		// Event name will be "IssueCommercialPaper", payload - same as issue payload
 		Add(&schema.IssueCommercialPaper{}).
 		// Event name will be "BuyCommercialPaper"
@@ -49,7 +77,7 @@ func (cc *Chaincode) event(ctx router.Context) state.Event {
 		Add(&schema.RedeemCommercialPaper{}))
 }
 
-func (cc *Chaincode) List(ctx router.Context, in *empty.Empty) (*schema.CommercialPaperList, error) {
+func (cc *CPaperImpl) List(ctx router.Context, in *empty.Empty) (*schema.CommercialPaperList, error) {
 	// List method retrieves all entries from the ledger using GetStateByPartialCompositeKey method and passing it the
 	// namespace of our contract type, in this example that's "CommercialPaper", then it unmarshals received bytes via
 	// proto.Ummarshal method and creates a []schema.CommercialPaperList as defined in the
@@ -61,7 +89,7 @@ func (cc *Chaincode) List(ctx router.Context, in *empty.Empty) (*schema.Commerci
 	}
 }
 
-func (cc *Chaincode) Get(ctx router.Context, id *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
+func (cc *CPaperImpl) Get(ctx router.Context, id *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
 	if res, err := cc.state(ctx).Get(id, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
@@ -69,7 +97,7 @@ func (cc *Chaincode) Get(ctx router.Context, id *schema.CommercialPaperId) (*sch
 	}
 }
 
-func (cc *Chaincode) GetByExternalId(ctx router.Context, id *schema.ExternalId) (*schema.CommercialPaper, error) {
+func (cc *CPaperImpl) GetByExternalId(ctx router.Context, id *schema.ExternalId) (*schema.CommercialPaper, error) {
 	if res, err := cc.state(ctx).GetByUniqKey(
 		&schema.CommercialPaper{}, "ExternalId", []string{id.Id}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
@@ -78,7 +106,7 @@ func (cc *Chaincode) GetByExternalId(ctx router.Context, id *schema.ExternalId) 
 	}
 }
 
-func (cc *Chaincode) Issue(ctx router.Context, issue *schema.IssueCommercialPaper) (*schema.CommercialPaper, error) {
+func (cc *CPaperImpl) Issue(ctx router.Context, issue *schema.IssueCommercialPaper) (*schema.CommercialPaper, error) {
 
 	// Validate input message using the rules defined in schema
 	if err := issue.Validate(); err != nil {
@@ -107,7 +135,7 @@ func (cc *Chaincode) Issue(ctx router.Context, issue *schema.IssueCommercialPape
 	return cpaper, nil
 }
 
-func (cc *Chaincode) Buy(ctx router.Context, buy *schema.BuyCommercialPaper) (*schema.CommercialPaper, error) {
+func (cc *CPaperImpl) Buy(ctx router.Context, buy *schema.BuyCommercialPaper) (*schema.CommercialPaper, error) {
 	// Get the current commercial paper state
 	cpaper, err := cc.Get(ctx, &schema.CommercialPaperId{Issuer: buy.Issuer, PaperNumber: buy.PaperNumber})
 	if err != nil {
@@ -146,7 +174,7 @@ func (cc *Chaincode) Buy(ctx router.Context, buy *schema.BuyCommercialPaper) (*s
 	return cpaper, nil
 }
 
-func (cc *Chaincode) Redeem(ctx router.Context, redeem *schema.RedeemCommercialPaper) (*schema.CommercialPaper, error) {
+func (cc *CPaperImpl) Redeem(ctx router.Context, redeem *schema.RedeemCommercialPaper) (*schema.CommercialPaper, error) {
 	// Get the current commercial paper state
 	cpaper, err := cc.Get(ctx, &schema.CommercialPaperId{Issuer: redeem.Issuer, PaperNumber: redeem.PaperNumber})
 	if err != nil {
@@ -180,7 +208,7 @@ func (cc *Chaincode) Redeem(ctx router.Context, redeem *schema.RedeemCommercialP
 	return cpaper, nil
 }
 
-func (cc *Chaincode) Delete(ctx router.Context, id *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
+func (cc *CPaperImpl) Delete(ctx router.Context, id *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
 	cpaper, err := cc.Get(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "get cpaper")

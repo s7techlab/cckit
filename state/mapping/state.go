@@ -3,11 +3,10 @@ package mapping
 import (
 	"fmt"
 
-	"github.com/s7techlab/cckit/state/schema"
-
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/state"
+	"github.com/s7techlab/cckit/state/schema"
 )
 
 type (
@@ -163,7 +162,7 @@ func (s *Impl) GetByUniqKey(
 
 	keyRef, err := s.state.Get(NewKeyRefIDMapped(entry, idx, idxVal), &schema.KeyRef{})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf(`uniq index: {%s}.%s`, mapKey(entry), idx))
 	}
 
 	return s.state.Get(keyRef.(*schema.KeyRef).PKey, target...)

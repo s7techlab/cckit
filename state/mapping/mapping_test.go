@@ -1,22 +1,20 @@
 package mapping_test
 
 import (
-	"github.com/s7techlab/cckit/state/mapping"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
-
 	"github.com/s7techlab/cckit/state"
+	"github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/state/mapping/testdata"
 	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
 	state_schema "github.com/s7techlab/cckit/state/schema"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 func TestState(t *testing.T) {
@@ -121,7 +119,7 @@ var _ = Describe(`Mapping`, func() {
 
 		It("Disallow finding data by non existent uniq key", func() {
 			expectcc.ResponseError(
-				protoCC.Query(`getByExternalId`, `some-non-existent-id`), state.ErrKeyNotFound)
+				protoCC.Query(`getByExternalId`, `some-non-existent-id`), `uniq index`)
 		})
 
 		It("Allow to get entry raw protobuf", func() {

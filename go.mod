@@ -18,9 +18,8 @@ require (
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/errors v0.8.1
 	github.com/s7techlab/hlf-sdk-go v0.1.3
-	go.uber.org/atomic v1.3.2 // indirect
-	go.uber.org/multierr v1.1.0 // indirect
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	github.com/spf13/viper v1.4.0 // indirect
+	golang.org/x/net v0.0.0-20190522155817-f3200d17e092
 	google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19
-	google.golang.org/grpc v1.19.1
+	google.golang.org/grpc v1.21.0
 )

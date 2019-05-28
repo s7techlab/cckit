@@ -21,6 +21,13 @@ func NewEvent(stub shim.ChaincodeStubInterface, mappings EventMappings) *EventIm
 	}
 }
 
+func WrapEvent(event state.Event, mappings EventMappings) *EventImpl {
+	return &EventImpl{
+		event:    event,
+		mappings: mappings,
+	}
+}
+
 func (e *EventImpl) mapIfMappingExists(entry interface{}) (mapped interface{}, exists bool, err error) {
 	if !e.mappings.Exists(entry) {
 		return entry, false, nil
