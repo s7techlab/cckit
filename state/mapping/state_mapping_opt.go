@@ -3,6 +3,7 @@ package mapping
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/s7techlab/cckit/state"
@@ -78,7 +79,13 @@ func attrsFrom(schema interface{}) (attrs []string) {
 	// fields from schema
 	s := reflect.ValueOf(schema).Elem().Type()
 	for i := 0; i < s.NumField(); i++ {
-		attrs = append(attrs, s.Field(i).Name)
+
+		name := s.Field(i).Name
+		if strings.Contains(name, `XXX_`) {
+			continue
+		}
+
+		attrs = append(attrs, name)
 	}
 	return
 }
