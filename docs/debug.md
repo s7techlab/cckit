@@ -5,7 +5,7 @@
 
 Use logger in chaincode
 
-`c.Logger().Debug( "debug message")`
+`c.Logger().Debug("debug message")`
 
 
 
