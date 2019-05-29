@@ -81,7 +81,7 @@ func attrsFrom(schema interface{}) (attrs []string) {
 	for i := 0; i < s.NumField(); i++ {
 
 		name := s.Field(i).Name
-		if strings.Contains(name, `XXX_`) {
+		if strings.HasPrefix(name, `XXX_`) {
 			continue
 		}
 
@@ -124,7 +124,9 @@ func keyFromValue(v reflect.Value) (key state.Key, err error) {
 		s := reflect.ValueOf(v.Interface()).Elem().Type()
 		// get all field values from struct
 		for i := 0; i < s.NumField(); i++ {
-			key = append(key, reflect.Indirect(v).Field(i).String())
+			if !strings.HasPrefix(s.Field(i).Name, `XXX_`) {
+				key = append(key,reflect.Indirect(v).Field(i).String())
+			}
 		}
 		return key, nil
 	}
