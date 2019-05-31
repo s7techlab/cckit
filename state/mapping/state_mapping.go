@@ -45,6 +45,7 @@ type (
 		uniqKeys      []*StateKeyDefinition
 	}
 
+	// StateKeyDefinition
 	StateKeyDefinition struct {
 		Name  string
 		Attrs []string
@@ -76,15 +77,16 @@ func (smm StateMappings) Add(schema interface{}, opts ...StateMappingOpt) StateM
 func applyStateMappingDefaults(sm *StateMapping) {
 	// default namespace based on type name
 	if len(sm.namespace) == 0 {
-		sm.namespace = schemaNamespace(sm.schema)
+		sm.namespace = SchemaNamespace(sm.schema)
 	}
 }
 
-func schemaNamespace(schema interface{}) state.Key {
+func SchemaNamespace(schema interface{}) state.Key {
 	t := reflect.TypeOf(schema).String()
 	return state.Key{t[strings.Index(t, `.`)+1:]}
 }
 
+// Get mapper for mapped entry
 func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 	m, ok := smm[mapKey(entry)]
 	if !ok {
@@ -93,6 +95,8 @@ func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 	return m, nil
 }
 
+// Get mapper by string namespace. It can be used in block explorer: we know state key, but don't know
+// type actually mapped to state
 func (smm StateMappings) GetByNamespace(namespace state.Key) (StateMapper, error) {
 	for _, m := range smm {
 		if !m.isKeyerSchema && reflect.DeepEqual(m.namespace, namespace) {
@@ -127,6 +131,11 @@ func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) 
 	default:
 		return nil, ErrEntryTypeNotSupported
 	}
+}
+
+func (smm *StateMappings) IdxKey(entity interface{}, idx string, idxVal state.Key) (state.Key, error) {
+	keyMapped := NewKeyRefIDMapped(entity, idx, idxVal)
+	return keyMapped.Key()
 }
 
 func (sm *StateMapping) Namespace() state.Key {

@@ -1,6 +1,7 @@
 package mapping_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes"
@@ -115,6 +116,18 @@ var _ = Describe(`Mapping`, func() {
 				&schema.ProtoEntity{}).(*schema.ProtoEntity)
 
 			Expect(cpaperFromCCByExtID).To(BeEquivalentTo(cpaperFromCC))
+		})
+
+		It("Allow to get idx state key by uniq key", func() {
+			idxKey, err := testdata.ProtoStateMapping.IdxKey(&schema.ProtoEntity{}, `ExternalId`, []string{issueMock1.ExternalId})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(idxKey).To(BeEquivalentTo([]string{
+				mapping.KeyRefNamespace,
+				strings.Join(mapping.SchemaNamespace(&schema.ProtoEntity{}), `-`),
+				`ExternalId`,
+				issueMock1.ExternalId,
+			}))
 		})
 
 		It("Disallow finding data by non existent uniq key", func() {

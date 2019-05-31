@@ -1,12 +1,16 @@
 package mapping
 
 import (
+	"strings"
+
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/schema"
 )
 
+// KeyRefNamespace namespace for uniq indexes
 const KeyRefNamespace = `_idx`
 
+// KeyRefIDKeyer keyer for KeyRef entity
 var KeyRefIDKeyer = attrsPKeyer([]string{`Schema`, `Idx`, `RefKey`})
 
 var KeyRefMapper = &StateMapping{
@@ -23,7 +27,7 @@ var KeyRefIDMapper = &StateMapping{
 
 func NewKeyRef(target interface{}, idx string, refKey, pKey state.Key) *schema.KeyRef {
 	return &schema.KeyRef{
-		Schema: mapKey(target),
+		Schema: strings.Join(SchemaNamespace(target), `-`),
 		Idx:    idx,
 		RefKey: []string(refKey),
 		PKey:   []string(pKey),
@@ -32,7 +36,7 @@ func NewKeyRef(target interface{}, idx string, refKey, pKey state.Key) *schema.K
 
 func NewKeyRefID(target interface{}, idx string, refKey state.Key) *schema.KeyRefId {
 	return &schema.KeyRefId{
-		Schema: mapKey(target),
+		Schema: strings.Join(SchemaNamespace(target), `-`),
 		Idx:    idx,
 		RefKey: []string(refKey),
 	}
@@ -43,5 +47,7 @@ func NewKeyRefMapped(target interface{}, idx string, refKey, pKey state.Key) *Pr
 }
 
 func NewKeyRefIDMapped(target interface{}, idx string, refKey state.Key) *ProtoStateMapped {
-	return NewProtoStateMapped(NewKeyRefID(target, idx, refKey), KeyRefIDMapper)
+	return NewProtoStateMapped(
+		NewKeyRefID(target, idx, refKey),
+		KeyRefIDMapper)
 }

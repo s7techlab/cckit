@@ -48,7 +48,7 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 		sm.primaryKeyer = attrsPKeyer(attrs)
 
 		//add mapping namespace for id schema same as schema
-		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrs...), IsKeyerSchema())
+		smm.Add(pkeySchema, StateNamespace(SchemaNamespace(sm.schema)), PKeyAttr(attrs...), IsKeyerSchema())
 	}
 }
 
@@ -65,7 +65,7 @@ func PKeyId() StateMappingOpt {
 func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.primaryKeyer = attrsPKeyer([]string{`Id`})
-		smm.Add(pkeySchema, StateNamespace(schemaNamespace(sm.schema)), PKeyAttr(attrsFrom(pkeySchema)...), IsKeyerSchema())
+		smm.Add(pkeySchema, StateNamespace(SchemaNamespace(sm.schema)), PKeyAttr(attrsFrom(pkeySchema)...), IsKeyerSchema())
 	}
 }
 
@@ -125,7 +125,7 @@ func keyFromValue(v reflect.Value) (key state.Key, err error) {
 		// get all field values from struct
 		for i := 0; i < s.NumField(); i++ {
 			if !strings.HasPrefix(s.Field(i).Name, `XXX_`) {
-				key = append(key,reflect.Indirect(v).Field(i).String())
+				key = append(key, reflect.Indirect(v).Field(i).String())
 			}
 		}
 		return key, nil
