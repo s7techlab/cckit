@@ -13,10 +13,9 @@ You are about to be asked to enter information that will be incorporated into yo
 What you are about to enter is what is called a Distinguished Name or a DN.
 
 
-
 examine the certificate:
 
-`$ openssl x509 -in some-persone.pem -text -noout`
+`$ openssl x509 -in some-person.pem -text -noout`
 
 
 ````
