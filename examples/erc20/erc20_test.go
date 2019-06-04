@@ -1,9 +1,10 @@
-package erc20
+package erc20_test
 
 import (
 	"testing"
 
 	examplecert "github.com/s7techlab/cckit/examples/cert"
+	"github.com/s7techlab/cckit/examples/erc20"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 
@@ -24,7 +25,7 @@ var _ = Describe(`ERC-20`, func() {
 	const Decimals = 3
 
 	//Create chaincode mock
-	erc20fs := testcc.NewMockStub(`erc20`, NewErc20FixedSupply())
+	erc20fs := testcc.NewMockStub(`erc20`, erc20.NewErc20FixedSupply())
 
 	// load actor certificates
 	actors, err := testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
@@ -73,14 +74,14 @@ var _ = Describe(`ERC-20`, func() {
 			expectcc.ResponseError(
 				erc20fs.From(actors[`token_owner`]).Invoke(
 					`transfer`, actors[`token_owner`].MspId, actors[`token_owner`].GetID(), 100),
-				ErrForbiddenToTransferToSameAccount)
+				erc20.ErrForbiddenToTransferToSameAccount)
 		})
 
 		It("Disallow token holder with zero balance to transfer tokens", func() {
 			expectcc.ResponseError(
 				erc20fs.From(actors[`account_holder1`]).Invoke(
 					`transfer`, actors[`token_owner`].MspId, actors[`token_owner`].GetID(), 100),
-				ErrNotEnoughFunds)
+				erc20.ErrNotEnoughFunds)
 		})
 
 		It("Allow token holder with non zero balance to transfer tokens", func() {
