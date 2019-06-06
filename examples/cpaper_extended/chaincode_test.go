@@ -1,15 +1,17 @@
-package cpaper_extended
+package cpaper_extended_test
 
 import (
+	"io/ioutil"
+	"testing"
+	"time"
+
+	"github.com/s7techlab/cckit/examples/cpaper_extended"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/schema"
-	"github.com/s7techlab/cckit/examples/cpaper_extended/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-	"path"
-	"testing"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,18 +30,28 @@ func TestCommercialPaper(t *testing.T) {
 }
 
 var _ = Describe(`CommercialPaper`, func() {
-	paperChaincode := testcc.NewMockStub(`commercial_paper`, NewCC())
+	paperChaincode := testcc.NewMockStub(
+		// chaincode name
+		`commercial_paper`,
+		// chaincode implementation, supports Chaincode interface with Init and Invoke methods
+		cpaper_extended.NewCC(),
+	)
 
 	BeforeSuite(func() {
 		// Init chaincode with admin identity
+
+		adminIdentity, err := testcc.IdentityFromFile(MspName, `testdata/admin.pem`, ioutil.ReadFile)
+		Expect(err).NotTo(HaveOccurred())
+
 		expectcc.ResponseOk(
 			paperChaincode.
-				From(testdata.GetTestIdentity(MspName, path.Join("testdata", "admin", "admin.pem"))).
+				From(adminIdentity).
 				Init())
 	})
 
 	Describe("Commercial Paper lifecycle", func() {
-		It("Allow issuer to issue new commercial paper", func() {
+		It("Allow issuer to issue new commercial paper", func(done Done) {
+			//input payload for chaincode method
 			issueTransactionData := &schema.IssueCommercialPaper{
 				Issuer:       IssuerName,
 				PaperNumber:  "0001",
@@ -49,7 +61,10 @@ var _ = Describe(`CommercialPaper`, func() {
 				ExternalId:   "EXT0001",
 			}
 
-			expectcc.ResponseOk(paperChaincode.Invoke(`issue`, issueTransactionData))
+			// we expect tha `issue` method invocation with particular input payload returns response with 200 code
+			// &schema.IssueCommercialPaper wil automatically converts to bytes via proto.Marshall function
+			expectcc.ResponseOk(
+				paperChaincode.Invoke(`issue`, issueTransactionData))
 
 			// Validate event has been emitted with the transaction data
 			Expect(<-paperChaincode.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
@@ -59,7 +74,8 @@ var _ = Describe(`CommercialPaper`, func() {
 
 			// Clear events channel after a test case that emits an event
 			paperChaincode.ClearEvents()
-		})
+			close(done)
+		}, 0.1)
 
 		It("Allow issuer to get commercial paper by composite primary key", func() {
 			queryResponse := paperChaincode.Query("get", &schema.CommercialPaperId{
@@ -67,6 +83,7 @@ var _ = Describe(`CommercialPaper`, func() {
 				PaperNumber: "0001",
 			})
 
+			// we expect that returned []byte payload can be unmarshalled to *schema.CommercialPaper entity
 			paper := expectcc.PayloadIs(queryResponse, &schema.CommercialPaper{}).(*schema.CommercialPaper)
 
 			Expect(paper.Issuer).To(Equal(IssuerName))
@@ -158,7 +175,7 @@ var _ = Describe(`CommercialPaper`, func() {
 			paperChaincode.ClearEvents()
 		})
 
-		It("Allow issuer to redeem delete commercial paper", func() {
+		It("Allow issuer to delete commercial paper", func() {
 			expectcc.ResponseOk(paperChaincode.Invoke(`delete`, &schema.CommercialPaperId{
 				Issuer:      IssuerName,
 				PaperNumber: "0001",

@@ -95,7 +95,7 @@ func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 	)
 	// Validate input message using the rules defined in schema
 	if err = issueData.Validate(); err != nil {
-		return err, errors.Wrap(err, "payload validation")
+		return nil, errors.Wrap(err, "payload validation")
 	}
 
 	// Create state entry
