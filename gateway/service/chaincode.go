@@ -10,10 +10,12 @@ import (
 )
 
 type (
+	// Chaincode service interface
 	Chaincode             = ChaincodeServer
 	ChaincodeEventsServer = chaincodeEventsServer
 )
 
+// ChaincodeService implementation based of hlf-sdk-go
 type ChaincodeService struct {
 	sdk api.Core
 }

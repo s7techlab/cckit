@@ -72,6 +72,7 @@ github.com/fsouza/go-dockerclient v1.3.6 h1:oL0e3fpCjF+AHuUUBnwbkVcelFhxQifgTPQK
 github.com/fsouza/go-dockerclient v1.3.6/go.mod h1:ptN6nXBwrXuiHAz2TYGOFCBB1aKGr371sGjMFdJEr1A=
 github.com/fsouza/go-dockerclient v1.4.0 h1:Fhqy7UOYW+4ILvC3dtiY3Jzr3XXSSrbq56IhTPxkMnE=
 github.com/fsouza/go-dockerclient v1.4.0/go.mod h1:GmPog78dvaRLJqt7QU7fRLaJKUkYW2hYjxKCp1uwGwE=
+github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=

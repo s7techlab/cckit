@@ -11,7 +11,6 @@ import (
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/ledger/queryresult"
 	"github.com/hyperledger/fabric/protos/peer"
-	"github.com/op/go-logging"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 )
@@ -451,13 +450,10 @@ func (iter *PrivateMockStateRangeQueryIterator) Print() {
 
 // PutPrivateData mocked
 func (stub *MockStub) PutPrivateData(collection string, key string, value []byte) error {
-	m, in := stub.PvtState[collection]
-	if !in {
+	if _, in := stub.PvtState[collection]; !in {
 		stub.PvtState[collection] = make(map[string][]byte)
-		m, in = stub.PvtState[collection]
 	}
-
-	m[key] = value
+	stub.PvtState[collection][key] = value
 
 	if _, ok := stub.PrivateKeys[collection]; !ok {
 		stub.PrivateKeys[collection] = list.New()

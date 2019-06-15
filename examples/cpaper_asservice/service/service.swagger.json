@@ -17,6 +17,7 @@
   "paths": {
     "/cpaper": {
       "get": {
+        "summary": "List method returns all registered commercial papers",
         "operationId": "List",
         "responses": {
           "200": {
@@ -33,6 +34,7 @@
     },
     "/cpaper/buy": {
       "post": {
+        "summary": "Buy commercial paper",
         "operationId": "Buy",
         "responses": {
           "200": {
@@ -49,6 +51,7 @@
     },
     "/cpaper/extid/{id}": {
       "get": {
+        "summary": "GetByExternalId",
         "operationId": "GetByExternalId",
         "responses": {
           "200": {
@@ -73,6 +76,7 @@
     },
     "/cpaper/issue": {
       "post": {
+        "summary": "Issue commercial paper",
         "operationId": "Issue",
         "responses": {
           "200": {
@@ -89,6 +93,7 @@
     },
     "/cpaper/redeem": {
       "post": {
+        "summary": "Redeem commercial paper",
         "operationId": "Redeem",
         "responses": {
           "200": {
@@ -105,6 +110,7 @@
     },
     "/cpaper/{issuer}/{paper_number}": {
       "get": {
+        "summary": "Get method returns commercial paper data by id",
         "operationId": "Get",
         "responses": {
           "200": {
@@ -133,6 +139,7 @@
         ]
       },
       "delete": {
+        "summary": "Delete commercial paper",
         "operationId": "Delete",
         "responses": {
           "200": {
