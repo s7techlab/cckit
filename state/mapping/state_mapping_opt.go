@@ -58,14 +58,29 @@ func PKeyAttr(attrs ...string) StateMappingOpt {
 	}
 }
 
+// PKeyId use Id attr as source for mapped state entry key
 func PKeyId() StateMappingOpt {
 	return PKeyAttr(`Id`)
 }
 
+// PKeyConst use constant as state entry key
+func PKeyConst(key state.Key) StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
+		sm.primaryKeyer = func(instance interface{}) (state.Key, error) {
+			return key, nil
+		}
+	}
+}
+
+// PKeyComplexId sets Id as key field, also adds mapping for pkeySchema
+// with namespace from mapping schema
 func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.primaryKeyer = attrsPKeyer([]string{`Id`})
-		smm.Add(pkeySchema, StateNamespace(SchemaNamespace(sm.schema)), PKeyAttr(attrsFrom(pkeySchema)...), IsKeyerSchema())
+		smm.Add(pkeySchema,
+			StateNamespace(SchemaNamespace(sm.schema)),
+			PKeyAttr(attrsFrom(pkeySchema)...),
+			IsKeyerSchema())
 	}
 }
 

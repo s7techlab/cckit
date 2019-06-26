@@ -28,6 +28,7 @@ type (
 		Keys(instance interface{}) (key []state.KeyValue, err error)
 	}
 
+	// InstanceKeyer returns key of an state entry instance
 	InstanceKeyer func(instance interface{}) (key state.Key, err error)
 
 	StateMapped interface {
