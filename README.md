@@ -41,6 +41,7 @@ and [others](docs/chaincode-examples.md)
 ### Publications with usage examples 
 
 * [Hyperledger Fabric smart contract data model: protobuf to chaincode state mapping](https://medium.com/coinmonks/hyperledger-fabric-smart-contract-data-model-protobuf-to-chaincode-state-mapping-191cdcfa0b78)
+* [Hyperledger Fabric chaincode test driven development (TDD) with unit testing](https://medium.com/coinmonks/test-driven-hyperledger-fabric-golang-chaincode-development-dbec4cb78049)
 * [ERC20 token as Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339)
 * [CCKit: Routing and middleware for Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/routing-and-middleware-for-developing-hyperledger-fabric-chaincode-written-in-go-90913951bf08)
 * [Developing and testing Hyperledger Fabric smart contracts](https://habr.com/post/426705/) [RUS]
