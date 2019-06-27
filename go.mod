@@ -16,7 +16,7 @@ require (
 	github.com/mwitkow/go-proto-validators v0.0.0-20190212092829-1f388280e944
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
-	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
+	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/s7techlab/hlf-sdk-go v0.1.3
 	github.com/spf13/viper v1.4.0 // indirect

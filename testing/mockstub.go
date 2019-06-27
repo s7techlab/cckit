@@ -11,6 +11,7 @@ import (
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/ledger/queryresult"
 	"github.com/hyperledger/fabric/protos/peer"
+	gologging "github.com/op/go-logging"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 )
@@ -331,7 +332,7 @@ type PrivateMockStateRangeQueryIterator struct {
 }
 
 // Logger for the shim package.
-var mockLogger = logging.MustGetLogger("mock")
+var mockLogger = gologging.MustGetLogger("mock")
 
 // HasNext returns true if the range query iterator contains additional keys
 // and values.
