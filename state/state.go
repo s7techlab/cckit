@@ -181,7 +181,7 @@ func (s *Impl) Key(key interface{}) (string, error) {
 }
 
 // Get data by key from state, trying to convert to target interface
-func (s *Impl) Get(key interface{}, config ...interface{}) (result interface{}, err error) {
+func (s *Impl) Get(key interface{}, config ...interface{}) (interface{}, error) {
 	strKey, err := s.Key(key)
 	if err != nil {
 		return nil, err
@@ -191,7 +191,7 @@ func (s *Impl) Get(key interface{}, config ...interface{}) (result interface{}, 
 	s.logger.Debugf(`state GET %s`, strKey)
 	bb, err := s.stub.GetState(strKey)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if len(bb) == 0 {
 		// config[1] default value
@@ -205,7 +205,7 @@ func (s *Impl) Get(key interface{}, config ...interface{}) (result interface{}, 
 	return s.StateGetTransformer(bb, config...)
 }
 
-func (s *Impl) GetInt(key interface{}, defaultValue int) (result int, err error) {
+func (s *Impl) GetInt(key interface{}, defaultValue int) (int, error) {
 	val, err := s.Get(key, convert.TypeInt, defaultValue)
 	if err != nil {
 		return 0, err
@@ -214,7 +214,7 @@ func (s *Impl) GetInt(key interface{}, defaultValue int) (result int, err error)
 }
 
 // GetHistory by key from state, trying to convert to target interface
-func (s *Impl) GetHistory(key interface{}, target interface{}) (result HistoryEntryList, err error) {
+func (s *Impl) GetHistory(key interface{}, target interface{}) (HistoryEntryList, error) {
 	strKey, err := s.Key(key)
 	if err != nil {
 		return nil, err
@@ -252,7 +252,7 @@ func (s *Impl) GetHistory(key interface{}, target interface{}) (result HistoryEn
 }
 
 // Exists check entry with key exists in chaincode state
-func (s *Impl) Exists(entry interface{}) (exists bool, err error) {
+func (s *Impl) Exists(entry interface{}) (bool, error) {
 	strKey, err := s.Key(entry)
 	if err != nil {
 		return false, err
@@ -267,8 +267,7 @@ func (s *Impl) Exists(entry interface{}) (exists bool, err error) {
 
 // List data from state using objectType prefix in composite key, trying to convert to target interface.
 // Keys -  additional components of composite key
-func (s *Impl) List(namespace interface{}, target ...interface{}) (result interface{}, err error) {
-
+func (s *Impl) List(namespace interface{}, target ...interface{}) (interface{}, error) {
 	stateList, err := NewStateList(target...)
 	if err != nil {
 		return nil, err
@@ -312,8 +311,7 @@ func NormalizeStateKey(key interface{}) (Key, error) {
 
 func (s *Impl) argKeyValue(arg interface{}, values []interface{}) (key Key, value interface{}, err error) {
 	// key must be
-	key, err = NormalizeStateKey(arg)
-	if err != nil {
+	if key, err = NormalizeStateKey(arg); err != nil {
 		return
 	}
 
@@ -329,7 +327,7 @@ func (s *Impl) argKeyValue(arg interface{}, values []interface{}) (key Key, valu
 }
 
 // Put data value in state with key, trying convert data to []byte
-func (s *Impl) Put(entry interface{}, values ...interface{}) (err error) {
+func (s *Impl) Put(entry interface{}, values ...interface{}) error {
 	key, value, err := s.argKeyValue(entry, values)
 	if err != nil {
 		return err
@@ -349,7 +347,7 @@ func (s *Impl) Put(entry interface{}, values ...interface{}) (err error) {
 }
 
 // Insert value into chaincode state, returns error if key already exists
-func (s *Impl) Insert(entry interface{}, values ...interface{}) (err error) {
+func (s *Impl) Insert(entry interface{}, values ...interface{}) error {
 	if exists, err := s.Exists(entry); err != nil {
 		return err
 	} else if exists {
@@ -365,7 +363,7 @@ func (s *Impl) Insert(entry interface{}, values ...interface{}) (err error) {
 }
 
 // Delete entry from state
-func (s *Impl) Delete(key interface{}) (err error) {
+func (s *Impl) Delete(key interface{}) error {
 	strKey, err := s.Key(key)
 	if err != nil {
 		return errors.Wrap(err, `deleting from state`)
@@ -409,7 +407,7 @@ func KeyError(strKey string) error {
 //}
 
 // Get data by key from private state, trying to convert to target interface
-func (s *Impl) GetPrivate(collection string, key interface{}, config ...interface{}) (result interface{}, err error) {
+func (s *Impl) GetPrivate(collection string, key interface{}, config ...interface{}) (interface{}, error) {
 	strKey, err := s.Key(key)
 	if err != nil {
 		return nil, err
@@ -419,7 +417,7 @@ func (s *Impl) GetPrivate(collection string, key interface{}, config ...interfac
 	s.logger.Debugf(`private state GET %s`, strKey)
 	bb, err := s.stub.GetPrivateData(collection, strKey)
 	if err != nil {
-		return
+		return nil, err
 	}
 	if len(bb) == 0 {
 		// config[1] default value
@@ -434,7 +432,7 @@ func (s *Impl) GetPrivate(collection string, key interface{}, config ...interfac
 }
 
 // PrivateExists check entry with key exists in chaincode private state
-func (s *Impl) ExistsPrivate(collection string, entry interface{}) (exists bool, err error) {
+func (s *Impl) ExistsPrivate(collection string, entry interface{}) (bool, error) {
 	strKey, err := s.Key(entry)
 	if err != nil {
 		return false, err
@@ -543,7 +541,7 @@ func (s *Impl) InsertPrivate(collection string, entry interface{}, values ...int
 }
 
 // Delete entry from private state
-func (s *Impl) DeletePrivate(collection string, key interface{}) (err error) {
+func (s *Impl) DeletePrivate(collection string, key interface{}) error {
 	strKey, err := s.Key(key)
 	if err != nil {
 		return errors.Wrap(err, `deleting from private state`)
