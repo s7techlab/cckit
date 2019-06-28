@@ -82,8 +82,8 @@ func Register{{ $svc.GetName }}Chaincode(r *cckit_router.Group, cc {{ $svc.GetNa
 var gatewayTemplate = template.Must(template.New("gateway").Funcs(funcMap).Option().Parse(`
 {{ range $svc := .Services }}
 
-// New{{ $svc.GetName }}Gateway create gateway to access chaincode method via chaincode service
-func New{{ $svc.GetName }}Gateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperGateway {
+// New{{ $svc.GetName }}Gateway creates gateway to access chaincode method via chaincode service
+func New{{ $svc.GetName }}Gateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *{{ $svc.GetName }}Gateway {
 	return &{{ $svc.GetName }}Gateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
 }
 
