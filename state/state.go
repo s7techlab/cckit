@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/protos/ledger/queryresult"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 )
@@ -448,7 +449,7 @@ func (s *Impl) ExistsPrivate(collection string, entry interface{}) (bool, error)
 // Keys -  additional components of composite key
 // If usePrivateDataIterator is true, used private state for iterate over objects
 // if false, used public state for iterate over keys and GetPrivateData for each key
-func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, namespace interface{}, target ...interface{}) (result interface{}, err error) {
+func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, namespace interface{}, target ...interface{}) (interface{}, error) {
 
 	stateList, err := NewStateList(target...)
 	if err != nil {
@@ -460,8 +461,7 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 	}
 	s.logger.Debugf(`state LIST namespace: %s`, key)
 
-	key, err = s.StateKeyTransformer(key)
-	if err != nil {
+	if key, err = s.StateKeyTransformer(key); err != nil {
 		return nil, err
 	}
 	s.logger.Debugf(`state LIST with composite key: %s`, key)
@@ -480,18 +480,21 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 		return nil, errors.Wrap(err, `create list iterator`)
 	}
 	defer func() { _ = iter.Close() }()
+
+	var (
+		kv       *queryresult.KV
+		objKey   string
+		keyParts []string
+	)
 	for iter.HasNext() {
-		kv, err := iter.Next()
-		if err != nil {
+		if kv, err = iter.Next(); err != nil {
 			return nil, errors.Wrap(err, `get key value`)
 		}
-		objKey, keyParts, err := s.stub.SplitCompositeKey(kv.Key)
-		var curCompositeKey []string
-		curCompositeKey = append(curCompositeKey, objKey)
-		for _, part := range keyParts {
-			curCompositeKey = append(curCompositeKey, part)
+		if objKey, keyParts, err = s.stub.SplitCompositeKey(kv.Key); err != nil {
+			return nil, err
 		}
-		object, err := s.GetPrivate(collection, curCompositeKey, target...)
+
+		object, err := s.GetPrivate(collection, append([]string{objKey}, keyParts...), target...)
 		if err != nil {
 			return nil, err
 		}

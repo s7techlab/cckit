@@ -15,6 +15,7 @@ generate:
 	-I=../../vendor \
 	-I=../../third_party/googleapis \
 	--go_out=plugins=grpc:./service/    \
+ 	--cc-gateway_out=logtostderr=true:./service/ \
 	--grpc-gateway_out=logtostderr=true:./service/ \
     --swagger_out=logtostderr=true:./service/ \
 	./service/service.proto

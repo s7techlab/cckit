@@ -4,48 +4,52 @@ package service;
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
-
-
 import "github.com/s7techlab/cckit/examples/cpaper_asservice/schema/schema.proto";
 
 service CPaper {
-
+    // List method returns all registered commercial papers
     rpc List (google.protobuf.Empty) returns (schema.CommercialPaperList) {
         option (google.api.http) = {
             get: "/cpaper"
         };
     }
 
+    // Get method returns commercial paper data by id
     rpc Get (schema.CommercialPaperId) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             get: "/cpaper/{issuer}/{paper_number}"
         };
     }
 
+    // GetByExternalId
     rpc GetByExternalId  (schema.ExternalId) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             get: "/cpaper/extid/{id}"
         };
     }
 
+    // Issue commercial paper
     rpc Issue (schema.IssueCommercialPaper) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             post : "/cpaper/issue"
         };
     }
 
+    // Buy commercial paper
     rpc Buy (schema.BuyCommercialPaper) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             post: "/cpaper/buy"
         };
     }
 
+    // Redeem commercial paper
     rpc Redeem (schema.RedeemCommercialPaper) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             post: "/cpaper/redeem"
         };
     }
 
+    // Delete commercial paper
     rpc Delete (schema.CommercialPaperId) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             delete: "/cpaper/{issuer}/{paper_number}"

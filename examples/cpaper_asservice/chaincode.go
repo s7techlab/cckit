@@ -16,7 +16,7 @@ import (
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
-func Router(name string) (*router.Group, error) {
+func CCRouter(name string) (*router.Group, error) {
 	r := router.New(name)
 	// Store on the ledger the information about chaincode instantiation
 	r.Init(owner.InvokeSetFromCreator)
@@ -29,7 +29,7 @@ func Router(name string) (*router.Group, error) {
 }
 
 func NewCC() (*router.Chaincode, error) {
-	r, err := Router(`CommercialPaper`)
+	r, err := CCRouter(`CommercialPaper`)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func NewCC() (*router.Chaincode, error) {
 }
 
 func NewCCEncrypted() (*router.Chaincode, error) {
-	r, err := Router(`CommercialPaperEncrypted`)
+	r, err := CCRouter(`CommercialPaperEncrypted`)
 	if err != nil {
 		return nil, err
 	}

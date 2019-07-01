@@ -9,6 +9,7 @@ import (
 	"github.com/s7techlab/cckit/gateway/service"
 )
 
+// Chaincode interface for work with chaincode
 type Chaincode interface {
 	Query(ctx context.Context, fn string, args []interface{}, target interface{}) (interface{}, error)
 	Invoke(ctx context.Context, fn string, args []interface{}, target interface{}) (interface{}, error)

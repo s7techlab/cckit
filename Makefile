@@ -1,0 +1,3 @@
+test:
+	@echo "go test -mod vendor ./..."
+	@go test -mod vendor ./...

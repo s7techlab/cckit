@@ -10,10 +10,12 @@ import (
 )
 
 type (
+	// Chaincode service interface
 	Chaincode             = ChaincodeServer
 	ChaincodeEventsServer = chaincodeEventsServer
 )
 
+// ChaincodeService implementation based of hlf-sdk-go
 type ChaincodeService struct {
 	sdk api.Core
 }
@@ -28,7 +30,15 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		return nil, err
 	}
 
-	response, _, err := cs.sdk.Channel(in.Channel).Chaincode(in.Chaincode).Invoke(string(in.Args[0])).WithIdentity(signer).ArgBytes(in.Args[1:]).Transient(in.Transient).Do(ctx)
+	response, _, err := cs.sdk.
+		Channel(in.Channel).
+		Chaincode(in.Chaincode).
+		Invoke(string(in.Args[0])).
+		WithIdentity(signer).
+		ArgBytes(in.Args[1:]).
+		Transient(in.Transient).
+		Do(ctx)
+
 	if err != nil {
 		return nil, err
 	}

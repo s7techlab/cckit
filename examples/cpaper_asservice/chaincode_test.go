@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/hyperledger/fabric/protos/peer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -118,7 +119,7 @@ var _ = Describe(`CommercialPaper`, func() {
 		})
 
 		It("Allow issuer to get a list of commercial papers", func() {
-			queryResponse := cc.Query(s.CPaperChaincode_List)
+			queryResponse := cc.Query(s.CPaperChaincode_List, &empty.Empty{})
 
 			papers := expectcc.PayloadIs(queryResponse, &schema.CommercialPaperList{}).(*schema.CommercialPaperList)
 
@@ -194,7 +195,7 @@ var _ = Describe(`CommercialPaper`, func() {
 			}))
 
 			// Validate there are 0 Commercial Papers in the world state
-			queryResponse := cc.Query(s.CPaperChaincode_List)
+			queryResponse := cc.Query(s.CPaperChaincode_List, &empty.Empty{})
 			papers := expectcc.PayloadIs(queryResponse, &schema.CommercialPaperList{}).(*schema.CommercialPaperList)
 
 			Expect(len(papers.Items)).To(BeNumerically("==", 0))
