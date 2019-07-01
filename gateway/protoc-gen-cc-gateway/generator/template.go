@@ -87,20 +87,27 @@ func New{{ $svc.GetName }}Gateway(ccService cckit_ccservice.Chaincode, channel, 
 	return &{{ $svc.GetName }}Gateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
 }
 
-// {{ $svc.GetName }}ApiDef returns service definition
-func {{ $svc.GetName }}ApiDef(service *{{ $svc.GetName }}Gateway) cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
-		Desc:                        &_{{ $svc.GetName }}_serviceDesc,
-		Service:                     service,
-		HandlerFromEndpointRegister: Register{{ $svc.GetName }}HandlerFromEndpoint,
-	}
-}
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type {{ $svc.GetName }}Gateway struct {
 	Gateway cckit_gateway.Chaincode
 }
+
+// ApiDef returns service definition
+func (c *{{ $svc.GetName }}Gateway) ApiDef() cckit_gateway.ServiceDef {
+	return cckit_gateway.ServiceDef{
+		Desc:                        &_{{ $svc.GetName }}_serviceDesc,
+		Service:                     c,
+		HandlerFromEndpointRegister: Register{{ $svc.GetName }}HandlerFromEndpoint,
+	}
+}
+
+// Events returns events subscription
+func (c *{{ $svc.GetName }}Gateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
+   return c.Gateway.Events(ctx)
+}
+
 
 type ValidatorInterface interface {
   Validate() error

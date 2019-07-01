@@ -102,24 +102,29 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 	return nil
 }
 
-// NewCPaperGateway create gateway to access chaincode method via chaincode service
+// NewCPaperGateway creates gateway to access chaincode method via chaincode service
 func NewCPaperGateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperGateway {
 	return &CPaperGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
-}
-
-// CPaperApiDef returns service definition
-func CPaperApiDef(service *CPaperGateway) cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
-		Desc:                        &_CPaper_serviceDesc,
-		Service:                     service,
-		HandlerFromEndpointRegister: RegisterCPaperHandlerFromEndpoint,
-	}
 }
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type CPaperGateway struct {
 	Gateway cckit_gateway.Chaincode
+}
+
+// ApiDef returns service definition
+func (c *CPaperGateway) ApiDef() cckit_gateway.ServiceDef {
+	return cckit_gateway.ServiceDef{
+		Desc:                        &_CPaper_serviceDesc,
+		Service:                     c,
+		HandlerFromEndpointRegister: RegisterCPaperHandlerFromEndpoint,
+	}
+}
+
+// Events returns events subscription
+func (c *CPaperGateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
+	return c.Gateway.Events(ctx)
 }
 
 type ValidatorInterface interface {
