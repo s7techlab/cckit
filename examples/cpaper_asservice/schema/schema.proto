@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package schema;
 
-
 import "google/protobuf/timestamp.proto";
 import "github.com/mwitkow/go-proto-validators/validator.proto";
 
