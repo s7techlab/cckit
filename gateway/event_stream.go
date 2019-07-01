@@ -42,7 +42,6 @@ func (*ChaincodeEventServerStream) SendHeader(metadata.MD) error {
 }
 
 func (*ChaincodeEventServerStream) SetTrailer(metadata.MD) {
-	return
 }
 
 func (s *ChaincodeEventServerStream) Context() context.Context {

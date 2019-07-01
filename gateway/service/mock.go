@@ -26,12 +26,6 @@ type (
 		ChannelCC ChannelsMockStubs
 		m         sync.Mutex
 	}
-
-	EventSubscription struct {
-		events chan *peer.ChaincodeEvent
-		errors chan error
-		closer sync.Once
-	}
 )
 
 func NewMock() *MockChaincodeService {

@@ -376,13 +376,13 @@ func (iter *PrivateMockStateRangeQueryIterator) HasNext() bool {
 
 // Next returns the next key and value in the range query iterator.
 func (iter *PrivateMockStateRangeQueryIterator) Next() (*queryresult.KV, error) {
-	if iter.Closed == true {
+	if iter.Closed {
 		err := errors.New("PrivateMockStateRangeQueryIterator.Next() called after Close()")
 		mockLogger.Errorf("%+v", err)
 		return nil, err
 	}
 
-	if iter.HasNext() == false {
+	if !iter.HasNext() {
 		err := errors.New("PrivateMockStateRangeQueryIterator.Next() called when it does not HaveNext()")
 		mockLogger.Errorf("%+v", err)
 		return nil, err
@@ -409,7 +409,7 @@ func (iter *PrivateMockStateRangeQueryIterator) Next() (*queryresult.KV, error) 
 // Close closes the range query iterator. This should be called when done
 // reading from the iterator to free up resources.
 func (iter *PrivateMockStateRangeQueryIterator) Close() error {
-	if iter.Closed == true {
+	if iter.Closed {
 		err := errors.New("PrivateMockStateRangeQueryIterator.Close() called after Close()")
 		mockLogger.Errorf("%+v", err)
 		return err
