@@ -1,15 +1,279 @@
-# Hyperledger Fabric chaincode kit (CCKit)
+# Service oriented Hyperledger Fabric application development with CCKit
 
-## Chaincode-as-service gateway generator
+## Hyperledger Fabric application development evolution 
 
-With gRPC we can define chaincode interface once in a .proto file and  API / SDK  will be automatically created for this chaincode.
-We also get all the advantages of working with protocol buffers, including efficient serialization, a simple IDL, 
-and easy interface updating.
+[Early](../docs/chaincode-examples.md) Hyperledger Fabric application implementations leveraged JSON data model, simple 
+chaincode method routing and `REST` API architecture as the de-facto technology stack. 
 
-Chaincode-as-service gateway generator allows to generate from gRPC service definition:
+`CCKit`, library for Hyperledger Fabric application development, addresses several aspects of Hyperledger Fabric 
+application development:
+
+* [Chaincode method routing](../router) allows to consistently define rules how an chaincode responds to a client requests
+
+* [Using protocol buffers](../state) can help to define data model once and then easily write and read structured data to 
+and from chaincode world state
+
+* [Testing tools](../testing) enhances the development experience with extended version of MockStub for chaincode testing. 
+
+Next step is to standardize following aspects of blockchain application development using Interface Definition Language (IDL):
+
+* Chaincode interface definition
+* Automatically create chaincode SDK and API's with code generation
+* Automatically create chaincode documentation with code generation
+
+Proposed methodology leverages power of `gRPC` services and messages definitions. A chaincode app developer may express the
+interface to their application in a high level interface definition language, and CCKit `cc-gateway` generator will 
+automatically generate:
  
-* Chaincode handlers interface 
-* Chaincode gateway - service, can act as chaincode SDK or can be exposed as gRPC or REST service
+* chaincode interface and helper for embedding service into chaincode router
+* chaincode gateway for external access (can be used as SDK or exposed as `gRPC` or `REST` service)
+
+## Blockchain network services
+
+Blockchain network consists of multiple services, on-chain (chaincodes) and off-chain (API's and  other external to blockchain 
+applications, interacts with smart contracts). 
+
+![blockchain app](../docs/img/blockchain-app.png)
+
+For example, official 
+[Commercial paper chaincode example](https://hyperledger-fabric.readthedocs.io/en/release-1.4/tutorial/commercial_paper.html) 
+includes smart contract implementation and cli tools for interacting with deployed сhaincodes.
+With external applications, implemented with different technologies and programming 
+languages, it is important to have a standard way to define service interfaces and underlying message interchange formats. 
+
+                                                                                                 
+### Using gRPC ecosystem for chaincode development
+
+### Fundamentals of gRPC
+
+With `gRPC`, a client application can directly call methods on a server application on a remote machine as if it were a
+local object.  `gRPC` is based on the foundations of conventional Remote Procedure Call (RPC) technology but implemented 
+on top of the modern technology stacks such as HTTP2, protocol buffers etc. to ensure maximum interoperability. 
+ 
+Like many RPC systems, `gRPC` is based around the idea of defining a service, specifying the methods that can be called 
+remotely with their parameters and return types. `gRPC` technology stack natively supports a clean and powerful way to 
+specify service contracts using the Interface Definition Language (`IDL`):
+
+* messages defines data structures of the input parameters and return types.
+* services definition outlines methods signatures that can be invoked remotely 
+
+When the client invokes the service, the client-side gRPC library uses the protocol buffer and marshals the remote procedure 
+call, which is then sent over HTTP2. On the server side, the request is un-marshaled and the respective procedure invocation
+is executed using protocol buffers. The response follows a similar execution flow from the server to the client.
+
+The main advantage of developing services and clients with gRPC is that your service code or client side code doesn’t need 
+to worry about parsing JSON or similar text-based message formats. What comes in the wire is a binary format, which is 
+unmarshalled into an object. Also, having first-class support for defining a service interface via an `IDL` is a powerful 
+feature when we have to deal with multiple microservices and ensure and maintain interoperability.
+
+### gRPC service as RESTful HTTP API
+
+`gRPC` service can be exposed as `REST` service using [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway)
+plugin of the Google protocol buffers compiler protoc. It reads protobuf service definitions and generates a 
+reverse-proxy server which 'translates a RESTful HTTP API into `gRPC`.
+
+## Chaincode as service
+
+> Application, interacting with smart contracts can be defined and implemented as `gRPC` service. But, what if chaincode 
+itself implement with respect to service definition in `gRPC` format ?
+
+### Chaincode interface
+
+Chaincode defines a common set of contracts covering common terms, data, rules, concept definitions, and processes (for example,
+[Commercial paper](https://hyperledger-fabric.readthedocs.io/en/release-1.4/tutorial/commercial_paper.html)  or 
+[ERC20](https://medium.com/coinmonks/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339) token functionality),
+implements some business logic and interacts with the shared ledger. Taken together, these contracts lay out the business model
+ that govern all of the interactions between transacting parties.
+
+
+Chaincode interface is very simple and contains only 2 methods:
+ 
+```go
+type Chaincode interface {
+    // Init is called during Instantiate transaction
+    Init(stub ChaincodeStubInterface) pb.Response
+    // Invoke is called to update or query the ledger
+    Invoke(stub ChaincodeStubInterface) pb.Response
+}
+````
+
+Using `ChaincodeStubInterface` `getArgs` method chaincode implementation can access input parameters as slice (array) of bytes.
+
+At the moment there is no standard way to describe chaincode interface via some definition language. But chaincode itself
+can be considered as RPC'like service and defined with `gRPC` Interface Definition Language (IDL), for example:
+
+
+```proto
+service HelloService {
+  rpc SayHello (HelloRequest) returns (HelloResponse);
+}
+
+message HelloRequest {
+  string greeting = 1;
+}
+
+message HelloResponse {
+  string reply = 1;
+}
+```
+
+As this service definition strongly typed (input: `string` ad output: `string`) versus relaxed basic chaincode interface
+(input: `[]byte` and output: `[]byte`) we need mechanisms for converting input `[]byte` to target parameter type, 
+depending on service definition. 
+ 
+
+## CCKit components for blockchain network layers
+
+### Chaincode service to ChaincodeStubInterface mapper
+
+Generated on top of `gRPC` service definition chaincode service mapper allows to embed chaincode service implementation into
+ [CCKit router](../router), leveraging [middleware](../router/middleware) capabilities for converting input and output data.
+
+For example, [Commercial Paper as service](../examples/cpaper_asservice/service/service.pb.cc.go) generated code contains
+`RegisterCPaperChaincode` method which maps chaincode `Issue` method to chaincode service implementation:
+
+```go
+import (
+	cckit_router "github.com/s7techlab/cckit/router"
+	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
+)
+
+const (
+    ..
+	CPaperChaincode_Issue = "Issue"
+	...
+)	
+	
+// RegisterCPaperChaincode registers service methods as chaincode router handlers
+func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
+
+    ...
+	r.Invoke(CPaperChaincode_Issue,
+		func(ctx cckit_router.Context) (interface{}, error) {
+			return cc.Issue(ctx, ctx.Param().(*schema.IssueCommercialPaper))
+		},
+		cckit_defparam.Proto(&schema.IssueCommercialPaper{}))
+    ...
+    
+}
+```
+
+### Chaincode invocation service
+
+[Chaincode invocation service](service/chaincode.go) defines gRPC service for interacting with smart contract from external 
+application with 3 methods:
+
+* `Query` ( `ChaincodeInput` ) returns ( `ProposalResponse` )
+* `Invoke` ( `ChaincodeInput` ) returns ( `ProposalResponse` )
+* `Events` (`ChaincodeLocator` ) returns ( `ChaincodeEvent` )
+
+This service used by `Chaincode gateway` or can be exposed separately as `gRPC` or `REST` API.
+`CCKit` contains chaincode service [implementation](service/chaincode.go) based on https://github.com/s7techlab/hlf-sdk-go and
+[version for testing](service/mock.go), based on [Mockstub](../testing)
+
+```proto
+syntax = "proto3";
+
+package service;
+
+import "github.com/hyperledger/fabric/protos/peer/proposal_response.proto";
+import "github.com/hyperledger/fabric/protos/peer/chaincode_event.proto";
+
+message ChaincodeInput  {
+    // Chaincode name
+    string chaincode = 1;
+    // Channel name
+    string channel =  2;
+
+    // Input contains the arguments for invocation.
+    repeated bytes args = 3;
+
+    // TransientMap contains data (e.g. cryptographic material) that might be used
+    // to implement some form of application-level confidentiality. The contents
+    // of this field are supposed to always be omitted from the transaction and
+    // excluded from the ledger.
+    map<string, bytes> transient = 4;
+}
+
+
+message ChaincodeLocator   {
+    // Chaincode name
+    string chaincode = 1;
+    // Channel name
+    string channel =  2;
+}
+
+service Chaincode {
+    // Query chaincode on home peer
+    rpc Query (ChaincodeInput) returns (protos.ProposalResponse);
+    rpc Invoke (ChaincodeInput) returns (protos.ProposalResponse);
+    rpc Events (ChaincodeLocator) returns (stream protos.ChaincodeEvent);
+}
+```
+
+## Chaincode gateway
+
+[Chaincode gateway](chaincode.go) use chaincode service to interact with deployed chaincode. It knows about channel and 
+chaincode name, but dont't know about chaincode method signatures.
+
+Chaincode gateway supports [options](opt.go) for providing transient data during chaincode invocation, and encrypting/
+decrypting data.
+
+Using `gRPC` service definition we can generate gateway for particular chaincode, for example for `Commercial Paper`.
+This gateway can be used as:
+
+* `gRPC` service
+* Chaincode SDK for using in other services
+* `REST` service with [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway)
+
+For example, [generated chaincode gateway](../examples/cpaper_asservice/service/service.pb.cc.go) for 
+[Commercial Paper example](../examples/cpaper_asservice) looks like this:
+
+```go 
+
+import (
+    cckit_ccservice "github.com/s7techlab/cckit/gateway/service"
+	cckit_gateway "github.com/s7techlab/cckit/gateway"
+)
+	
+// gateway implementation
+// gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
+type CPaperGateway struct {
+	Gateway cckit_gateway.Chaincode
+}
+
+// NewCPaperGateway creates gateway to access chaincode method via chaincode service
+func NewCPaperGateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperGateway {
+	return &CPaperGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
+}
+
+type ValidatorInterface interface {
+	Validate() error
+}
+
+func (c *CPaperGateway) Issue(ctx context.Context, in *schema.IssueCommercialPaper) (*schema.CommercialPaper, error) {
+	var inMsg interface{} = in
+	if v, ok := inMsg.(ValidatorInterface); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Gateway.Invoke(ctx, CPaperChaincode_Issue, []interface{}{in}, &schema.CommercialPaper{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*schema.CommercialPaper), nil
+	}
+}
+
+...
+
+```
+
+ 
+## CCKit Chaincode gateway generator
+Chaincode-as-service gateway generator allows to generate all mentioned above components from `gRPC` service definition:
+ 
 
 ### Install the generator
 

@@ -1,6 +1,4 @@
-# Hyperledger Fabric chaincode kit (CCKit)
-
-## Chaincode state 
+# Working with Hyperledger Fabric chaincode state with CCKit
 
 Chaincode is a domain specific program which relates to specific business process. It programmatically accesses 
 two distinct pieces of the ledger – a blockchain, which immutably records the history of all transactions, and a world state
@@ -165,7 +163,6 @@ and [json.Umarshal](https://golang.org/pkg/encoding/json/#Unmarshal) methods.
 [proto.Unmarshal](https://godoc.org/github.com/golang/protobuf/proto#Unmarshal) is used to convert protobuf.
 
 ### Creating state keys
-
 
 In the chaincode data model we often need to store many instances of one type on the ledger, such as multiple commercial papers,
 letters of credit, and so on.  In this case, the keys of those instances will be typically constructed from a combination of attributes—
