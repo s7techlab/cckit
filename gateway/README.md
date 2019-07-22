@@ -27,6 +27,12 @@ automatically generate:
  
 * chaincode interface and helper for embedding service into chaincode router
 * chaincode gateway for external access (can be used as SDK or exposed as `gRPC` or `REST` service)
+* chaincode documentation
+
+![code generation](../docs/img/cc-code-gen.png)
+
+After generating all this components blockchain developer only need to implement chaincode business logic, using `CCKit` 
+features for working with [state](../state), [access control](../extensions/owner) or data [encryption](../extensions/encryption).
 
 ## Blockchain network services
 
