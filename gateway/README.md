@@ -15,19 +15,20 @@ and from chaincode world state
 
 * [Testing tools](../testing) enhances the development experience with extended version of MockStub for chaincode testing. 
 
-Next step is to standardize following aspects of blockchain application development using Interface Definition Language (IDL):
+Next step is to standardize following aspects of blockchain application development using [gRPC Interface Definition Language 
+(IDL)](https://developers.google.com/protocol-buffers/docs/proto3?hl=ru#services):
 
 * Chaincode interface definition
-* Automatically create chaincode SDK and API's with code generation
-* Automatically create chaincode documentation with code generation
+* Chaincode SDK and API's creation with code generation
+* Chaincode documentation building with code generation
 
 Proposed methodology leverages power of `gRPC` services and messages definitions. A chaincode app developer may express the
 interface to their application in a high level interface definition language, and CCKit `cc-gateway` generator will 
 automatically generate:
  
-* chaincode interface and helper for embedding service into chaincode router
+* chaincode service interface and helper for embedding service into chaincode router
 * chaincode gateway for external access (can be used as SDK or exposed as `gRPC` or `REST` service)
-* chaincode documentation
+* chaincode documentation in `markdown` format
 
 ![code generation](../docs/img/cc-code-gen.png)
 
@@ -52,8 +53,8 @@ languages, it is important to have a standard way to define service interfaces a
 
 ### Fundamentals of gRPC
 
-With `gRPC`, a client application can directly call methods on a server application on a remote machine as if it were a
-local object.  `gRPC` is based on the foundations of conventional Remote Procedure Call (RPC) technology but implemented 
+With [gRPC](https://www.grpc.io/docs/guides/concepts/), a client application can directly call methods on a server application
+on a remote machine as if it were a local object.  `gRPC` is based on the foundations of conventional Remote Procedure Call (RPC) technology but implemented 
 on top of the modern technology stacks such as HTTP2, protocol buffers etc. to ensure maximum interoperability. 
  
 Like many RPC systems, `gRPC` is based around the idea of defining a service, specifying the methods that can be called 
@@ -63,11 +64,11 @@ specify service contracts using the Interface Definition Language (`IDL`):
 * messages defines data structures of the input parameters and return types.
 * services definition outlines methods signatures that can be invoked remotely 
 
-When the client invokes the service, the client-side gRPC library uses the protocol buffer and marshals the remote procedure 
+When the client invokes the service, the client-side `gRPC` library uses the protocol buffer and marshals the remote procedure 
 call, which is then sent over HTTP2. On the server side, the request is un-marshaled and the respective procedure invocation
 is executed using protocol buffers. The response follows a similar execution flow from the server to the client.
 
-The main advantage of developing services and clients with gRPC is that your service code or client side code doesn’t need 
+The main advantage of developing services and clients with `gRPC` is that your service code or client side code doesn’t need 
 to worry about parsing JSON or similar text-based message formats. What comes in the wire is a binary format, which is 
 unmarshalled into an object. Also, having first-class support for defining a service interface via an `IDL` is a powerful 
 feature when we have to deal with multiple microservices and ensure and maintain interoperability.
@@ -75,8 +76,8 @@ feature when we have to deal with multiple microservices and ensure and maintain
 ### gRPC service as RESTful HTTP API
 
 `gRPC` service can be exposed as `REST` service using [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway)
-plugin of the Google protocol buffers compiler protoc. It reads protobuf service definitions and generates a 
-reverse-proxy server which 'translates a RESTful HTTP API into `gRPC`.
+plugin of the Google protocol buffers compiler [protoc](). It reads protobuf service definitions and generates a 
+reverse-proxy server which translates a RESTful HTTP API into `gRPC`.
 
 ## Chaincode as service
 
@@ -85,11 +86,11 @@ itself implement with respect to service definition in `gRPC` format ?
 
 ### Chaincode interface
 
-Chaincode defines a common set of contracts covering common terms, data, rules, concept definitions, and processes (for example,
+Chaincode interacts with the shared ledger and defines business logic for blockchain network: a set of contracts covering 
+common terms, data, rules, concept definitions, and processes (for example,
 [Commercial paper](https://hyperledger-fabric.readthedocs.io/en/release-1.4/tutorial/commercial_paper.html)  or 
 [ERC20](https://medium.com/coinmonks/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339) token functionality),
-implements some business logic and interacts with the shared ledger. Taken together, these contracts lay out the business model
- that govern all of the interactions between transacting parties.
+lay out the business model that govern all of the interactions between transacting parties.
 
 
 Chaincode interface is very simple and contains only 2 methods:
@@ -127,6 +128,304 @@ As this service definition strongly typed (input: `string` ad output: `string`) 
 (input: `[]byte` and output: `[]byte`) we need mechanisms for converting input `[]byte` to target parameter type, 
 depending on service definition. 
  
+
+## Example: Commercial paper chaincode 
+
+Let's implement [Commercial paper](https://hyperledger-fabric.readthedocs.io/en/release-1.4/tutorial/commercial_paper.html)
+chaincode as service using `gRPC` service definition and code generation.
+
+
+### 1. Define data model
+
+At the first step we create `.proto` description of the data structure you wish to store and input/output payloadЖ
+[schema.proto](../examples/cpaper_asservice/schema/schema.proto). You can read details about chaincode state modelling
+[here](https://medium.com/coinmonks/hyperledger-fabric-smart-contract-data-model-protobuf-to-chaincode-state-mapping-191cdcfa0b78)
+
+```proto
+syntax = "proto3";
+
+package schema;
+
+import "google/protobuf/timestamp.proto";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+
+// Commercial Paper state entry
+message CommercialPaper {
+
+    enum State {
+        ISSUED = 0;
+        TRADING = 1;
+        REDEEMED = 2;
+    }
+
+    // Issuer and Paper number comprises composite primary key of Commercial paper entry
+    string issuer = 1;
+    string paper_number = 2;
+
+    string owner = 3;
+    google.protobuf.Timestamp issue_date = 4;
+    google.protobuf.Timestamp maturity_date = 5;
+    int32 face_value = 6;
+    State state = 7;
+
+    // Additional unique field for entry
+    string external_id = 8;
+}
+
+// CommercialPaperId identifier part
+message CommercialPaperId {
+    string issuer = 1;
+    string paper_number = 2;
+}
+
+// ExternalId
+message ExternalId {
+    string id = 1;
+}
+
+// Container for returning multiple entities
+message CommercialPaperList {
+    repeated CommercialPaper items = 1;
+}
+
+// IssueCommercialPaper event
+message IssueCommercialPaper {
+    string issuer = 1 [(validator.field) = {string_not_empty : true}];
+    string paper_number = 2 [(validator.field) = {string_not_empty : true}];
+    google.protobuf.Timestamp issue_date = 3 [(validator.field) = {msg_exists : true}];
+    google.protobuf.Timestamp maturity_date = 4 [(validator.field) = {msg_exists : true}];
+    int32 face_value = 5 [(validator.field) = {int_gt : 0}];
+
+    // external_id  - once more uniq id of state entry
+    string external_id = 6 [(validator.field) = {string_not_empty : true}];
+}
+
+// BuyCommercialPaper event
+message BuyCommercialPaper {
+    string issuer = 1 [(validator.field) = {string_not_empty : true}];
+    string paper_number = 2 [(validator.field) = {string_not_empty : true}];
+    string current_owner = 3 [(validator.field) = {string_not_empty : true}];
+    string new_owner = 4 [(validator.field) = {string_not_empty : true}];
+    int32 price = 5 [(validator.field) = {int_gt : 0}];
+    google.protobuf.Timestamp purchase_date = 6 [(validator.field) = {msg_exists : true}];
+}
+
+// RedeemCommercialPaper event
+message RedeemCommercialPaper {
+    string issuer = 1 [(validator.field) = {string_not_empty : true}];
+    string paper_number = 2 [(validator.field) = {string_not_empty : true}];
+    string redeeming_owner = 3 [(validator.field) = {string_not_empty : true}];
+    google.protobuf.Timestamp redeem_date = 4 [(validator.field) = {msg_exists : true}];
+}
+```
+
+
+
+
+#### 2. Create service definition
+
+Chaincode interface can be described with gRPC [service](../examples/cpaper_asservice/service/service.proto) notation.
+Using `grpc-gateway` option we can also define mapping for chaincode REST-API.
+
+The `grpc-gateway` is a plugin of the Google protocol buffers compiler `protoc`. It reads protobuf service definitions and 
+generates a reverse-proxy server which 'translates a RESTful HTTP API into gRPC. This server is generated according
+ to the `google.api.http` annotations in your service definitions.
+
+```proto
+syntax = "proto3";
+
+package service;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "github.com/s7techlab/cckit/examples/cpaper_asservice/schema/schema.proto";
+
+service CPaper {
+    // List method returns all registered commercial papers
+    rpc List (google.protobuf.Empty) returns (schema.CommercialPaperList) {
+        option (google.api.http) = {
+            get: "/cpaper"
+        };
+    }
+
+    // Get method returns commercial paper data by id
+    rpc Get (schema.CommercialPaperId) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            get: "/cpaper/{issuer}/{paper_number}"
+        };
+    }
+
+    // GetByExternalId
+    rpc GetByExternalId  (schema.ExternalId) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            get: "/cpaper/extid/{id}"
+        };
+    }
+
+    // Issue commercial paper
+    rpc Issue (schema.IssueCommercialPaper) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            post : "/cpaper/issue"
+        };
+    }
+
+    // Buy commercial paper
+    rpc Buy (schema.BuyCommercialPaper) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            post: "/cpaper/buy"
+        };
+    }
+
+    // Redeem commercial paper
+    rpc Redeem (schema.RedeemCommercialPaper) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            post: "/cpaper/redeem"
+        };
+    }
+
+    // Delete commercial paper
+    rpc Delete (schema.CommercialPaperId) returns (schema.CommercialPaper) {
+        option (google.api.http) = {
+            delete: "/cpaper/{issuer}/{paper_number}"
+        };
+    }
+}
+```
+
+#### 3. Code generation 
+
+Chaincode-as-service gateway generator allows to generate all mentioned above components from `gRPC` service definition:
+ 
+Install the generator:
+
+`GO111MODULE=on go install github.com/s7techlab/cckit/gateway/protoc-gen-cc-gateway`
+
+Command for generating chaincode auxiliary code can be found here [Makefile](../examples/cpaper_asservice/Makefile)
+
+```makefile
+.: generate
+
+generate:
+	@protoc --version
+	@echo "commercial paper schema proto generation"
+	@protoc -I=./schema/ \
+	-I=../../vendor \
+	--go_out=./schema/    \
+	--govalidators_out=./schema/ \
+	./schema/schema.proto
+
+	@echo "commercial paper service proto generation"
+	@protoc -I=./service/ \
+	-I=../../../../../ \
+	-I=../../vendor \
+	-I=../../third_party/googleapis \
+	--go_out=plugins=grpc:./service/    \
+ 	--cc-gateway_out=logtostderr=true:./service/ \
+	--grpc-gateway_out=logtostderr=true:./service/ \
+    --swagger_out=logtostderr=true:./service/ \
+	./service/service.proto
+```
+
+* `go_out` generates standard `protobuf` structures and `gRPC` service client and server 
+* `grpc-gateway_out` generates REST-API binding for `gRPC` service
+* `swagger_out` generates REST API specification
+
+and finally:
+
+* `cc-gateway_out` generates auxiliary code for building on-chain (chaincode) and off-chain (external applications) 
+blockchain network components:
+
+* Chaincode service to ChaincodeStubInterface mapper
+* Chaincode gateway - `gRPC` service implementation for chaincode external access
+
+
+#### Chaincode implementation
+
+Chaincode service implementation must conform to interface, generated from service definition
+[CPaperChaincode](../examples/cpaper_asservice/service/service.pb.cc.go) :
+
+```go
+func (cc *CPaperImpl) List(ctx router.Context, in *empty.Empty) (*schema.CommercialPaperList, error) {
+	if res, err := cc.state(ctx).List(&schema.CommercialPaper{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*schema.CommercialPaperList), nil
+	}
+}
+
+func (cc *CPaperImpl) Get(ctx router.Context, id *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
+	if res, err := cc.state(ctx).Get(id, &schema.CommercialPaper{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*schema.CommercialPaper), nil
+	}
+}
+
+func (cc *CPaperImpl) GetByExternalId(ctx router.Context, id *schema.ExternalId) (*schema.CommercialPaper, error) {
+	if res, err := cc.state(ctx).GetByUniqKey(
+		&schema.CommercialPaper{}, "ExternalId", []string{id.Id}, &schema.CommercialPaper{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*schema.CommercialPaper), nil
+	}
+}
+
+...
+```
+
+Chaincode implementation also must contain [state and event mappings](../examples/cpaper_asservice/service/service.pb.cc.go)
+
+```go
+type CPaperImpl struct {
+}
+
+func (cc *CPaperImpl) state(ctx router.Context) m.MappedState {
+	return m.WrapState(ctx.State(), m.StateMappings{}.
+		//  Create mapping for Commercial Paper entity
+		Add(&schema.CommercialPaper{},
+			m.PKeySchema(&schema.CommercialPaperId{}), // Key namespace will be <"CommercialPaper", Issuer, PaperNumber>
+			m.List(&schema.CommercialPaperList{}),     // Structure of result for List method
+			m.UniqKey("ExternalId"),                   // External Id is unique
+		))
+}
+
+func (cc *CPaperImpl) event(ctx router.Context) state.Event {
+	return m.WrapEvent(ctx.Event(), m.EventMappings{}.
+		// Event name will be "IssueCommercialPaper", payload - same as issue payload
+		Add(&schema.IssueCommercialPaper{}).
+		// Event name will be "BuyCommercialPaper"
+		Add(&schema.BuyCommercialPaper{}).
+		// Event name will be "RedeemCommercialPaper"
+		Add(&schema.RedeemCommercialPaper{}))
+}
+```
+
+Then, chaincode service implementation can be embedded into chaincode method router with generated 
+[RegisterCPaperChaincode](../examples/cpaper_asservice/service/service.pb.cc.go#L58) function:
+
+```go 
+func NewCC() (*router.Chaincode, error) {
+	r, err := CCRouter(`CommercialPaper`)
+	if err != nil {
+		return nil, err
+	}
+
+	return router.NewChaincode(r), nil
+}
+
+func CCRouter(name string) (*router.Group, error) {
+	r := router.New(name)
+	// Store on the ledger the information about chaincode instantiation
+	r.Init(owner.InvokeSetFromCreator)
+
+	if err := service.RegisterCPaperChaincode(r, &CPaperImpl{}); err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+```
+
 
 ## CCKit components for blockchain network layers
 
@@ -276,275 +575,56 @@ func (c *CPaperGateway) Issue(ctx context.Context, in *schema.IssueCommercialPap
 
 ```
 
+### Conclusion
  
-## CCKit Chaincode gateway generator
-Chaincode-as-service gateway generator allows to generate all mentioned above components from `gRPC` service definition:
+Using generated chaincode gateway you can easily build external to chaincode application. For example, to create `REST-API`
+you need to create entry pint for the HTTP reverse-proxy server and use generated gateway in `gRPC` server:
  
+``` 
+package main
 
-### Install the generator
+import (
+  "context"   
+  "flag"
+  "net/http"
 
-`GO111MODULE=on go install github.com/s7techlab/cckit/gateway/protoc-gen-cc-gateway`
+  "github.com/golang/glog"
+  "github.com/grpc-ecosystem/grpc-gateway/runtime"
+  "google.golang.org/grpc"
 
+  gw "path/to/your_service_package"  // Update
+)
 
-## Example
+var (
+  // command-line options:
+  // gRPC server endpoint
+  grpcServerEndpoint = flag.String("grpc-server-endpoint",  "localhost:9090", "gRPC server endpoint")
+)
 
-### Commercial paper chaincode 
+func run() error {
+  ctx := context.Background()
+  ctx, cancel := context.WithCancel(ctx)
+  defer cancel()
 
-#### Data model
+  // Register gRPC server endpoint
+  // Note: Make sure the gRPC server is running properly and accessible
+  mux := runtime.NewServeMux()
+  opts := []grpc.DialOption{grpc.WithInsecure()}
+  err := gw.RegisterYourServiceHandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
+  if err != nil {
+    return err
+  }
 
-[schema.proto](../examples/cpaper_asservice/schema/schema.proto)
-
-```proto
-syntax = "proto3";
-
-package schema;
-
-import "google/protobuf/timestamp.proto";
-import "github.com/mwitkow/go-proto-validators/validator.proto";
-
-// Commercial Paper state entry
-message CommercialPaper {
-
-    enum State {
-        ISSUED = 0;
-        TRADING = 1;
-        REDEEMED = 2;
-    }
-
-    // Issuer and Paper number comprises composite primary key of Commercial paper entry
-    string issuer = 1;
-    string paper_number = 2;
-
-    string owner = 3;
-    google.protobuf.Timestamp issue_date = 4;
-    google.protobuf.Timestamp maturity_date = 5;
-    int32 face_value = 6;
-    State state = 7;
-
-    // Additional unique field for entry
-    string external_id = 8;
+  // Start HTTP server (and proxy calls to gRPC server endpoint)
+  return http.ListenAndServe(":8081", mux)
 }
 
-// CommercialPaperId identifier part
-message CommercialPaperId {
-    string issuer = 1;
-    string paper_number = 2;
-}
+func main() {
+  flag.Parse()
+  defer glog.Flush()
 
-// ExternalId
-message ExternalId {
-    string id = 1;
-}
-
-// Container for returning multiple entities
-message CommercialPaperList {
-    repeated CommercialPaper items = 1;
-}
-
-// IssueCommercialPaper event
-message IssueCommercialPaper {
-    string issuer = 1 [(validator.field) = {string_not_empty : true}];
-    string paper_number = 2 [(validator.field) = {string_not_empty : true}];
-    google.protobuf.Timestamp issue_date = 3 [(validator.field) = {msg_exists : true}];
-    google.protobuf.Timestamp maturity_date = 4 [(validator.field) = {msg_exists : true}];
-    int32 face_value = 5 [(validator.field) = {int_gt : 0}];
-
-    // external_id  - once more uniq id of state entry
-    string external_id = 6 [(validator.field) = {string_not_empty : true}];
-}
-
-// BuyCommercialPaper event
-message BuyCommercialPaper {
-    string issuer = 1 [(validator.field) = {string_not_empty : true}];
-    string paper_number = 2 [(validator.field) = {string_not_empty : true}];
-    string current_owner = 3 [(validator.field) = {string_not_empty : true}];
-    string new_owner = 4 [(validator.field) = {string_not_empty : true}];
-    int32 price = 5 [(validator.field) = {int_gt : 0}];
-    google.protobuf.Timestamp purchase_date = 6 [(validator.field) = {msg_exists : true}];
-}
-
-// RedeemCommercialPaper event
-message RedeemCommercialPaper {
-    string issuer = 1 [(validator.field) = {string_not_empty : true}];
-    string paper_number = 2 [(validator.field) = {string_not_empty : true}];
-    string redeeming_owner = 3 [(validator.field) = {string_not_empty : true}];
-    google.protobuf.Timestamp redeem_date = 4 [(validator.field) = {msg_exists : true}];
-}
-```
-
-#### Chaincode as service
-
-Chaincode interface can be described with gRPC [service](../examples/cpaper_asservice/service/service.proto) notation.
-Using `grpc-gateway` option we can define mapping for chaincode REST-API.
-
-The `grpc-gateway` is a plugin of the Google protocol buffers compiler `protoc`. It reads protobuf service definitions and 
-generates a reverse-proxy server which 'translates a RESTful HTTP API into gRPC. This server is generated according
- to the `google.api.http` annotations in your service definitions.
-
-```proto
-syntax = "proto3";
-
-package service;
-
-import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
-import "github.com/s7techlab/cckit/examples/cpaper_asservice/schema/schema.proto";
-
-service CPaper {
-    // List method returns all registered commercial papers
-    rpc List (google.protobuf.Empty) returns (schema.CommercialPaperList) {
-        option (google.api.http) = {
-            get: "/cpaper"
-        };
-    }
-
-    // Get method returns commercial paper data by id
-    rpc Get (schema.CommercialPaperId) returns (schema.CommercialPaper) {
-        option (google.api.http) = {
-            get: "/cpaper/{issuer}/{paper_number}"
-        };
-    }
-
-    // GetByExternalId
-    rpc GetByExternalId  (schema.ExternalId) returns (schema.CommercialPaper) {
-        option (google.api.http) = {
-            get: "/cpaper/extid/{id}"
-        };
-    }
-
-    // Issue commercial paper
-    rpc Issue (schema.IssueCommercialPaper) returns (schema.CommercialPaper) {
-        option (google.api.http) = {
-            post : "/cpaper/issue"
-        };
-    }
-
-    // Buy commercial paper
-    rpc Buy (schema.BuyCommercialPaper) returns (schema.CommercialPaper) {
-        option (google.api.http) = {
-            post: "/cpaper/buy"
-        };
-    }
-
-    // Redeem commercial paper
-    rpc Redeem (schema.RedeemCommercialPaper) returns (schema.CommercialPaper) {
-        option (google.api.http) = {
-            post: "/cpaper/redeem"
-        };
-    }
-
-    // Delete commercial paper
-    rpc Delete (schema.CommercialPaperId) returns (schema.CommercialPaper) {
-        option (google.api.http) = {
-            delete: "/cpaper/{issuer}/{paper_number}"
-        };
-    }
-}
-```
-
-####  Generator
-
-[Makefile](../examples/cpaper_asservice/Makefile)
-
-```makefile
-.: generate
-
-generate:
-	@protoc --version
-	@echo "commercial paper schema proto generation"
-	@protoc -I=./schema/ \
-	-I=../../vendor \
-	--go_out=./schema/    \
-	--govalidators_out=./schema/ \
-	./schema/schema.proto
-
-	@echo "commercial paper service proto generation"
-	@protoc -I=./service/ \
-	-I=../../../../../ \
-	-I=../../vendor \
-	-I=../../third_party/googleapis \
-	--go_out=plugins=grpc:./service/    \
- 	--cc-gateway_out=logtostderr=true:./service/ \
-	--grpc-gateway_out=logtostderr=true:./service/ \
-    --swagger_out=logtostderr=true:./service/ \
-	./service/service.proto
-```
-
-#### Chaincode implementation
-
-Chaincode implementation must contain [state and event mappings](../examples/cpaper_asservice/service/service.pb.cc.go)
-
-```go
-type CPaperImpl struct {
-}
-
-func (cc *CPaperImpl) state(ctx router.Context) m.MappedState {
-	return m.WrapState(ctx.State(), m.StateMappings{}.
-		//  Create mapping for Commercial Paper entity
-		Add(&schema.CommercialPaper{},
-			m.PKeySchema(&schema.CommercialPaperId{}), // Key namespace will be <"CommercialPaper", Issuer, PaperNumber>
-			m.List(&schema.CommercialPaperList{}),     // Structure of result for List method
-			m.UniqKey("ExternalId"),                   // External Id is unique
-		))
-}
-
-func (cc *CPaperImpl) event(ctx router.Context) state.Event {
-	return m.WrapEvent(ctx.Event(), m.EventMappings{}.
-		// Event name will be "IssueCommercialPaper", payload - same as issue payload
-		Add(&schema.IssueCommercialPaper{}).
-		// Event name will be "BuyCommercialPaper"
-		Add(&schema.BuyCommercialPaper{}).
-		// Event name will be "RedeemCommercialPaper"
-		Add(&schema.RedeemCommercialPaper{}))
-}
-```
-
-Chaincode service implementation must conform to generated from service definition
- [CPaperChaincode](../examples/cpaper_asservice/service/service.pb.cc.go) interface:
-
-```go
-func (cc *CPaperImpl) List(ctx router.Context, in *empty.Empty) (*schema.CommercialPaperList, error) {
-	if res, err := cc.state(ctx).List(&schema.CommercialPaper{}); err != nil {
-		return nil, err
-	} else {
-		return res.(*schema.CommercialPaperList), nil
-	}
-}
-
-func (cc *CPaperImpl) Get(ctx router.Context, id *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
-	if res, err := cc.state(ctx).Get(id, &schema.CommercialPaper{}); err != nil {
-		return nil, err
-	} else {
-		return res.(*schema.CommercialPaper), nil
-	}
-}
-
-func (cc *CPaperImpl) GetByExternalId(ctx router.Context, id *schema.ExternalId) (*schema.CommercialPaper, error) {
-	if res, err := cc.state(ctx).GetByUniqKey(
-		&schema.CommercialPaper{}, "ExternalId", []string{id.Id}, &schema.CommercialPaper{}); err != nil {
-		return nil, err
-	} else {
-		return res.(*schema.CommercialPaper), nil
-	}
-}
-
-...
-
-```
-
-Then, chaincode service implementation can be embedded into chaincode method router with generated 
-[RegisterCPaperChaincode](../examples/cpaper_asservice/service/service.pb.cc.go#L58) function:
-
-```go 
-func CCRouter(name string) (*router.Group, error) {
-	r := router.New(name)
-	// Store on the ledger the information about chaincode instantiation
-	r.Init(owner.InvokeSetFromCreator)
-
-	if err := service.RegisterCPaperChaincode(r, &CPaperImpl{}); err != nil {
-		return nil, err
-	}
-
-	return r, nil
+  if err := run(); err != nil {
+    glog.Fatal(err)
+  }
 }
 ```
