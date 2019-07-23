@@ -1,0 +1,8 @@
+{
+  "issuer": "SomeIssuer",
+  "paper_number": "0001",
+  "issue_date": "2019-07-20T15:00:00Z",
+  "maturity_date": "2020-07-20T15:00:00Z",
+  "face_value": 100000,
+  "external_id": "EXT0001"
+}

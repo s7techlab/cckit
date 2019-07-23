@@ -44,6 +44,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/schemaBuyCommercialPaper"
+            }
+          }
+        ],
         "tags": [
           "CPaper"
         ]
@@ -86,6 +96,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/schemaIssueCommercialPaper"
+            }
+          }
+        ],
         "tags": [
           "CPaper"
         ]
@@ -103,6 +123,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/schemaRedeemCommercialPaper"
+            }
+          }
+        ],
         "tags": [
           "CPaper"
         ]
@@ -179,6 +209,32 @@
       ],
       "default": "ISSUED"
     },
+    "schemaBuyCommercialPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "current_owner": {
+          "type": "string"
+        },
+        "new_owner": {
+          "type": "string"
+        },
+        "price": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "purchase_date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "BuyCommercialPaper event"
+    },
     "schemaCommercialPaper": {
       "type": "object",
       "properties": {
@@ -225,6 +281,53 @@
         }
       },
       "title": "Container for returning multiple entities"
+    },
+    "schemaIssueCommercialPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "issue_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "maturity_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "face_value": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "external_id": {
+          "type": "string",
+          "title": "external_id  - once more uniq id of state entry"
+        }
+      },
+      "title": "IssueCommercialPaper event"
+    },
+    "schemaRedeemCommercialPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "redeeming_owner": {
+          "type": "string"
+        },
+        "redeem_date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "RedeemCommercialPaper event"
     }
   }
 }

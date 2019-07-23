@@ -22,7 +22,7 @@ service CPaper {
     }
 
     // GetByExternalId
-    rpc GetByExternalId  (schema.ExternalId) returns (schema.CommercialPaper) {
+    rpc GetByExternalId (schema.ExternalId) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             get: "/cpaper/extid/{id}"
         };
@@ -32,6 +32,7 @@ service CPaper {
     rpc Issue (schema.IssueCommercialPaper) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             post : "/cpaper/issue"
+            body: "*"
         };
     }
 
@@ -39,6 +40,7 @@ service CPaper {
     rpc Buy (schema.BuyCommercialPaper) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             post: "/cpaper/buy"
+            body: "*"
         };
     }
 
@@ -46,6 +48,7 @@ service CPaper {
     rpc Redeem (schema.RedeemCommercialPaper) returns (schema.CommercialPaper) {
         option (google.api.http) = {
             post: "/cpaper/redeem"
+            body: "*"
         };
     }
 
