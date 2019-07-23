@@ -1,4 +1,4 @@
-# Service oriented Hyperledger Fabric application development with CCKit
+# Service-oriented Hyperledger Fabric application development with CCKit
 
 ## Hyperledger Fabric application development evolution 
 
@@ -18,9 +18,9 @@ and from chaincode world state
 Next step is to standardize following aspects of blockchain application development using [gRPC Interface Definition Language 
 (IDL)](https://developers.google.com/protocol-buffers/docs/proto3?hl=ru#services):
 
-* Chaincode interface definition
-* Chaincode SDK and API's creation with code generation
-* Chaincode documentation building with code generation
+* chaincode interface definition
+* chaincode SDK and API's creation with code generation
+* chaincode documentation building with code generation
 
 Proposed methodology leverages power of `gRPC` services and messages definitions. A chaincode app developer may express the
 interface to their application in a high level interface definition language, and CCKit `cc-gateway` generator will 
@@ -29,6 +29,7 @@ automatically generate:
 * chaincode service interface and helper for embedding service into chaincode router
 * chaincode gateway for external access (can be used as SDK or exposed as `gRPC` or `REST` service)
 * chaincode documentation in `markdown` format
+* chaincode REST API specification (swagger)
 
 ![code generation](../docs/img/cc-code-gen.png)
 
@@ -102,7 +103,7 @@ type Chaincode interface {
     // Invoke is called to update or query the ledger
     Invoke(stub ChaincodeStubInterface) pb.Response
 }
-````
+```
 
 Using `ChaincodeStubInterface` `getArgs` method chaincode implementation can access input parameters as slice (array) of bytes.
 
@@ -728,10 +729,19 @@ go run main.go
 
 ![mocked gateway start](../docs/img/gateway-mocked-start.png)
 
-Then you can use API [usage examples and sample payloads](../examples/cpaper_asservice/bin/api):
+Commercial paper service [REST-API specification](../examples/cpaper_asservice/service/service.swagger.json) generated in
+[swagger](https://swagger.io) format:
+
+![swagger spec](../docs/img/gateway-cpaper-swagger.png)
+
+You can use API [usage examples and sample payloads](../examples/cpaper_asservice/bin/api) by sending HTTP requests to
+`grpc-gateway` HTTP proxy:
 
 ![mocked gateway usage](../docs/img/gateway-mocked-usage.png)
 
+Access to chaincode methods also available via gRPC service, that can be called with generated 
+[gRPC client](../examples/cpaper_asservice/service/service.pb.cc.go). [Service](../examples/cpaper_asservice/service/service.md)
+ and [schema](../examples/cpaper_asservice/schema/schema.md) documentation also auto-generated.
 
 ## Conclusion
 

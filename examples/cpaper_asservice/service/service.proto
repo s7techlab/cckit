@@ -1,11 +1,12 @@
 syntax = "proto3";
-
+// Commercial paper service
 package service;
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "github.com/s7techlab/cckit/examples/cpaper_asservice/schema/schema.proto";
 
+// Commercial paper chaincode-as-service
 service CPaper {
     // List method returns all registered commercial papers
     rpc List (google.protobuf.Empty) returns (schema.CommercialPaperList) {

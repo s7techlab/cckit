@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "service.proto",
+    "title": "Commercial paper service",
     "version": "version not set"
   },
   "schemes": [
