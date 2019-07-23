@@ -297,11 +297,20 @@ service CPaper {
 
 Chaincode-as-service gateway generator allows to generate auxiliary components from `gRPC` service definition:
  
-Install the generator:
+Install the `protoc-gen-cc-gateway` generator:
 
 `GO111MODULE=on go install github.com/s7techlab/cckit/gateway/protoc-gen-cc-gateway`
 
-Command for generating chaincode auxiliary code can be found in [Makefile](../examples/cpaper_asservice/Makefile)
+For documentation generation install [protoc-gen-doc](https://github.com/pseudomuto/protoc-gen-doc):
+
+`go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc`
+
+For generating validation code install [ProtoBuf Validator Compiler](https://github.com/mwitkow/go-proto-validators)
+
+`go get github.com/mwitkow/go-proto-validators/protoc-gen-govalidators`
+
+Command for generating chaincode auxiliary code, swagger specification and documentation can be found in 
+[Makefile](../examples/cpaper_asservice/Makefile)
 
 ```makefile
 .: generate
@@ -313,6 +322,7 @@ generate:
 	-I=../../vendor \
 	--go_out=./schema/    \
 	--govalidators_out=./schema/ \
+    --doc_out=./schema/ --doc_opt=markdown,schema.md \
 	./schema/schema.proto
 
 	@echo "commercial paper service proto generation"
@@ -324,6 +334,7 @@ generate:
  	--cc-gateway_out=logtostderr=true:./service/ \
 	--grpc-gateway_out=logtostderr=true:./service/ \
 	--swagger_out=logtostderr=true:./service/ \
+	--doc_out=./service/ --doc_opt=markdown,service.md \
 	./service/service.proto
 ```
 

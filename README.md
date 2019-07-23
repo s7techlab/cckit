@@ -41,6 +41,7 @@ and [others](docs/chaincode-examples.md)
 
 ### Publications with usage examples 
 
+* [Service-oriented Hyperledger Fabric application development using gRPC definitions](https://medium.com/coinmonks/service-oriented-hyperledger-fabric-application-development-32e66f578f9a)
 * [Hyperledger Fabric smart contract data model: protobuf to chaincode state mapping](https://medium.com/coinmonks/hyperledger-fabric-smart-contract-data-model-protobuf-to-chaincode-state-mapping-191cdcfa0b78)
 * [Hyperledger Fabric chaincode test driven development (TDD) with unit testing](https://medium.com/coinmonks/test-driven-hyperledger-fabric-golang-chaincode-development-dbec4cb78049)
 * [ERC20 token as Hyperledger Fabric Golang chaincode](https://medium.com/@viktornosov/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339)
