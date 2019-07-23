@@ -30,9 +30,12 @@ message ChaincodeLocator   {
 }
 
 
+// Chaincode invocation service
 service Chaincode {
-    // Query chaincode on home peer
+    // Query chaincode on home peer. Do NOT send to orderer.
     rpc Query (ChaincodeInput) returns (protos.ProposalResponse);
+    // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
     rpc Invoke (ChaincodeInput) returns (protos.ProposalResponse);
+    // Chaincode events stream
     rpc Events (ChaincodeLocator) returns (stream protos.ChaincodeEvent);
 }
