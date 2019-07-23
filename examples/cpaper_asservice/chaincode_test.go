@@ -2,19 +2,19 @@ package cpaper_asservice_test
 
 import (
 	"crypto/rand"
-	"path"
+	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/peer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	s "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
-	"github.com/s7techlab/cckit/examples/cpaper_asservice/testdata"
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/router"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -49,6 +49,8 @@ var (
 		FaceValue:    100000,
 		ExternalId:   "EXT0001",
 	}
+
+	identity msp.SigningIdentity
 )
 
 var _ = Describe(`CommercialPaper`, func() {
@@ -70,9 +72,14 @@ var _ = Describe(`CommercialPaper`, func() {
 		// all queries/invokes arguments to cc will be encrypted
 		ccEncWrapped = encryption.NewMockStub(ccEnc, encKey)
 
+		identity, err = testcc.IdentityFromFile(`MSP`, `./testdata/admin.pem`, ioutil.ReadFile)
+		Expect(err).NotTo(HaveOccurred())
 		// Init chaincode with admin identity
 		expectcc.ResponseOk(
-			cc.From(testdata.GetTestIdentity(MspName, path.Join("testdata", "admin", "admin.pem"))).Init())
+			cc.From(identity).Init())
+
+		//js, _ := json.Marshal(issuePayload)
+		//fmt.Println(string(js))
 	})
 
 	Describe("Commercial Paper lifecycle", func() {

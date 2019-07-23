@@ -107,7 +107,6 @@ func (cc *CPaperImpl) GetByExternalId(ctx router.Context, id *schema.ExternalId)
 }
 
 func (cc *CPaperImpl) Issue(ctx router.Context, issue *schema.IssueCommercialPaper) (*schema.CommercialPaper, error) {
-
 	// Validate input message using the rules defined in schema
 	if err := issue.Validate(); err != nil {
 		return nil, errors.Wrap(err, "payload validation")

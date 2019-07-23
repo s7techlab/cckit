@@ -11,6 +11,7 @@ package service
 
 import (
 	context "context"
+	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
@@ -177,6 +178,8 @@ func (c *CPaperGateway) GetByExternalId(ctx context.Context, in *schema.External
 }
 
 func (c *CPaperGateway) Issue(ctx context.Context, in *schema.IssueCommercialPaper) (*schema.CommercialPaper, error) {
+
+	fmt.Println(`lalas`)
 	var inMsg interface{} = in
 	if v, ok := inMsg.(ValidatorInterface); ok {
 		if err := v.Validate(); err != nil {

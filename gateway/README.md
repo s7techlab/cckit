@@ -137,9 +137,9 @@ chaincode as service using `gRPC` service definition and code generation.
 
 ### 1. Define data model
 
-At the first step we create `.proto` description of the data structure you wish to store and input/output payloadЖ
-[schema.proto](../examples/cpaper_asservice/schema/schema.proto). You can read details about chaincode state modelling
-[here](https://medium.com/coinmonks/hyperledger-fabric-smart-contract-data-model-protobuf-to-chaincode-state-mapping-191cdcfa0b78)
+At the first step we create [.proto](../examples/cpaper_asservice/schema/schema.proto) description of the data structure
+you wish to store and input/output payload. You can read details about chaincode state modelling
+[here](https://medium.com/coinmonks/hyperledger-fabric-smart-contract-data-model-protobuf-to-chaincode-state-mapping-191cdcfa0b78).
 
 ```proto
 syntax = "proto3";
@@ -228,7 +228,7 @@ Chaincode interface can be described with gRPC [service](../examples/cpaper_asse
 Using `grpc-gateway` option we can also define mapping for chaincode REST-API.
 
 The `grpc-gateway` is a plugin of the Google protocol buffers compiler `protoc`. It reads protobuf service definitions and 
-generates a reverse-proxy server which 'translates a RESTful HTTP API into gRPC. This server is generated according
+generates a reverse-proxy server which translates a RESTful HTTP API into gRPC. This server is generated according
  to the `google.api.http` annotations in your service definitions.
 
 ```proto
@@ -294,13 +294,13 @@ service CPaper {
 
 #### 3. Code generation 
 
-Chaincode-as-service gateway generator allows to generate all mentioned above components from `gRPC` service definition:
+Chaincode-as-service gateway generator allows to generate auxiliary components from `gRPC` service definition:
  
 Install the generator:
 
 `GO111MODULE=on go install github.com/s7techlab/cckit/gateway/protoc-gen-cc-gateway`
 
-Command for generating chaincode auxiliary code can be found here [Makefile](../examples/cpaper_asservice/Makefile)
+Command for generating chaincode auxiliary code can be found in [Makefile](../examples/cpaper_asservice/Makefile)
 
 ```makefile
 .: generate
@@ -322,17 +322,19 @@ generate:
 	--go_out=plugins=grpc:./service/    \
  	--cc-gateway_out=logtostderr=true:./service/ \
 	--grpc-gateway_out=logtostderr=true:./service/ \
-    --swagger_out=logtostderr=true:./service/ \
+	--swagger_out=logtostderr=true:./service/ \
 	./service/service.proto
 ```
 
-* `go_out` generates standard `protobuf` structures and `gRPC` service client and server 
-* `grpc-gateway_out` generates REST-API binding for `gRPC` service
-* `swagger_out` generates REST API specification
+* `-I` flag defines source for data mode source ([.schema](../examples/cpaper_asservice/schema)) or [service definition](../examples/cpaper_asservice/service) 
+* `go_out` flag sets output path for  `protobuf` structures and `gRPC` service client and server 
+* `govalidators_out` flag sets output path for `protobuf` parameter validators
+* `grpc-gateway_out` flag sets output path for REST-API proxy for `gRPC` service
+* `swagger_out` flag sets output for  REST API swagger specification
 
 and finally:
 
-* `cc-gateway_out` generates auxiliary code for building on-chain (chaincode) and off-chain (external applications) 
+* `cc-gateway_out` flag sets output path for auxiliary code for building on-chain (chaincode) and off-chain (external applications) 
 blockchain network components:
 
 * Chaincode service to ChaincodeStubInterface mapper
@@ -583,48 +585,5 @@ you need to create entry pint for the HTTP reverse-proxy server and use generate
 ``` 
 package main
 
-import (
-  "context"   
-  "flag"
-  "net/http"
 
-  "github.com/golang/glog"
-  "github.com/grpc-ecosystem/grpc-gateway/runtime"
-  "google.golang.org/grpc"
-
-  gw "path/to/your_service_package"  // Update
-)
-
-var (
-  // command-line options:
-  // gRPC server endpoint
-  grpcServerEndpoint = flag.String("grpc-server-endpoint",  "localhost:9090", "gRPC server endpoint")
-)
-
-func run() error {
-  ctx := context.Background()
-  ctx, cancel := context.WithCancel(ctx)
-  defer cancel()
-
-  // Register gRPC server endpoint
-  // Note: Make sure the gRPC server is running properly and accessible
-  mux := runtime.NewServeMux()
-  opts := []grpc.DialOption{grpc.WithInsecure()}
-  err := gw.RegisterYourServiceHandlerFromEndpoint(ctx, mux,  *grpcServerEndpoint, opts)
-  if err != nil {
-    return err
-  }
-
-  // Start HTTP server (and proxy calls to gRPC server endpoint)
-  return http.ListenAndServe(":8081", mux)
-}
-
-func main() {
-  flag.Parse()
-  defer glog.Flush()
-
-  if err := run(); err != nil {
-    glog.Fatal(err)
-  }
-}
 ```
