@@ -217,22 +217,35 @@ func (g *Group) Init(handler HandlerFunc, middleware ...MiddlewareFunc) *Group {
 
 // Context returns chain code invoke context  for provided path and stub
 func (g *Group) Context(stub shim.ChaincodeStubInterface) Context {
-	return &context{stub: stub, logger: g.logger}
+	return NewContext(stub, g.logger)
 }
 
 // New group of chain code functions
 func New(name string) *Group {
+	g := new(Group)
+	g.logger = NewLogger(name)
+	g.stubHandlers = make(map[string]StubHandlerFunc)
+	g.contextHandlers = make(map[string]ContextHandlerFunc)
+	g.handlers = make(map[string]*HandlerMeta)
+
+	return g
+}
+
+// NewContext creates new instance of router.Context
+func NewContext(stub shim.ChaincodeStubInterface, logger *shim.ChaincodeLogger) *context {
+	return &context{
+		stub:   stub,
+		logger: logger,
+	}
+}
+
+// NewLogger creates new instance of shim.ChaincodeLogger
+func NewLogger(name string) *shim.ChaincodeLogger {
 	logger := shim.NewLogger(name)
 	loggingLevel, err := shim.LogLevel(os.Getenv(`CORE_CHAINCODE_LOGGING_LEVEL`))
 	if err == nil {
 		logger.SetLevel(loggingLevel)
 	}
 
-	g := new(Group)
-	g.logger = logger
-	g.stubHandlers = make(map[string]StubHandlerFunc)
-	g.contextHandlers = make(map[string]ContextHandlerFunc)
-	g.handlers = make(map[string]*HandlerMeta)
-
-	return g
+	return logger
 }

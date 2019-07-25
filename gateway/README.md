@@ -343,6 +343,7 @@ generate:
 * `govalidators_out` flag sets output path for `protobuf` parameter validators
 * `grpc-gateway_out` flag sets output path for REST-API proxy for `gRPC` service
 * `swagger_out` flag sets output for  REST API swagger specification
+* `doc_out` flag sets output for documentation in markdown format
 
 and finally:
 

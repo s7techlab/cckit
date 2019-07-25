@@ -34,7 +34,7 @@ and [others](docs/chaincode-examples.md)
 
 * [Chaincode method router](router) with invocation handlers and middleware capabilities 
 * [Chaincode state modeling](state) using [protocol buffers](examples/cpaper_extended) / [golang struct to json marshalling](examples/cars), with [private data support](examples/private_cars)
-* Designing chaincode in [gGRPC service notation](gateway) with code generation of chaincode SDK, gRPC and REST-API
+* Designing chaincode in [gRPC service notation](gateway) with code generation of chaincode SDK, gRPC and REST-API
 * [MockStub testing](testing), allowing to immediately receive test results
 * [Data encryption](extensions/encryption) on application level
 * Chaincode method [access control](extensions/owner)
