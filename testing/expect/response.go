@@ -67,16 +67,3 @@ func PayloadInt(response peer.Response, expectedValue int) int {
 	g.Expect(d).To(g.Equal(expectedValue))
 	return d
 }
-
-// EventPayloadIs expects peer.ChaincodeEvent payload can be marshaled to
-// target interface{} and returns converted value
-func EventPayloadIs(event *peer.ChaincodeEvent, target interface{}) interface{} {
-	g.Expect(event).NotTo(g.BeNil())
-	data, err := convert.FromBytes(event.Payload, target)
-	description := ``
-	if err != nil {
-		description = err.Error()
-	}
-	g.Expect(err).To(g.BeNil(), description)
-	return data
-}

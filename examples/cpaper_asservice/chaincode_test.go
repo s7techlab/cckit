@@ -72,7 +72,7 @@ var _ = Describe(`CommercialPaper`, func() {
 		// all queries/invokes arguments to cc will be encrypted
 		ccEncWrapped = encryption.NewMockStub(ccEnc, encKey)
 
-		identity, err = testcc.IdentityFromFile(`MSP`, `./testdata/admin.pem`, ioutil.ReadFile)
+		identity, err = testcc.IdentityFromFile(MspName, `./testdata/admin.pem`, ioutil.ReadFile)
 		Expect(err).NotTo(HaveOccurred())
 		// Init chaincode with admin identity
 		expectcc.ResponseOk(

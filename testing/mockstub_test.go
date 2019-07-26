@@ -1,16 +1,15 @@
-package testing
+package testing_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/hyperledger/fabric/protos/peer"
-
-	"github.com/s7techlab/hlf-sdk-go/api"
-
 	"github.com/s7techlab/cckit/examples/cars"
 	examplecert "github.com/s7techlab/cckit/examples/cert"
+	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
+	"github.com/s7techlab/hlf-sdk-go/api"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,14 +27,14 @@ const ChaincodeProxyName = `cars_proxy`
 var _ = Describe(`Testing`, func() {
 
 	//Create chaincode mocks
-	cc := NewMockStub(ChaincodeName, cars.New())
-	ccproxy := NewMockStub(ChaincodeProxyName, cars.NewProxy(Channel, ChaincodeName))
+	cc := testcc.NewMockStub(ChaincodeName, cars.New())
+	ccproxy := testcc.NewMockStub(ChaincodeProxyName, cars.NewProxy(Channel, ChaincodeName))
 
 	// ccproxy can invoke cc and vice versa
-	mockedPeer := NewPeer().WithChannel(Channel, cc, ccproxy)
+	mockedPeer := testcc.NewPeer().WithChannel(Channel, cc, ccproxy)
 
 	// load actor certificates
-	actors := MustIdentitiesFromFiles(`SOME_MSP`, map[string]string{
+	actors := testcc.MustIdentitiesFromFiles(`SOME_MSP`, map[string]string{
 		`authority`: `s7techlab.pem`,
 		`someone`:   `victor-nosov.pem`}, examplecert.Content)
 
@@ -125,10 +124,10 @@ var _ = Describe(`Testing`, func() {
 			// double check interface api.Invoker
 			resp, _, err := interface{}(mockedPeer).(api.Invoker).Invoke(
 				ctx, actors[`authority`], Channel, ChaincodeName, `carRegister`,
-				[][]byte{MustJSONMarshal(cars.Payloads[3])}, nil)
+				[][]byte{testcc.MustJSONMarshal(cars.Payloads[3])}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
+			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
 
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
@@ -148,7 +147,7 @@ var _ = Describe(`Testing`, func() {
 				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
+			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
 
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
@@ -160,7 +159,7 @@ var _ = Describe(`Testing`, func() {
 				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			carFromCC := MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
+			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
 
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))

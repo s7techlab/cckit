@@ -15,7 +15,11 @@ type (
 	// Context of chaincode invoke
 	Context interface {
 		Stub() shim.ChaincodeStubInterface
+
+		// Client returns invoker ClientIdentity
 		Client() (cid.ClientIdentity, error)
+
+		// Response returns response builder
 		Response() Response
 		Logger() *shim.ChaincodeLogger
 		Path() string
@@ -24,6 +28,7 @@ type (
 		State() state.State
 		UseState(state.State) state.State
 
+		// Time returns txTimesta
 		Time() (time.Time, error)
 
 		ReplaceArgs(args [][]byte) Context // replace args, for usage in preMiddleware
