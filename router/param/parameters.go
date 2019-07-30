@@ -3,11 +3,15 @@ package param
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
 )
 
 const LastPosKey = `_lastPos`
+
+// ErrPayloadValidationError occurs when payload validation not passed
+var ErrPayloadValidationError = errors.New(`payload validation`)
 
 type (
 	// Parameters list of chain code function parameters

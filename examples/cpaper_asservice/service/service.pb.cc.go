@@ -13,12 +13,18 @@ import (
 	context "context"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	errors "github.com/pkg/errors"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	cckit_gateway "github.com/s7techlab/cckit/gateway"
 	cckit_ccservice "github.com/s7techlab/cckit/gateway/service"
 	cckit_router "github.com/s7techlab/cckit/router"
+	cckit_param "github.com/s7techlab/cckit/router/param"
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
 )
+
+type ValidatorInterface interface {
+	Validate() error
+}
 
 // CPaperChaincode  method names
 const (
@@ -59,42 +65,77 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 
 	r.Query(CPaperChaincode_List,
 		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(ValidatorInterface); ok {
+				if err := v.Validate(); err != nil {
+					return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+				}
+			}
 			return cc.List(ctx, ctx.Param().(*empty.Empty))
 		},
 		cckit_defparam.Proto(&empty.Empty{}))
 
 	r.Query(CPaperChaincode_Get,
 		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(ValidatorInterface); ok {
+				if err := v.Validate(); err != nil {
+					return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+				}
+			}
 			return cc.Get(ctx, ctx.Param().(*schema.CommercialPaperId))
 		},
 		cckit_defparam.Proto(&schema.CommercialPaperId{}))
 
 	r.Query(CPaperChaincode_GetByExternalId,
 		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(ValidatorInterface); ok {
+				if err := v.Validate(); err != nil {
+					return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+				}
+			}
 			return cc.GetByExternalId(ctx, ctx.Param().(*schema.ExternalId))
 		},
 		cckit_defparam.Proto(&schema.ExternalId{}))
 
 	r.Invoke(CPaperChaincode_Issue,
 		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(ValidatorInterface); ok {
+				if err := v.Validate(); err != nil {
+					return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+				}
+			}
 			return cc.Issue(ctx, ctx.Param().(*schema.IssueCommercialPaper))
 		},
 		cckit_defparam.Proto(&schema.IssueCommercialPaper{}))
 
 	r.Invoke(CPaperChaincode_Buy,
 		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(ValidatorInterface); ok {
+				if err := v.Validate(); err != nil {
+					return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+				}
+			}
 			return cc.Buy(ctx, ctx.Param().(*schema.BuyCommercialPaper))
 		},
 		cckit_defparam.Proto(&schema.BuyCommercialPaper{}))
 
 	r.Invoke(CPaperChaincode_Redeem,
 		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(ValidatorInterface); ok {
+				if err := v.Validate(); err != nil {
+					return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+				}
+			}
 			return cc.Redeem(ctx, ctx.Param().(*schema.RedeemCommercialPaper))
 		},
 		cckit_defparam.Proto(&schema.RedeemCommercialPaper{}))
 
 	r.Invoke(CPaperChaincode_Delete,
 		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(ValidatorInterface); ok {
+				if err := v.Validate(); err != nil {
+					return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+				}
+			}
 			return cc.Delete(ctx, ctx.Param().(*schema.CommercialPaperId))
 		},
 		cckit_defparam.Proto(&schema.CommercialPaperId{}))
@@ -125,10 +166,6 @@ func (c *CPaperGateway) ApiDef() cckit_gateway.ServiceDef {
 // Events returns events subscription
 func (c *CPaperGateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
 	return c.Gateway.Events(ctx)
-}
-
-type ValidatorInterface interface {
-	Validate() error
 }
 
 func (c *CPaperGateway) List(ctx context.Context, in *empty.Empty) (*schema.CommercialPaperList, error) {
