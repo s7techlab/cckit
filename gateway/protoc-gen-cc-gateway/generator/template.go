@@ -36,6 +36,10 @@ import (
 
     {{ range $i := .Imports }}{{ if not $i.Standard }}{{ $i | printf "%s\n" }}{{ end }}{{ end }}
 )
+
+type ValidatorInterface interface {
+  Validate() error
+}
 `))
 )
 
@@ -67,6 +71,11 @@ func Register{{ $svc.GetName }}Chaincode(r *cckit_router.Group, cc {{ $svc.GetNa
 
  r.{{ $method }}( {{ $svc.GetName }}Chaincode_{{ $m.GetName }}, 
 		func(ctx cckit_router.Context) (interface{}, error) {
+            if v, ok := ctx.Param().(ValidatorInterface); ok {
+              if err := v.Validate(); err != nil {
+		        return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+	          } 
+            }
 			return cc.{{ $m.GetName }}(ctx, ctx.Param().(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }}))
 		},
 		cckit_defparam.Proto(&{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}))
@@ -106,11 +115,6 @@ func (c *{{ $svc.GetName }}Gateway) ApiDef() cckit_gateway.ServiceDef {
 // Events returns events subscription
 func (c *{{ $svc.GetName }}Gateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
    return c.Gateway.Events(ctx)
-}
-
-
-type ValidatorInterface interface {
-  Validate() error
 }
 
  {{ range $m := $svc.Methods }}
