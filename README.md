@@ -51,6 +51,9 @@ and [others](docs/chaincode-examples.md)
 ## Examples based on CCKit
 
 * [Cars](examples/cars) - car registration chaincode, *simplest* example
+* [Commercial paper, service-oriented approach](https://github.com/s7techlab/hyperledger-fabric-samples) - 
+  recommended way to start new application. Code generation radically simplifies building on-chain and off-chain applications.
+
 
 * [Commercial paper](examples/cpaper) - faithful reimplementation of the official example 
 * [Commercial paper extended example](examples/cpaper_extended) - with protobuf chaincode state schema and other features
