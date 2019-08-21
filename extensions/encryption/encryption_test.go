@@ -5,22 +5,19 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/s7techlab/cckit/extensions/encryption/testdata"
-
-	"github.com/hyperledger/fabric/protos/peer"
-
-	"github.com/s7techlab/cckit/state/mapping"
-
-	"github.com/s7techlab/cckit/examples/payment/schema"
-
-	examplecert "github.com/s7techlab/cckit/examples/cert"
-	"github.com/s7techlab/cckit/examples/payment"
-	"github.com/s7techlab/cckit/extensions/encryption"
-	testcc "github.com/s7techlab/cckit/testing"
-	expectcc "github.com/s7techlab/cckit/testing/expect"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/hyperledger/fabric/protos/peer"
+	examplecert "github.com/s7techlab/cckit/examples/cert"
+	"github.com/s7techlab/cckit/examples/payment"
+	"github.com/s7techlab/cckit/examples/payment/schema"
+	"github.com/s7techlab/cckit/extensions/encryption"
+	"github.com/s7techlab/cckit/extensions/encryption/testdata"
+	"github.com/s7techlab/cckit/state"
+	"github.com/s7techlab/cckit/state/mapping"
+	testcc "github.com/s7techlab/cckit/testing"
+	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
 
 func TestEncryption(t *testing.T) {
@@ -269,7 +266,7 @@ var _ = Describe(`Router`, func() {
 			Expect(paymentFromCC.Amount).To(Equal(pAmount3))
 		})
 
-		It("Disallow to get payment providing key using debugStateGet", func() {
+		It("Allow to get payment providing key using debugStateGet", func() {
 			// we didn't provide encrypting key,
 			// chaincode use ArgsDecrypt middleware, requiring key in transient map
 			// but we add exception for method debugStateGet
@@ -294,6 +291,12 @@ var _ = Describe(`Router`, func() {
 		It("Disallow to get payment by type and id without providing encrypting key in transient map", func() {
 			expectcc.ResponseError(encCCInvoker.MockStub.From(actors[`owner`]).Query(`paymentGet`, pType, pID1),
 				encryption.ErrKeyNotDefinedInTransientMap)
+		})
+
+		It("Disallow to get non existent payment by type and id providing encrypting key in transient map", func() {
+			// key in error is not encrypted
+			expectcc.ResponseError(encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pID1+`NoExists`),
+				state.ErrKeyNotFound.Error()+`: Payment | SALE | id-1NoExists`)
 		})
 
 		It("Allow to get payment by type and id", func() {
