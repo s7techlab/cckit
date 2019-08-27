@@ -35,6 +35,9 @@ type (
 	//KeyerFunc func(string) ([]string, error)
 	KeyFunc func() (Key, error)
 
+	// KeyerFunc transforms string to key
+	KeyerFunc func(string) (Key, error)
+
 	// Keyer interface for entity containing logic of its key creation
 	Keyer interface {
 		Key() (Key, error)
@@ -403,19 +406,19 @@ func KeyError(key *TransformedKey) error {
 	return errors.New(strings.Join(key.Origin, ` | `))
 }
 
-//type stringKeyer struct {
-//	str   string
-//	keyer KeyerFunc
-//}
-//
-//func (sk stringKeyer) Key() ([]string, error) {
-//	return sk.keyer(sk.str)
-//}
-//
-//// StringKeyer constructor for struct implementing Keyer interface
-//func StringKeyer(str string, keyer KeyerFunc) Keyer {
-//	return stringKeyer{str, keyer}
-//}
+type stringKeyer struct {
+	str   string
+	keyer KeyerFunc
+}
+
+func (sk stringKeyer) Key() (Key, error) {
+	return sk.keyer(sk.str)
+}
+
+// StringKeyer constructor for struct implementing Keyer interface
+func StringKeyer(str string, keyer KeyerFunc) Keyer {
+	return stringKeyer{str, keyer}
+}
 
 // Get data by key from private state, trying to convert to target interface
 func (s *Impl) GetPrivate(collection string, entry interface{}, config ...interface{}) (interface{}, error) {
