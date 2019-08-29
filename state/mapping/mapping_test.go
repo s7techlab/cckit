@@ -185,6 +185,17 @@ var _ = Describe(`Mapping`, func() {
 			Expect(len(cpapers.Items)).To(Equal(2))
 			expectcc.ResponseError(protoCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
 		})
+
+		It("Allow to insert entry once more time", func() {
+			expectcc.ResponseOk(protoCC.Invoke(`issue`, &issueMock1))
+
+			cpaperFromCCByExtID := expectcc.PayloadIs(
+				protoCC.Query(`getByExternalId`, issueMock1.ExternalId),
+				&schema.ProtoEntity{}).(*schema.ProtoEntity)
+
+			Expect(cpaperFromCCByExtID.IdFirstPart).To(Equal(issueMock1.IdFirstPart))
+		})
+
 	})
 
 	Describe(`Entity with complex id`, func() {
