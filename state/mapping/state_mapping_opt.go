@@ -16,9 +16,9 @@ func StateNamespace(namespace state.Key) StateMappingOpt {
 	}
 }
 
-func IsKeyerSchema() StateMappingOpt {
+func KeyerFor(schema interface{}) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
-		sm.isKeyerSchema = true
+		sm.keyerForSchema = schema
 	}
 }
 
@@ -48,7 +48,7 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 		sm.primaryKeyer = attrsPKeyer(attrs)
 
 		//add mapping namespace for id schema same as schema
-		smm.Add(pkeySchema, StateNamespace(SchemaNamespace(sm.schema)), PKeyAttr(attrs...), IsKeyerSchema())
+		smm.Add(pkeySchema, StateNamespace(SchemaNamespace(sm.schema)), PKeyAttr(attrs...), KeyerFor(sm.schema))
 	}
 }
 
@@ -80,7 +80,7 @@ func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 		smm.Add(pkeySchema,
 			StateNamespace(SchemaNamespace(sm.schema)),
 			PKeyAttr(attrsFrom(pkeySchema)...),
-			IsKeyerSchema())
+			KeyerFor(sm.schema))
 	}
 }
 

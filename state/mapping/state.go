@@ -51,6 +51,17 @@ func (s *Impl) Get(entry interface{}, target ...interface{}) (interface{}, error
 		return s.state.Get(entry, target...) // return as is
 	}
 
+	// target was not set, but we can knew about target from mapping
+	if len(target) == 0 {
+		var targetFromMapping interface{}
+		if mapped.Mapper().KeyerFor() != nil {
+			targetFromMapping = mapped.Mapper().KeyerFor()
+		} else {
+			targetFromMapping = mapped.Mapper().Schema()
+		}
+		target = append(target, targetFromMapping)
+	}
+
 	return s.state.Get(mapped, target...)
 }
 
@@ -166,10 +177,36 @@ func (s *Impl) GetByUniqKey(
 	return s.state.Get(keyRef.(*schema.KeyRef).PKey, target...)
 }
 
-func (s *Impl) Delete(entry interface{}) (err error) {
+func (s *Impl) Delete(entry interface{}) error {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
 		return s.state.Delete(entry) // return as is
+	}
+
+	// Entry can be record to delete or reference to record
+	// If entry is keyer entity for another entry (reference)
+	if mapped.Mapper().KeyerFor() != nil {
+		referenceEntry, err := s.Get(entry)
+		if err != nil {
+			return err
+		}
+
+		mapped, err = s.mappings.Map(referenceEntry)
+		if err != nil {
+			return err
+		}
+	}
+
+	keyRefs, err := mapped.Keys() // additional keys
+	if err != nil {
+		return err
+	}
+
+	// delete uniq key refs
+	for _, kr := range keyRefs {
+		if err = s.state.Delete(kr); err != nil {
+			return errors.Wrap(err, `delete ref key`)
+		}
 	}
 
 	return s.state.Delete(mapped)

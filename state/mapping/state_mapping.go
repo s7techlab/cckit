@@ -26,6 +26,7 @@ type (
 		Namespace() state.Key
 		PrimaryKey(instance interface{}) (key state.Key, err error)
 		Keys(instance interface{}) (key []state.KeyValue, err error)
+		KeyerFor() interface{}
 	}
 
 	// InstanceKeyer returns key of an state entry instance
@@ -38,12 +39,12 @@ type (
 	}
 	// StateMapping defines metadata for mapping from schema to state keys/values
 	StateMapping struct {
-		schema        interface{}
-		namespace     state.Key
-		isKeyerSchema bool //schema is keyer for another schema
-		primaryKeyer  InstanceKeyer
-		list          interface{}
-		uniqKeys      []*StateKeyDefinition
+		schema         interface{}
+		namespace      state.Key
+		keyerForSchema interface{} //schema is keyer for another schema ( for example *schema.StaffId for *schema.Staff )
+		primaryKeyer   InstanceKeyer
+		list           interface{}
+		uniqKeys       []*StateKeyDefinition
 	}
 
 	// StateKeyDefinition
@@ -100,7 +101,7 @@ func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 // type actually mapped to state
 func (smm StateMappings) GetByNamespace(namespace state.Key) (StateMapper, error) {
 	for _, m := range smm {
-		if !m.isKeyerSchema && reflect.DeepEqual(m.namespace, namespace) {
+		if m.keyerForSchema == nil && reflect.DeepEqual(m.namespace, namespace) {
 			return m, nil
 		}
 	}
@@ -152,7 +153,8 @@ func (sm *StateMapping) List() interface{} {
 
 func (sm *StateMapping) PrimaryKey(entity interface{}) (state.Key, error) {
 	if sm.primaryKeyer == nil {
-		return nil, fmt.Errorf(`%s: schema "%s", namespace : "%s"`, ErrPrimaryKeyerNotDefined, sm.schema, sm.namespace)
+		return nil, fmt.Errorf(`%s: schema "%s", namespace : "%s"`,
+			ErrPrimaryKeyerNotDefined, sm.schema, sm.namespace)
 	}
 	key, err := sm.primaryKeyer(entity)
 	if err != nil {
@@ -183,4 +185,8 @@ func (sm *StateMapping) Keys(entity interface{}) (kv []state.KeyValue, err error
 	}
 
 	return
+}
+
+func (sm *StateMapping) KeyerFor() interface{} {
+	return sm.keyerForSchema
 }
