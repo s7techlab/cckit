@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 // Certificate decode and parse .pem []byte x509 certificate structure
@@ -17,6 +19,20 @@ func Certificate(c []byte) (cert *x509.Certificate, err error) {
 		return nil, ErrPemEncodedExpected
 	}
 	return x509.ParseCertificate(block.Bytes)
+}
+
+func CertSubjEqual(a, b []byte) (bool, error) {
+	certA, err := Certificate(a)
+	if err != nil {
+		return false, errors.Wrap(err, `certificate 1`)
+	}
+
+	certB, err := Certificate(b)
+	if err != nil {
+		return false, errors.Wrap(err, `certificate 1`)
+	}
+
+	return GetDN(&certA.Subject) == GetDN(&certB.Subject), nil
 }
 
 // ID returns identifier from .509  certificate and base64 encode

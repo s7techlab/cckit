@@ -2,14 +2,6 @@ package ecdh
 
 import (
 	"crypto/ecdsa"
-	"crypto/x509"
-	"encoding/pem"
-
-	"github.com/pkg/errors"
-)
-
-var (
-	ErrInvalidPEMStructure = errors.New(`invalid pem structure`)
 )
 
 func Marshall(pubKey *ecdsa.PublicKey) []byte {
@@ -29,17 +21,4 @@ func Marshall(pubKey *ecdsa.PublicKey) []byte {
 func GenerateSharedSecret(privKey *ecdsa.PrivateKey, pubKey *ecdsa.PublicKey) ([]byte, error) {
 	x, _ := pubKey.Curve.ScalarMult(pubKey.X, pubKey.Y, privKey.D.Bytes())
 	return x.Bytes(), nil
-}
-
-func PrivateKey(keyBytes []byte) (*ecdsa.PrivateKey, error) {
-	keyPEM, _ := pem.Decode(keyBytes)
-	if keyPEM == nil {
-		return nil, ErrInvalidPEMStructure
-	}
-
-	key, err := x509.ParsePKCS8PrivateKey(keyPEM.Bytes)
-	if err != nil {
-		return nil, errors.Wrap(err, `failed to parse private key`)
-	}
-	return key.(*ecdsa.PrivateKey), nil
 }
