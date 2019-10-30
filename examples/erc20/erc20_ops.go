@@ -112,9 +112,12 @@ func invokeTransfer(c r.Context) (interface{}, error) {
 }
 
 func queryAllowance(c r.Context) (interface{}, error) {
-	return getAllowance(c, c.ParamString(`ownerMspId`), c.ParamString(`ownerCertId`), c.ParamString(`spenderMspId`), c.ParamString(`spenderCertId`))
+	return getAllowance(c,
+		c.ParamString(`ownerMspId`), c.ParamString(`ownerCertId`),
+		c.ParamString(`spenderMspId`), c.ParamString(`spenderCertId`))
 }
 
+// Allow spender, identified by mspId add to spend amount
 func invokeApprove(c r.Context) (interface{}, error) {
 	spenderMspId := c.ParamString(`spenderMspId`)
 	spenderCertId := c.ParamString(`spenderCertId`)
@@ -146,6 +149,9 @@ func invokeApprove(c r.Context) (interface{}, error) {
 	return true, nil
 }
 
+// Transfer amount from wallet1 (from) to wallet2 (to)
+// wherein the initiator of the operation (tx creator) is not the owner of the wallet1
+// Tx creator has to have approval from owner of wallet1 for amount greater than or equal to transfer amount
 func invokeTransferFrom(c r.Context) (interface{}, error) {
 
 	fromMspId := c.ParamString(`fromMspId`)
@@ -240,6 +246,7 @@ func setBalance(c r.Context, mspId, certId string, balance int) error {
 	return c.State().Put(balanceKey(mspId, certId), balance)
 }
 
+// getAllowance gets amount of token allowed by wallet owner to spend by spender
 func getAllowance(c r.Context, ownerMspId, ownerCertId, spenderMspId, spenderCertId string) (int, error) {
 	return c.State().GetInt(allowanceKey(ownerMspId, ownerCertId, spenderMspId, spenderCertId), 0)
 }

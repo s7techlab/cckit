@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	protomsp "github.com/hyperledger/fabric/protos/msp"
 )
 
 // Entry structure for storing identity information
@@ -97,6 +98,15 @@ func CreateEntry(i Identity) (g *Entry, err error) {
 
 func EntryFromStub(stub shim.ChaincodeStubInterface) (g *Entry, err error) {
 	id, err := FromStub(stub)
+	if err != nil {
+		return nil, err
+	}
+	return CreateEntry(id)
+}
+
+// EntryFromSerialized creates Entry from SerializedEntry
+func EntryFromSerialized(s protomsp.SerializedIdentity) (g *Entry, err error) {
+	id, err := FromSerialized(s)
 	if err != nil {
 		return nil, err
 	}

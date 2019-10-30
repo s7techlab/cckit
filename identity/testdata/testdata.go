@@ -13,6 +13,8 @@ import (
 	"github.com/s7techlab/cckit/identity"
 )
 
+const DefaultMSP = `SOME_MSP`
+
 type Cert struct {
 	CertFilename string
 	PKeyFilename string
@@ -26,7 +28,15 @@ var (
 	}, {
 		CertFilename: `victor-nosov.pem`, PKeyFilename: `victor-nosov.key.pem`,
 	}}
+
+	Identities = make([]*identity.CertIdentity, len(Certificates))
 )
+
+func init() {
+	for i, c := range Certificates {
+		Identities[i] = c.MustIdentity(DefaultMSP)
+	}
+}
 
 func ReadFile(filename string) ([]byte, error) {
 	_, curFile, _, ok := runtime.Caller(0)
@@ -69,15 +79,15 @@ func (c *Cert) Identity(mspID string) (*identity.CertIdentity, error) {
 }
 
 // temp, todo: move signing identity from testing to identity package
-func (c *Cert) SigningIdentity(mspID string) (*testing.Identity, error) {
+func (c *Cert) SigningIdentity(mspID string) (*identity.CertIdentity, error) {
 	bb, err := c.CertBytes()
 	if err != nil {
 		return nil, err
 	}
-	return testing.IdentityFromPem(mspID, bb)
+	return identity.New(mspID, bb)
 }
 
-func (c *Cert) MustSigningIdentity(mspID string) *testing.Identity {
+func (c *Cert) MustSigningIdentity(mspID string) *identity.CertIdentity {
 	bb := c.MustCertBytes()
 	return testing.MustIdentityFromPem(mspID, bb)
 }

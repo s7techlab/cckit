@@ -19,8 +19,9 @@ func TestCars(t *testing.T) {
 
 var (
 	// load actor certificates
-	TokenOwner     = identitytestdata.Certificates[0].MustIdentity(`SOME_MSP`)
-	AccountHolder1 = identitytestdata.Certificates[1].MustIdentity(`SOME_MSP`)
+	TokenOwner     = identitytestdata.Identities[0]
+	AccountHolder1 = identitytestdata.Identities[1]
+	Spender1       = identitytestdata.Identities[2]
 )
 var _ = Describe(`ERC-20`, func() {
 
@@ -104,13 +105,13 @@ var _ = Describe(`ERC-20`, func() {
 				erc20fs.Query(
 					`allowance`,
 					TokenOwner.MspID, TokenOwner.GetID(),
-					AccountHolder1.MspID, AccountHolder1.GetID()), 0)
+					Spender1.MspID, Spender1.GetID()), 0)
 		})
 
 		It("Allow token owner to set transfer allowance", func() {
 			expectcc.ResponseOk(
 				erc20fs.From(TokenOwner).Invoke(
-					`approve`, AccountHolder1.MspID, AccountHolder1.GetID(), 10))
+					`approve`, Spender1.MspID, Spender1.GetID(), 10))
 		})
 
 		It("Allow everyone to check token transfer allowance", func() {
@@ -118,7 +119,54 @@ var _ = Describe(`ERC-20`, func() {
 				erc20fs.Query(
 					`allowance`,
 					TokenOwner.MspID, TokenOwner.GetID(),
-					AccountHolder1.MspID, AccountHolder1.GetID()), 10)
+					Spender1.MspID, Spender1.GetID()), 10)
+		})
+
+		It("Allow everyone to check token transfer allowance", func() {
+			expectcc.PayloadInt(
+				erc20fs.Query(
+					`allowance`,
+					TokenOwner.MspID, TokenOwner.GetID(),
+					Spender1.MspID, Spender1.GetID()), 10)
+		})
+
+		It("Disallow nonspender to initiate payment from owner waller", func() {
+			expectcc.ResponseError(
+				erc20fs.From(AccountHolder1).Invoke(
+					`transferFrom`,
+					TokenOwner.MspID, TokenOwner.GetID(),
+					AccountHolder1.MspID, AccountHolder1.GetID(), 10), erc20.ErrSpenderNotHaveAllowance)
+		})
+
+		It("Disallow spender to initiate payment more than allowance from wallet owner", func() {
+			expectcc.ResponseError(
+				erc20fs.From(AccountHolder1).Invoke(
+					`transferFrom`,
+					TokenOwner.MspID, TokenOwner.GetID(),
+					AccountHolder1.MspID, AccountHolder1.GetID(), 11), erc20.ErrSpenderNotHaveAllowance)
+		})
+
+		It("Allow spender to initiate payment from owner waller", func() {
+			expectcc.PayloadInt(
+				erc20fs.From(Spender1).Invoke(
+					`transferFrom`,
+					TokenOwner.MspID, TokenOwner.GetID(),
+					AccountHolder1.MspID, AccountHolder1.GetID(), 9), TotalSupply-100-9)
+
+			expectcc.PayloadInt(
+				erc20fs.Query(
+					`balanceOf`, AccountHolder1.MspID, AccountHolder1.GetID()), 100+9)
+
+			expectcc.PayloadInt(
+				erc20fs.Query(
+					`balanceOf`, TokenOwner.MspID, TokenOwner.GetID()), TotalSupply-100-9)
+
+			expectcc.PayloadInt(
+				erc20fs.Query(
+					`allowance`,
+					TokenOwner.MspID, TokenOwner.GetID(),
+					Spender1.MspID, Spender1.GetID()), 1)
+
 		})
 	})
 })

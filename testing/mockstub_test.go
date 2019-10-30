@@ -21,8 +21,8 @@ func TestMockstub(t *testing.T) {
 }
 
 var (
-	Authority = testdata.Certificates[0].MustSigningIdentity(`SOME_MSP`)
-	Someone   = testdata.Certificates[1].MustSigningIdentity(`SOME_MSP`)
+	Authority = testdata.Identities[0]
+	Someone   = testdata.Identities[1]
 )
 
 const (
