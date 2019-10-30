@@ -9,11 +9,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/hyperledger/fabric/protos/peer"
-	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/examples/payment"
 	"github.com/s7techlab/cckit/examples/payment/schema"
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/extensions/encryption/testdata"
+	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -26,14 +26,16 @@ func TestEncryption(t *testing.T) {
 }
 
 var (
+	Owner = identitytestdata.Certificates[0].MustIdentity(`SOME_MSP`)
+)
+
+var (
 	encryptOnDemandPaymentCC            *testcc.MockStub
 	encryptPaymentCC                    *testcc.MockStub
 	encryptPaymentCCWithEncStateContext *testcc.MockStub
 	externalCC                          *testcc.MockStub
 
 	encCCInvoker *encryption.MockStub
-
-	actors testcc.Identities
 
 	pType  = `SALE`
 	encKey []byte
@@ -88,10 +90,6 @@ var _ = Describe(`Router`, func() {
 		externalCC.MockPeerChaincode(
 			`paymentsEncWithContext/payment-channel`,
 			encryptPaymentCCWithEncStateContext)
-		actors, err = testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
-			`owner`:   `s7techlab.pem`,
-			`someone`: `victor-nosov.pem`}, examplecert.Content)
-		Expect(err).To(BeNil())
 
 		encryptedPType, err = encryption.Encrypt(encKey, pType)
 		Expect(err).To(BeNil())
@@ -234,7 +232,7 @@ var _ = Describe(`Router`, func() {
 
 			responsePayment := expectcc.PayloadIs(
 				// encCCInvoker encrypts args before passing to cc invoke and pass key in transient map
-				encCCInvoker.From(actors[`owner`]).Invoke(`paymentCreate`, pType, pID1, pAmount3),
+				encCCInvoker.From(Owner).Invoke(`paymentCreate`, pType, pID1, pAmount3),
 				&schema.Payment{}).(*schema.Payment)
 
 			// we use encryption.MockStub DecryptInvokeResponse feature
@@ -258,7 +256,7 @@ var _ = Describe(`Router`, func() {
 		It("Allow to get payment by type and id", func() {
 			// encCCInvoker encrypts args before passing to cc invoke and pass key in transient map
 			paymentFromCC := expectcc.PayloadIs(
-				encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pID1), &schema.Payment{}).(*schema.Payment)
+				encCCInvoker.From(Owner).Query(`paymentGet`, pType, pID1), &schema.Payment{}).(*schema.Payment)
 
 			//returned payload is unencrypted
 			Expect(paymentFromCC.Id).To(Equal(pID1))
@@ -289,19 +287,19 @@ var _ = Describe(`Router`, func() {
 		})
 
 		It("Disallow to get payment by type and id without providing encrypting key in transient map", func() {
-			expectcc.ResponseError(encCCInvoker.MockStub.From(actors[`owner`]).Query(`paymentGet`, pType, pID1),
+			expectcc.ResponseError(encCCInvoker.MockStub.From(Owner).Query(`paymentGet`, pType, pID1),
 				encryption.ErrKeyNotDefinedInTransientMap)
 		})
 
 		It("Disallow to get non existent payment by type and id providing encrypting key in transient map", func() {
 			// key in error is not encrypted
-			expectcc.ResponseError(encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pID1+`NoExists`),
+			expectcc.ResponseError(encCCInvoker.From(Owner).Query(`paymentGet`, pType, pID1+`NoExists`),
 				state.ErrKeyNotFound.Error()+`: Payment | SALE | id-1NoExists`)
 		})
 
 		It("Allow to get payment by type and id", func() {
 			//returns unencrypted
-			paymentFromCC := expectcc.PayloadIs(encCCInvoker.From(actors[`owner`]).Query(`paymentGet`, pType, pID1),
+			paymentFromCC := expectcc.PayloadIs(encCCInvoker.From(Owner).Query(`paymentGet`, pType, pID1),
 				&schema.Payment{}).(*schema.Payment)
 			Expect(paymentFromCC.Id).To(Equal(pID1))
 			Expect(paymentFromCC.Type).To(Equal(pType))

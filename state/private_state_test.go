@@ -4,15 +4,13 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/s7techlab/cckit/state"
-	"github.com/s7techlab/cckit/state/testdata/schema"
-
-	"github.com/s7techlab/cckit/state/testdata"
-
-	expectcc "github.com/s7techlab/cckit/testing/expect"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/s7techlab/cckit/state"
+	"github.com/s7techlab/cckit/state/testdata"
+	"github.com/s7techlab/cckit/state/testdata/schema"
+	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
 
 func TestPrivateState(t *testing.T) {
@@ -43,13 +41,13 @@ var _ = Describe(`PrivateState`, func() {
 	Describe(`Struct based schema private`, func() {
 
 		It("Allow to insert entries", func() {
-			expectcc.ResponseOk(booksCC.From(actors[`owner`]).Invoke(`privateBookInsert`, &testdata.PrivateBooks[0]))
-			expectcc.ResponseOk(booksCC.From(actors[`owner`]).Invoke(`privateBookInsert`, &testdata.PrivateBooks[1]))
-			expectcc.ResponseOk(booksCC.From(actors[`owner`]).Invoke(`privateBookInsert`, &testdata.PrivateBooks[2]))
+			expectcc.ResponseOk(booksCC.From(Owner).Invoke(`privateBookInsert`, &testdata.PrivateBooks[0]))
+			expectcc.ResponseOk(booksCC.From(Owner).Invoke(`privateBookInsert`, &testdata.PrivateBooks[1]))
+			expectcc.ResponseOk(booksCC.From(Owner).Invoke(`privateBookInsert`, &testdata.PrivateBooks[2]))
 		})
 
 		It("Disallow to insert entries with same keys", func() {
-			expectcc.ResponseError(booksCC.From(actors[`owner`]).Invoke(`privateBookInsert`, &testdata.PrivateBooks[2]))
+			expectcc.ResponseError(booksCC.From(Owner).Invoke(`privateBookInsert`, &testdata.PrivateBooks[2]))
 		})
 
 		It("Allow to get entry list", func() {
@@ -83,7 +81,7 @@ var _ = Describe(`PrivateState`, func() {
 		})
 
 		It("Allow to delete entry", func() {
-			expectcc.ResponseOk(booksCC.From(actors[`owner`]).Invoke(`privateBookDelete`, testdata.PrivateBooks[0].Id))
+			expectcc.ResponseOk(booksCC.From(Owner).Invoke(`privateBookDelete`, testdata.PrivateBooks[0].Id))
 			books := expectcc.PayloadIs(booksCC.Invoke(`privateBookList`), &[]schema.PrivateBook{}).([]schema.PrivateBook)
 			Expect(len(books)).To(Equal(2))
 

@@ -24,3 +24,5 @@ require (
 	google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19
 	google.golang.org/grpc v1.21.0
 )
+
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0

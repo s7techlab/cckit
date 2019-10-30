@@ -103,7 +103,8 @@ func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
 		return false, err
 	}
 	for _, allowed := range allowedTo {
-		if allowed.Is(invoker) {
+		if allowed.GetMSPIdentifier() == invoker.GetMSPIdentifier() &&
+			allowed.GetSubject() == invoker.GetSubject() {
 			return true, nil
 		}
 	}
@@ -111,8 +112,13 @@ func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
 }
 
 // IdentityFromState
-func IdentityEntryFromState(c r.Context) (interface{}, error) {
-	return c.State().Get(OwnerStateKey, &identity.Entry{})
+func IdentityEntryFromState(c r.Context) (identity.Entry, error) {
+	res, err := c.State().Get(OwnerStateKey, &identity.Entry{})
+	if err != nil {
+		return identity.Entry{}, err
+	}
+
+	return res.(identity.Entry), nil
 }
 
 // IsInvoker checks  than tx creator is chain code owner
@@ -121,9 +127,10 @@ func IsInvoker(c r.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	owner, err := IdentityEntryFromState(c)
+	ownerEntry, err := IdentityEntryFromState(c)
 	if err != nil {
 		return false, err
 	}
-	return invoker.Is(owner.(identity.Entry)), nil
+
+	return ownerEntry.MSPId == invoker.MspID && ownerEntry.Subject == invoker.GetSubject(), nil
 }

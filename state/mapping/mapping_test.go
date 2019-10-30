@@ -4,11 +4,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/hyperledger/fabric/protos/peer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	examplecert "github.com/s7techlab/cckit/examples/cert"
+
+	"github.com/golang/protobuf/ptypes"
+	"github.com/hyperledger/fabric/protos/peer"
+	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/state/mapping/testdata"
@@ -24,27 +25,23 @@ func TestState(t *testing.T) {
 }
 
 var (
-	actors                          testcc.Identities
 	protoCC, complexIDCC, sliceIDCC *testcc.MockStub
 	err                             error
+
+	Owner = identitytestdata.Certificates[0].MustIdentity(`SOME_MSP`)
 )
 var _ = Describe(`Mapping`, func() {
 
 	BeforeSuite(func() {
-		actors, err = testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
-			`owner`: `s7techlab.pem`,
-		}, examplecert.Content)
-
-		Expect(err).To(BeNil())
 
 		protoCC = testcc.NewMockStub(`cpapers`, testdata.NewProtoCC())
-		protoCC.From(actors[`owner`]).Init()
+		protoCC.From(Owner).Init()
 
 		complexIDCC = testcc.NewMockStub(`complexid`, testdata.NewComplexIdCC())
-		complexIDCC.From(actors[`owner`]).Init()
+		complexIDCC.From(Owner).Init()
 
 		sliceIDCC = testcc.NewMockStub(`sliceid`, testdata.NewSliceIdCC())
-		sliceIDCC.From(actors[`owner`]).Init()
+		sliceIDCC.From(Owner).Init()
 	})
 
 	Describe(`Commercial paper extended, protobuf based schema with additional keys`, func() {
@@ -204,7 +201,7 @@ var _ = Describe(`Mapping`, func() {
 
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(complexIDCC.Invoke(`entityInsert`, ent1))
-			keys := expectcc.PayloadIs(complexIDCC.From(actors[`owner`]).Invoke(
+			keys := expectcc.PayloadIs(complexIDCC.From(Owner).Invoke(
 				`debugStateKeys`, []string{`EntityWithComplexId`}), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(1))
 
@@ -234,7 +231,7 @@ var _ = Describe(`Mapping`, func() {
 
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(sliceIDCC.Invoke(`entityInsert`, ent2))
-			keys := expectcc.PayloadIs(sliceIDCC.From(actors[`owner`]).Invoke(
+			keys := expectcc.PayloadIs(sliceIDCC.From(Owner).Invoke(
 				`debugStateKeys`, []string{`EntityWithSliceId`}), &[]string{}).([]string)
 
 			Expect(len(keys)).To(Equal(1))

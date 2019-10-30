@@ -2,15 +2,12 @@ package ecdh_test
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
+	"fmt"
 	"testing"
 
-	"crypto/elliptic"
-
-	"fmt"
-
-	examplecert "github.com/s7techlab/cckit/examples/cert"
 	"github.com/s7techlab/cckit/extensions/ecdh"
-	testcc "github.com/s7techlab/cckit/testing"
+	"github.com/s7techlab/cckit/identity/testdata"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,40 +18,18 @@ func TestDebug(t *testing.T) {
 	RunSpecs(t, "ECDH suite")
 }
 
+// load actor certificates
+var (
+	pubKey1 = testdata.Certificates[0].MustCert().PublicKey.(*ecdsa.PublicKey)
+	pubKey2 = testdata.Certificates[1].MustCert().PublicKey.(*ecdsa.PublicKey)
+	pubKey3 = testdata.Certificates[2].MustCert().PublicKey.(*ecdsa.PublicKey)
+
+	privKey1 = testdata.Certificates[0].MustPKey()
+	privKey2 = testdata.Certificates[1].MustPKey()
+	privKey3 = testdata.Certificates[2].MustPKey()
+)
+
 var _ = Describe(`ECDH`, func() {
-
-	//load actor certificates
-	actors, err := testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
-		`authority`: `s7techlab.pem`,
-		`someone1`:  `victor-nosov.pem`,
-		`someone2`:  `some-person.pem`,
-	}, examplecert.Content)
-	if err != nil {
-		panic(err)
-	}
-
-	pubKey1 := actors[`authority`].Certificate.PublicKey.(*ecdsa.PublicKey)
-	pubKey2 := actors[`someone1`].Certificate.PublicKey.(*ecdsa.PublicKey)
-	pubKey3 := actors[`someone2`].Certificate.PublicKey.(*ecdsa.PublicKey)
-
-	privKey1Bytes, _ := examplecert.Content(`s7techlab.key.pem`)
-	privKey1, err := ecdh.PrivateKey(privKey1Bytes)
-
-	if err != nil {
-		panic(err)
-	}
-
-	privKey2Bytes, _ := examplecert.Content(`victor-nosov.key.pem`)
-	privKey2, err := ecdh.PrivateKey(privKey2Bytes)
-	if err != nil {
-		panic(err)
-	}
-
-	privKey3Bytes, _ := examplecert.Content(`some-person.key.pem`)
-	privKey3, err := ecdh.PrivateKey(privKey3Bytes)
-	if err != nil {
-		panic(err)
-	}
 
 	It("Allow to create shared key for 2 parties", func() {
 

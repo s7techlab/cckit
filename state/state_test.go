@@ -4,17 +4,15 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/s7techlab/cckit/state"
-	"github.com/s7techlab/cckit/state/testdata/schema"
-
-	"github.com/s7techlab/cckit/state/testdata"
-
-	examplecert "github.com/s7techlab/cckit/examples/cert"
-	testcc "github.com/s7techlab/cckit/testing"
-	expectcc "github.com/s7techlab/cckit/testing/expect"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
+	"github.com/s7techlab/cckit/state"
+	"github.com/s7techlab/cckit/state/testdata"
+	"github.com/s7techlab/cckit/state/testdata/schema"
+	testcc "github.com/s7techlab/cckit/testing"
+	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
 
 func TestState(t *testing.T) {
@@ -23,35 +21,30 @@ func TestState(t *testing.T) {
 }
 
 var (
-	actors  testcc.Identities
 	booksCC *testcc.MockStub
 	err     error
+
+	Owner = identitytestdata.Certificates[0].MustIdentity(`SOME_MSP`)
 )
 var _ = Describe(`State`, func() {
 
 	BeforeSuite(func() {
 
-		actors, err = testcc.IdentitiesFromFiles(`SOME_MSP`, map[string]string{
-			`owner`: `s7techlab.pem`,
-		}, examplecert.Content)
-
-		Expect(err).To(BeNil())
-
 		//Create books chaincode mock - struct based schema
 		booksCC = testcc.NewMockStub(`books`, testdata.NewBooksCC())
-		booksCC.From(actors[`owner`]).Init()
+		booksCC.From(Owner).Init()
 	})
 
 	Describe(`Struct based schema`, func() {
 
 		It("Allow to insert entries", func() {
-			expectcc.ResponseOk(booksCC.From(actors[`owner`]).Invoke(`bookInsert`, &testdata.Books[0]))
-			expectcc.ResponseOk(booksCC.From(actors[`owner`]).Invoke(`bookInsert`, &testdata.Books[1]))
-			expectcc.ResponseOk(booksCC.From(actors[`owner`]).Invoke(`bookInsert`, &testdata.Books[2]))
+			expectcc.ResponseOk(booksCC.From(Owner).Invoke(`bookInsert`, &testdata.Books[0]))
+			expectcc.ResponseOk(booksCC.From(Owner).Invoke(`bookInsert`, &testdata.Books[1]))
+			expectcc.ResponseOk(booksCC.From(Owner).Invoke(`bookInsert`, &testdata.Books[2]))
 		})
 
 		It("Disallow to insert entries with same keys", func() {
-			expectcc.ResponseError(booksCC.From(actors[`owner`]).Invoke(`bookInsert`, &testdata.Books[2]))
+			expectcc.ResponseError(booksCC.From(Owner).Invoke(`bookInsert`, &testdata.Books[2]))
 		})
 
 		It("Allow to get entry list", func() {
@@ -85,7 +78,7 @@ var _ = Describe(`State`, func() {
 		})
 
 		It("Allow to delete entry", func() {
-			expectcc.ResponseOk(booksCC.From(actors[`owner`]).Invoke(`bookDelete`, testdata.Books[0].Id))
+			expectcc.ResponseOk(booksCC.From(Owner).Invoke(`bookDelete`, testdata.Books[0].Id))
 			books := expectcc.PayloadIs(booksCC.Invoke(`bookList`), &[]schema.Book{}).([]schema.Book)
 			Expect(len(books)).To(Equal(2))
 
