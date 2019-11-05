@@ -8,9 +8,8 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/s7techlab/cckit/testing"
-
 	"github.com/s7techlab/cckit/identity"
+	"github.com/s7techlab/cckit/testing"
 )
 
 const DefaultMSP = `SOME_MSP`

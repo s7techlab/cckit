@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -31,6 +32,7 @@ var (
 type MockStub struct {
 	shim.MockStub
 	cc                          shim.Chaincode
+	m                           sync.Mutex
 	mockCreator                 []byte
 	transient                   map[string][]byte
 	ClearCreatorAfterInvoke     bool
@@ -128,7 +130,7 @@ func (stub *MockStub) InvokeChaincode(chaincodeName string, args [][]byte, chann
 	otherStub, exists := stub.InvokablesFull[chaincodeName]
 	if !exists {
 		return shim.Error(fmt.Sprintf(
-			`%s: try to invoke chaincode "%s" in channel "%s" (%s). Available mocked chaincodes are: %s`,
+			`%s	: try to invoke chaincode "%s" in channel "%s" (%s). Available mocked chaincodes are: %s`,
 			ErrChaincodeNotExists, ccName, channel, chaincodeName, stub.MockedPeerChaincodes()))
 	}
 
@@ -204,6 +206,9 @@ func (stub *MockStub) MockQuery(uuid string, args [][]byte) peer.Response {
 
 // MockInvoke
 func (stub *MockStub) MockInvoke(uuid string, args [][]byte) peer.Response {
+	stub.m.Lock()
+	defer stub.m.Unlock()
+
 	// this is a hack here to set MockStub.args, because its not accessible otherwise
 	stub.SetArgs(args)
 
