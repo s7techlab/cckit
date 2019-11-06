@@ -2,14 +2,13 @@ package identity
 
 import (
 	"crypto/x509"
-	"encoding/json"
 	"encoding/pem"
 	"time"
 
-	"github.com/hyperledger/fabric/msp"
-
+	"github.com/gogo/protobuf/proto"
 	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/msp"
 	protomsp "github.com/hyperledger/fabric/protos/msp"
 	"github.com/pkg/errors"
 )
@@ -128,7 +127,7 @@ func (ci CertIdentity) Serialize() ([]byte, error) {
 
 // ToBytes converts to serializedIdentity and then to json
 func (ci CertIdentity) ToBytes() ([]byte, error) {
-	return json.Marshal(ci.ToSerialized())
+	return proto.Marshal(ci.ToSerialized())
 }
 
 func (ci CertIdentity) SatisfiesPrincipal(principal *protomsp.MSPPrincipal) error {
