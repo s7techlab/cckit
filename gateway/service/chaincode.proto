@@ -5,11 +5,11 @@ package service;
 import "github.com/hyperledger/fabric/protos/peer/proposal_response.proto";
 import "github.com/hyperledger/fabric/protos/peer/chaincode_event.proto";
 
-message ChaincodeInput  {
+message ChaincodeInput {
     // Chaincode name
     string chaincode = 1;
     // Channel name
-    string channel =  2;
+    string channel = 2;
 
     // Input contains the arguments for invocation.
     repeated bytes args = 3;
@@ -21,17 +21,27 @@ message ChaincodeInput  {
     map<string, bytes> transient = 4;
 }
 
-
-message ChaincodeLocator   {
+message ChaincodeLocator {
     // Chaincode name
     string chaincode = 1;
     // Channel name
-    string channel =  2;
+    string channel = 2;
 }
 
+enum InvocationType {
+    QUERY = 0;
+    INVOKE = 1;
+}
+
+message ChaincodeExec {
+    InvocationType type = 1;
+    ChaincodeInput input = 2;
+}
 
 // Chaincode invocation service
 service Chaincode {
+    // Exec: Query or Invoke
+    rpc Exec (ChaincodeExec) returns (protos.ProposalResponse);
     // Query chaincode on home peer. Do NOT send to orderer.
     rpc Query (ChaincodeInput) returns (protos.ProposalResponse);
     // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
