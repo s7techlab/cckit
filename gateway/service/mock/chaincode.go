@@ -24,37 +24,34 @@ type (
 
 	ChaincodeService struct {
 		// channel name -> chaincode name
-		ChannelCC       Channels
-		m               sync.Mutex
-		ResponseMutator ResponseMutator
+		ChannelCC Channels
+		m         sync.Mutex
+		Invoker   ChaincodeInvoker
 	}
 
-	// ResponseMutator allows to imitate peer errors or unavailability
-	ResponseMutator func(in *service.ChaincodeExec, r peer.Response) (peer.Response, error)
+	// ChaincodeInvoker allows to imitate peer errors or unavailability
+	ChaincodeInvoker func(ctx context.Context, mockStub *testing.MockStub, in *service.ChaincodeExec) *peer.Response
 )
 
 func New() *ChaincodeService {
 	return &ChaincodeService{
 		ChannelCC: make(Channels),
+		Invoker:   DefaultInvoker,
 	}
 }
 
-func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec) (*peer.ProposalResponse, error) {
+func DefaultInvoker(ctx context.Context, mockStub *testing.MockStub, in *service.ChaincodeExec) *peer.Response {
 	var (
-		mockStub *testing.MockStub
 		signer   msp.SigningIdentity
 		response peer.Response
 		err      error
 	)
 
-	cs.m.Lock()
-	defer cs.m.Unlock()
-
-	if mockStub, err = cs.Chaincode(in.Input.Channel, in.Input.Chaincode); err != nil {
-		return nil, err
-	}
 	if signer, err = service.SignerFromContext(ctx); err != nil {
-		return nil, err
+		return &peer.Response{
+			Status:  shim.ERROR,
+			Message: `signer is not defined in context`,
+		}
 	}
 
 	mockStub.From(signer).WithTransient(in.Input.Transient)
@@ -64,14 +61,30 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec)
 	} else if in.Type == service.InvocationType_INVOKE {
 		response = mockStub.InvokeBytes(in.Input.Args...)
 	} else {
-		return nil, service.ErrUnknownInvocationType
-	}
-
-	if cs.ResponseMutator != nil {
-		if response, err = cs.ResponseMutator(in, response); err != nil {
-			return nil, err
+		return &peer.Response{
+			Status:  shim.ERROR,
+			Message: service.ErrUnknownInvocationType.Error(),
 		}
 	}
+
+	return &response
+}
+
+func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec) (*peer.ProposalResponse, error) {
+	var (
+		mockStub *testing.MockStub
+		response *peer.Response
+		err      error
+	)
+
+	cs.m.Lock()
+	defer cs.m.Unlock()
+
+	if mockStub, err = cs.Chaincode(in.Input.Channel, in.Input.Chaincode); err != nil {
+		return nil, err
+	}
+
+	response = cs.Invoker(ctx, mockStub, in)
 
 	if response.Status == shim.ERROR {
 		return nil, errors.New(response.Message)
@@ -80,7 +93,7 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec)
 	return &peer.ProposalResponse{
 		Version:   MessageProtocolVersion,
 		Timestamp: mockStub.TxTimestamp,
-		Response:  &response,
+		Response:  response,
 	}, nil
 }
 
@@ -93,7 +106,7 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *service.ChaincodeInpu
 
 func (cs *ChaincodeService) Invoke(ctx context.Context, in *service.ChaincodeInput) (proposalResponse *peer.ProposalResponse, err error) {
 	return cs.Exec(ctx, &service.ChaincodeExec{
-		Type:  service.InvocationType_QUERY,
+		Type:  service.InvocationType_INVOKE,
 		Input: in,
 	})
 }

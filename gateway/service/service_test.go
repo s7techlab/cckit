@@ -53,7 +53,7 @@ var _ = Describe(`Service`, func() {
 	})
 
 	It("Allow to imitate error while access to peer", func() {
-		cPaperService.ResponseMutator = mock.ResponseError
+		cPaperService.Invoker = mock.FailChaincode(ChaincodeName)
 
 		_, err := cPaperGateway.List(ctx, &empty.Empty{})
 		Expect(err).To(HaveOccurred())

@@ -24,6 +24,16 @@ func New(sdk api.Core) *ChaincodeService {
 	return &ChaincodeService{sdk: sdk}
 }
 
+func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.ProposalResponse, error) {
+	if in.Type == InvocationType_QUERY {
+		return cs.Query(ctx, in.Input)
+	} else if in.Type == InvocationType_INVOKE {
+		return cs.Invoke(ctx, in.Input)
+	} else {
+		return nil, ErrUnknownInvocationType
+	}
+}
+
 func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
 	signer, err := SignerFromContext(ctx)
 	if err != nil {
