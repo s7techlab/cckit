@@ -12,6 +12,8 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/service"
+	"github.com/s7techlab/cckit/extensions/owner"
+	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	"github.com/s7techlab/cckit/testing/expect"
 )
@@ -26,6 +28,10 @@ var (
 
 	// service testing util
 	hdl, ctx = testcc.NewTxHandler(`Commercial paper`)
+
+	// actors
+	Issuer = idtestdata.Identities[0]
+	Buyer  = idtestdata.Identities[1]
 
 	// payloads
 	id = &schema.CommercialPaperId{
@@ -72,20 +78,26 @@ var (
 
 var _ = Describe(`Commercial paper service`, func() {
 
+	It("Allow to init", func() {
+		expect.TxResult(hdl.From(Issuer).Init(func() (interface{}, error) {
+			return owner.SetFromCreator(ctx)
+		})).HasError(nil)
+	})
+
 	It("Allow issuer to issue new commercial paper", func() {
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.From(Issuer).Invoke(func() (interface{}, error) {
 			return CPaper.Issue(ctx, issue)
 		})).Is(cpaperInState)
 	})
 
 	It("Allow issuer to get commercial paper by composite primary key", func() {
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.Invoke(func() (interface{}, error) {
 			return CPaper.Get(ctx, id)
 		})).Is(cpaperInState)
 	})
 
 	It("Allow issuer to get commercial paper by unique key", func() {
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.Invoke(func() (interface{}, error) {
 			return CPaper.GetByExternalId(ctx, &schema.ExternalId{
 				Id: issue.ExternalId,
 			})
@@ -93,7 +105,7 @@ var _ = Describe(`Commercial paper service`, func() {
 	})
 
 	It("Allow issuer to get a list of commercial papers", func() {
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.Invoke(func() (interface{}, error) {
 			return CPaper.List(ctx, &empty.Empty{})
 		})).Is(&schema.CommercialPaperList{
 			Items: []*schema.CommercialPaper{cpaperInState},
@@ -101,7 +113,7 @@ var _ = Describe(`Commercial paper service`, func() {
 	})
 
 	It("Allow buyer to buy commercial paper", func() {
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.From(Buyer).Invoke(func() (interface{}, error) {
 			return CPaper.Buy(ctx, buy)
 		})).ProduceEvent(`BuyCommercialPaper`, buy)
 
@@ -109,30 +121,30 @@ var _ = Describe(`Commercial paper service`, func() {
 		newState.Owner = buy.NewOwner
 		newState.State = schema.CommercialPaper_TRADING
 
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.Invoke(func() (interface{}, error) {
 			return CPaper.Get(ctx, id)
 		})).Is(newState)
 	})
 
 	It("Allow buyer to redeem commercial paper", func() {
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.Invoke(func() (interface{}, error) {
 			return CPaper.Redeem(ctx, redeem)
 		})).ProduceEvent(`RedeemCommercialPaper`, redeem)
 
 		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
 		newState.State = schema.CommercialPaper_REDEEMED
 
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.Invoke(func() (interface{}, error) {
 			return CPaper.Get(ctx, id)
 		})).Is(newState)
 	})
 
 	It("Allow issuer to delete commercial paper", func() {
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.From(Issuer).Invoke(func() (interface{}, error) {
 			return CPaper.Delete(ctx, id)
 		}))
 
-		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+		expect.TxResult(hdl.Invoke(func() (interface{}, error) {
 			return CPaper.List(ctx, &empty.Empty{})
 		})).Is(&schema.CommercialPaperList{
 			Items: []*schema.CommercialPaper{},

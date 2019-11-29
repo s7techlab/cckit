@@ -17,8 +17,6 @@ type (
 		Err    error
 		Event  *peer.ChaincodeEvent
 	}
-
-	TxMiddleware func(*TxResult)
 )
 
 func NewTxHandler(name string) (*TxHandler, router.Context) {
@@ -33,8 +31,16 @@ func NewTxHandler(name string) (*TxHandler, router.Context) {
 		router.NewContext(mockStub, logger)
 }
 
-func (p *TxHandler) Exec(
-	txHdl func() (interface{}, error), middleware ...TxMiddleware) *TxResult {
+func (p *TxHandler) From(creator ...interface{}) *TxHandler {
+	p.MockStub.From(creator...)
+	return p
+}
+
+func (p *TxHandler) Init(txHdl func() (interface{}, error)) *TxResult {
+	return p.Invoke(txHdl)
+}
+
+func (p *TxHandler) Invoke(txHdl func() (interface{}, error)) *TxResult {
 	uuid := p.MockStub.generateTxUID()
 
 	p.MockStub.MockTransactionStart(uuid)
@@ -45,9 +51,6 @@ func (p *TxHandler) Exec(
 		Result: res,
 		Err:    err,
 		Event:  p.MockStub.ChaincodeEvent,
-	}
-	for _, m := range middleware {
-		m(txRes)
 	}
 
 	return txRes
