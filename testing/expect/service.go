@@ -10,16 +10,16 @@ type (
 		String() string
 	}
 
-	TxResult struct {
+	txResult struct {
 		*testing.TxResult
 	}
 )
 
-func SvcResponse(res *testing.TxResult) *TxResult {
-	return &TxResult{TxResult: res}
+func TxResult(res *testing.TxResult) *txResult {
+	return &txResult{TxResult: res}
 }
 
-func (r *TxResult) HasError(err error) *TxResult {
+func (r *txResult) HasError(err error) *txResult {
 	if err == nil {
 		g.Expect(r.Err).NotTo(g.HaveOccurred())
 	} else {
@@ -28,7 +28,7 @@ func (r *TxResult) HasError(err error) *TxResult {
 	return r
 }
 
-func (r *TxResult) Is(expectedResult interface{}) *TxResult {
+func (r *txResult) Is(expectedResult interface{}) *txResult {
 	r.HasError(nil)
 
 	_, ok1 := r.Result.(Stringer)
@@ -42,7 +42,7 @@ func (r *TxResult) Is(expectedResult interface{}) *TxResult {
 	return r
 }
 
-func (r *TxResult) ProduceEvent(eventName string, eventPayload interface{}) {
+func (r *txResult) ProduceEvent(eventName string, eventPayload interface{}) {
 	r.HasError(nil)
 	EventIs(r.Event, eventName, eventPayload)
 }

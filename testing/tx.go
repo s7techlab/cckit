@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	CCService struct {
+	TxHandler struct {
 		MockStub *MockStub
 		Logger   *shim.ChaincodeLogger
 	}
@@ -21,26 +21,31 @@ type (
 	TxMiddleware func(*TxResult)
 )
 
-func NewCCService(name string) *CCService {
-	return &CCService{
-		MockStub: NewMockStub(name, nil),
-		Logger:   router.NewLogger(name),
-	}
+func NewTxHandler(name string) (*TxHandler, router.Context) {
+	var (
+		mockStub = NewMockStub(name, nil)
+		logger   = router.NewLogger(name)
+	)
+	return &TxHandler{
+			MockStub: mockStub,
+			Logger:   logger,
+		},
+		router.NewContext(mockStub, logger)
 }
 
-func (p *CCService) Context() router.Context {
-	return router.NewContext(p.MockStub, p.Logger)
-}
-
-func (p *CCService) Exec(
-	txHdl func(ctx router.Context) (interface{}, error), middleware ...TxMiddleware) *TxResult {
+func (p *TxHandler) Exec(
+	txHdl func() (interface{}, error), middleware ...TxMiddleware) *TxResult {
 	uuid := p.MockStub.generateTxUID()
 
 	p.MockStub.MockTransactionStart(uuid)
-	res, err := txHdl(p.Context())
+	res, err := txHdl()
 	p.MockStub.MockTransactionEnd(uuid)
 
-	txRes := &TxResult{Result: res, Err: err, Event: p.MockStub.ChaincodeEvent}
+	txRes := &TxResult{
+		Result: res,
+		Err:    err,
+		Event:  p.MockStub.ChaincodeEvent,
+	}
 	for _, m := range middleware {
 		m(txRes)
 	}

@@ -12,7 +12,6 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/service"
-	"github.com/s7techlab/cckit/router"
 	testcc "github.com/s7techlab/cckit/testing"
 	"github.com/s7techlab/cckit/testing/expect"
 )
@@ -23,8 +22,12 @@ func TestCommercialPaperService(t *testing.T) {
 }
 
 var (
-	CPaperSvc = service.New()
+	CPaper = service.New()
 
+	// service testing util
+	hdl, ctx = testcc.NewTxHandler(`Commercial paper`)
+
+	// payloads
 	id = &schema.CommercialPaperId{
 		Issuer:      "SomeIssuer",
 		PaperNumber: "0001",
@@ -65,74 +68,72 @@ var (
 		MaturityDate: issue.MaturityDate,
 		ExternalId:   issue.ExternalId,
 	}
-
-	cc = testcc.NewCCService(`Commercial paper`)
 )
 
 var _ = Describe(`Commercial paper service`, func() {
 
 	It("Allow issuer to issue new commercial paper", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Issue(ctx, issue)
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.Issue(ctx, issue)
 		})).Is(cpaperInState)
 	})
 
 	It("Allow issuer to get commercial paper by composite primary key", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Get(ctx, id)
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.Get(ctx, id)
 		})).Is(cpaperInState)
 	})
 
 	It("Allow issuer to get commercial paper by unique key", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.GetByExternalId(ctx, &schema.ExternalId{
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.GetByExternalId(ctx, &schema.ExternalId{
 				Id: issue.ExternalId,
 			})
 		})).Is(cpaperInState)
 	})
 
 	It("Allow issuer to get a list of commercial papers", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.List(ctx, &empty.Empty{})
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.List(ctx, &empty.Empty{})
 		})).Is(&schema.CommercialPaperList{
 			Items: []*schema.CommercialPaper{cpaperInState},
 		})
 	})
 
 	It("Allow buyer to buy commercial paper", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Buy(ctx, buy)
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.Buy(ctx, buy)
 		})).ProduceEvent(`BuyCommercialPaper`, buy)
 
 		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
 		newState.Owner = buy.NewOwner
 		newState.State = schema.CommercialPaper_TRADING
 
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Get(ctx, id)
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.Get(ctx, id)
 		})).Is(newState)
 	})
 
 	It("Allow buyer to redeem commercial paper", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Redeem(ctx, redeem)
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.Redeem(ctx, redeem)
 		})).ProduceEvent(`RedeemCommercialPaper`, redeem)
 
 		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
 		newState.State = schema.CommercialPaper_REDEEMED
 
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Get(ctx, id)
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.Get(ctx, id)
 		})).Is(newState)
 	})
 
 	It("Allow issuer to delete commercial paper", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Delete(ctx, id)
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.Delete(ctx, id)
 		}))
 
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.List(ctx, &empty.Empty{})
+		expect.TxResult(hdl.Exec(func() (interface{}, error) {
+			return CPaper.List(ctx, &empty.Empty{})
 		})).Is(&schema.CommercialPaperList{
 			Items: []*schema.CommercialPaper{},
 		})
