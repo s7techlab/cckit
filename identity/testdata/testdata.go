@@ -27,14 +27,15 @@ var (
 	}, {
 		CertFilename: `victor-nosov.pem`, PKeyFilename: `victor-nosov.key.pem`,
 	}}
-
-	Identities = make([]*identity.CertIdentity, len(Certificates))
 )
 
-func init() {
+func MustIdentities(cc []*Cert) []*identity.CertIdentity {
+	ii := make([]*identity.CertIdentity, len(cc))
 	for i, c := range Certificates {
-		Identities[i] = c.MustIdentity(DefaultMSP)
+		ii[i] = c.MustIdentity(DefaultMSP)
 	}
+
+	return ii
 }
 
 func ReadFile(filename string) ([]byte, error) {
