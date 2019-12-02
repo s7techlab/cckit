@@ -1,25 +1,23 @@
 package cpaper_extended_test
 
 import (
-	"io/ioutil"
 	"testing"
 	"time"
 
-	"github.com/s7techlab/cckit/examples/cpaper_extended"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/s7techlab/cckit/examples/cpaper_extended"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/schema"
+	"github.com/s7techlab/cckit/examples/cpaper_extended/testdata"
+	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 const (
-	MspName = "msp"
-
 	IssuerName = "SomeIssuer"
 	BuyerName  = "SomeBuyer"
 )
@@ -39,14 +37,9 @@ var _ = Describe(`CommercialPaper`, func() {
 
 	BeforeSuite(func() {
 		// Init chaincode with admin identity
-
-		adminIdentity, err := testcc.IdentityFromFile(MspName, `testdata/admin.pem`, ioutil.ReadFile)
-		Expect(err).NotTo(HaveOccurred())
-
+		adminIdentity := testdata.Certificates[0].MustIdentity(idtestdata.DefaultMSP)
 		expectcc.ResponseOk(
-			paperChaincode.
-				From(adminIdentity).
-				Init())
+			paperChaincode.From(adminIdentity).Init())
 	})
 
 	Describe("Commercial Paper lifecycle", func() {

@@ -3,7 +3,6 @@ package testdata
 import (
 	"crypto/ecdsa"
 	"crypto/x509"
-	"errors"
 	"io/ioutil"
 	"path"
 	"runtime"
@@ -14,44 +13,71 @@ import (
 
 const DefaultMSP = `SOME_MSP`
 
-type Cert struct {
-	CertFilename string
-	PKeyFilename string
+type (
+	FileReader func(filename string) ([]byte, error)
+
+	// Cert certificate data for testing
+	Cert struct {
+		CertFilename string
+		PKeyFilename string
+		readFile     FileReader
+	}
+
+	Certs []*Cert
+)
+
+func (cc Certs) UseReadFile(readFile FileReader) Certs {
+	for _, c := range cc {
+		c.readFile = readFile
+	}
+	return cc
 }
 
 var (
-	Certificates = []*Cert{{
+	Certificates = Certs{{
 		CertFilename: `s7techlab.pem`, PKeyFilename: `s7techlab.key.pem`,
 	}, {
 		CertFilename: `some-person.pem`, PKeyFilename: `some-person.key.pem`,
 	}, {
 		CertFilename: `victor-nosov.pem`, PKeyFilename: `victor-nosov.key.pem`,
-	}}
+	}}.
+		UseReadFile(ReadLocal())
 )
 
-func MustIdentities(cc []*Cert) []*identity.CertIdentity {
+func ReadLocal() func(filename string) ([]byte, error) {
+	_, curFile, _, ok := runtime.Caller(1)
+	path := path.Dir(curFile)
+	if !ok {
+		return nil
+	}
+	return func(filename string) ([]byte, error) {
+		return ioutil.ReadFile(path + "/" + filename)
+	}
+}
+
+func MustIdentities(cc []*Cert, mspId string) []*identity.CertIdentity {
 	ii := make([]*identity.CertIdentity, len(cc))
 	for i, c := range Certificates {
-		ii[i] = c.MustIdentity(DefaultMSP)
+		ii[i] = c.MustIdentity(mspId)
 	}
 
 	return ii
 }
 
-func ReadFile(filename string) ([]byte, error) {
-	_, curFile, _, ok := runtime.Caller(0)
-	if !ok {
-		return nil, errors.New(`can't load file, error accessing runtime caller'`)
+func (c *Cert) MustIdentity(mspID string) *identity.CertIdentity {
+	id, err := c.Identity(mspID)
+	if err != nil {
+		panic(err)
 	}
-	return ioutil.ReadFile(path.Dir(curFile) + "/" + filename)
+	return id
 }
 
 func (c *Cert) CertBytes() ([]byte, error) {
-	return ReadFile(`./` + c.CertFilename)
+	return c.readFile(`./` + c.CertFilename)
 }
 
 func (c *Cert) PKeyBytes() ([]byte, error) {
-	return ReadFile(`./` + c.PKeyFilename)
+	return c.readFile(`./` + c.PKeyFilename)
 }
 
 func (c *Cert) MustCertBytes() []byte {
@@ -90,14 +116,6 @@ func (c *Cert) SigningIdentity(mspID string) (*identity.CertIdentity, error) {
 func (c *Cert) MustSigningIdentity(mspID string) *identity.CertIdentity {
 	bb := c.MustCertBytes()
 	return testing.MustIdentityFromPem(mspID, bb)
-}
-
-func (c *Cert) MustIdentity(mspID string) *identity.CertIdentity {
-	id, err := c.Identity(mspID)
-	if err != nil {
-		panic(err)
-	}
-	return id
 }
 
 func (c *Cert) Cert() (*x509.Certificate, error) {

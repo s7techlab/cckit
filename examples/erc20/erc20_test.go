@@ -18,7 +18,7 @@ func TestCars(t *testing.T) {
 }
 
 var (
-	ids = idtestdata.MustIdentities(idtestdata.Certificates)
+	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
 
 	// load actor certificates
 	TokenOwner     = ids[0]

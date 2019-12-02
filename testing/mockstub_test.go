@@ -21,7 +21,7 @@ func TestMockstub(t *testing.T) {
 }
 
 var (
-	ids = idtestdata.MustIdentities(idtestdata.Certificates)
+	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
 
 	Authority = ids[0]
 	Someone   = ids[1]
