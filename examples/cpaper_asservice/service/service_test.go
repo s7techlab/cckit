@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/s7techlab/cckit/testing/gomega"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -98,11 +99,13 @@ var _ = Describe(`Commercial paper service`, func() {
 	})
 
 	It("Allow issuer to get commercial paper by unique key", func() {
-		expect.TxResult(hdl.Invoke(func() (interface{}, error) {
+		res := expect.TxResult(hdl.Invoke(func() (interface{}, error) {
 			return CPaper.GetByExternalId(ctx, &schema.ExternalId{
 				Id: issue.ExternalId,
 			})
-		})).Is(cpaperInState)
+		}))
+
+		Expect(res.Result).To(StringerEqual(cpaperInState))
 	})
 
 	It("Allow issuer to get a list of commercial papers", func() {
