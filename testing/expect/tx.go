@@ -3,8 +3,8 @@ package expect
 import (
 	"fmt"
 
+	"github.com/hyperledger/fabric/protos/peer"
 	g "github.com/onsi/gomega"
-	"github.com/s7techlab/cckit/testing"
 )
 
 type (
@@ -12,16 +12,14 @@ type (
 		String() string
 	}
 
-	txResult struct {
-		*testing.TxResult
+	TxRes struct {
+		Result interface{}
+		Err    error
+		Event  *peer.ChaincodeEvent
 	}
 )
 
-func TxResult(res *testing.TxResult) *txResult {
-	return &txResult{TxResult: res}
-}
-
-func (r *txResult) HasError(err interface{}) *txResult {
+func (r *TxRes) HasError(err interface{}) *TxRes {
 	if err == nil {
 		g.Expect(r.Err).NotTo(g.HaveOccurred())
 	} else {
@@ -31,7 +29,7 @@ func (r *txResult) HasError(err interface{}) *txResult {
 	return r
 }
 
-func (r *txResult) Is(expectedResult interface{}) *txResult {
+func (r *TxRes) Is(expectedResult interface{}) *TxRes {
 	r.HasError(nil)
 
 	_, ok1 := r.Result.(Stringer)
@@ -45,7 +43,7 @@ func (r *txResult) Is(expectedResult interface{}) *txResult {
 	return r
 }
 
-func (r *txResult) ProduceEvent(eventName string, eventPayload interface{}) {
+func (r *TxRes) ProduceEvent(eventName string, eventPayload interface{}) {
 	r.HasError(nil)
 	EventIs(r.Event, eventName, eventPayload)
 }

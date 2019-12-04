@@ -5,6 +5,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/router"
+	"github.com/s7techlab/cckit/testing/expect"
 )
 
 type (
@@ -59,4 +60,12 @@ func (p *TxHandler) Invoke(txHdl func() (interface{}, error)) *TxResult {
 
 func (p *TxHandler) TxTimestamp() *timestamp.Timestamp {
 	return p.MockStub.TxTimestamp
+}
+
+func (r *TxResult) Expect() *expect.TxRes {
+	return &expect.TxRes{
+		Result: r.Result,
+		Err:    r.Err,
+		Event:  r.Event,
+	}
 }
