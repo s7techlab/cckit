@@ -1,6 +1,8 @@
 package expect
 
 import (
+	"fmt"
+
 	g "github.com/onsi/gomega"
 	"github.com/s7techlab/cckit/testing"
 )
@@ -19,11 +21,12 @@ func TxResult(res *testing.TxResult) *txResult {
 	return &txResult{TxResult: res}
 }
 
-func (r *txResult) HasError(err error) *txResult {
+func (r *txResult) HasError(err interface{}) *txResult {
 	if err == nil {
 		g.Expect(r.Err).NotTo(g.HaveOccurred())
 	} else {
-		g.Expect(r.Err).To(g.Equal(err))
+		g.Expect(fmt.Sprintf(`%s`, r.Err)).To(g.HavePrefix(fmt.Sprintf(`%s`, err)))
+		//g.Expect(errors.Is(r.Err, err))
 	}
 	return r
 }
