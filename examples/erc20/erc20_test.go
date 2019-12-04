@@ -12,9 +12,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestCars(t *testing.T) {
+func TestErc20(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cars Suite")
+	RunSpecs(t, "ERC-20 Suite")
 }
 
 var (
