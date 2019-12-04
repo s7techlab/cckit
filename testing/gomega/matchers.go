@@ -10,3 +10,9 @@ func StringerEqual(expected interface{}) types.GomegaMatcher {
 		Expected: expected,
 	}
 }
+
+func ErrorIs(expected interface{}) types.GomegaMatcher {
+	return &matchers.ErrorIslMatcher{
+		Expected: expected,
+	}
+}

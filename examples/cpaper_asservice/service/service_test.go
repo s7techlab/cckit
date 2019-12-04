@@ -15,6 +15,7 @@ import (
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/extensions/owner"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
+	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 )
 
@@ -91,6 +92,14 @@ var _ = Describe(`Commercial paper service`, func() {
 		})
 	})
 
+	It("Disallow issuer to issue same commercial paper", func() {
+		hdl.From(Issuer).Tx(func() {
+			_, err := CPaper.Issue(ctx, issue)
+
+			Expect(err).To(ErrorIs(state.ErrKeyAlreadyExists))
+		})
+	})
+
 	It("Allow issuer to get commercial paper by composite primary key", func() {
 		hdl.Tx(func() {
 			hdl.SvcExpect(CPaper.Get(ctx, id)).Is(cpaperInState)
@@ -121,7 +130,9 @@ var _ = Describe(`Commercial paper service`, func() {
 
 	It("Allow buyer to buy commercial paper", func() {
 		hdl.From(Buyer).Tx(func() {
-			hdl.SvcExpect(CPaper.Buy(ctx, buy)).ProduceEvent(`BuyCommercialPaper`, buy)
+			hdl.SvcExpect(CPaper.Buy(ctx, buy)).
+				// Produce Event - no error also
+				ProduceEvent(`BuyCommercialPaper`, buy)
 		})
 
 		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
