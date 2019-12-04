@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/router"
@@ -54,4 +55,8 @@ func (p *TxHandler) Invoke(txHdl func() (interface{}, error)) *TxResult {
 	}
 
 	return txRes
+}
+
+func (p *TxHandler) TxTimestamp() *timestamp.Timestamp {
+	return p.MockStub.TxTimestamp
 }
