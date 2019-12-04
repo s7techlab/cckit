@@ -42,11 +42,19 @@ func (p *TxHandler) Init(txHdl func() (interface{}, error)) *TxResult {
 	return p.Invoke(txHdl)
 }
 
-func (p *TxHandler) Invoke(txHdl func() (interface{}, error)) *TxResult {
+func (p *TxHandler) Tx(tx func()) {
 	uuid := p.MockStub.generateTxUID()
 
 	p.MockStub.MockTransactionStart(uuid)
-	res, err := txHdl()
+	tx()
+	p.MockStub.MockTransactionEnd(uuid)
+}
+
+func (p *TxHandler) Invoke(invoke func() (interface{}, error)) *TxResult {
+	uuid := p.MockStub.generateTxUID()
+
+	p.MockStub.MockTransactionStart(uuid)
+	res, err := invoke()
 	p.MockStub.MockTransactionEnd(uuid)
 
 	txRes := &TxResult{
@@ -56,6 +64,14 @@ func (p *TxHandler) Invoke(txHdl func() (interface{}, error)) *TxResult {
 	}
 
 	return txRes
+}
+
+func (p *TxHandler) SvcExpect(res interface{}, err error) *expect.TxRes {
+	return &expect.TxRes{
+		Result: res,
+		Err:    err,
+		Event:  p.MockStub.ChaincodeEvent,
+	}
 }
 
 func (p *TxHandler) TxTimestamp() *timestamp.Timestamp {

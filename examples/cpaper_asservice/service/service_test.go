@@ -86,50 +86,55 @@ var _ = Describe(`Commercial paper service`, func() {
 	})
 
 	It("Allow issuer to issue new commercial paper", func() {
-		hdl.From(Issuer).Invoke(func() (interface{}, error) {
-			return CPaper.Issue(ctx, issue)
-		}).Expect().Is(cpaperInState)
+		hdl.From(Issuer).Tx(func() {
+			hdl.SvcExpect(CPaper.Issue(ctx, issue)).Is(cpaperInState)
+		})
 	})
 
 	It("Allow issuer to get commercial paper by composite primary key", func() {
-		hdl.Invoke(func() (interface{}, error) {
-			return CPaper.Get(ctx, id)
-		}).Expect().Is(cpaperInState)
+		hdl.Tx(func() {
+			hdl.SvcExpect(CPaper.Get(ctx, id)).Is(cpaperInState)
+		})
 	})
 
 	It("Allow issuer to get commercial paper by unique key", func() {
-		res := hdl.Invoke(func() (interface{}, error) {
-			return CPaper.GetByExternalId(ctx, &schema.ExternalId{
+		hdl.Tx(func() {
+			res, err := CPaper.GetByExternalId(ctx, &schema.ExternalId{
 				Id: issue.ExternalId,
 			})
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(StringerEqual(cpaperInState))
 		})
 
-		Expect(res.Result).To(StringerEqual(cpaperInState))
 	})
 
 	It("Allow issuer to get a list of commercial papers", func() {
-		hdl.Invoke(func() (interface{}, error) {
-			return CPaper.List(ctx, &empty.Empty{})
-		}).Expect().Is(&schema.CommercialPaperList{
-			Items: []*schema.CommercialPaper{cpaperInState},
+		hdl.Tx(func() {
+			res, err := CPaper.List(ctx, &empty.Empty{})
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Items).To(HaveLen(1))
+			Expect(res.Items[0]).To(StringerEqual(cpaperInState))
 		})
 	})
 
 	It("Allow buyer to buy commercial paper", func() {
-		hdl.From(Buyer).Invoke(func() (interface{}, error) {
-			return CPaper.Buy(ctx, buy)
-		}).Expect().ProduceEvent(`BuyCommercialPaper`, buy)
+		hdl.From(Buyer).Tx(func() {
+			hdl.SvcExpect(CPaper.Buy(ctx, buy)).ProduceEvent(`BuyCommercialPaper`, buy)
+		})
 
 		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
 		newState.Owner = buy.NewOwner
 		newState.State = schema.CommercialPaper_TRADING
 
-		hdl.Invoke(func() (interface{}, error) {
-			return CPaper.Get(ctx, id)
-		}).Expect().Is(newState)
+		hdl.Tx(func() {
+			hdl.SvcExpect(CPaper.Get(ctx, id)).Is(newState)
+		})
 	})
 
 	It("Allow buyer to redeem commercial paper", func() {
+		// Invoke example
 		hdl.Invoke(func() (interface{}, error) {
 			return CPaper.Redeem(ctx, redeem)
 		}).Expect().ProduceEvent(`RedeemCommercialPaper`, redeem)
@@ -143,14 +148,16 @@ var _ = Describe(`Commercial paper service`, func() {
 	})
 
 	It("Allow issuer to delete commercial paper", func() {
-		hdl.From(Issuer).Invoke(func() (interface{}, error) {
-			return CPaper.Delete(ctx, id)
-		}).Expect().HasError(nil)
+		hdl.From(Issuer).Tx(func() {
+			_, err := CPaper.Delete(ctx, id)
+			Expect(err).NotTo(HaveOccurred())
+		})
 
-		hdl.Invoke(func() (interface{}, error) {
-			return CPaper.List(ctx, &empty.Empty{})
-		}).Expect().Is(&schema.CommercialPaperList{
-			Items: []*schema.CommercialPaper{},
+		hdl.Tx(func() {
+			res, err := CPaper.List(ctx, &empty.Empty{})
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Items).To(HaveLen(0))
 		})
 	})
 })
