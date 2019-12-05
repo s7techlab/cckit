@@ -74,8 +74,14 @@ func (p *TxHandler) SvcExpect(res interface{}, err error) *expect.TxRes {
 	}
 }
 
+// TxEvent returs last tx timestamp
 func (p *TxHandler) TxTimestamp() *timestamp.Timestamp {
 	return p.MockStub.TxTimestamp
+}
+
+// TxEvent returs last tx event
+func (p *TxHandler) TxEvent() *peer.ChaincodeEvent {
+	return p.MockStub.ChaincodeEvent
 }
 
 func (r *TxResult) Expect() *expect.TxRes {
