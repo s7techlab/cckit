@@ -43,7 +43,9 @@ func (r *TxRes) Is(expectedResult interface{}) *TxRes {
 	return r
 }
 
-func (r *TxRes) ProduceEvent(eventName string, eventPayload interface{}) {
+// ProduceEvent expects that tx produces event with particular payload
+func (r *TxRes) ProduceEvent(eventName string, eventPayload interface{}) *TxRes {
 	r.HasError(nil)
 	EventIs(r.Event, eventName, eventPayload)
+	return r
 }
