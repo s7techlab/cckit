@@ -1,13 +1,15 @@
 package testing
 
 import (
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/router"
+	"github.com/s7techlab/cckit/testing/expect"
 )
 
 type (
-	CCService struct {
+	TxHandler struct {
 		MockStub *MockStub
 		Logger   *shim.ChaincodeLogger
 	}
@@ -17,33 +19,75 @@ type (
 		Err    error
 		Event  *peer.ChaincodeEvent
 	}
-
-	TxMiddleware func(*TxResult)
 )
 
-func NewCCService(name string) *CCService {
-	return &CCService{
-		MockStub: NewMockStub(name, nil),
-		Logger:   router.NewLogger(name),
-	}
+func NewTxHandler(name string) (*TxHandler, router.Context) {
+	var (
+		mockStub = NewMockStub(name, nil)
+		logger   = router.NewLogger(name)
+	)
+	return &TxHandler{
+			MockStub: mockStub,
+			Logger:   logger,
+		},
+		router.NewContext(mockStub, logger)
 }
 
-func (p *CCService) Context() router.Context {
-	return router.NewContext(p.MockStub, p.Logger)
+func (p *TxHandler) From(creator ...interface{}) *TxHandler {
+	p.MockStub.From(creator...)
+	return p
 }
 
-func (p *CCService) Exec(
-	txHdl func(ctx router.Context) (interface{}, error), middleware ...TxMiddleware) *TxResult {
+func (p *TxHandler) Init(txHdl func() (interface{}, error)) *TxResult {
+	return p.Invoke(txHdl)
+}
+
+func (p *TxHandler) Tx(tx func()) {
 	uuid := p.MockStub.generateTxUID()
 
 	p.MockStub.MockTransactionStart(uuid)
-	res, err := txHdl(p.Context())
+	tx()
+	p.MockStub.MockTransactionEnd(uuid)
+}
+
+func (p *TxHandler) Invoke(invoke func() (interface{}, error)) *TxResult {
+	uuid := p.MockStub.generateTxUID()
+
+	p.MockStub.MockTransactionStart(uuid)
+	res, err := invoke()
 	p.MockStub.MockTransactionEnd(uuid)
 
-	txRes := &TxResult{Result: res, Err: err, Event: p.MockStub.ChaincodeEvent}
-	for _, m := range middleware {
-		m(txRes)
+	txRes := &TxResult{
+		Result: res,
+		Err:    err,
+		Event:  p.MockStub.ChaincodeEvent,
 	}
 
 	return txRes
+}
+
+func (p *TxHandler) SvcExpect(res interface{}, err error) *expect.TxRes {
+	return &expect.TxRes{
+		Result: res,
+		Err:    err,
+		Event:  p.MockStub.ChaincodeEvent,
+	}
+}
+
+// TxEvent returs last tx timestamp
+func (p *TxHandler) TxTimestamp() *timestamp.Timestamp {
+	return p.MockStub.TxTimestamp
+}
+
+// TxEvent returs last tx event
+func (p *TxHandler) TxEvent() *peer.ChaincodeEvent {
+	return p.MockStub.ChaincodeEvent
+}
+
+func (r *TxResult) Expect() *expect.TxRes {
+	return &expect.TxRes{
+		Result: r.Result,
+		Err:    r.Err,
+		Event:  r.Event,
+	}
 }

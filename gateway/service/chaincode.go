@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"log"
 
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/pkg/errors"
@@ -92,8 +91,6 @@ func (cs *ChaincodeService) Events(in *ChaincodeLocator, stream Chaincode_Events
 
 	for {
 		e, ok := <-events.Events()
-
-		log.Println(`event received`, e.EventName)
 		if !ok {
 			return nil
 		}
