@@ -60,7 +60,12 @@ func (s *ChaincodeEventServerStream) SendMsg(m interface{}) (err error) {
 		}
 	}
 
-	s.events <- e
+	select {
+	case <-s.context.Done():
+		return s.context.Err()
+	case s.events <- e:
+	}
+
 	return nil
 }
 
@@ -82,7 +87,6 @@ func (s *ChaincodeEventServerStream) Events() <-chan *peer.ChaincodeEvent {
 
 func (s *ChaincodeEventServerStream) Close() {
 	s.once.Do(func() {
-		close(s.events)
 		s.ready = false
 	})
 }
