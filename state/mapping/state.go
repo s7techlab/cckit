@@ -178,23 +178,21 @@ func (s *Impl) GetByUniqKey(
 }
 
 func (s *Impl) Delete(entry interface{}) error {
-	mapped, err := s.mappings.Map(entry)
-	if err != nil { // mapping is not exists
+	if !s.mappings.Exists(entry) {
 		return s.state.Delete(entry) // return as is
 	}
 
-	// Entry can be record to delete or reference to record
+	// we need full entry data fro state
+	// AND entry can be record to delete or reference to record
 	// If entry is keyer entity for another entry (reference)
-	if mapped.Mapper().KeyerFor() != nil {
-		referenceEntry, err := s.Get(entry)
-		if err != nil {
-			return err
-		}
+	entry, err := s.Get(entry)
+	if err != nil {
+		return err
+	}
 
-		mapped, err = s.mappings.Map(referenceEntry)
-		if err != nil {
-			return err
-		}
+	mapped, err := s.mappings.Map(entry)
+	if err != nil {
+		return err
 	}
 
 	keyRefs, err := mapped.Keys() // additional keys

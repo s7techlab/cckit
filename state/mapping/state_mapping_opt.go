@@ -29,13 +29,44 @@ func List(list proto.Message) StateMappingOpt {
 	}
 }
 
-func UniqKey(name string, attrs ...[]string) StateMappingOpt {
+// UniqKey defined uniq key in entity
+func UniqKey(name string, fields ...[]string) StateMappingOpt {
+	var ff []string
+	if len(fields) > 0 {
+		ff = fields[0]
+	}
+	return WithIndex(&StateIndexDef{
+		Name:     name,
+		Fields:   ff,
+		Required: true,
+		Multi:    false,
+	})
+}
+
+func WithIndex(idx *StateIndexDef) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
-		aa := []string{name}
-		if len(attrs) > 0 {
-			aa = attrs[0]
+
+		if idx.Name == `` {
+			return
 		}
-		sm.uniqKeys = append(sm.uniqKeys, &StateKeyDefinition{Name: name, Attrs: aa})
+
+		aa := []string{idx.Name}
+		if len(idx.Fields) > 0 {
+			aa = idx.Fields
+		}
+
+		var keyer InstanceMultiKeyer
+		if idx.Multi {
+			keyer = attrMultiKeyer(aa[0])
+		} else {
+			keyer = keyerAsMulti(attrsKeyer(aa))
+		}
+		_ = sm.AddIndex(&StateIndex{
+			Name:     idx.Name,
+			Uniq:     true,
+			Required: idx.Required,
+			Keyer:    keyer,
+		})
 	}
 }
 
@@ -45,7 +76,7 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 	attrs := attrsFrom(pkeySchema)
 
 	return func(sm *StateMapping, smm StateMappings) {
-		sm.primaryKeyer = attrsPKeyer(attrs)
+		sm.primaryKeyer = attrsKeyer(attrs)
 
 		//add mapping namespace for id schema same as schema
 		smm.Add(pkeySchema, StateNamespace(SchemaNamespace(sm.schema)), PKeyAttr(attrs...), KeyerFor(sm.schema))
@@ -54,7 +85,7 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 
 func PKeyAttr(attrs ...string) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
-		sm.primaryKeyer = attrsPKeyer(attrs)
+		sm.primaryKeyer = attrsKeyer(attrs)
 	}
 }
 
@@ -76,7 +107,7 @@ func PKeyConst(key state.Key) StateMappingOpt {
 // with namespace from mapping schema
 func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
-		sm.primaryKeyer = attrsPKeyer([]string{`Id`})
+		sm.primaryKeyer = attrsKeyer([]string{`Id`})
 		smm.Add(pkeySchema,
 			StateNamespace(SchemaNamespace(sm.schema)),
 			PKeyAttr(attrsFrom(pkeySchema)...),
@@ -105,35 +136,74 @@ func attrsFrom(schema interface{}) (attrs []string) {
 	return
 }
 
-func attrsPKeyer(attrs []string) InstanceKeyer {
-	return func(instance interface{}) (key state.Key, err error) {
+// attrsKeyer creates instance keyer
+func attrsKeyer(attrs []string) InstanceKeyer {
+	return func(instance interface{}) (state.Key, error) {
+		var key = state.Key{}
 		inst := reflect.Indirect(reflect.ValueOf(instance))
-		var pkey state.Key
+
 		for _, attr := range attrs {
+
 			v := inst.FieldByName(attr)
 			if !v.IsValid() {
 				return nil, fmt.Errorf(`%s: %s`, ErrFieldNotExists, attr)
 			}
 
-			if key, err = keyFromValue(v); err != nil {
+			keyPart, err := keyFromValue(v)
+			if err != nil {
 				return nil, fmt.Errorf(`key from field %s.%s: %s`, mapKey(instance), attr, err)
 			}
-			pkey = pkey.Append(key)
-		}
-		return pkey, nil
-	}
-}
-
-func keyFromValue(v reflect.Value) (key state.Key, err error) {
-	switch v.Type().String() {
-	case `string`, `int32`, `bool`:
-		return state.Key{v.String()}, nil
-	case `[]string`:
-		for i := 0; i < v.Len(); i++ {
-			key = append(key, v.Index(i).String())
+			key = key.Append(keyPart)
 		}
 		return key, nil
 	}
+}
+
+// attrMultiKeyer creates keyer based of one field and can return multiple keyss
+func attrMultiKeyer(attr string) InstanceMultiKeyer {
+	return func(instance interface{}) ([]state.Key, error) {
+		inst := reflect.Indirect(reflect.ValueOf(instance))
+
+		v := inst.FieldByName(attr)
+		if !v.IsValid() {
+			return nil, fmt.Errorf(`%s: %s`, ErrFieldNotExists, attr)
+		}
+
+		return keysFromValue(v)
+	}
+}
+
+// keyerAsMulti adapter keyer to multiKeyer
+func keyerAsMulti(keyer InstanceKeyer) InstanceMultiKeyer {
+	return func(instance interface{}) (key []state.Key, err error) {
+		k, err := keyer(instance)
+		if err != nil {
+			return nil, err
+		}
+
+		return []state.Key{k}, nil
+	}
+}
+
+// multi - returns multiple key if value type allows it
+func keysFromValue(v reflect.Value) ([]state.Key, error) {
+	var keys []state.Key
+
+	switch v.Type().String() {
+	case `[]string`:
+		for i := 0; i < v.Len(); i++ {
+			keys = append(keys, state.Key{v.Index(i).String()})
+		}
+
+	default:
+		return nil, ErrFieldTypeNotSupportedForKeyExtraction
+	}
+
+	return keys, nil
+}
+
+func keyFromValue(v reflect.Value) (state.Key, error) {
+	var key state.Key
 
 	if v.Kind() == reflect.Ptr {
 		s := reflect.ValueOf(v.Interface()).Elem().Type()
@@ -143,8 +213,25 @@ func keyFromValue(v reflect.Value) (key state.Key, err error) {
 				key = append(key, reflect.Indirect(v).Field(i).String())
 			}
 		}
+
 		return key, nil
 	}
 
-	return nil, ErrFieldTypeNotSupportedForKeyExtraction
+	switch v.Type().String() {
+
+	case `string`, `int32`, `bool`:
+		// multi key possible
+		key = state.Key{v.String()}
+
+	case `[]string`:
+		// every slice element is a part of one key
+		for i := 0; i < v.Len(); i++ {
+			key = append(key, v.Index(i).String())
+		}
+
+	default:
+		return nil, ErrFieldTypeNotSupportedForKeyExtraction
+	}
+
+	return key, nil
 }

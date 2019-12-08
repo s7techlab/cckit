@@ -3,34 +3,31 @@ package testdata
 import "github.com/s7techlab/cckit/state/mapping/testdata/schema"
 
 var (
-	ProtoIssueMocks = []schema.IssueProtoEntity{{
+	CreateEntityWithCompositeId = []*schema.CreateEntityWithCompositeId{{
 		IdFirstPart:  "A",
 		IdSecondPart: "1",
 		Name:         "Lorem",
-		ExternalId:   "EXT1",
+		Value:        1,
 	}, {
 		IdFirstPart:  "B",
 		IdSecondPart: "1",
 		Name:         "Ipsum",
-		ExternalId:   "EXT2",
+		Value:        2,
 	}, {
 		IdFirstPart:  "B",
 		IdSecondPart: "2",
 		Name:         "Dolor",
-		ExternalId:   "EXT3",
+		Value:        3,
 	}}
 
-	ProtoIssueMockExistingExternal = schema.IssueProtoEntity{
-		IdFirstPart:  "Z",
-		IdSecondPart: "1",
-		Name:         "Lorem",
-		ExternalId:   "EXT1",
-	}
-
-	ProtoIssueMockExistingPrimary = schema.IssueProtoEntity{
-		IdFirstPart:  "A",
-		IdSecondPart: "1",
-		Name:         "Lorem",
-		ExternalId:   "EXT100",
-	}
+	CreateEntityWithIndexes = []*schema.CreateEntityEntityWithIndexes{{
+		Id:         `aaa`,
+		ExternalId: `aaa_aaa`,
+		Value:      1,
+	}, {
+		Id:                  `bbb`,
+		ExternalId:          `bbb_bbb`,
+		OptionalExternalIds: []string{`bbb_opt1`, `bbb_opt2`},
+		Value:               1,
+	}}
 )

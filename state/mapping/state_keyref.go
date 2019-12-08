@@ -11,7 +11,7 @@ import (
 const KeyRefNamespace = `_idx`
 
 // KeyRefIDKeyer keyer for KeyRef entity
-var KeyRefIDKeyer = attrsPKeyer([]string{`Schema`, `Idx`, `RefKey`})
+var KeyRefIDKeyer = attrsKeyer([]string{`Schema`, `Idx`, `RefKey`})
 
 var KeyRefMapper = &StateMapping{
 	schema:       &schema.KeyRef{},

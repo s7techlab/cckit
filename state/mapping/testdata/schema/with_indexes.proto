@@ -1,0 +1,35 @@
+syntax = "proto3";
+package schema;
+
+// EntityWithIndexes
+message EntityWithIndexes {
+    string id = 1;
+    // one external id
+    string external_id = 2;
+
+    // required multiple external ids (minimum 1)
+    repeated string required_external_ids = 3;
+    // optional multiple external ids (minimum 0)
+    repeated string optional_external_ids = 4;
+
+    int32 value = 5;
+}
+
+// EntityWithIndexesList
+message EntityWithIndexesList {
+    repeated EntityWithIndexes items = 1;
+}
+
+// CreateEntityEntityWithIndexes
+message CreateEntityEntityWithIndexes {
+    string id = 1;
+    // one external id
+    string external_id = 2;
+
+    // required multiple external ids (minimum 1)
+    repeated string required_external_ids = 3;
+    // optional multiple external ids (minimum 0)
+    repeated string optional_external_ids = 4;
+
+    int32 value = 5;
+}

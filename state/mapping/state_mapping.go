@@ -30,7 +30,8 @@ type (
 	}
 
 	// InstanceKeyer returns key of an state entry instance
-	InstanceKeyer func(instance interface{}) (key state.Key, err error)
+	InstanceKeyer      func(instance interface{}) (state.Key, error)
+	InstanceMultiKeyer func(instance interface{}) ([]state.Key, error)
 
 	StateMapped interface {
 		state.KeyValue // entry key and value
@@ -40,17 +41,26 @@ type (
 	// StateMapping defines metadata for mapping from schema to state keys/values
 	StateMapping struct {
 		schema         interface{}
-		namespace      state.Key
-		keyerForSchema interface{} //schema is keyer for another schema ( for example *schema.StaffId for *schema.Staff )
-		primaryKeyer   InstanceKeyer
-		list           interface{}
-		uniqKeys       []*StateKeyDefinition
+		namespace      state.Key     // prefix for primary key
+		keyerForSchema interface{}   // schema is keyer for another schema ( for example *schema.StaffId for *schema.Staff )
+		primaryKeyer   InstanceKeyer // primary key always one
+		list           interface{}   // list schema
+		indexes        []*StateIndex // additional keys
 	}
 
-	// StateKeyDefinition
-	StateKeyDefinition struct {
-		Name  string
-		Attrs []string
+	// StateIndex additional index of entity instance
+	StateIndex struct {
+		Name     string
+		Uniq     bool
+		Required bool
+		Keyer    InstanceMultiKeyer // index can have multiple keys
+	}
+
+	StateIndexDef struct {
+		Name     string
+		Fields   []string
+		Required bool
+		Multi    bool
 	}
 
 	StateMappings map[string]*StateMapping
@@ -135,6 +145,7 @@ func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) 
 	}
 }
 
+//
 func (smm *StateMappings) IdxKey(entity interface{}, idx string, idxVal state.Key) (state.Key, error) {
 	keyMapped := NewKeyRefIDMapped(entity, idx, idxVal)
 	return keyMapped.Key()
@@ -143,6 +154,7 @@ func (smm *StateMappings) IdxKey(entity interface{}, idx string, idxVal state.Ke
 func (sm *StateMapping) Namespace() state.Key {
 	return sm.namespace
 }
+
 func (sm *StateMapping) Schema() interface{} {
 	return sm.schema
 }
@@ -163,28 +175,51 @@ func (sm *StateMapping) PrimaryKey(entity interface{}) (state.Key, error) {
 	return append(sm.namespace, key...), nil
 }
 
-func (sm *StateMapping) Keys(entity interface{}) (kv []state.KeyValue, err error) {
-	if len(sm.uniqKeys) == 0 {
-		return
+// Indexes prepares primary and additional uniq/non-uniq keys for storage
+func (sm *StateMapping) Keys(entity interface{}) ([]state.KeyValue, error) {
+	if len(sm.indexes) == 0 {
+		return nil, nil
 	}
 
-	pk, err := sm.PrimaryKey(entity)
+	pk, err := sm.PrimaryKey(entity) // primary key, all additional keys refers to primary key
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	for _, k := range sm.uniqKeys {
+	var stateKeys []state.KeyValue
+	for _, idx := range sm.indexes {
 		// uniq key attr values
-		refKey, err := attrsPKeyer(k.Attrs)(entity)
+		idxKeys, err := idx.Keyer(entity)
 		if err != nil {
-			return nil, fmt.Errorf(`uniq key %s: %s`, k.Name, err)
+			return nil, errors.Errorf(`uniq key %s: %s`, idx.Name, err)
 		}
 
-		// key will be <`_idx`,{SchemaName},{idxName}, {Key[1]},... {Key[n}}>s
-		kv = append(kv, NewKeyRefMapped(sm.schema, k.Name, refKey, pk))
+		for _, key := range idxKeys {
+			// key will be <`_idx`,{SchemaName},{idxName}, {Key[1]},... {Key[n}}>s
+			stateKeys = append(stateKeys, NewKeyRefMapped(sm.schema, idx.Name, key, pk))
+		}
 	}
 
-	return
+	return stateKeys, nil
+}
+
+func (sm *StateMapping) AddIndex(idx *StateIndex) error {
+	if exists := sm.Index(idx.Name); exists != nil {
+		return ErrIndexAlreadyExists
+	}
+
+	sm.indexes = append(sm.indexes, idx)
+	return nil
+}
+
+func (sm *StateMapping) Index(name string) *StateIndex {
+	for _, idx := range sm.indexes {
+		if idx.Name == name {
+			return idx
+		}
+	}
+
+	return nil
 }
 
 func (sm *StateMapping) KeyerFor() interface{} {

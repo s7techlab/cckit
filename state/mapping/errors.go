@@ -19,4 +19,6 @@ var (
 
 	ErrFieldNotExists         = errors.New(`field is not exists`)
 	ErrPrimaryKeyerNotDefined = errors.New(`primary keyer is not defined`)
+
+	ErrIndexAlreadyExists = errors.New(`index already exists`)
 )
