@@ -12,7 +12,7 @@ import (
 	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/gateway/service"
 	"github.com/s7techlab/cckit/gateway/service/mock"
-	"github.com/s7techlab/cckit/identity/testdata"
+	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 )
 
@@ -29,7 +29,10 @@ const (
 var (
 	cPaperService *mock.ChaincodeService
 	cPaperGateway *cpservice.CPaperGateway
-	ctx           = service.ContextWithSigner(context.Background(), testdata.Identities[0])
+
+	ctx = service.ContextWithSigner(
+		context.Background(),
+		idtestdata.Certificates[0].MustIdentity(idtestdata.DefaultMSP))
 )
 
 var _ = Describe(`Service`, func() {

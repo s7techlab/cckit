@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/s7techlab/cckit/examples/erc20"
-	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
+	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 
@@ -12,16 +12,18 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestCars(t *testing.T) {
+func TestErc20(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cars Suite")
+	RunSpecs(t, "ERC-20 Suite")
 }
 
 var (
+	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
+
 	// load actor certificates
-	TokenOwner     = identitytestdata.Identities[0]
-	AccountHolder1 = identitytestdata.Identities[1]
-	Spender1       = identitytestdata.Identities[2]
+	TokenOwner     = ids[0]
+	AccountHolder1 = ids[1]
+	Spender1       = ids[2]
 )
 var _ = Describe(`ERC-20`, func() {
 

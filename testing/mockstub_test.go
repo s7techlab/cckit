@@ -9,7 +9,7 @@ import (
 
 	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/examples/cars"
-	"github.com/s7techlab/cckit/identity/testdata"
+	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 	"github.com/s7techlab/hlf-sdk-go/api"
@@ -21,8 +21,10 @@ func TestMockstub(t *testing.T) {
 }
 
 var (
-	Authority = testdata.Identities[0]
-	Someone   = testdata.Identities[1]
+	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
+
+	Authority = ids[0]
+	Someone   = ids[1]
 )
 
 const (

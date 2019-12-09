@@ -6,15 +6,17 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/s7techlab/cckit/testing/gomega"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/service"
-	"github.com/s7techlab/cckit/router"
+	"github.com/s7techlab/cckit/extensions/owner"
+	idtestdata "github.com/s7techlab/cckit/identity/testdata"
+	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
-	"github.com/s7techlab/cckit/testing/expect"
 )
 
 func TestCommercialPaperService(t *testing.T) {
@@ -23,8 +25,17 @@ func TestCommercialPaperService(t *testing.T) {
 }
 
 var (
-	CPaperSvc = service.New()
+	CPaper = service.New()
 
+	// service testing util
+	hdl, ctx = testcc.NewTxHandler(`Commercial paper`)
+
+	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
+	// actors
+	Issuer = ids[0]
+	Buyer  = ids[1]
+
+	// payloads
 	id = &schema.CommercialPaperId{
 		Issuer:      "SomeIssuer",
 		PaperNumber: "0001",
@@ -65,76 +76,99 @@ var (
 		MaturityDate: issue.MaturityDate,
 		ExternalId:   issue.ExternalId,
 	}
-
-	cc = testcc.NewCCService(`Commercial paper`)
 )
 
 var _ = Describe(`Commercial paper service`, func() {
 
+	It("Allow to init", func() {
+		hdl.From(Issuer).Init(func() (interface{}, error) {
+			return owner.SetFromCreator(ctx)
+		}).Expect().HasError(nil)
+	})
+
 	It("Allow issuer to issue new commercial paper", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Issue(ctx, issue)
-		})).Is(cpaperInState)
+		hdl.From(Issuer).Tx(func() {
+			hdl.SvcExpect(CPaper.Issue(ctx, issue)).Is(cpaperInState)
+		})
+	})
+
+	It("Disallow issuer to issue same commercial paper", func() {
+		hdl.From(Issuer).Tx(func() {
+			_, err := CPaper.Issue(ctx, issue)
+
+			Expect(err).To(ErrorIs(state.ErrKeyAlreadyExists))
+		})
 	})
 
 	It("Allow issuer to get commercial paper by composite primary key", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Get(ctx, id)
-		})).Is(cpaperInState)
+		hdl.Tx(func() {
+			hdl.SvcExpect(CPaper.Get(ctx, id)).Is(cpaperInState)
+		})
 	})
 
 	It("Allow issuer to get commercial paper by unique key", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.GetByExternalId(ctx, &schema.ExternalId{
+		hdl.Tx(func() {
+			res, err := CPaper.GetByExternalId(ctx, &schema.ExternalId{
 				Id: issue.ExternalId,
 			})
-		})).Is(cpaperInState)
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(StringerEqual(cpaperInState))
+		})
+
 	})
 
 	It("Allow issuer to get a list of commercial papers", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.List(ctx, &empty.Empty{})
-		})).Is(&schema.CommercialPaperList{
-			Items: []*schema.CommercialPaper{cpaperInState},
+		hdl.Tx(func() {
+			res, err := CPaper.List(ctx, &empty.Empty{})
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Items).To(HaveLen(1))
+			Expect(res.Items[0]).To(StringerEqual(cpaperInState))
 		})
 	})
 
 	It("Allow buyer to buy commercial paper", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Buy(ctx, buy)
-		})).ProduceEvent(`BuyCommercialPaper`, buy)
+		hdl.From(Buyer).Tx(func() {
+			hdl.SvcExpect(CPaper.Buy(ctx, buy)).
+				// Produce Event - no error also
+				ProduceEvent(`BuyCommercialPaper`, buy)
+		})
 
 		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
 		newState.Owner = buy.NewOwner
 		newState.State = schema.CommercialPaper_TRADING
 
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Get(ctx, id)
-		})).Is(newState)
+		hdl.Tx(func() {
+			hdl.SvcExpect(CPaper.Get(ctx, id)).Is(newState)
+		})
 	})
 
 	It("Allow buyer to redeem commercial paper", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Redeem(ctx, redeem)
-		})).ProduceEvent(`RedeemCommercialPaper`, redeem)
+		// Invoke example
+		hdl.Invoke(func() (interface{}, error) {
+			return CPaper.Redeem(ctx, redeem)
+		}).Expect().ProduceEvent(`RedeemCommercialPaper`, redeem)
 
 		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
 		newState.State = schema.CommercialPaper_REDEEMED
 
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Get(ctx, id)
-		})).Is(newState)
+		hdl.Invoke(func() (interface{}, error) {
+			return CPaper.Get(ctx, id)
+		}).Expect().Is(newState)
 	})
 
 	It("Allow issuer to delete commercial paper", func() {
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.Delete(ctx, id)
-		}))
+		hdl.From(Issuer).Tx(func() {
+			_, err := CPaper.Delete(ctx, id)
+			Expect(err).NotTo(HaveOccurred())
+		})
 
-		expect.SvcResponse(cc.Exec(func(ctx router.Context) (interface{}, error) {
-			return CPaperSvc.List(ctx, &empty.Empty{})
-		})).Is(&schema.CommercialPaperList{
-			Items: []*schema.CommercialPaper{},
+		hdl.Tx(func() {
+			res, err := CPaper.List(ctx, &empty.Empty{})
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Items).To(HaveLen(0))
 		})
 	})
 })

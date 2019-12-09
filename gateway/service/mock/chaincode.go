@@ -119,13 +119,18 @@ func (cs *ChaincodeService) Events(in *service.ChaincodeLocator, stream service.
 		return
 	}
 	events := mockStub.EventSubscription()
+	ctx := stream.Context()
 	for {
-		e, ok := <-events
-		if !ok {
-			return nil
-		}
-		if err = stream.Send(e); err != nil {
-			return err
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case e, ok := <-events:
+			if !ok {
+				return nil
+			}
+			if err = stream.Send(e); err != nil {
+				return err
+			}
 		}
 	}
 }

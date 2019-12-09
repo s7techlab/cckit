@@ -1,8 +1,10 @@
 package expect
 
 import (
+	"fmt"
+
+	"github.com/hyperledger/fabric/protos/peer"
 	g "github.com/onsi/gomega"
-	"github.com/s7techlab/cckit/testing"
 )
 
 type (
@@ -10,25 +12,24 @@ type (
 		String() string
 	}
 
-	TxResult struct {
-		*testing.TxResult
+	TxRes struct {
+		Result interface{}
+		Err    error
+		Event  *peer.ChaincodeEvent
 	}
 )
 
-func SvcResponse(res *testing.TxResult) *TxResult {
-	return &TxResult{TxResult: res}
-}
-
-func (r *TxResult) HasError(err error) *TxResult {
+func (r *TxRes) HasError(err interface{}) *TxRes {
 	if err == nil {
 		g.Expect(r.Err).NotTo(g.HaveOccurred())
 	} else {
-		g.Expect(r.Err).To(g.Equal(err))
+		g.Expect(fmt.Sprintf(`%s`, r.Err)).To(g.HavePrefix(fmt.Sprintf(`%s`, err)))
+		//g.Expect(errors.Is(r.Err, err))
 	}
 	return r
 }
 
-func (r *TxResult) Is(expectedResult interface{}) *TxResult {
+func (r *TxRes) Is(expectedResult interface{}) *TxRes {
 	r.HasError(nil)
 
 	_, ok1 := r.Result.(Stringer)
@@ -42,7 +43,9 @@ func (r *TxResult) Is(expectedResult interface{}) *TxResult {
 	return r
 }
 
-func (r *TxResult) ProduceEvent(eventName string, eventPayload interface{}) {
+// ProduceEvent expects that tx produces event with particular payload
+func (r *TxRes) ProduceEvent(eventName string, eventPayload interface{}) *TxRes {
 	r.HasError(nil)
 	EventIs(r.Event, eventName, eventPayload)
+	return r
 }
