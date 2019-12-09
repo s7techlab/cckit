@@ -33,8 +33,8 @@ func NewIndexesCC() *router.Chaincode {
 		Query("get", queryByIdIndexes, defparam.String()).
 		Query("getByExternalId", queryByExternalId, defparam.String()).
 		Query("getByOptMultiExternalId", queryByOptMultiExternalId, defparam.String()).
-		Invoke("create", invokeCreateIndexes, defparam.Proto(&schema.CreateEntityEntityWithIndexes{})).
-		//Invoke("update", invokeUpdateIndexes, defparam.Proto(&schema.UpdateEntityWithCompositeId{})).
+		Invoke("create", invokeCreateIndexes, defparam.Proto(&schema.CreateEntityWithIndexes{})).
+		Invoke("update", invokeUpdateIndexes, defparam.Proto(&schema.UpdateEntityWithIndexes{})).
 		Invoke("delete", invokeDeleteIndexes, defparam.String())
 
 	return router.NewChaincode(r)
@@ -49,7 +49,7 @@ func queryListIndexes(c router.Context) (interface{}, error) {
 }
 
 func invokeCreateIndexes(c router.Context) (interface{}, error) {
-	create := c.Param().(*schema.CreateEntityEntityWithIndexes)
+	create := c.Param().(*schema.CreateEntityWithIndexes)
 	entity := &schema.EntityWithIndexes{
 		Id:                  create.Id,
 		ExternalId:          create.ExternalId,
@@ -62,8 +62,16 @@ func invokeCreateIndexes(c router.Context) (interface{}, error) {
 }
 
 func invokeUpdateIndexes(c router.Context) (interface{}, error) {
+	update := c.Param().(*schema.UpdateEntityWithIndexes)
+	entity := &schema.EntityWithIndexes{
+		Id:                  update.Id,
+		ExternalId:          update.ExternalId,
+		RequiredExternalIds: update.RequiredExternalIds,
+		OptionalExternalIds: update.OptionalExternalIds,
+		Value:               update.Value,
+	}
 
-	return nil, nil
+	return entity, c.State().Put(entity)
 }
 
 func invokeDeleteIndexes(c router.Context) (interface{}, error) {
@@ -72,12 +80,12 @@ func invokeDeleteIndexes(c router.Context) (interface{}, error) {
 
 func queryByExternalId(c router.Context) (interface{}, error) {
 	externalId := c.Param().(string)
-	return c.State().(mapping.MappedState).GetByUniqKey(
+	return c.State().(mapping.MappedState).GetByKey(
 		&schema.EntityWithIndexes{}, "ExternalId", []string{externalId})
 }
 
 func queryByOptMultiExternalId(c router.Context) (interface{}, error) {
 	externalId := c.Param().(string)
-	return c.State().(mapping.MappedState).GetByUniqKey(
+	return c.State().(mapping.MappedState).GetByKey(
 		&schema.EntityWithIndexes{}, "OptionalExternalIds", []string{externalId})
 }

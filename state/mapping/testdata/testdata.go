@@ -20,7 +20,7 @@ var (
 		Value:        3,
 	}}
 
-	CreateEntityWithIndexes = []*schema.CreateEntityEntityWithIndexes{{
+	CreateEntityWithIndexes = []*schema.CreateEntityWithIndexes{{
 		Id:         `aaa`,
 		ExternalId: `aaa_aaa`,
 		Value:      1,

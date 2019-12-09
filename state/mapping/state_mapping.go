@@ -27,6 +27,7 @@ type (
 		PrimaryKey(instance interface{}) (key state.Key, err error)
 		Keys(instance interface{}) (key []state.KeyValue, err error)
 		KeyerFor() interface{}
+		Indexes() []*StateIndex
 	}
 
 	// InstanceKeyer returns key of an state entry instance
@@ -156,6 +157,10 @@ func (sm *StateMapping) Namespace() state.Key {
 	return sm.namespace
 }
 
+func (sm *StateMapping) Indexes() []*StateIndex {
+	return sm.indexes
+}
+
 func (sm *StateMapping) Schema() interface{} {
 	return sm.schema
 }
@@ -225,4 +230,44 @@ func (sm *StateMapping) Index(name string) *StateIndex {
 
 func (sm *StateMapping) KeyerFor() interface{} {
 	return sm.keyerForSchema
+}
+
+// KeyRefsDiff calculates diff between key reference set
+func KeyRefsDiff(prevKeys []state.KeyValue, newKeys []state.KeyValue) (deleted, inserted []state.KeyValue, err error) {
+
+	var (
+		prevK = make(map[string]int)
+		newK  = make(map[string]int)
+	)
+	for i, kv := range prevKeys {
+		k, err := kv.Key()
+		if err != nil {
+			return nil, nil, errors.Wrap(err, `prev ref key`)
+		}
+
+		prevK[k.String()] = i
+	}
+
+	for i, kv := range newKeys {
+		k, err := kv.Key()
+		if err != nil {
+			return nil, nil, errors.Wrap(err, `new ref key`)
+		}
+
+		newK[k.String()] = i
+	}
+
+	for k, i := range prevK {
+		if _, ok := newK[k]; !ok {
+			deleted = append(deleted, prevKeys[i])
+		}
+	}
+
+	for k, i := range newK {
+		if _, ok := prevK[k]; !ok {
+			inserted = append(inserted, newKeys[i])
+		}
+	}
+
+	return deleted, inserted, nil
 }

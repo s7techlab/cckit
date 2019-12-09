@@ -212,7 +212,7 @@ var _ = Describe(`Mapping`, func() {
 		})
 
 		It("Disallow to add data to chaincode state with same uniq key fields", func() {
-			createWithNewId := proto.Clone(create1).(*schema.CreateEntityEntityWithIndexes)
+			createWithNewId := proto.Clone(create1).(*schema.CreateEntityWithIndexes)
 			createWithNewId.Id = `abcdef` // id is really new
 
 			// errored on checking uniq key
@@ -248,28 +248,15 @@ var _ = Describe(`Mapping`, func() {
 
 		It("Disallow finding data by non existent uniq key", func() {
 			expectcc.ResponseError(
-				indexesCC.Query(`getByExternalId`, `some-non-existent-id`), `uniq index`)
-		})
-
-		It("Allow to delete entry", func() {
-			expectcc.ResponseOk(indexesCC.Invoke(`delete`, create1.Id))
-			ee := expectcc.PayloadIs(
-				indexesCC.Invoke(`list`),
-				&schema.EntityWithIndexesList{}).(*schema.EntityWithIndexesList)
-
-			Expect(len(ee.Items)).To(Equal(0))
-			expectcc.ResponseError(indexesCC.Invoke(`get`, create1.Id), state.ErrKeyNotFound)
-		})
-
-		It("Allow to insert entry once more time", func() {
-			expectcc.ResponseOk(indexesCC.Invoke(`create`, create1))
+				indexesCC.Query(`getByExternalId`, `some-non-existent-id`),
+				mapping.ErrIndexReferenceNotFound)
 		})
 
 		It("Allow to add data with multiple external id", func() {
 			expectcc.ResponseOk(indexesCC.Invoke(`create`, create2))
 		})
 
-		It("Allow finding data by uniq key", func() {
+		It("Allow to find data by multi key", func() {
 			fromCCByExtId1 := expectcc.PayloadIs(
 				indexesCC.Query(`getByOptMultiExternalId`, create2.OptionalExternalIds[0]),
 				&schema.EntityWithIndexes{}).(*schema.EntityWithIndexes)
@@ -284,6 +271,67 @@ var _ = Describe(`Mapping`, func() {
 
 			Expect(fromCCByExtId1).To(BeEquivalentTo(fromCCById))
 			Expect(fromCCByExtId2).To(BeEquivalentTo(fromCCById))
+		})
+
+		It("Allow update indexes value", func() {
+			update2 := &schema.UpdateEntityWithIndexes{
+				Id:                  create2.Id,
+				ExternalId:          `some_new_external_id`,
+				OptionalExternalIds: []string{create2.OptionalExternalIds[0], `AND SOME NEW`},
+			}
+			expectcc.ResponseOk(indexesCC.Invoke(`update`, update2))
+		})
+
+		It("Allow to find data by updated multi key", func() {
+			fromCCByExtId1 := expectcc.PayloadIs(
+				indexesCC.Query(`getByOptMultiExternalId`, create2.OptionalExternalIds[0]),
+				&schema.EntityWithIndexes{}).(*schema.EntityWithIndexes)
+
+			fromCCByExtId2 := expectcc.PayloadIs(
+				indexesCC.Query(`getByOptMultiExternalId`, `AND SOME NEW`),
+				&schema.EntityWithIndexes{}).(*schema.EntityWithIndexes)
+
+			Expect(fromCCByExtId1.Id).To(Equal(create2.Id))
+			Expect(fromCCByExtId2.Id).To(Equal(create2.Id))
+
+			Expect(fromCCByExtId2.OptionalExternalIds).To(
+				BeEquivalentTo([]string{create2.OptionalExternalIds[0], `AND SOME NEW`}))
+		})
+
+		It("Disallow to find data by previous multi key", func() {
+			expectcc.ResponseError(
+				indexesCC.Query(`getByOptMultiExternalId`, create2.OptionalExternalIds[1]),
+				mapping.ErrIndexReferenceNotFound)
+		})
+
+		It("Allow to find data by updated uniq key", func() {
+			fromCCByExtId := expectcc.PayloadIs(
+				indexesCC.Query(`getByExternalId`, `some_new_external_id`),
+				&schema.EntityWithIndexes{}).(*schema.EntityWithIndexes)
+
+			Expect(fromCCByExtId.Id).To(Equal(create2.Id))
+			Expect(fromCCByExtId.ExternalId).To(Equal(`some_new_external_id`))
+		})
+
+		It("Disallow to find data by previous uniq key", func() {
+			expectcc.ResponseError(
+				indexesCC.Query(`getByExternalId`, create2.ExternalId),
+				mapping.ErrIndexReferenceNotFound)
+		})
+
+		It("Allow to delete entry", func() {
+			expectcc.ResponseOk(indexesCC.Invoke(`delete`, create2.Id))
+
+			ee := expectcc.PayloadIs(
+				indexesCC.Invoke(`list`),
+				&schema.EntityWithIndexesList{}).(*schema.EntityWithIndexesList)
+
+			Expect(len(ee.Items)).To(Equal(1))
+			expectcc.ResponseError(indexesCC.Invoke(`get`, create2.Id), state.ErrKeyNotFound)
+		})
+
+		It("Allow to insert entry once more time", func() {
+			expectcc.ResponseOk(indexesCC.Invoke(`create`, create2))
 		})
 
 	})

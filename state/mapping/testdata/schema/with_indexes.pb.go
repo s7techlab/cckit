@@ -135,8 +135,8 @@ func (m *EntityWithIndexesList) GetItems() []*EntityWithIndexes {
 	return nil
 }
 
-// CreateEntityEntityWithIndexes
-type CreateEntityEntityWithIndexes struct {
+// CreateEntityWithIndexes
+type CreateEntityWithIndexes struct {
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// one external id
 	ExternalId string `protobuf:"bytes,2,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
@@ -150,60 +150,135 @@ type CreateEntityEntityWithIndexes struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateEntityEntityWithIndexes) Reset()         { *m = CreateEntityEntityWithIndexes{} }
-func (m *CreateEntityEntityWithIndexes) String() string { return proto.CompactTextString(m) }
-func (*CreateEntityEntityWithIndexes) ProtoMessage()    {}
-func (*CreateEntityEntityWithIndexes) Descriptor() ([]byte, []int) {
+func (m *CreateEntityWithIndexes) Reset()         { *m = CreateEntityWithIndexes{} }
+func (m *CreateEntityWithIndexes) String() string { return proto.CompactTextString(m) }
+func (*CreateEntityWithIndexes) ProtoMessage()    {}
+func (*CreateEntityWithIndexes) Descriptor() ([]byte, []int) {
 	return fileDescriptor_fd22c1b92282e067, []int{2}
 }
 
-func (m *CreateEntityEntityWithIndexes) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateEntityEntityWithIndexes.Unmarshal(m, b)
+func (m *CreateEntityWithIndexes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateEntityWithIndexes.Unmarshal(m, b)
 }
-func (m *CreateEntityEntityWithIndexes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateEntityEntityWithIndexes.Marshal(b, m, deterministic)
+func (m *CreateEntityWithIndexes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateEntityWithIndexes.Marshal(b, m, deterministic)
 }
-func (m *CreateEntityEntityWithIndexes) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateEntityEntityWithIndexes.Merge(m, src)
+func (m *CreateEntityWithIndexes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateEntityWithIndexes.Merge(m, src)
 }
-func (m *CreateEntityEntityWithIndexes) XXX_Size() int {
-	return xxx_messageInfo_CreateEntityEntityWithIndexes.Size(m)
+func (m *CreateEntityWithIndexes) XXX_Size() int {
+	return xxx_messageInfo_CreateEntityWithIndexes.Size(m)
 }
-func (m *CreateEntityEntityWithIndexes) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateEntityEntityWithIndexes.DiscardUnknown(m)
+func (m *CreateEntityWithIndexes) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateEntityWithIndexes.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateEntityEntityWithIndexes proto.InternalMessageInfo
+var xxx_messageInfo_CreateEntityWithIndexes proto.InternalMessageInfo
 
-func (m *CreateEntityEntityWithIndexes) GetId() string {
+func (m *CreateEntityWithIndexes) GetId() string {
 	if m != nil {
 		return m.Id
 	}
 	return ""
 }
 
-func (m *CreateEntityEntityWithIndexes) GetExternalId() string {
+func (m *CreateEntityWithIndexes) GetExternalId() string {
 	if m != nil {
 		return m.ExternalId
 	}
 	return ""
 }
 
-func (m *CreateEntityEntityWithIndexes) GetRequiredExternalIds() []string {
+func (m *CreateEntityWithIndexes) GetRequiredExternalIds() []string {
 	if m != nil {
 		return m.RequiredExternalIds
 	}
 	return nil
 }
 
-func (m *CreateEntityEntityWithIndexes) GetOptionalExternalIds() []string {
+func (m *CreateEntityWithIndexes) GetOptionalExternalIds() []string {
 	if m != nil {
 		return m.OptionalExternalIds
 	}
 	return nil
 }
 
-func (m *CreateEntityEntityWithIndexes) GetValue() int32 {
+func (m *CreateEntityWithIndexes) GetValue() int32 {
+	if m != nil {
+		return m.Value
+	}
+	return 0
+}
+
+// UpdateEntityEntityWithIndexes
+type UpdateEntityWithIndexes struct {
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// one external id
+	ExternalId string `protobuf:"bytes,2,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	// required multiple external ids (minimum 1)
+	RequiredExternalIds []string `protobuf:"bytes,3,rep,name=required_external_ids,json=requiredExternalIds,proto3" json:"required_external_ids,omitempty"`
+	// optional multiple external ids (minimum 0)
+	OptionalExternalIds  []string `protobuf:"bytes,4,rep,name=optional_external_ids,json=optionalExternalIds,proto3" json:"optional_external_ids,omitempty"`
+	Value                int32    `protobuf:"varint,5,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateEntityWithIndexes) Reset()         { *m = UpdateEntityWithIndexes{} }
+func (m *UpdateEntityWithIndexes) String() string { return proto.CompactTextString(m) }
+func (*UpdateEntityWithIndexes) ProtoMessage()    {}
+func (*UpdateEntityWithIndexes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fd22c1b92282e067, []int{3}
+}
+
+func (m *UpdateEntityWithIndexes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateEntityWithIndexes.Unmarshal(m, b)
+}
+func (m *UpdateEntityWithIndexes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateEntityWithIndexes.Marshal(b, m, deterministic)
+}
+func (m *UpdateEntityWithIndexes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateEntityWithIndexes.Merge(m, src)
+}
+func (m *UpdateEntityWithIndexes) XXX_Size() int {
+	return xxx_messageInfo_UpdateEntityWithIndexes.Size(m)
+}
+func (m *UpdateEntityWithIndexes) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateEntityWithIndexes.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateEntityWithIndexes proto.InternalMessageInfo
+
+func (m *UpdateEntityWithIndexes) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *UpdateEntityWithIndexes) GetExternalId() string {
+	if m != nil {
+		return m.ExternalId
+	}
+	return ""
+}
+
+func (m *UpdateEntityWithIndexes) GetRequiredExternalIds() []string {
+	if m != nil {
+		return m.RequiredExternalIds
+	}
+	return nil
+}
+
+func (m *UpdateEntityWithIndexes) GetOptionalExternalIds() []string {
+	if m != nil {
+		return m.OptionalExternalIds
+	}
+	return nil
+}
+
+func (m *UpdateEntityWithIndexes) GetValue() int32 {
 	if m != nil {
 		return m.Value
 	}
@@ -213,26 +288,27 @@ func (m *CreateEntityEntityWithIndexes) GetValue() int32 {
 func init() {
 	proto.RegisterType((*EntityWithIndexes)(nil), "schema.EntityWithIndexes")
 	proto.RegisterType((*EntityWithIndexesList)(nil), "schema.EntityWithIndexesList")
-	proto.RegisterType((*CreateEntityEntityWithIndexes)(nil), "schema.CreateEntityEntityWithIndexes")
+	proto.RegisterType((*CreateEntityWithIndexes)(nil), "schema.CreateEntityWithIndexes")
+	proto.RegisterType((*UpdateEntityWithIndexes)(nil), "schema.UpdateEntityWithIndexes")
 }
 
 func init() { proto.RegisterFile("with_indexes.proto", fileDescriptor_fd22c1b92282e067) }
 
 var fileDescriptor_fd22c1b92282e067 = []byte{
-	// 232 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x91, 0xc1, 0x4a, 0x03, 0x31,
-	0x10, 0x86, 0xc9, 0xae, 0x5b, 0xe8, 0x14, 0x04, 0xa3, 0x85, 0x78, 0x10, 0xc3, 0x9e, 0x72, 0x5a,
-	0xa1, 0x3e, 0x82, 0x14, 0x2c, 0x78, 0xca, 0xc5, 0xe3, 0x12, 0xcd, 0xc0, 0x0e, 0xb4, 0x9b, 0x9a,
-	0x4c, 0xb5, 0xbe, 0x9e, 0x0f, 0xe0, 0x33, 0x49, 0x1b, 0x56, 0x2a, 0xfb, 0x04, 0x1e, 0x67, 0xfe,
-	0xef, 0x3b, 0xfc, 0x33, 0x20, 0x3f, 0x88, 0xbb, 0x96, 0x7a, 0x8f, 0x7b, 0x4c, 0xcd, 0x36, 0x06,
-	0x0e, 0x72, 0x92, 0x5e, 0x3b, 0xdc, 0xb8, 0xfa, 0x4b, 0xc0, 0xc5, 0xb2, 0x67, 0xe2, 0xcf, 0x67,
-	0xe2, 0x6e, 0x95, 0x19, 0x79, 0x0e, 0x05, 0x79, 0x25, 0xb4, 0x30, 0x53, 0x5b, 0x90, 0x97, 0xb7,
-	0x30, 0xc3, 0x3d, 0x63, 0xec, 0xdd, 0xba, 0x25, 0xaf, 0x8a, 0x63, 0x00, 0xc3, 0x6a, 0xe5, 0xe5,
-	0x02, 0xe6, 0x11, 0xdf, 0x76, 0x14, 0xd1, 0xb7, 0x27, 0x64, 0x52, 0xa5, 0x2e, 0xcd, 0xd4, 0x5e,
-	0x0e, 0xe1, 0xf2, 0x57, 0x49, 0x07, 0x27, 0x6c, 0x99, 0xc2, 0x01, 0xfd, 0xe3, 0x9c, 0x65, 0x67,
-	0x08, 0x4f, 0x9d, 0x2b, 0xa8, 0xde, 0xdd, 0x7a, 0x87, 0xaa, 0xd2, 0xc2, 0x54, 0x36, 0x0f, 0xf5,
-	0x23, 0xcc, 0x47, 0x1d, 0x9e, 0x28, 0xb1, 0xbc, 0x83, 0x8a, 0x18, 0x37, 0x49, 0x09, 0x5d, 0x9a,
-	0xd9, 0xe2, 0xba, 0xc9, 0xad, 0x9b, 0x11, 0x6d, 0x33, 0x57, 0x7f, 0x0b, 0xb8, 0x79, 0x88, 0xe8,
-	0x18, 0x33, 0xf2, 0xdf, 0x4f, 0xf3, 0x32, 0x39, 0xbe, 0xfb, 0xfe, 0x27, 0x00, 0x00, 0xff, 0xff,
-	0xa1, 0x53, 0x9f, 0x45, 0x04, 0x02, 0x00, 0x00,
+	// 238 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x92, 0xc1, 0x4a, 0xc3, 0x30,
+	0x18, 0xc7, 0x49, 0x6b, 0x07, 0xfb, 0x06, 0x82, 0xd1, 0x61, 0x3c, 0x59, 0x7a, 0xca, 0xa9, 0xc2,
+	0x7c, 0x04, 0x19, 0x38, 0xf0, 0x14, 0x10, 0x8f, 0x25, 0x9a, 0x0f, 0xfa, 0xc1, 0xd6, 0xd4, 0xe4,
+	0x9b, 0xce, 0xd7, 0xf3, 0xe4, 0x63, 0x49, 0x17, 0x2a, 0x93, 0x3d, 0x81, 0x1e, 0x93, 0xff, 0xef,
+	0x77, 0xf8, 0x85, 0x80, 0x7c, 0x27, 0x6e, 0x1b, 0xea, 0x1c, 0xee, 0x30, 0xd6, 0x7d, 0xf0, 0xec,
+	0xe5, 0x24, 0xbe, 0xb4, 0xb8, 0xb1, 0xd5, 0xa7, 0x80, 0xb3, 0x65, 0xc7, 0xc4, 0x1f, 0x4f, 0xc4,
+	0xed, 0x2a, 0x31, 0xf2, 0x14, 0x32, 0x72, 0x4a, 0x94, 0x42, 0x4f, 0x4d, 0x46, 0x4e, 0x5e, 0xc3,
+	0x0c, 0x77, 0x8c, 0xa1, 0xb3, 0xeb, 0x86, 0x9c, 0xca, 0xf6, 0x03, 0x8c, 0x57, 0x2b, 0x27, 0x17,
+	0x30, 0x0f, 0xf8, 0xba, 0xa5, 0x80, 0xae, 0x39, 0x20, 0xa3, 0xca, 0xcb, 0x5c, 0x4f, 0xcd, 0xf9,
+	0x38, 0x2e, 0x7f, 0x94, 0x38, 0x38, 0xbe, 0x67, 0xf2, 0x03, 0xfa, 0xcb, 0x39, 0x49, 0xce, 0x38,
+	0x1e, 0x3a, 0x17, 0x50, 0xbc, 0xd9, 0xf5, 0x16, 0x55, 0x51, 0x0a, 0x5d, 0x98, 0x74, 0xa8, 0xee,
+	0x61, 0x7e, 0xd4, 0xf0, 0x40, 0x91, 0xe5, 0x0d, 0x14, 0xc4, 0xb8, 0x89, 0x4a, 0x94, 0xb9, 0x9e,
+	0x2d, 0xae, 0xea, 0x54, 0x5d, 0x1f, 0xd1, 0x26, 0x71, 0xd5, 0x97, 0x80, 0xcb, 0xbb, 0x80, 0x96,
+	0xf1, 0xcf, 0x3f, 0xca, 0x90, 0xf2, 0xd8, 0xbb, 0x7f, 0x90, 0xf2, 0x3c, 0xd9, 0xff, 0xd9, 0xdb,
+	0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0x4a, 0x94, 0x9b, 0x51, 0xc9, 0x02, 0x00, 0x00,
 }
