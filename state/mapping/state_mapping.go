@@ -61,6 +61,7 @@ type (
 		Fields   []string
 		Required bool
 		Multi    bool
+		Keyer    InstanceMultiKeyer
 	}
 
 	StateMappings map[string]*StateMapping

@@ -45,22 +45,26 @@ func UniqKey(name string, fields ...[]string) StateMappingOpt {
 
 func WithIndex(idx *StateIndexDef) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
-
 		if idx.Name == `` {
 			return
 		}
 
-		aa := []string{idx.Name}
-		if len(idx.Fields) > 0 {
-			aa = idx.Fields
+		var keyer InstanceMultiKeyer
+		if idx.Keyer != nil {
+			keyer = idx.Keyer
+		} else {
+			aa := []string{idx.Name}
+			if len(idx.Fields) > 0 {
+				aa = idx.Fields
+			}
+
+			if idx.Multi {
+				keyer = attrMultiKeyer(aa[0])
+			} else {
+				keyer = keyerAsMulti(attrsKeyer(aa))
+			}
 		}
 
-		var keyer InstanceMultiKeyer
-		if idx.Multi {
-			keyer = attrMultiKeyer(aa[0])
-		} else {
-			keyer = keyerAsMulti(attrsKeyer(aa))
-		}
 		_ = sm.AddIndex(&StateIndex{
 			Name:     idx.Name,
 			Uniq:     true,
