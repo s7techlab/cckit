@@ -136,6 +136,10 @@ func (k Key) Append(key Key) Key {
 	return append(k, key...)
 }
 
+func (k Key) String() string {
+	return strings.Join(k, ` | `)
+}
+
 type Impl struct {
 	stub                shim.ChaincodeStubInterface
 	logger              *shim.ChaincodeLogger
@@ -211,7 +215,7 @@ func (s *Impl) Get(entry interface{}, config ...interface{}) (interface{}, error
 		if len(config) >= 2 {
 			return config[1], nil
 		}
-		return nil, errors.Wrap(KeyError(key), ErrKeyNotFound.Error())
+		return nil, errors.Errorf(`%s: %s`, ErrKeyNotFound, key.Origin)
 	}
 
 	// config[0] - target type
@@ -365,7 +369,7 @@ func (s *Impl) Insert(entry interface{}, values ...interface{}) error {
 		return err
 	} else if exists {
 		key, _ := s.Key(entry)
-		return errors.Wrap(KeyError(key), ErrKeyAlreadyExists.Error())
+		return errors.Errorf(`%s: %s`, ErrKeyAlreadyExists, key.Origin)
 	}
 
 	key, value, err := s.argKeyValue(entry, values)
@@ -400,12 +404,6 @@ func (s *Impl) UseStatePutTransformer(tb ToBytesTransformer) State {
 	return s
 }
 
-// KeyError error with key
-func KeyError(key *TransformedKey) error {
-	// show origin key
-	return errors.New(strings.Join(key.Origin, ` | `))
-}
-
 type stringKeyer struct {
 	str   string
 	keyer KeyerFunc
@@ -438,7 +436,7 @@ func (s *Impl) GetPrivate(collection string, entry interface{}, config ...interf
 		if len(config) >= 2 {
 			return config[1], nil
 		}
-		return nil, errors.Wrap(KeyError(key), ErrKeyNotFound.Error())
+		return nil, errors.Errorf(`%s: %s`, ErrKeyNotFound, key.Origin.String())
 	}
 
 	// config[0] - target type
@@ -543,8 +541,8 @@ func (s *Impl) InsertPrivate(collection string, entry interface{}, values ...int
 	if exists, err := s.ExistsPrivate(collection, entry); err != nil {
 		return err
 	} else if exists {
-		strKey, _ := s.Key(entry)
-		return errors.Wrap(KeyError(strKey), ErrKeyAlreadyExists.Error())
+		key, _ := s.Key(entry)
+		return errors.Errorf(`%s: %s`, ErrKeyAlreadyExists, key.Origin)
 	}
 
 	key, value, err := s.argKeyValue(entry, values)

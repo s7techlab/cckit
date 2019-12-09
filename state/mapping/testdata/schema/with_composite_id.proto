@@ -1,0 +1,38 @@
+syntax = "proto3";
+package schema;
+
+// EntityWithCompositeId
+message EntityWithCompositeId {
+    string id_first_part = 1; // part of composite primary key
+    string id_second_part = 2; // part of composite primary key
+
+    string name = 3;
+    int32 value = 4;
+}
+
+// EntityCompositeId - container for composite primary key
+message EntityCompositeId  {
+    string id_first_part = 1;
+    string id_second_part = 2;
+}
+
+// EntityWithCompositeIdList
+message EntityWithCompositeIdList {
+    repeated EntityWithCompositeId items = 1;
+}
+
+// CreateEntityWithCompositeId
+message CreateEntityWithCompositeId {
+    string id_first_part = 1;
+    string id_second_part = 2;
+    string name = 3;
+    int32 value = 4;
+}
+
+// UpdateEntityWithCompositeId
+message UpdateEntityWithCompositeId {
+    string id_first_part = 1;
+    string id_second_part = 2;
+    string name = 3;
+    int32 value = 4;
+}

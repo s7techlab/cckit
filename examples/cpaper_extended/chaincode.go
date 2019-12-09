@@ -85,7 +85,7 @@ func queryCPaperGetByExternalId(c router.Context) (interface{}, error) {
 	var (
 		externalId = c.ParamString("externalId")
 	)
-	return c.State().(m.MappedState).GetByUniqKey(&schema.CommercialPaper{}, "ExternalId", []string{externalId})
+	return c.State().(m.MappedState).GetByKey(&schema.CommercialPaper{}, "ExternalId", []string{externalId})
 }
 
 func invokeCPaperIssue(c router.Context) (res interface{}, err error) {

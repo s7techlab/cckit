@@ -59,7 +59,7 @@ func (cc *CPaperImpl) Get(ctx router.Context, id *schema.CommercialPaperId) (*sc
 }
 
 func (cc *CPaperImpl) GetByExternalId(ctx router.Context, id *schema.ExternalId) (*schema.CommercialPaper, error) {
-	if res, err := cc.state(ctx).GetByUniqKey(
+	if res, err := cc.state(ctx).GetByKey(
 		&schema.CommercialPaper{}, "ExternalId", []string{id.Id}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
