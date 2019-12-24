@@ -42,7 +42,8 @@ func main() {
 	cpaperMock := testing.NewMockStub(chaincodeName, cc)
 
 	// Chaincode invocation service mock. For real network you can use example with hlf-sdk-go
-	cpaperMockService := mock.New().WithChannel(channelName, cpaperMock)
+	cpaperMockService := mock.New()
+	cpaperMockService.Peer.WithChannel(channelName, cpaperMock)
 
 	// default identity for signing requests to peeer (mocked)
 	apiIdentity, err := testing.IdentityFromFile(`MSP`, `../../../testdata/admin.pem`, ioutil.ReadFile)

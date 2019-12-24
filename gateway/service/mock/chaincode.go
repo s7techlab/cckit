@@ -3,7 +3,6 @@ package mock
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -18,15 +17,11 @@ const (
 )
 
 type (
-	Channel map[string]*testing.MockStub
-
-	Channels map[string]Channel
-
 	ChaincodeService struct {
 		// channel name -> chaincode name
-		ChannelCC Channels
-		m         sync.Mutex
-		Invoker   ChaincodeInvoker
+		Peer    *testing.MockedPeer
+		m       sync.Mutex
+		Invoker ChaincodeInvoker
 	}
 
 	// ChaincodeInvoker allows to imitate peer errors or unavailability
@@ -35,8 +30,8 @@ type (
 
 func New() *ChaincodeService {
 	return &ChaincodeService{
-		ChannelCC: make(Channels),
-		Invoker:   DefaultInvoker,
+		Peer:    testing.NewPeer(),
+		Invoker: DefaultInvoker,
 	}
 }
 
@@ -80,7 +75,7 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec)
 	cs.m.Lock()
 	defer cs.m.Unlock()
 
-	if mockStub, err = cs.Chaincode(in.Input.Channel, in.Input.Chaincode); err != nil {
+	if mockStub, err = cs.Peer.Chaincode(in.Input.Channel, in.Input.Chaincode); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +110,7 @@ func (cs *ChaincodeService) Events(in *service.ChaincodeLocator, stream service.
 	var (
 		mockStub *testing.MockStub
 	)
-	if mockStub, err = cs.Chaincode(in.Channel, in.Chaincode); err != nil {
+	if mockStub, err = cs.Peer.Chaincode(in.Channel, in.Chaincode); err != nil {
 		return
 	}
 	events := mockStub.EventSubscription()
@@ -133,36 +128,4 @@ func (cs *ChaincodeService) Events(in *service.ChaincodeLocator, stream service.
 			}
 		}
 	}
-}
-
-func (cs *ChaincodeService) WithChannel(channel string, mockStubs ...*testing.MockStub) *ChaincodeService {
-	if _, ok := cs.ChannelCC[channel]; !ok {
-		cs.ChannelCC[channel] = make(Channel)
-	}
-
-	for _, ms := range mockStubs {
-		cs.ChannelCC[channel][ms.Name] = ms
-		for chName, chnl := range cs.ChannelCC {
-			for ccName, cc := range chnl {
-
-				// add visibility of added cc to all other cc
-				cc.MockPeerChaincode(ms.Name+`/`+channel, ms)
-
-				// add visibility of other cc to added cc
-				ms.MockPeerChaincode(ccName+`/`+chName, cc)
-			}
-		}
-	}
-
-	return cs
-}
-
-func (cs *ChaincodeService) Chaincode(channel string, chaincode string) (*testing.MockStub, error) {
-	ms, exists := cs.ChannelCC[channel][chaincode]
-	if !exists {
-		return nil, fmt.Errorf(`%s: channell=%s, chaincode=%s`,
-			service.ErrChaincodeNotExists, channel, chaincode)
-	}
-
-	return ms, nil
 }
