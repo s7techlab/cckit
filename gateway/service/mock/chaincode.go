@@ -28,9 +28,16 @@ type (
 	ChaincodeInvoker func(ctx context.Context, mockStub *testing.MockStub, in *service.ChaincodeExec) *peer.Response
 )
 
-func New() *ChaincodeService {
+func New(peers ...*testing.MockedPeer) *ChaincodeService {
+	var p *testing.MockedPeer
+	if len(peers) > 0 {
+		p = peers[0]
+	} else {
+		p = testing.NewPeer()
+	}
+
 	return &ChaincodeService{
-		Peer:    testing.NewPeer(),
+		Peer:    p,
 		Invoker: DefaultInvoker,
 	}
 }
