@@ -8,7 +8,6 @@ require (
 	github.com/golang/protobuf v1.3.1
 	github.com/grpc-ecosystem/grpc-gateway v1.9.0
 	github.com/hyperledger/fabric v1.4.4
-	github.com/hyperledger/fabric-amcl v0.0.0-20181230093703-5ccba6eab8d6 // indirect
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
 	github.com/miekg/pkcs11 v1.0.2 // indirect
 	github.com/mwitkow/go-proto-validators v0.0.0-20190212092829-1f388280e944
