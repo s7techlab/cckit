@@ -12,45 +12,43 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
-// MustProtoMarshal marshals proto.Message, panics if error
-func MustProtoMarshal(pb proto.Message) []byte {
-	bb, err := proto.Marshal(pb)
+// PanicIfError
+func PanicIfError(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// MustProtoMarshal marshals proto.Message, panics if error
+func MustProtoMarshal(pb proto.Message) []byte {
+	bb, err := proto.Marshal(pb)
+	PanicIfError(err)
+
 	return bb
 }
 
 func MustJSONMarshal(val interface{}) []byte {
 	bb, err := json.Marshal(val)
-	if err != nil {
-		panic(err)
-	}
+	PanicIfError(err)
 	return bb
 }
 
 // MustProtoUnmarshal unmarshals proto.Message, panics if error
 func MustProtoUnmarshal(bb []byte, pm proto.Message) proto.Message {
 	p := proto.Clone(pm)
-	if err := proto.Unmarshal(bb, p); err != nil {
-		panic(err)
-	}
+	PanicIfError(proto.Unmarshal(bb, p))
 	return p
 }
 
 // MustProtoTimestamp, creates proto.Timestamp, panics if error
 func MustProtoTimestamp(t time.Time) *timestamp.Timestamp {
 	ts, err := ptypes.TimestampProto(t)
-	if err != nil {
-		panic(err)
-	}
+	PanicIfError(err)
 	return ts
 }
 
 func MustConvertFromBytes(bb []byte, target interface{}) interface{} {
 	v, err := convert.FromBytes(bb, target)
-	if err != nil {
-		panic(err)
-	}
+	PanicIfError(err)
 	return v
 }

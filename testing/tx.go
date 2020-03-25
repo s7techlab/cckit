@@ -12,6 +12,7 @@ type (
 	TxHandler struct {
 		MockStub *MockStub
 		Logger   *shim.ChaincodeLogger
+		Context  router.Context
 	}
 
 	TxResult struct {
@@ -25,12 +26,15 @@ func NewTxHandler(name string) (*TxHandler, router.Context) {
 	var (
 		mockStub = NewMockStub(name, nil)
 		logger   = router.NewLogger(name)
+		ctx      = router.NewContext(mockStub, logger)
 	)
 	return &TxHandler{
 			MockStub: mockStub,
 			Logger:   logger,
+			Context:  ctx,
 		},
-		router.NewContext(mockStub, logger)
+
+		ctx
 }
 
 func (p *TxHandler) From(creator ...interface{}) *TxHandler {
@@ -38,23 +42,16 @@ func (p *TxHandler) From(creator ...interface{}) *TxHandler {
 	return p
 }
 
-func (p *TxHandler) Init(txHdl func() (interface{}, error)) *TxResult {
+func (p *TxHandler) Init(txHdl func(ctx router.Context) (interface{}, error)) *TxResult {
 	return p.Invoke(txHdl)
 }
 
-func (p *TxHandler) Tx(tx func()) {
+// Invoke emulates chaincode invocation and returns transaction result
+func (p *TxHandler) Invoke(invoke func(ctx router.Context) (interface{}, error)) *TxResult {
 	uuid := p.MockStub.generateTxUID()
 
 	p.MockStub.MockTransactionStart(uuid)
-	tx()
-	p.MockStub.MockTransactionEnd(uuid)
-}
-
-func (p *TxHandler) Invoke(invoke func() (interface{}, error)) *TxResult {
-	uuid := p.MockStub.generateTxUID()
-
-	p.MockStub.MockTransactionStart(uuid)
-	res, err := invoke()
+	res, err := invoke(p.Context)
 	p.MockStub.MockTransactionEnd(uuid)
 
 	txRes := &TxResult{
@@ -66,7 +63,17 @@ func (p *TxHandler) Invoke(invoke func() (interface{}, error)) *TxResult {
 	return txRes
 }
 
-func (p *TxHandler) SvcExpect(res interface{}, err error) *expect.TxRes {
+// Tx emulates chaincode invocation
+func (p *TxHandler) Tx(tx func()) {
+	uuid := p.MockStub.generateTxUID()
+
+	p.MockStub.MockTransactionStart(uuid)
+	tx()
+	p.MockStub.MockTransactionEnd(uuid)
+}
+
+// Expect returns assertion helper
+func (p *TxHandler) Expect(res interface{}, err error) *expect.TxRes {
 	return &expect.TxRes{
 		Result: res,
 		Err:    err,
@@ -74,12 +81,12 @@ func (p *TxHandler) SvcExpect(res interface{}, err error) *expect.TxRes {
 	}
 }
 
-// TxEvent returs last tx timestamp
+// TxTimestamp returns last tx timestamp
 func (p *TxHandler) TxTimestamp() *timestamp.Timestamp {
 	return p.MockStub.TxTimestamp
 }
 
-// TxEvent returs last tx event
+// TxEvent returns last tx event
 func (p *TxHandler) TxEvent() *peer.ChaincodeEvent {
 	return p.MockStub.ChaincodeEvent
 }
