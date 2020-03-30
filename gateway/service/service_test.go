@@ -43,7 +43,8 @@ var _ = Describe(`Service`, func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// peer imitation
-		cPaperService = mock.New().WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
+		cPaperService = mock.New()
+		cPaperService.Peer.WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
 
 		// "sdk" for deal with cpaper chaincode
 		cPaperGateway = cpservice.NewCPaperGateway(cPaperService, Channel, ChaincodeName)
