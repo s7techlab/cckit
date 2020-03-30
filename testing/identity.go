@@ -11,7 +11,7 @@ type (
 	ReadFile func(string) ([]byte, error)
 
 	IdentitySample interface {
-		SigningIdentity() (msp.SigningIdentity, error)
+		SigningIdentity() msp.SigningIdentity
 	}
 )
 

@@ -36,13 +36,9 @@ func TransformCreator(txCreator ...interface{}) (mspID string, certPEM []byte, e
 			return c.Mspid, c.IdBytes, nil
 
 		case IdentitySample:
-
-			id, err := c.SigningIdentity()
-			if err != nil {
-				return ``, nil, err
-			}
-
+			id := c.SigningIdentity()
 			return CreatorFromSigningIdentity(id)
+
 		case msp.SigningIdentity:
 			return CreatorFromSigningIdentity(c)
 

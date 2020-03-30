@@ -39,8 +39,8 @@ func (cc Certs) UseReadFile(readFile FileReader) Certs {
 	return cc
 }
 
-func (s *IdentitySample) SigningIdentity() (msp.SigningIdentity, error) {
-	return s.Cert.SigningIdentity(s.MspID)
+func (s *IdentitySample) SigningIdentity() msp.SigningIdentity {
+	return s.Cert.MustIdentity(s.MspID)
 }
 
 var (
