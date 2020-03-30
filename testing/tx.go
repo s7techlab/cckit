@@ -72,6 +72,13 @@ func (p *TxHandler) Tx(tx func()) {
 	p.MockStub.MockTransactionEnd(uuid)
 }
 
+// TxFund returns tx closure
+func (p *TxHandler) TxFunc(tx func()) func() {
+	return func() {
+		p.Tx(tx)
+	}
+}
+
 // Expect returns assertion helper
 func (p *TxHandler) Expect(res interface{}, err error) *expect.TxRes {
 	return &expect.TxRes{

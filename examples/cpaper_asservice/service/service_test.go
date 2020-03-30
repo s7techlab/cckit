@@ -93,22 +93,23 @@ var _ = Describe(`Commercial paper service`, func() {
 		})
 	})
 
-	It("Disallow issuer to issue same commercial paper", func() {
-		cc.From(Issuer).Tx(func() {
-			_, err := CPaper.Issue(ctx, issue)
-
-			Expect(err).To(ErrorIs(state.ErrKeyAlreadyExists))
-		})
-	})
+	// Use TxFunc helper - return closure func() {} with some assertions
+	It("Disallow issuer to issue same commercial paper", cc.From(Issuer).TxFunc(func() {
+		// Expect helper return TxRes
+		// we don't check result payload, error only
+		cc.Expect(CPaper.Issue(ctx, issue)).HasError(state.ErrKeyAlreadyExists)
+	}))
 
 	It("Allow issuer to get commercial paper by composite primary key", func() {
 		cc.Tx(func() {
+			// Expect helper, check error is empty and result
 			cc.Expect(CPaper.Get(ctx, id)).Is(cpaperInState)
 		})
 	})
 
 	It("Allow issuer to get commercial paper by unique key", func() {
 		cc.Tx(func() {
+			// without helpers
 			res, err := CPaper.GetByExternalId(ctx, &schema.ExternalId{
 				Id: issue.ExternalId,
 			})
@@ -132,7 +133,7 @@ var _ = Describe(`Commercial paper service`, func() {
 	It("Allow buyer to buy commercial paper", func() {
 		cc.From(Buyer).Tx(func() {
 			cc.Expect(CPaper.Buy(ctx, buy)).
-				// Produce Event - no error also
+				// Produce Event - no error and event name and payload check
 				ProduceEvent(`BuyCommercialPaper`, buy)
 		})
 
@@ -147,7 +148,6 @@ var _ = Describe(`Commercial paper service`, func() {
 
 	It("Allow buyer to redeem commercial paper", func() {
 		// Invoke example
-		// Invoke
 		cc.Invoke(func(c router.Context) (interface{}, error) {
 			return CPaper.Redeem(c, redeem)
 		}).Expect().ProduceEvent(`RedeemCommercialPaper`, redeem)
@@ -162,8 +162,7 @@ var _ = Describe(`Commercial paper service`, func() {
 
 	It("Allow issuer to delete commercial paper", func() {
 		cc.From(Issuer).Tx(func() {
-			_, err := CPaper.Delete(ctx, id)
-			Expect(err).NotTo(HaveOccurred())
+			cc.Expect(CPaper.Delete(ctx, id)).HasNoError()
 		})
 
 		cc.Tx(func() {
