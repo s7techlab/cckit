@@ -31,8 +31,13 @@ type (
 )
 
 // PayloadValidationError returns error with prefix
-func PayloadValidationError(err error) error {
-	return errors.Errorf(`%s: %s`, ErrPayloadValidationError, err)
+func PayloadValidationError(errs ...error) error {
+	str := ErrPayloadValidationError.Error()
+	for _, e := range errs {
+		str += `: ` + e.Error()
+
+	}
+	return errors.New(str)
 }
 
 func (p Parameter) ValueFromContext(c router.Context) (arg interface{}, err error) {
