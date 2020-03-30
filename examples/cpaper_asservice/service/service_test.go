@@ -31,7 +31,7 @@ var (
 	// service testing util
 	cc, ctx = testcc.NewTxHandler(`Commercial paper`)
 
-	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
+	ids = idtestdata.MustSamples(idtestdata.Certificates, idtestdata.DefaultMSP)
 	// actors
 	Issuer = ids[0]
 	Buyer  = ids[1]
