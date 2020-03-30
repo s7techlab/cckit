@@ -73,7 +73,7 @@ func Register{{ $svc.GetName }}Chaincode(r *cckit_router.Group, cc {{ $svc.GetNa
 		func(ctx cckit_router.Context) (interface{}, error) {
             if v, ok := ctx.Param().(ValidatorInterface); ok {
               if err := v.Validate(); err != nil {
-		        return nil, errors.Wrap(err, cckit_param.ErrPayloadValidationError.Error())
+		        return nil, cckit_param.PayloadValidationError (err)
 	          } 
             }
 			return cc.{{ $m.GetName }}(ctx, ctx.Param().(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }}))

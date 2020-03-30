@@ -6,7 +6,7 @@ require (
 	github.com/fsouza/go-dockerclient v1.4.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.1
-	github.com/grpc-ecosystem/grpc-gateway v1.9.0
+	github.com/grpc-ecosystem/grpc-gateway v1.9.2
 	github.com/hyperledger/fabric v1.4.4
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
 	github.com/miekg/pkcs11 v1.0.2 // indirect
