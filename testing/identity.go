@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"github.com/hyperledger/fabric/msp"
 	"github.com/s7techlab/cckit/identity"
 )
 
@@ -8,6 +9,10 @@ type (
 	Identities map[string]identity.Identity
 
 	ReadFile func(string) ([]byte, error)
+
+	IdentitySample interface {
+		SigningIdentity() (msp.SigningIdentity, error)
+	}
 )
 
 func MustIdentityFromPem(mspID string, certPEM []byte) *identity.CertIdentity {
