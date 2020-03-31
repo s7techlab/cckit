@@ -23,14 +23,17 @@ func (r *TxRes) HasError(err interface{}) *TxRes {
 	if err == nil {
 		g.Expect(r.Err).NotTo(g.HaveOccurred())
 	} else {
-		g.Expect(fmt.Sprintf(`%s`, r.Err)).To(g.HavePrefix(fmt.Sprintf(`%s`, err)))
-		//g.Expect(errors.Is(r.Err, err))
+		g.Expect(fmt.Sprintf(`%s`, r.Err)).To(g.ContainSubstring(fmt.Sprintf(`%s`, err)))
 	}
 	return r
 }
 
+func (r *TxRes) HasNoError() *TxRes {
+	return r.HasError(nil)
+}
+
 func (r *TxRes) Is(expectedResult interface{}) *TxRes {
-	r.HasError(nil)
+	r.HasNoError()
 
 	_, ok1 := r.Result.(Stringer)
 	_, ok2 := expectedResult.(Stringer)
@@ -45,7 +48,7 @@ func (r *TxRes) Is(expectedResult interface{}) *TxRes {
 
 // ProduceEvent expects that tx produces event with particular payload
 func (r *TxRes) ProduceEvent(eventName string, eventPayload interface{}) *TxRes {
-	r.HasError(nil)
+	r.HasNoError()
 	EventIs(r.Event, eventName, eventPayload)
 	return r
 }

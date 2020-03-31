@@ -8,6 +8,19 @@ import (
 	pmsp "github.com/hyperledger/fabric/protos/msp"
 )
 
+func CreatorFromSigningIdentity(creator msp.SigningIdentity) (mspID string, certPEM []byte, err error) {
+	serialized, err := creator.Serialize()
+	if err != nil {
+		return ``, nil, err
+	}
+
+	sid := &pmsp.SerializedIdentity{}
+	if err = proto.Unmarshal(serialized, sid); err != nil {
+		return ``, nil, err
+	}
+	return sid.Mspid, sid.IdBytes, nil
+}
+
 // TransformCreator transforms arbitrary tx creator (pmsp.SerializedIdentity etc)  to mspID string, certPEM []byte,
 func TransformCreator(txCreator ...interface{}) (mspID string, certPEM []byte, err error) {
 	if len(txCreator) == 1 {
@@ -22,18 +35,12 @@ func TransformCreator(txCreator ...interface{}) (mspID string, certPEM []byte, e
 		case pmsp.SerializedIdentity:
 			return c.Mspid, c.IdBytes, nil
 
+		case IdentitySample:
+			id := c.SigningIdentity()
+			return CreatorFromSigningIdentity(id)
+
 		case msp.SigningIdentity:
-
-			serialized, err := c.Serialize()
-			if err != nil {
-				return ``, nil, err
-			}
-
-			sid := &pmsp.SerializedIdentity{}
-			if err = proto.Unmarshal(serialized, sid); err != nil {
-				return ``, nil, err
-			}
-			return sid.Mspid, sid.IdBytes, nil
+			return CreatorFromSigningIdentity(c)
 
 		case [2]string:
 			// array with 2 elements  - mspId and ca cert

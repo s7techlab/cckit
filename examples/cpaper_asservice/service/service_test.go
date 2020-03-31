@@ -15,6 +15,7 @@ import (
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/extensions/owner"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
+	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 )
@@ -28,9 +29,9 @@ var (
 	CPaper = service.New()
 
 	// service testing util
-	hdl, ctx = testcc.NewTxHandler(`Commercial paper`)
+	cc, ctx = testcc.NewTxHandler(`Commercial paper`)
 
-	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
+	ids = idtestdata.MustSamples(idtestdata.Certificates, idtestdata.DefaultMSP)
 	// actors
 	Issuer = ids[0]
 	Buyer  = ids[1]
@@ -81,33 +82,34 @@ var (
 var _ = Describe(`Commercial paper service`, func() {
 
 	It("Allow to init", func() {
-		hdl.From(Issuer).Init(func() (interface{}, error) {
-			return owner.SetFromCreator(ctx)
+		cc.From(Issuer).Init(func(c router.Context) (interface{}, error) {
+			return owner.SetFromCreator(c)
 		}).Expect().HasError(nil)
 	})
 
 	It("Allow issuer to issue new commercial paper", func() {
-		hdl.From(Issuer).Tx(func() {
-			hdl.SvcExpect(CPaper.Issue(ctx, issue)).Is(cpaperInState)
+		cc.From(Issuer).Tx(func() {
+			cc.Expect(CPaper.Issue(ctx, issue)).Is(cpaperInState)
 		})
 	})
 
-	It("Disallow issuer to issue same commercial paper", func() {
-		hdl.From(Issuer).Tx(func() {
-			_, err := CPaper.Issue(ctx, issue)
-
-			Expect(err).To(ErrorIs(state.ErrKeyAlreadyExists))
-		})
-	})
+	// Use TxFunc helper - return closure func() {} with some assertions
+	It("Disallow issuer to issue same commercial paper", cc.From(Issuer).TxFunc(func() {
+		// Expect helper return TxRes
+		// we don't check result payload, error only
+		cc.Expect(CPaper.Issue(ctx, issue)).HasError(state.ErrKeyAlreadyExists)
+	}))
 
 	It("Allow issuer to get commercial paper by composite primary key", func() {
-		hdl.Tx(func() {
-			hdl.SvcExpect(CPaper.Get(ctx, id)).Is(cpaperInState)
+		cc.Tx(func() {
+			// Expect helper, check error is empty and result
+			cc.Expect(CPaper.Get(ctx, id)).Is(cpaperInState)
 		})
 	})
 
 	It("Allow issuer to get commercial paper by unique key", func() {
-		hdl.Tx(func() {
+		cc.Tx(func() {
+			// without helpers
 			res, err := CPaper.GetByExternalId(ctx, &schema.ExternalId{
 				Id: issue.ExternalId,
 			})
@@ -119,7 +121,7 @@ var _ = Describe(`Commercial paper service`, func() {
 	})
 
 	It("Allow issuer to get a list of commercial papers", func() {
-		hdl.Tx(func() {
+		cc.Tx(func() {
 			res, err := CPaper.List(ctx, &empty.Empty{})
 
 			Expect(err).NotTo(HaveOccurred())
@@ -129,9 +131,9 @@ var _ = Describe(`Commercial paper service`, func() {
 	})
 
 	It("Allow buyer to buy commercial paper", func() {
-		hdl.From(Buyer).Tx(func() {
-			hdl.SvcExpect(CPaper.Buy(ctx, buy)).
-				// Produce Event - no error also
+		cc.From(Buyer).Tx(func() {
+			cc.Expect(CPaper.Buy(ctx, buy)).
+				// Produce Event - no error and event name and payload check
 				ProduceEvent(`BuyCommercialPaper`, buy)
 		})
 
@@ -139,32 +141,31 @@ var _ = Describe(`Commercial paper service`, func() {
 		newState.Owner = buy.NewOwner
 		newState.State = schema.CommercialPaper_TRADING
 
-		hdl.Tx(func() {
-			hdl.SvcExpect(CPaper.Get(ctx, id)).Is(newState)
+		cc.Tx(func() {
+			cc.Expect(CPaper.Get(ctx, id)).Is(newState)
 		})
 	})
 
 	It("Allow buyer to redeem commercial paper", func() {
 		// Invoke example
-		hdl.Invoke(func() (interface{}, error) {
-			return CPaper.Redeem(ctx, redeem)
+		cc.Invoke(func(c router.Context) (interface{}, error) {
+			return CPaper.Redeem(c, redeem)
 		}).Expect().ProduceEvent(`RedeemCommercialPaper`, redeem)
 
 		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
 		newState.State = schema.CommercialPaper_REDEEMED
 
-		hdl.Invoke(func() (interface{}, error) {
-			return CPaper.Get(ctx, id)
+		cc.Invoke(func(c router.Context) (interface{}, error) {
+			return CPaper.Get(c, id)
 		}).Expect().Is(newState)
 	})
 
 	It("Allow issuer to delete commercial paper", func() {
-		hdl.From(Issuer).Tx(func() {
-			_, err := CPaper.Delete(ctx, id)
-			Expect(err).NotTo(HaveOccurred())
+		cc.From(Issuer).Tx(func() {
+			cc.Expect(CPaper.Delete(ctx, id)).HasNoError()
 		})
 
-		hdl.Tx(func() {
+		cc.Tx(func() {
 			res, err := CPaper.List(ctx, &empty.Empty{})
 
 			Expect(err).NotTo(HaveOccurred())

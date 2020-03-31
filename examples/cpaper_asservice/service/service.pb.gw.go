@@ -375,19 +375,19 @@ func RegisterCPaperHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 }
 
 var (
-	pattern_CPaper_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"cpaper"}, ""))
+	pattern_CPaper_List_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"cpaper"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CPaper_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 1, 0, 4, 1, 5, 2}, []string{"cpaper", "issuer", "paper_number"}, ""))
+	pattern_CPaper_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 1, 0, 4, 1, 5, 2}, []string{"cpaper", "issuer", "paper_number"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CPaper_GetByExternalId_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"cpaper", "extid", "id"}, ""))
+	pattern_CPaper_GetByExternalId_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"cpaper", "extid", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CPaper_Issue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cpaper", "issue"}, ""))
+	pattern_CPaper_Issue_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cpaper", "issue"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CPaper_Buy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cpaper", "buy"}, ""))
+	pattern_CPaper_Buy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cpaper", "buy"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CPaper_Redeem_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cpaper", "redeem"}, ""))
+	pattern_CPaper_Redeem_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"cpaper", "redeem"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_CPaper_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 1, 0, 4, 1, 5, 2}, []string{"cpaper", "issuer", "paper_number"}, ""))
+	pattern_CPaper_Delete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 1, 0, 4, 1, 5, 2}, []string{"cpaper", "issuer", "paper_number"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

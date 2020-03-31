@@ -78,7 +78,6 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 
 	pkgs := [][]string{
 		{"context", "context"},
-		{"github.com/pkg/errors", "errors"},
 		{"github.com/s7techlab/cckit/gateway", "cckit_gateway"},
 		{"github.com/s7techlab/cckit/gateway/service", "cckit_ccservice"},
 		{"github.com/s7techlab/cckit/router", "cckit_router"},

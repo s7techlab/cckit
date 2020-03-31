@@ -7,6 +7,7 @@ import (
 	"path"
 	"runtime"
 
+	"github.com/hyperledger/fabric/msp"
 	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/testing"
 )
@@ -24,6 +25,11 @@ type (
 	}
 
 	Certs []*Cert
+
+	IdentitySample struct {
+		MspID string
+		Cert  *Cert
+	}
 )
 
 func (cc Certs) UseReadFile(readFile FileReader) Certs {
@@ -31,6 +37,10 @@ func (cc Certs) UseReadFile(readFile FileReader) Certs {
 		c.readFile = readFile
 	}
 	return cc
+}
+
+func (s *IdentitySample) SigningIdentity() msp.SigningIdentity {
+	return s.Cert.MustIdentity(s.MspID)
 }
 
 var (
@@ -55,6 +65,17 @@ func ReadLocal() func(filename string) ([]byte, error) {
 	}
 }
 
+func MustSamples(cc []*Cert, mspId string) []*IdentitySample {
+	ss := make([]*IdentitySample, len(cc))
+	for i, c := range Certificates {
+		ss[i] = &IdentitySample{
+			MspID: mspId,
+			Cert:  c,
+		}
+	}
+
+	return ss
+}
 func MustIdentities(cc []*Cert, mspId string) []*identity.CertIdentity {
 	ii := make([]*identity.CertIdentity, len(cc))
 	for i, c := range Certificates {
@@ -104,13 +125,8 @@ func (c *Cert) Identity(mspID string) (*identity.CertIdentity, error) {
 	return identity.New(mspID, bb)
 }
 
-// temp, todo: move signing identity from testing to identity package
 func (c *Cert) SigningIdentity(mspID string) (*identity.CertIdentity, error) {
-	bb, err := c.CertBytes()
-	if err != nil {
-		return nil, err
-	}
-	return identity.New(mspID, bb)
+	return c.Identity(mspID)
 }
 
 func (c *Cert) MustSigningIdentity(mspID string) *identity.CertIdentity {

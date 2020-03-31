@@ -80,25 +80,21 @@ func (s *MockStub) From(args ...interface{}) *MockStub {
 	return s
 }
 
+func (s *MockStub) LastEvent() *peer.ChaincodeEvent {
+	return MustDecryptEvent(s.EncKey, s.MockStub.ChaincodeEvent)
+}
+
 // MustEncryptEvent helper for EncryptEvent. Panics in case of error.
-func MustEncryptEvent(encKey []byte, event *peer.ChaincodeEvent) (encrypted *peer.ChaincodeEvent) {
-	var (
-		err error
-	)
-	if encrypted, err = EncryptEvent(encKey, event); err != nil {
-		panic(err)
-	}
+func MustEncryptEvent(encKey []byte, event *peer.ChaincodeEvent) *peer.ChaincodeEvent {
+	encrypted, err := EncryptEvent(encKey, event)
+	testing.PanicIfError(err)
 	return encrypted
 }
 
 // MustDecryptEvent helper for DecryptEvent. Panics in case of error.
-func MustDecryptEvent(encKey []byte, event *peer.ChaincodeEvent) (decrypted *peer.ChaincodeEvent) {
+func MustDecryptEvent(encKey []byte, event *peer.ChaincodeEvent) *peer.ChaincodeEvent {
+	decrypted, err := DecryptEvent(encKey, event)
+	testing.PanicIfError(err)
 
-	var (
-		err error
-	)
-	if decrypted, err = DecryptEvent(encKey, event); err != nil {
-		panic(err)
-	}
 	return decrypted
 }

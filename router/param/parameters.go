@@ -30,6 +30,16 @@ type (
 	MiddlewareFuncMap map[string]router.MiddlewareFunc
 )
 
+// PayloadValidationError returns error with prefix
+func PayloadValidationError(errs ...error) error {
+	str := ErrPayloadValidationError.Error()
+	for _, e := range errs {
+		str += `: ` + e.Error()
+
+	}
+	return errors.New(str)
+}
+
 func (p Parameter) ValueFromContext(c router.Context) (arg interface{}, err error) {
 	// by default args start from pos 1 , at first pos is funcName
 	argsStartsFrom := 1
