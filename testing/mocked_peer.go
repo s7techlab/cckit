@@ -62,7 +62,7 @@ func (mi *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *Mocke
 
 func (mi *MockedPeer) Invoke(
 	ctx context.Context, from msp.SigningIdentity, channel string, chaincode string,
-	fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, api.ChaincodeTx, error) {
+	fn string, args [][]byte, transArgs api.TransArgs, _ ...api.DoOption) (*peer.Response, api.ChaincodeTx, error) {
 
 	mi.m.Lock()
 	defer mi.m.Unlock()
