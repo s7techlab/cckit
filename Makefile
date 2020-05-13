@@ -2,7 +2,7 @@ GOFLAGS ?= -mod=vendor
 
 test:
 	@echo "go test -mod vendor ./..."
-	@go test -mod=vendor ./...
+	@go test ./...
 
 refresh-deps:
 	@echo "go mod tidy"
