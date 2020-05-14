@@ -33,12 +33,9 @@ var (
 	cPaperService *mock.ChaincodeService
 	cPaperGateway *cpservice.CPaperGateway
 
-	ctx = service.ContextWithDefaultDoOption(
-		service.ContextWithSigner(
-			context.Background(),
-			idtestdata.Certificates[0].MustIdentity(idtestdata.DefaultMSP),
-		),
-		chaincode.WithTxWaiter(txwaiter.All),
+	ctx = service.ContextWithSigner(
+		context.Background(),
+		idtestdata.Certificates[0].MustIdentity(idtestdata.DefaultMSP),
 	)
 )
 
@@ -59,6 +56,16 @@ var _ = Describe(`Service`, func() {
 
 	It("Allow to get empty commercial paper list", func() {
 		pp, err := cPaperGateway.List(ctx, &empty.Empty{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(pp.Items).To(HaveLen(0))
+	})
+
+	It("Allow to propagate api.DoOption", func() {
+		ctxWithOpts := service.ContextWithDoOption(
+			ctx,
+			chaincode.WithTxWaiter(txwaiter.All),
+		)
+		pp, err := cPaperGateway.List(ctxWithOpts, &empty.Empty{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(pp.Items).To(HaveLen(0))
 	})
