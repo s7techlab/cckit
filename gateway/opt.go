@@ -2,10 +2,11 @@ package gateway
 
 import (
 	"context"
-	"github.com/s7techlab/hlf-sdk-go/api"
 
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/s7techlab/hlf-sdk-go/api"
+
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/gateway/service"
 )
