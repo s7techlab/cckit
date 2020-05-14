@@ -8,6 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/s7techlab/hlf-sdk-go/client/chaincode"
+	"github.com/s7techlab/hlf-sdk-go/client/chaincode/txwaiter"
+
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/gateway/service"
@@ -30,9 +33,13 @@ var (
 	cPaperService *mock.ChaincodeService
 	cPaperGateway *cpservice.CPaperGateway
 
-	ctx = service.ContextWithSigner(
-		context.Background(),
-		idtestdata.Certificates[0].MustIdentity(idtestdata.DefaultMSP))
+	ctx = service.ContextWithDefaultDoOption(
+		service.ContextWithSigner(
+			context.Background(),
+			idtestdata.Certificates[0].MustIdentity(idtestdata.DefaultMSP),
+		),
+		chaincode.WithTxWaiter(txwaiter.All),
+	)
 )
 
 var _ = Describe(`Service`, func() {

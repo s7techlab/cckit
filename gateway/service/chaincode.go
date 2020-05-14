@@ -39,6 +39,11 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		return nil, err
 	}
 
+	doOpts, err := DoOptionFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	response, _, err := cs.sdk.
 		Channel(in.Channel).
 		Chaincode(in.Chaincode).
@@ -46,7 +51,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		WithIdentity(signer).
 		ArgBytes(in.Args[1:]).
 		Transient(in.Transient).
-		Do(ctx)
+		Do(ctx, doOpts...)
 
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"github.com/s7techlab/hlf-sdk-go/api"
 
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protos/peer"
@@ -20,6 +21,14 @@ func WithDefaultSigner(defaultSigner msp.SigningIdentity) Opt {
 	return func(c *chaincode) {
 		c.ContextOpts = append(c.ContextOpts, func(ctx context.Context) context.Context {
 			return service.ContextWithDefaultSigner(ctx, defaultSigner)
+		})
+	}
+}
+
+func WithDefaultDoOpts(defaultDoOpts ...api.DoOption) Opt {
+	return func(c *chaincode) {
+		c.ContextOpts = append(c.ContextOpts, func(ctx context.Context) context.Context {
+			return service.ContextWithDefaultDoOption(ctx, defaultDoOpts...)
 		})
 	}
 }
