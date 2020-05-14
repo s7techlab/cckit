@@ -46,7 +46,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		WithIdentity(signer).
 		ArgBytes(in.Args[1:]).
 		Transient(in.Transient).
-		Do(ctx)
+		Do(ctx, DoOptionFromContext(ctx)...)
 
 	if err != nil {
 		return nil, err
