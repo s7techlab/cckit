@@ -33,7 +33,7 @@ func SignerFromContext(ctx context.Context) (msp.SigningIdentity, error) {
 }
 
 func ContextWithDefaultDoOption(ctx context.Context, defaultDoOpts ...api.DoOption) context.Context {
-	if opts, _ := DoOptionFromContext(ctx); len(opts) == 0 {
+	if opts := DoOptionFromContext(ctx); len(opts) == 0 {
 		return ContextWithDoOption(ctx, defaultDoOpts...)
 	} else {
 		return ctx
@@ -44,8 +44,10 @@ func ContextWithDoOption(ctx context.Context, doOpts ...api.DoOption) context.Co
 	return context.WithValue(ctx, CtxDoOptionKey, doOpts)
 }
 
-func DoOptionFromContext(ctx context.Context) ([]api.DoOption, error) {
-	doOpts := []api.DoOption{}
-	doOpts = ctx.Value(CtxDoOptionKey).([]api.DoOption)
-	return doOpts, nil
+func DoOptionFromContext(ctx context.Context) []api.DoOption {
+	doOpts := ctx.Value(CtxDoOptionKey).([]api.DoOption)
+	if doOpts == nil {
+		doOpts = []api.DoOption{}
+	}
+	return doOpts
 }
