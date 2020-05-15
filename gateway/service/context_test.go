@@ -2,8 +2,10 @@ package service_test
 
 import (
 	"context"
-	"reflect"
 	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"github.com/s7techlab/hlf-sdk-go/api"
 	"github.com/s7techlab/hlf-sdk-go/client/chaincode"
@@ -12,74 +14,60 @@ import (
 	"github.com/s7techlab/cckit/gateway/service"
 )
 
-func TestContextWithDefaultDoOption(tt *testing.T) {
-	var (
-		doOptsAll  = []api.DoOption{chaincode.WithTxWaiter(txwaiter.All)}
-		doOptsSelf = []api.DoOption{chaincode.WithTxWaiter(txwaiter.Self)}
-	)
-
-	tt.Run("Context empty", func(t *testing.T) {
-		ctx := service.ContextWithDefaultDoOption(context.Background(), doOptsSelf...)
-		result := service.DoOptionFromContext(ctx)
-		if !reflect.DeepEqual(result, doOptsSelf) {
-			t.Errorf("Expected find doOption on ctx %p, got -%p", doOptsSelf, result)
-		}
-	})
-
-	tt.Run("Dont allow update on ctx DoOption", func(t *testing.T) {
-
-		ctx := service.ContextWithDefaultDoOption(context.Background(), doOptsAll...)
-
-		ctx = service.ContextWithDefaultDoOption(ctx, doOptsSelf...)
-		result := service.DoOptionFromContext(ctx)
-		if !reflect.DeepEqual(result, doOptsAll) {
-			t.Errorf("Expected find first option on ctx %p, got -%p", doOptsAll, result)
-		}
-	})
+func TestContext(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Context Suite")
 }
 
-func TestContextWithDoOption(tt *testing.T) {
-	var (
-		doOptsAll  = []api.DoOption{chaincode.WithTxWaiter(txwaiter.All)}
-		doOptsSelf = []api.DoOption{chaincode.WithTxWaiter(txwaiter.Self)}
-	)
+var (
+	doOptsEmpty = []api.DoOption{}
+	doOptsAll   = []api.DoOption{chaincode.WithTxWaiter(txwaiter.All)}
+	doOptsSelf  = []api.DoOption{chaincode.WithTxWaiter(txwaiter.Self)}
+)
 
-	tt.Run("Context empty", func(t *testing.T) {
-		ctx := service.ContextWithDoOption(context.Background(), doOptsSelf...)
+var _ = Describe(`DoOption`, func() {
+
+	It("Set Default DoOption", func() {
+		ctx := service.ContextWithDefaultDoOption(context.Background(), doOptsSelf...)
 		result := service.DoOptionFromContext(ctx)
-		if !reflect.DeepEqual(result, doOptsSelf) {
-			t.Errorf("Expected find doOption on ctx %p, got -%p", doOptsSelf, result)
-		}
+		Expect(result).To(Equal(doOptsSelf))
 	})
 
-	tt.Run("Allow update on ctx DoOption", func(t *testing.T) {
+	It("Default dont allow update on ctx DoOption", func() {
+		ctx := service.ContextWithDefaultDoOption(context.Background(), doOptsAll...)
+		ctx = service.ContextWithDefaultDoOption(ctx, doOptsSelf...)
+		result := service.DoOptionFromContext(ctx)
+		Expect(result).To(Equal(doOptsAll))
+	})
+
+	It("Set DoOption to Context", func() {
+		ctx := service.ContextWithDoOption(context.Background(), doOptsSelf...)
+		result := service.DoOptionFromContext(ctx)
+		Expect(result).To(Equal(doOptsSelf))
+	})
+
+	It("Update DoOption to Context", func() {
 		ctx := service.ContextWithDoOption(context.Background(), doOptsAll...)
 		ctx = service.ContextWithDoOption(ctx, doOptsSelf...)
 		result := service.DoOptionFromContext(ctx)
-		if !reflect.DeepEqual(result, doOptsSelf) {
-			t.Errorf("Expected find second option on ctx %p, got -%p", doOptsSelf, result)
-		}
-	})
-}
-
-func TestDoOptionFromContext(tt *testing.T) {
-	var (
-		doOptsEmpty = []api.DoOption{}
-		doOptsSelf  = []api.DoOption{chaincode.WithTxWaiter(txwaiter.Self)}
-	)
-
-	tt.Run("Context empty", func(t *testing.T) {
-		result := service.DoOptionFromContext(ctx)
-		if !reflect.DeepEqual(result, doOptsEmpty) {
-			t.Errorf("Expected find doOption on ctx %p, got -%p", doOptsEmpty, result)
-		}
+		Expect(result).To(Equal(doOptsSelf))
 	})
 
-	tt.Run("Context with doOption", func(t *testing.T) {
+	It("Update DoOption to Context", func() {
+		ctx := service.ContextWithDoOption(context.Background(), doOptsAll...)
 		ctx = service.ContextWithDoOption(ctx, doOptsSelf...)
 		result := service.DoOptionFromContext(ctx)
-		if !reflect.DeepEqual(result, doOptsSelf) {
-			t.Errorf("Expected find doOption on ctx %p, got -%p", doOptsSelf, result)
-		}
+		Expect(result).To(Equal(doOptsSelf))
 	})
-}
+
+	It("Allow get DoOptins from empty Context", func() {
+		result := service.DoOptionFromContext(ctx)
+		Expect(result).To(Equal(doOptsEmpty))
+	})
+
+	It("Allow get DoOptins from filled Context", func() {
+		ctx := service.ContextWithDoOption(ctx, doOptsSelf...)
+		result := service.DoOptionFromContext(ctx)
+		Expect(result).To(Equal(doOptsSelf))
+	})
+})
