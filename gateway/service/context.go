@@ -45,8 +45,8 @@ func ContextWithDoOption(ctx context.Context, doOpts ...api.DoOption) context.Co
 }
 
 func DoOptionFromContext(ctx context.Context) []api.DoOption {
-	doOpts := ctx.Value(CtxDoOptionKey).([]api.DoOption)
-	if doOpts == nil {
+	doOpts, ok := ctx.Value(CtxDoOptionKey).([]api.DoOption)
+	if !ok {
 		doOpts = []api.DoOption{}
 	}
 	return doOpts
