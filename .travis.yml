@@ -15,7 +15,7 @@ install:
   - go mod vendor
 
 script:
-  - go test -race -mod=vendor  -covermode atomic -coverprofile=profile.cov ./...
+  - go test -race -mod=vendor -covermode=atomic -coverpkg=github.com/s7techlab/cckit/... -coverprofile=profile.cov ./...
   - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci || true
 
 go:
