@@ -60,12 +60,12 @@ var _ = Describe(`DoOption`, func() {
 		Expect(result).To(Equal(doOptsSelf))
 	})
 
-	It("Allow get DoOptins from empty Context", func() {
+	It("Allow get DoOptions from empty Context", func() {
 		result := service.DoOptionFromContext(ctx)
 		Expect(result).To(Equal(doOptsEmpty))
 	})
 
-	It("Allow get DoOptins from filled Context", func() {
+	It("Allow get DoOptions from filled Context", func() {
 		ctx := service.ContextWithDoOption(ctx, doOptsSelf...)
 		result := service.DoOptionFromContext(ctx)
 		Expect(result).To(Equal(doOptsSelf))
