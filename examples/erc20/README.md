@@ -92,9 +92,9 @@ In our example we use CCKit router for managing smart contract functions. Before
 
 `git clone git@github.com:s7techlab/cckit.git`
 
-and get dependencies using `dep` command:
+and get dependencies using `go mod` command:
 
-`dep ensure -vendor-only`
+`go mod vendor`
 
 ERC20 example is located in [examples/erc20](https://github.com/s7techlab/cckit/tree/master/examples/erc20) directory.
 
