@@ -82,7 +82,7 @@ var _ = Describe(`State`, func() {
 			books := expectcc.PayloadIs(booksCC.Invoke(`bookList`), &[]schema.Book{}).([]schema.Book)
 			Expect(len(books)).To(Equal(2))
 
-			expectcc.ResponseError(booksCC.Invoke(`bookGet`, testdata.Books[0].Id), state.ErrKeyNotFound)
+			expectcc.ResponseError(booksCC.Invoke(`bookGet`, testdata.Books[0].Id), ContainSubstring(state.ErrKeyNotFound.Error()))
 		})
 	})
 

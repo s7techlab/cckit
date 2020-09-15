@@ -85,7 +85,7 @@ var _ = Describe(`PrivateState`, func() {
 			books := expectcc.PayloadIs(booksCC.Invoke(`privateBookList`), &[]schema.PrivateBook{}).([]schema.PrivateBook)
 			Expect(len(books)).To(Equal(2))
 
-			expectcc.ResponseError(booksCC.Invoke(`privateBookGet`, testdata.PrivateBooks[0].Id), state.ErrKeyNotFound)
+			expectcc.ResponseError(booksCC.Invoke(`privateBookGet`, testdata.PrivateBooks[0].Id), ContainSubstring(state.ErrKeyNotFound.Error()))
 		})
 	})
 

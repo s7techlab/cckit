@@ -46,7 +46,7 @@ var _ = Describe(`Cars`, func() {
 			//invoke chaincode method from non authority actor
 			expectcc.ResponseError(
 				cc.From(Someone).Invoke(`carRegister`, Payloads[0]),
-				owner.ErrOwnerOnly) // expect "only owner" error
+				ContainSubstring(owner.ErrOwnerOnly.Error())) // expect "only owner" error
 		})
 
 		It("Allow non authority to add information about car to chaincode without access control", func() {
@@ -58,7 +58,7 @@ var _ = Describe(`Cars`, func() {
 		It("Disallow authority to add duplicate information about car", func() {
 			expectcc.ResponseError(
 				cc.From(Authority).Invoke(`carRegister`, Payloads[0]),
-				state.ErrKeyAlreadyExists) //expect car id already exists
+				ContainSubstring(state.ErrKeyAlreadyExists.Error())) //expect car id already exists
 		})
 
 		It("Allow everyone to retrieve car information", func() {

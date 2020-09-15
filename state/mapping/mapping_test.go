@@ -74,7 +74,7 @@ var _ = Describe(`Mapping`, func() {
 		})
 
 		It("Disallow to insert entries with same primary key", func() {
-			expectcc.ResponseError(compositeIDCC.Invoke(`create`, create1), state.ErrKeyAlreadyExists)
+			expectcc.ResponseError(compositeIDCC.Invoke(`create`, create1), ContainSubstring(state.ErrKeyAlreadyExists.Error()))
 		})
 
 		It("Allow to get entry list", func() {
@@ -133,7 +133,7 @@ var _ = Describe(`Mapping`, func() {
 				&schema.EntityWithCompositeIdList{}).(*schema.EntityWithCompositeIdList)
 
 			Expect(len(ee.Items)).To(Equal(2))
-			expectcc.ResponseError(compositeIDCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
+			expectcc.ResponseError(compositeIDCC.Invoke(`get`, toDelete), ContainSubstring(state.ErrKeyNotFound.Error()))
 		})
 
 		It("Allow to insert entry once more time", func() {
@@ -218,7 +218,7 @@ var _ = Describe(`Mapping`, func() {
 			// errored on checking uniq key
 			expectcc.ResponseError(
 				indexesCC.Invoke(`create`, create1),
-				mapping.ErrMappingUniqKeyExists)
+				ContainSubstring(mapping.ErrMappingUniqKeyExists.Error()))
 		})
 
 		It("Allow finding data by uniq key", func() {
@@ -249,7 +249,7 @@ var _ = Describe(`Mapping`, func() {
 		It("Disallow finding data by non existent uniq key", func() {
 			expectcc.ResponseError(
 				indexesCC.Query(`getByExternalId`, `some-non-existent-id`),
-				mapping.ErrIndexReferenceNotFound)
+				ContainSubstring(mapping.ErrIndexReferenceNotFound.Error()))
 		})
 
 		It("Allow to add data with multiple external id", func() {
@@ -301,7 +301,7 @@ var _ = Describe(`Mapping`, func() {
 		It("Disallow to find data by previous multi key", func() {
 			expectcc.ResponseError(
 				indexesCC.Query(`getByOptMultiExternalId`, create2.OptionalExternalIds[1]),
-				mapping.ErrIndexReferenceNotFound)
+				ContainSubstring(mapping.ErrIndexReferenceNotFound.Error()))
 		})
 
 		It("Allow to find data by updated uniq key", func() {
@@ -316,7 +316,7 @@ var _ = Describe(`Mapping`, func() {
 		It("Disallow to find data by previous uniq key", func() {
 			expectcc.ResponseError(
 				indexesCC.Query(`getByExternalId`, create2.ExternalId),
-				mapping.ErrIndexReferenceNotFound)
+				ContainSubstring(mapping.ErrIndexReferenceNotFound.Error()))
 		})
 
 		It("Allow to delete entry", func() {
@@ -327,7 +327,7 @@ var _ = Describe(`Mapping`, func() {
 				&schema.EntityWithIndexesList{}).(*schema.EntityWithIndexesList)
 
 			Expect(len(ee.Items)).To(Equal(1))
-			expectcc.ResponseError(indexesCC.Invoke(`get`, create2.Id), state.ErrKeyNotFound)
+			expectcc.ResponseError(indexesCC.Invoke(`get`, create2.Id), ContainSubstring(state.ErrKeyNotFound.Error()))
 		})
 
 		It("Allow to insert entry once more time", func() {

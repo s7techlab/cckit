@@ -73,14 +73,14 @@ var _ = Describe(`ERC-20`, func() {
 			expectcc.ResponseError(
 				erc20fs.From(TokenOwner).Invoke(
 					`transfer`, TokenOwner.MspID, TokenOwner.GetID(), 100),
-				erc20.ErrForbiddenToTransferToSameAccount)
+				ContainSubstring(erc20.ErrForbiddenToTransferToSameAccount.Error()))
 		})
 
 		It("Disallow token holder with zero balance to transfer tokens", func() {
 			expectcc.ResponseError(
 				erc20fs.From(AccountHolder1).Invoke(
 					`transfer`, TokenOwner.MspID, TokenOwner.GetID(), 100),
-				erc20.ErrNotEnoughFunds)
+				ContainSubstring(erc20.ErrNotEnoughFunds.Error()))
 		})
 
 		It("Allow token holder with non zero balance to transfer tokens", func() {
@@ -137,7 +137,7 @@ var _ = Describe(`ERC-20`, func() {
 				erc20fs.From(AccountHolder1).Invoke(
 					`transferFrom`,
 					TokenOwner.MspID, TokenOwner.GetID(),
-					AccountHolder1.MspID, AccountHolder1.GetID(), 10), erc20.ErrSpenderNotHaveAllowance)
+					AccountHolder1.MspID, AccountHolder1.GetID(), 10), ContainSubstring(erc20.ErrSpenderNotHaveAllowance.Error()))
 		})
 
 		It("Disallow spender to initiate payment more than allowance from wallet owner", func() {
@@ -145,7 +145,7 @@ var _ = Describe(`ERC-20`, func() {
 				erc20fs.From(AccountHolder1).Invoke(
 					`transferFrom`,
 					TokenOwner.MspID, TokenOwner.GetID(),
-					AccountHolder1.MspID, AccountHolder1.GetID(), 11), erc20.ErrSpenderNotHaveAllowance)
+					AccountHolder1.MspID, AccountHolder1.GetID(), 11), ContainSubstring(erc20.ErrSpenderNotHaveAllowance.Error()))
 		})
 
 		It("Allow spender to initiate payment from owner waller", func() {

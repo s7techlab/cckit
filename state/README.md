@@ -627,7 +627,7 @@ var _ = Describe(`Mapping`, func() {
 			cpapers := expectcc.PayloadIs(cPaperCC.Invoke(`list`), &[]schema.CommercialPaper{}).([]schema.CommercialPaper)
 
 			Expect(len(cpapers)).To(Equal(2))
-			expectcc.ResponseError(cPaperCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
+			expectcc.ResponseError(cPaperCC.Invoke(`get`, toDelete), ContainSubstring(state.ErrKeyNotFound.Error()))
 		})
 	})
 

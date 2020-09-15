@@ -123,7 +123,7 @@ var _ = Describe(`Router`, func() {
 		It("Disallow to create encrypted payment providing unencrypted arguments", func() {
 			expectcc.ResponseError(
 				encryptOnDemandPaymentCC.WithTransient(encryption.TransientMapWithKey(encKey)).
-					Invoke(`paymentCreate`, pType, pID1, pAmount1), `args: decryption error`)
+					Invoke(`paymentCreate`, pType, pID1, pAmount1), ContainSubstring(`args: decryption error`))
 		})
 
 		It("Allow to create encrypted payment", func() {
@@ -213,7 +213,7 @@ var _ = Describe(`Router`, func() {
 
 		It("Disallow to create payment without providing key in encryptPaymentCC ", func() {
 			expectcc.ResponseError(encryptPaymentCC.Invoke(`paymentCreate`, pType, pID3, pAmount3),
-				encryption.ErrKeyNotDefinedInTransientMap)
+				ContainSubstring(encryption.ErrKeyNotDefinedInTransientMap.Error()))
 		})
 
 		It("Allow to create payment providing key in encryptPaymentCC ", func() {
@@ -288,13 +288,13 @@ var _ = Describe(`Router`, func() {
 
 		It("Disallow to get payment by type and id without providing encrypting key in transient map", func() {
 			expectcc.ResponseError(encCCInvoker.MockStub.From(Owner).Query(`paymentGet`, pType, pID1),
-				encryption.ErrKeyNotDefinedInTransientMap)
+				ContainSubstring(encryption.ErrKeyNotDefinedInTransientMap.Error()))
 		})
 
 		It("Disallow to get non existent payment by type and id providing encrypting key in transient map", func() {
 			// key in error is not encrypted
 			expectcc.ResponseError(encCCInvoker.From(Owner).Query(`paymentGet`, pType, pID1+`NoExists`),
-				state.ErrKeyNotFound.Error()+`: Payment | SALE | id-1NoExists`)
+				ContainSubstring(state.ErrKeyNotFound.Error()+`: Payment | SALE | id-1NoExists`))
 		})
 
 		It("Allow to get payment by type and id", func() {
