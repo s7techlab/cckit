@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/examples/payment"
 	"github.com/s7techlab/cckit/examples/payment/schema"
 	"github.com/s7techlab/cckit/extensions/encryption"

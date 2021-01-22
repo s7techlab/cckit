@@ -4,7 +4,7 @@ package pinger
 import (
 	"time"
 
-	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
+	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
 	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
 )

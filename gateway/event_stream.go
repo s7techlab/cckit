@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"google.golang.org/grpc/metadata"
 )
 

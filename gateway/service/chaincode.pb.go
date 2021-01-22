@@ -7,7 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	peer "github.com/hyperledger/fabric/protos/peer"
+	peer "github.com/hyperledger/fabric-protos-go/peer"
 	grpc "google.golang.org/grpc"
 	math "math"
 )

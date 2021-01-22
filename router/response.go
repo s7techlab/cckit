@@ -1,9 +1,10 @@
 package router
 
 import (
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/response"
+	"go.uber.org/zap"
 )
 
 // Response chaincode interface
@@ -21,14 +22,14 @@ type ContextResponse struct {
 // Error response
 func (c ContextResponse) Error(err interface{}) peer.Response {
 	res := response.Error(err)
-	c.context.Logger().Errorf(`%s: %s:%s`, ErrHandlerError, c.context.Path(), res.Message)
+	c.context.Logger().Error(`router handler error`, zap.String(`path`, c.context.Path()), zap.String(`message`, res.Message))
 	return res
 }
 
 // Success response
 func (c ContextResponse) Success(data interface{}) peer.Response {
 	res := response.Success(data)
-	c.context.Logger().Debug(`route handle success: `, c.context.Path(), `, data: `, string(res.Payload))
+	c.context.Logger().Debug(`route handle success`, zap.String(`path`, c.context.Path()), zap.ByteString(`data`, res.Payload))
 	return res
 }
 

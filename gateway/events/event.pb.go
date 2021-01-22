@@ -8,7 +8,7 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	empty "github.com/golang/protobuf/ptypes/empty"
-	peer "github.com/hyperledger/fabric/protos/peer"
+	peer "github.com/hyperledger/fabric-protos-go/peer"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	math "math"

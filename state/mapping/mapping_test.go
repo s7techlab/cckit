@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
@@ -154,7 +154,7 @@ var _ = Describe(`Mapping`, func() {
 
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
 			Expect(keys[0]).To(Equal(
-				"\x00" + `EntityWithComplexId` + string(0) + ent1.Id.IdPart1 + string(0) + ent1.Id.IdPart2 + string(0)))
+				"\x00" + `EntityWithComplexId` + string(rune(0)) + ent1.Id.IdPart1 + string(rune(0)) + ent1.Id.IdPart2 + string(rune(0))))
 		})
 
 		It("Allow to get entity", func() {
@@ -184,7 +184,7 @@ var _ = Describe(`Mapping`, func() {
 			Expect(len(keys)).To(Equal(1))
 
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
-			Expect(keys[0]).To(Equal("\x00" + `EntityWithSliceId` + string(0) + ent2.Id[0] + string(0) + ent2.Id[1] + string(0)))
+			Expect(keys[0]).To(Equal("\x00" + `EntityWithSliceId` + string(rune(0)) + ent2.Id[0] + string(rune(0)) + ent2.Id[1] + string(rune(0))))
 		})
 
 		It("Allow to get entity", func() {

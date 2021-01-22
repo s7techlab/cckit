@@ -4,14 +4,15 @@ import (
 	"container/list"
 	"crypto/rand"
 	"fmt"
+	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"strings"
 	"sync"
 	"unicode/utf8"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/protos/ledger/queryresult"
-	"github.com/hyperledger/fabric/protos/peer"
 	gologging "github.com/op/go-logging"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
@@ -30,7 +31,7 @@ var (
 
 // MockStub replacement of shim.MockStub with creator mocking facilities
 type MockStub struct {
-	shim.MockStub
+	shimtest.MockStub
 	cc                          shim.Chaincode
 	m                           sync.Mutex
 	mockCreator                 []byte
@@ -49,7 +50,7 @@ type CreatorTransformer func(...interface{}) (mspID string, certPEM []byte, err 
 // NewMockStub creates chaincode imitation
 func NewMockStub(name string, cc shim.Chaincode) *MockStub {
 	return &MockStub{
-		MockStub: *shim.NewMockStub(name, cc),
+		MockStub: *shimtest.NewMockStub(name, cc),
 		cc:       cc,
 		// by default tx creator data and transient map are cleared after each cc method query/invoke
 		ClearCreatorAfterInvoke: true,

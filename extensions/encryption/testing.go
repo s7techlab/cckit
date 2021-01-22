@@ -3,7 +3,7 @@ package encryption
 import (
 	"fmt"
 
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/testing"
 )

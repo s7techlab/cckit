@@ -6,7 +6,7 @@ package service
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	_ "github.com/hyperledger/fabric/protos/peer"
+	_ "github.com/hyperledger/fabric-protos-go/peer"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 	math "math"
 )

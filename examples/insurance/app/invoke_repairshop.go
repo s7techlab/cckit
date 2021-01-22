@@ -1,10 +1,10 @@
 package app
 
-import "github.com/hyperledger/fabric/core/chaincode/shim"
+import "github.com/hyperledger/fabric-chaincode-go/shim"
 import (
 	"encoding/json"
 
-	pb "github.com/hyperledger/fabric/protos/peer"
+	pb "github.com/hyperledger/fabric-protos-go/peer"
 )
 
 func listRepairOrders(stub shim.ChaincodeStubInterface, args []string) pb.Response {

@@ -11,8 +11,8 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	s "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
