@@ -225,7 +225,6 @@ github.com/hpcloud/tail v1.0.0 h1:nfCOvKYfkgYP8hkirhJocXT2+zOD8yUNjXaWfTlyFKI=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/hyperledger/fabric v1.4.0-rc1.0.20200930182727-344fda602252 h1:lQq/yygTbHWPfjFZ1VgINd1TJY7rOJ/zglcl9nE/s9Q=
 github.com/hyperledger/fabric v1.4.0-rc1.0.20200930182727-344fda602252/go.mod h1:+kicKDn5xa88tOpOY/o6/7iB/RD7oOs2INzwVg2ARmM=
-github.com/hyperledger/fabric v1.4.9 h1:Ght1O51URuaKBmFDNkKB+qdUF2Vb8CdcrVel+4hWy+w=
 github.com/hyperledger/fabric-amcl v0.0.0-20200128223036-d1aa2665426a h1:HgdNn3UYz8PdcZrLEk0IsSU4LRHp7yY2rgjIKcSiJaA=
 github.com/hyperledger/fabric-amcl v0.0.0-20200128223036-d1aa2665426a/go.mod h1:X+DIyUsaTmalOpmpQfIvFZjKHQedrURQ5t4YqquX7lE=
 github.com/hyperledger/fabric-chaincode-go v0.0.0-20200128192331-2d899240a7ed/go.mod h1:N7H3sA7Tx4k/YzFq7U0EPdqJtqvM4Kild0JoCc7C0Dc=
