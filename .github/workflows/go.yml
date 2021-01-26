@@ -18,7 +18,7 @@ jobs:
       - name: Run Unit tests
         # now with that option we can get cover from all project
         run: |
-          go test -race -covermode=atomic -coverprofile=profile.cov -coverpkg=github.com/s7techlab/hlf-sdk-go/... ./client/...
+          go test -race -covermode=atomic -coverprofile=profile.cov -coverpkg=github.com/s7techlab/cckit/...
 
       - name: Send coverage
         uses: shogo82148/actions-goveralls@v1
