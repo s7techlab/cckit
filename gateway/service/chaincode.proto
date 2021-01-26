@@ -1,51 +1,52 @@
 syntax = "proto3";
 
-package service;
+option go_package = "github.com/s7techlab/cckit/gateway/service";
+package s7techlab.gateway.service;
 
-import "github.com/hyperledger/fabric/protos/peer/proposal_response.proto";
-import "github.com/hyperledger/fabric/protos/peer/chaincode_event.proto";
+import "peer/proposal_response.proto";
+import "peer/chaincode_event.proto";
 
 message ChaincodeInput {
-    // Chaincode name
-    string chaincode = 1;
-    // Channel name
-    string channel = 2;
+  // Chaincode name
+  string chaincode = 1;
+  // Channel name
+  string channel = 2;
 
-    // Input contains the arguments for invocation.
-    repeated bytes args = 3;
+  // Input contains the arguments for invocation.
+  repeated bytes args = 3;
 
-    // TransientMap contains data (e.g. cryptographic material) that might be used
-    // to implement some form of application-level confidentiality. The contents
-    // of this field are supposed to always be omitted from the transaction and
-    // excluded from the ledger.
-    map<string, bytes> transient = 4;
+  // TransientMap contains data (e.g. cryptographic material) that might be used
+  // to implement some form of application-level confidentiality. The contents
+  // of this field are supposed to always be omitted from the transaction and
+  // excluded from the ledger.
+  map<string, bytes> transient = 4;
 }
 
 message ChaincodeLocator {
-    // Chaincode name
-    string chaincode = 1;
-    // Channel name
-    string channel = 2;
+  // Chaincode name
+  string chaincode = 1;
+  // Channel name
+  string channel = 2;
 }
 
 enum InvocationType {
-    QUERY = 0;
-    INVOKE = 1;
+  QUERY = 0;
+  INVOKE = 1;
 }
 
 message ChaincodeExec {
-    InvocationType type = 1;
-    ChaincodeInput input = 2;
+  InvocationType type = 1;
+  ChaincodeInput input = 2;
 }
 
 // Chaincode invocation service
 service Chaincode {
-    // Exec: Query or Invoke
-    rpc Exec (ChaincodeExec) returns (protos.ProposalResponse);
-    // Query chaincode on home peer. Do NOT send to orderer.
-    rpc Query (ChaincodeInput) returns (protos.ProposalResponse);
-    // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
-    rpc Invoke (ChaincodeInput) returns (protos.ProposalResponse);
-    // Chaincode events stream
-    rpc Events (ChaincodeLocator) returns (stream protos.ChaincodeEvent);
+  // Exec: Query or Invoke
+  rpc Exec (ChaincodeExec) returns (protos.ProposalResponse);
+  // Query chaincode on home peer. Do NOT send to orderer.
+  rpc Query (ChaincodeInput) returns (protos.ProposalResponse);
+  // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
+  rpc Invoke (ChaincodeInput) returns (protos.ProposalResponse);
+  // Chaincode events stream
+  rpc Events (ChaincodeLocator) returns (stream protos.ChaincodeEvent);
 }

@@ -1,18 +1,20 @@
 syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/examples/payment/schema;schema";
 package schema;
 
 message Payment {
-    string type = 1;
-    string id = 2;
-    int32 amount = 3;
+  string type = 1;
+  string id = 2;
+  int32 amount = 3;
 }
 
 message PaymentList {
-    repeated Payment Items = 1;
+  repeated Payment Items = 1;
 }
 
 message PaymentEvent {
-    string type = 1;
-    string id = 2;
-    int32 amount = 3;
+  string type = 1;
+  string id = 2;
+  int32 amount = 3;
 }
