@@ -100,6 +100,7 @@ func New{{ $svc.GetName }}Gateway(ccService cckit_ccservice.Chaincode, channel, 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type {{ $svc.GetName }}Gateway struct {
+	Unimplemented{{ $svc.GetName }}Server
 	Gateway cckit_gateway.Chaincode
 }
 

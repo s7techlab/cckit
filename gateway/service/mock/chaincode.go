@@ -18,6 +18,7 @@ const (
 
 type (
 	ChaincodeService struct {
+		service.UnimplementedChaincodeServer
 		// channel name -> chaincode name
 		Peer    *testing.MockedPeer
 		m       sync.Mutex

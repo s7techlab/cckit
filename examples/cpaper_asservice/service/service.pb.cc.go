@@ -150,6 +150,7 @@ func NewCPaperGateway(ccService cckit_ccservice.Chaincode, channel, chaincode st
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type CPaperGateway struct {
+	UnimplementedCPaperServer
 	Gateway cckit_gateway.Chaincode
 }
 
