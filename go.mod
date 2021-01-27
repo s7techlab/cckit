@@ -7,6 +7,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.4.3
 	github.com/grpc-ecosystem/grpc-gateway v1.11.1
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.1.0
 	github.com/hyperledger/fabric v1.4.0-rc1.0.20200930182727-344fda602252
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20201119163726-f8ef75b17719
 	github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354

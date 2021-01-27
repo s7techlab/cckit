@@ -10,6 +10,7 @@ build:
   roots:
     - examples
     - gateway
+    - state
     - vendor
     - third_party/hyperledger
     - third_party/googleapis

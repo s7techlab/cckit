@@ -48,18 +48,15 @@ plugins:
     #   This is needed for certain plugins that expect all files to be given at once.
     #
     # Optional. If omitted, "directory" is used. Most users should not need to set this option.
-    strategy: all
 
   - name: go-grpc
     out: .
     opt:
       - paths=source_relative
-    strategy: all
   - name: govalidators
     out: .
     opt:
       - paths=source_relative
-    strategy: all
   - name: openapiv2
     out: .
     opt:
@@ -68,7 +65,8 @@ plugins:
     out: .
     opt:
       - logtostderr=true
-# TODO specify doc correct out params
+      - paths=source_relative
+## TODO specify doc correct out params
 #  - name: doc
 #    out: .
 #    opt:

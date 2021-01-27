@@ -1,5 +1,7 @@
 GOFLAGS ?= -mod=vendor
-PROTO_PACKAGES := examples/cpaper_asservice/schema examples/cpaper_asservice/service examples/cpaper_extended examples/payment/schema gateway/events gateway/service state/
+PROTO_PACKAGES_CC := examples/cpaper_asservice/service
+PROTO_PACKAGES_GW := examples/cpaper_asservice/service examples/cpaper_asservice/schema examples/cpaper_extended/schema examples/payment/schema gateway/events gateway/service state/schema
+
 
 test:
 	@echo "go test -mod vendor ./..."
@@ -12,4 +14,5 @@ refresh-deps:
 	@GOFLAGS='' GONOSUMDB=github.com/hyperledger/fabric go mod vendor
 
 proto:
-	@for pkg in $(PROTO_PACKAGES) ;do echo $$pkg && buf generate --path $$pkg -o $$(echo $$pkg | cut -d "/" -f1); done
+	@for pkg in $(PROTO_PACKAGES_GW) ;do echo $$pkg && buf generate --template buf.gen.gw.yaml --path $$pkg -o ./$$(echo $$pkg | cut -d "/" -f1); done
+	@for pkg in $(PROTO_PACKAGES_CC) ;do echo $$pkg && buf generate --template buf.gen.cc.yaml --path $$pkg -o ./$$pkg; done
