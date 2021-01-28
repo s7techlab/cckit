@@ -19,6 +19,7 @@ plugins:
     # Optional.
     # Can be either a single string or list of strings.
     opt:
+      - plugins=grpc
       - paths=source_relative
 
     # The custom path to the plugin binary, if not protoc-gen-NAME on your $PATH.
@@ -49,10 +50,10 @@ plugins:
     #
     # Optional. If omitted, "directory" is used. Most users should not need to set this option.
 
-  - name: go-grpc
-    out: .
-    opt:
-      - paths=source_relative
+#  - name: go-grpc
+#    out: .
+#    opt:
+#      - paths=source_relative
   - name: govalidators
     out: .
     opt:

@@ -150,14 +150,13 @@ func NewCPaperGateway(ccService cckit_ccservice.Chaincode, channel, chaincode st
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type CPaperGateway struct {
-	UnimplementedCPaperServer
 	Gateway cckit_gateway.Chaincode
 }
 
 // ApiDef returns service definition
 func (c *CPaperGateway) ApiDef() cckit_gateway.ServiceDef {
 	return cckit_gateway.ServiceDef{
-		Desc:                        &CPaper_ServiceDesc,
+		Desc:                        &_CPaper_serviceDesc,
 		Service:                     c,
 		HandlerFromEndpointRegister: RegisterCPaperHandlerFromEndpoint,
 	}

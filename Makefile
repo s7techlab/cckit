@@ -14,5 +14,5 @@ refresh-deps:
 	@GOFLAGS='' GONOSUMDB=github.com/hyperledger/fabric go mod vendor
 
 proto:
-	@for pkg in $(PROTO_PACKAGES_GW) ;do echo $$pkg && buf generate --template buf.gen.gw.yaml --path $$pkg -o ./$$(echo $$pkg | cut -d "/" -f1); done
+	@for pkg in $(PROTO_PACKAGES_GW) ;do echo $$pkg && buf generate -v --template buf.gen.gw.yaml --path $$pkg -o ./$$(echo $$pkg | cut -d "/" -f1); done
 	@for pkg in $(PROTO_PACKAGES_CC) ;do echo $$pkg && buf generate --template buf.gen.cc.yaml --path $$pkg -o ./$$pkg; done

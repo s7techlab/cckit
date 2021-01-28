@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	cpaperservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/gateway"

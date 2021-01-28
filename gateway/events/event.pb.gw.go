@@ -13,24 +13,21 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/utilities"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 )
 
-// Suppress "imported and not used" errors
 var _ codes.Code
 var _ io.Reader
 var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
-var _ = metadata.Join
 
 func request_ChaincodeEvent_EventStream_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeEventClient, req *http.Request, pathParams map[string]string) (ChaincodeEvent_EventStreamClient, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
@@ -52,7 +49,6 @@ func request_ChaincodeEvent_EventStream_0(ctx context.Context, marshaler runtime
 // RegisterChaincodeEventHandlerServer registers the http handlers for service ChaincodeEvent to "mux".
 // UnaryRPC     :call ChaincodeEventServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterChaincodeEventHandlerFromEndpoint instead.
 func RegisterChaincodeEventHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ChaincodeEventServer) error {
 
 	mux.Handle("GET", pattern_ChaincodeEvent_EventStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -107,7 +103,7 @@ func RegisterChaincodeEventHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/events.ChaincodeEvent/EventStream")
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -127,7 +123,7 @@ func RegisterChaincodeEventHandlerClient(ctx context.Context, mux *runtime.Serve
 }
 
 var (
-	pattern_ChaincodeEvent_EventStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"event"}, ""))
+	pattern_ChaincodeEvent_EventStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"event"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

@@ -3,7 +3,7 @@ package gateway
 import (
 	"context"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc"
 )
 
