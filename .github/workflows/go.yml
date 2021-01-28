@@ -15,12 +15,12 @@ jobs:
 
       - name: Check out code
         uses: actions/checkout@v2
-      - name: Run Unit tests
-        # now with that option we can get cover from all project
-        run: |
-          go test -race -covermode=atomic -coverprofile=profile.cov -coverpkg=github.com/s7techlab/cckit/...
-
-      - name: Send coverage
-        uses: shogo82148/actions-goveralls@v1
+      - name: Calc coverage
+        run: go test -v -covermode=count -coverprofile=coverage.out
+      - name: Convert coverage to lcov
+        uses: jandelgado/gcov2lcov-action@v1.0.5
+      - name: Coveralls
+        uses: coverallsapp/github-action@v1.0.4
         with:
-          path-to-profile: profile.cov
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: coverage.lcov
