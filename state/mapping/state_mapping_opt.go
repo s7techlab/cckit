@@ -125,17 +125,23 @@ func PKeyer(pkeyer InstanceKeyer) StateMappingOpt {
 	}
 }
 
+func skipField(field reflect.Value) bool {
+	if strings.HasPrefix(field.Type().Name(), `XXX_`) || !field.CanSet() {
+		return true
+	}
+	return false
+}
+
 func attrsFrom(schema interface{}) (attrs []string) {
 	// fields from schema
-	s := reflect.ValueOf(schema).Elem().Type()
+	s := reflect.ValueOf(schema).Elem()
+	fs := s.Type()
 	for i := 0; i < s.NumField(); i++ {
-
-		name := s.Field(i).Name
-		if strings.HasPrefix(name, `XXX_`) {
+		field := s.Field(i)
+		if skipField(field) {
 			continue
 		}
-
-		attrs = append(attrs, name)
+		attrs = append(attrs, fs.Field(i).Name)
 	}
 	return
 }
@@ -210,10 +216,13 @@ func keyFromValue(v reflect.Value) (state.Key, error) {
 	var key state.Key
 
 	if v.Kind() == reflect.Ptr {
-		s := reflect.ValueOf(v.Interface()).Elem().Type()
+		s := reflect.ValueOf(v.Interface()).Elem()
 		// get all field values from struct
 		for i := 0; i < s.NumField(); i++ {
-			if !strings.HasPrefix(s.Field(i).Name, `XXX_`) {
+			field := s.Field(i)
+			if skipField(field) {
+				continue
+			} else {
 				key = append(key, reflect.Indirect(v).Field(i).String())
 			}
 		}
