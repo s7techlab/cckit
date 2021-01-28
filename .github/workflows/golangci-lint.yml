@@ -12,8 +12,8 @@ jobs:
     name: lint
     strategy:
       matrix:
-        go-version: [ 1.15.x ]
-        os: [ macos-latest, ubuntu-latest ]
+        go-version: [ 1.14.x, 1.15.x ]
+        os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
