@@ -24,7 +24,6 @@ var (
 	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
 
 	Authority = ids[0]
-	Someone   = ids[1]
 )
 
 const (
