@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
-	"io"
-
 	"github.com/pkg/errors"
 )
 
@@ -35,10 +32,6 @@ func pkcs7UnPadding(src []byte) ([]byte, error) {
 	return src[:(length - unpadding)], nil
 }
 
-func aesCBCEncrypt(key, s []byte) ([]byte, error) {
-	return aesCBCEncryptWithRand(rand.Reader, key, s)
-}
-
 func aesCBCEncryptWithIV(IV []byte, key, s []byte) ([]byte, error) {
 	if len(s)%aes.BlockSize != 0 {
 		return nil, errors.New("Invalid plaintext. It must be a multiple of the block size")
@@ -57,27 +50,6 @@ func aesCBCEncryptWithIV(IV []byte, key, s []byte) ([]byte, error) {
 	copy(ciphertext[:aes.BlockSize], IV)
 
 	mode := cipher.NewCBCEncrypter(block, IV)
-	mode.CryptBlocks(ciphertext[aes.BlockSize:], s)
-
-	return ciphertext, nil
-}
-func aesCBCEncryptWithRand(prng io.Reader, key, s []byte) ([]byte, error) {
-	if len(s)%aes.BlockSize != 0 {
-		return nil, errors.New("Invalid plaintext. It must be a multiple of the block size")
-	}
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	ciphertext := make([]byte, aes.BlockSize+len(s))
-	iv := ciphertext[:aes.BlockSize]
-	if _, err := io.ReadFull(prng, iv); err != nil {
-		return nil, err
-	}
-
-	mode := cipher.NewCBCEncrypter(block, iv)
 	mode.CryptBlocks(ciphertext[aes.BlockSize:], s)
 
 	return ciphertext, nil

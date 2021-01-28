@@ -23,3 +23,5 @@ require (
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.25.0
 )
+
+replace github.com/golang/protobuf v1.4.3 => github.com/golang/protobuf v1.3.2

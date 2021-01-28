@@ -6,9 +6,8 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/pkg/errors"
-
 	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 )
 
 // ArgsToBytes converts func arguments to bytes

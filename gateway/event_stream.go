@@ -73,9 +73,8 @@ func (s *ChaincodeEventServerStream) Recv(e *peer.ChaincodeEvent) error {
 	return s.RecvMsg(e)
 }
 
-func (s *ChaincodeEventServerStream) RecvMsg(m interface{}) error {
-	var ok bool
-	if m, ok = <-s.events; ok {
+func (s *ChaincodeEventServerStream) RecvMsg(_ interface{}) error {
+	if _, ok := <-s.events; ok {
 		return nil
 	}
 	return ErrEventChannelClosed

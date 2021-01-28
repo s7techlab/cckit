@@ -7,9 +7,15 @@ import (
 	"github.com/s7techlab/hlf-sdk-go/api"
 )
 
+type contextKey string
+
+func (c contextKey) String() string {
+	return string(c)
+}
+
 const (
-	CtxSignerKey   = `SigningIdentity`
-	CtxDoOptionKey = `SdkDoOption`
+	CtxSignerKey   = contextKey(`SigningIdentity`)
+	CtxDoOptionKey = contextKey(`SdkDoOption`)
 )
 
 func ContextWithDefaultSigner(ctx context.Context, defaultSigner msp.SigningIdentity) context.Context {
