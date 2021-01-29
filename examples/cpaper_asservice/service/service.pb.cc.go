@@ -156,7 +156,7 @@ type CPaperGateway struct {
 // ApiDef returns service definition
 func (c *CPaperGateway) ApiDef() cckit_gateway.ServiceDef {
 	return cckit_gateway.ServiceDef{
-		Desc:                        &CPaper_ServiceDesc,
+		Desc:                        &_CPaper_serviceDesc,
 		Service:                     c,
 		HandlerFromEndpointRegister: RegisterCPaperHandlerFromEndpoint,
 	}
