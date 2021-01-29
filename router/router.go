@@ -3,10 +3,11 @@ package router
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"os"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/response"
 )
 
@@ -38,7 +39,7 @@ type (
 
 	// Group of chain code functions
 	Group struct {
-		logger *shim.ChaincodeLogger
+		logger *zap.Logger
 		prefix string
 
 		// mapping chaincode method  => handler
@@ -104,12 +105,12 @@ func (g *Group) handleContext(c Context) peer.Response {
 
 	// handle standard stub handler (accepts StubInterface, returns peer.Response)
 	if stubHandler, ok := g.stubHandlers[c.Path()]; ok {
-		g.logger.Debug(`router stubHandler: `, c.Path())
+		g.logger.Debug(`router stubHandler`, zap.String(`path`, c.Path()))
 		return stubHandler(c.Stub())
 
 		// handle context handler (accepts Context, returns peer.Response)
 	} else if contextHandler, ok := g.contextHandlers[c.Path()]; ok {
-		g.logger.Debug(`router contextHandler: `, c.Path())
+		g.logger.Debug(`router contextHandler`, zap.String(`path`, c.Path()))
 		h := func(c Context) peer.Response {
 			h := contextHandler
 			for i := len(g.contextMiddleware) - 1; i >= 0; i-- {
@@ -120,7 +121,7 @@ func (g *Group) handleContext(c Context) peer.Response {
 		return h(c)
 	} else if handlerMeta, ok := g.handlers[c.Path()]; ok {
 
-		g.logger.Debug(`router handler: `, c.Path())
+		g.logger.Debug(`router handler`, zap.String(`path`, c.Path()))
 		h := func(c Context) (interface{}, error) {
 
 			c.SetHandler(handlerMeta)
@@ -137,13 +138,13 @@ func (g *Group) handleContext(c Context) peer.Response {
 		}
 		resp := response.Create(h(c))
 		if resp.Status != shim.OK {
-			g.logger.Errorf(`%s: %s: %s`, ErrHandlerError, c.Path(), resp.Message)
+			g.logger.Error(`router handler error`, zap.String(`path`, c.Path()), zap.String(`message`, resp.Message))
 		}
 		return resp
 	}
 
 	err := fmt.Errorf(`%s: %s`, ErrMethodNotFound, c.Path())
-	g.logger.Error(err)
+	g.logger.Error(`chaincode method not found`, zap.String(`path`, c.Path()))
 	return shim.Error(err.Error())
 }
 
@@ -232,7 +233,7 @@ func New(name string) *Group {
 }
 
 // NewContext creates new instance of router.Context
-func NewContext(stub shim.ChaincodeStubInterface, logger *shim.ChaincodeLogger) *context {
+func NewContext(stub shim.ChaincodeStubInterface, logger *zap.Logger) *context {
 	return &context{
 		stub:   stub,
 		logger: logger,
@@ -240,12 +241,21 @@ func NewContext(stub shim.ChaincodeStubInterface, logger *shim.ChaincodeLogger) 
 }
 
 // NewLogger creates new instance of shim.ChaincodeLogger
-func NewLogger(name string) *shim.ChaincodeLogger {
-	logger := shim.NewLogger(name)
-	loggingLevel, err := shim.LogLevel(os.Getenv(`CORE_CHAINCODE_LOGGING_LEVEL`))
-	if err == nil {
-		logger.SetLevel(loggingLevel)
+func NewLogger(name string) *zap.Logger {
+	conf := zap.NewProductionConfig()
+	logLevel := os.Getenv(`CORE_CHAINCODE_LOGGING_LEVEL`)
+	if logLevel != `` {
+		if err := conf.Level.UnmarshalText([]byte(logLevel)); err != nil {
+			panic(err)
+		}
+	} else {
+		conf.Level = zap.NewAtomicLevel()
 	}
 
-	return logger
+	logger, err := conf.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	return logger.Named(name)
 }

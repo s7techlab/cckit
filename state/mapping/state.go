@@ -2,8 +2,8 @@ package mapping
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/schema"
@@ -177,7 +177,7 @@ func (s *Impl) List(entry interface{}, target ...interface{}) (interface{}, erro
 	}
 
 	namespace := m.Namespace()
-	s.Logger().Debugf(`state mapped LIST with namespace: %s`, namespace)
+	s.Logger().Debug(`state mapped LIST`, zap.String(`namespace`, namespace.String()))
 
 	return s.state.List(namespace, m.Schema(), m.List())
 }
@@ -192,7 +192,7 @@ func (s *Impl) ListWith(entry interface{}, key state.Key) (result interface{}, e
 	}
 
 	namespace := m.Namespace()
-	s.Logger().Debugf(`state mapped LIST with namespace: %s`, namespace, namespace.Append(key))
+	s.Logger().Debug(`state mapped LIST`, zap.String(`namespace`, namespace.String()), zap.String(`list`, namespace.Append(key).String()))
 
 	return s.state.List(namespace.Append(key), m.Schema(), m.List())
 }
@@ -250,7 +250,7 @@ func (s *Impl) Delete(entry interface{}) error {
 	return s.state.Delete(mapped)
 }
 
-func (s *Impl) Logger() *shim.ChaincodeLogger {
+func (s *Impl) Logger() *zap.Logger {
 	return s.state.Logger()
 }
 
@@ -295,7 +295,7 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 	}
 
 	namespace = m.Namespace()
-	s.Logger().Debugf(`private state mapped LIST with namespace: %s`, namespace)
+	s.Logger().Debug(`private state mapped LIST`, zap.Reflect(`namespace`, namespace))
 	return s.state.ListPrivate(collection, usePrivateDataIterator, namespace, target[0], m.List())
 }
 

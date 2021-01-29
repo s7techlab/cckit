@@ -1,10 +1,11 @@
 package router
 
 import (
+	"go.uber.org/zap"
 	"time"
 
-	"github.com/hyperledger/fabric/core/chaincode/lib/cid"
-	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -21,7 +22,7 @@ type (
 
 		// Response returns response builder
 		Response() Response
-		Logger() *shim.ChaincodeLogger
+		Logger() *zap.Logger
 		Path() string
 		Handler() *HandlerMeta
 		SetHandler(*HandlerMeta)
@@ -85,7 +86,7 @@ type (
 	context struct {
 		stub    shim.ChaincodeStubInterface
 		handler *HandlerMeta
-		logger  *shim.ChaincodeLogger
+		logger  *zap.Logger
 		state   state.State
 		event   state.Event
 		args    [][]byte
@@ -106,7 +107,7 @@ func (c *context) Response() Response {
 	return ContextResponse{c}
 }
 
-func (c *context) Logger() *shim.ChaincodeLogger {
+func (c *context) Logger() *zap.Logger {
 	return c.logger
 }
 

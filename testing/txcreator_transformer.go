@@ -5,7 +5,7 @@ import (
 	"github.com/hyperledger/fabric/msp"
 	"github.com/s7techlab/cckit/identity"
 
-	pmsp "github.com/hyperledger/fabric/protos/msp"
+	pmsp "github.com/hyperledger/fabric-protos-go/msp"
 )
 
 func CreatorFromSigningIdentity(creator msp.SigningIdentity) (mspID string, certPEM []byte, err error) {

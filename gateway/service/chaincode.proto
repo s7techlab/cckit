@@ -1,9 +1,10 @@
 syntax = "proto3";
 
-package service;
+option go_package = "github.com/s7techlab/cckit/gateway/service";
+package s7techlab.gateway.service;
 
-import "github.com/hyperledger/fabric/protos/peer/proposal_response.proto";
-import "github.com/hyperledger/fabric/protos/peer/chaincode_event.proto";
+import "peer/proposal_response.proto";
+import "peer/chaincode_event.proto";
 
 message ChaincodeInput {
     // Chaincode name

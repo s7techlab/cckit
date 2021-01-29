@@ -1,7 +1,7 @@
 syntax = "proto3";
 
+option go_package = "github.com/s7techlab/cckit/examples/cpaper_extended/schema";
 package cckit.examples.cpaper_extended.schema;
-option go_package = "schema";
 
 import "google/protobuf/timestamp.proto";
 import "github.com/mwitkow/go-proto-validators/validator.proto";

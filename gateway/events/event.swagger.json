@@ -1,12 +1,13 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "event.proto",
+    "title": "events/event.proto",
     "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
+  "tags": [
+    {
+      "name": "ChaincodeEvent"
+    }
   ],
   "consumes": [
     "application/json"
@@ -17,12 +18,27 @@
   "paths": {
     "/event": {
       "get": {
-        "operationId": "EventStream",
+        "operationId": "ChaincodeEvent_EventStream",
         "responses": {
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "$ref": "#/x-stream-definitions/protosChaincodeEvent"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/protosChaincodeEvent"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of protosChaincodeEvent"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -36,7 +52,7 @@
     "protobufAny": {
       "type": "object",
       "properties": {
-        "type_url": {
+        "typeUrl": {
           "type": "string"
         },
         "value": {
@@ -48,13 +64,13 @@
     "protosChaincodeEvent": {
       "type": "object",
       "properties": {
-        "chaincode_id": {
+        "chaincodeId": {
           "type": "string"
         },
-        "tx_id": {
+        "txId": {
           "type": "string"
         },
-        "event_name": {
+        "eventName": {
           "type": "string"
         },
         "payload": {
@@ -64,21 +80,14 @@
       },
       "title": "ChaincodeEvent is used for events and registrations that are specific to chaincode\nstring type - \"chaincode\""
     },
-    "runtimeStreamError": {
+    "rpcStatus": {
       "type": "object",
       "properties": {
-        "grpc_code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "http_code": {
+        "code": {
           "type": "integer",
           "format": "int32"
         },
         "message": {
-          "type": "string"
-        },
-        "http_status": {
           "type": "string"
         },
         "details": {
@@ -88,20 +97,6 @@
           }
         }
       }
-    }
-  },
-  "x-stream-definitions": {
-    "protosChaincodeEvent": {
-      "type": "object",
-      "properties": {
-        "result": {
-          "$ref": "#/definitions/protosChaincodeEvent"
-        },
-        "error": {
-          "$ref": "#/definitions/runtimeStreamError"
-        }
-      },
-      "title": "Stream result of protosChaincodeEvent"
     }
   }
 }

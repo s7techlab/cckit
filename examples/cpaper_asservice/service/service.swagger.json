@@ -1,12 +1,13 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Commercial paper service",
+    "title": "cpaper_asservice/service/service.proto",
     "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
+  "tags": [
+    {
+      "name": "CPaper"
+    }
   ],
   "consumes": [
     "application/json"
@@ -18,12 +19,18 @@
     "/cpaper": {
       "get": {
         "summary": "List method returns all registered commercial papers",
-        "operationId": "List",
+        "operationId": "CPaper_List",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/schemaCommercialPaperList"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -35,12 +42,18 @@
     "/cpaper/buy": {
       "post": {
         "summary": "Buy commercial paper",
-        "operationId": "Buy",
+        "operationId": "CPaper_Buy",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -62,12 +75,18 @@
     "/cpaper/extid/{id}": {
       "get": {
         "summary": "GetByExternalId",
-        "operationId": "GetByExternalId",
+        "operationId": "CPaper_GetByExternalId",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -87,12 +106,18 @@
     "/cpaper/issue": {
       "post": {
         "summary": "Issue commercial paper",
-        "operationId": "Issue",
+        "operationId": "CPaper_Issue",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -114,12 +139,18 @@
     "/cpaper/redeem": {
       "post": {
         "summary": "Redeem commercial paper",
-        "operationId": "Redeem",
+        "operationId": "CPaper_Redeem",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -138,15 +169,21 @@
         ]
       }
     },
-    "/cpaper/{issuer}/{paper_number}": {
+    "/cpaper/{issuer}/{paperNumber}": {
       "get": {
         "summary": "Get method returns commercial paper data by id",
-        "operationId": "Get",
+        "operationId": "CPaper_Get",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -158,7 +195,7 @@
             "type": "string"
           },
           {
-            "name": "paper_number",
+            "name": "paperNumber",
             "in": "path",
             "required": true,
             "type": "string"
@@ -170,12 +207,18 @@
       },
       "delete": {
         "summary": "Delete commercial paper",
-        "operationId": "Delete",
+        "operationId": "CPaper_Delete",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/schemaCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -187,7 +230,7 @@
             "type": "string"
           },
           {
-            "name": "paper_number",
+            "name": "paperNumber",
             "in": "path",
             "required": true,
             "type": "string"
@@ -209,26 +252,56 @@
       ],
       "default": "ISSUED"
     },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
     "schemaBuyCommercialPaper": {
       "type": "object",
       "properties": {
         "issuer": {
           "type": "string"
         },
-        "paper_number": {
+        "paperNumber": {
           "type": "string"
         },
-        "current_owner": {
+        "currentOwner": {
           "type": "string"
         },
-        "new_owner": {
+        "newOwner": {
           "type": "string"
         },
         "price": {
           "type": "integer",
           "format": "int32"
         },
-        "purchase_date": {
+        "purchaseDate": {
           "type": "string",
           "format": "date-time"
         }
@@ -242,28 +315,28 @@
           "type": "string",
           "title": "Issuer and Paper number comprises composite primary key of Commercial paper entry"
         },
-        "paper_number": {
+        "paperNumber": {
           "type": "string"
         },
         "owner": {
           "type": "string"
         },
-        "issue_date": {
+        "issueDate": {
           "type": "string",
           "format": "date-time"
         },
-        "maturity_date": {
+        "maturityDate": {
           "type": "string",
           "format": "date-time"
         },
-        "face_value": {
+        "faceValue": {
           "type": "integer",
           "format": "int32"
         },
         "state": {
           "$ref": "#/definitions/CommercialPaperState"
         },
-        "external_id": {
+        "externalId": {
           "type": "string",
           "title": "Additional unique field for entry"
         }
@@ -288,22 +361,22 @@
         "issuer": {
           "type": "string"
         },
-        "paper_number": {
+        "paperNumber": {
           "type": "string"
         },
-        "issue_date": {
+        "issueDate": {
           "type": "string",
           "format": "date-time"
         },
-        "maturity_date": {
+        "maturityDate": {
           "type": "string",
           "format": "date-time"
         },
-        "face_value": {
+        "faceValue": {
           "type": "integer",
           "format": "int32"
         },
-        "external_id": {
+        "externalId": {
           "type": "string",
           "title": "external_id  - once more uniq id of state entry"
         }
@@ -316,13 +389,13 @@
         "issuer": {
           "type": "string"
         },
-        "paper_number": {
+        "paperNumber": {
           "type": "string"
         },
-        "redeeming_owner": {
+        "redeemingOwner": {
           "type": "string"
         },
-        "redeem_date": {
+        "redeemDate": {
           "type": "string",
           "format": "date-time"
         }

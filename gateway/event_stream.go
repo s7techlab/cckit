@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -70,12 +70,18 @@ func (s *ChaincodeEventServerStream) SendMsg(m interface{}) (err error) {
 }
 
 func (s *ChaincodeEventServerStream) Recv(e *peer.ChaincodeEvent) error {
-	return s.RecvMsg(e)
+	return s.recv(e)
 }
 
 func (s *ChaincodeEventServerStream) RecvMsg(m interface{}) error {
-	var ok bool
-	if m, ok = <-s.events; ok {
+	return s.recv(m.(*peer.ChaincodeEvent))
+}
+
+func (s *ChaincodeEventServerStream) recv(ev *peer.ChaincodeEvent) error {
+	_ = ev
+	if e, ok := <-s.events; ok {
+		ev = e
+		_ = ev
 		return nil
 	}
 	return ErrEventChannelClosed

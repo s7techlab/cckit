@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/ptypes"
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/examples/cpaper_extended"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/schema"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/testdata"

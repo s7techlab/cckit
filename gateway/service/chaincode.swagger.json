@@ -1,0 +1,172 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "service/chaincode.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Chaincode"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "protosChaincodeEvent": {
+      "type": "object",
+      "properties": {
+        "chaincodeId": {
+          "type": "string"
+        },
+        "txId": {
+          "type": "string"
+        },
+        "eventName": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "ChaincodeEvent is used for events and registrations that are specific to chaincode\nstring type - \"chaincode\""
+    },
+    "protosEndorsement": {
+      "type": "object",
+      "properties": {
+        "endorser": {
+          "type": "string",
+          "format": "byte",
+          "title": "Identity of the endorser (e.g. its certificate)"
+        },
+        "signature": {
+          "type": "string",
+          "format": "byte",
+          "title": "Signature of the payload included in ProposalResponse concatenated with\nthe endorser's certificate; ie, sign(ProposalResponse.payload + endorser)"
+        }
+      },
+      "title": "An endorsement is a signature of an endorser over a proposal response.  By\nproducing an endorsement message, an endorser implicitly \"approves\" that\nproposal response and the actions contained therein. When enough\nendorsements have been collected, a transaction can be generated out of a\nset of proposal responses.  Note that this message only contains an identity\nand a signature but no signed payload. This is intentional because\nendorsements are supposed to be collected in a transaction, and they are all\nexpected to endorse a single proposal response/action (many endorsements\nover a single proposal response)"
+    },
+    "protosProposalResponse": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Version indicates message protocol version"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Timestamp is the time that the message\nwas created as  defined by the sender"
+        },
+        "response": {
+          "$ref": "#/definitions/protosResponse",
+          "title": "A response message indicating whether the\nendorsement of the action was successful"
+        },
+        "payload": {
+          "type": "string",
+          "format": "byte",
+          "title": "The payload of response. It is the bytes of ProposalResponsePayload"
+        },
+        "endorsement": {
+          "$ref": "#/definitions/protosEndorsement",
+          "title": "The endorsement of the proposal, basically\nthe endorser's signature over the payload"
+        }
+      },
+      "description": "A ProposalResponse is returned from an endorser to the proposal submitter.\nThe idea is that this message contains the endorser's response to the\nrequest of a client to perform an action over a chaincode (or more\ngenerically on the ledger); the response might be success/error (conveyed in\nthe Response field) together with a description of the action and a\nsignature over it by that endorser.  If a sufficient number of distinct\nendorsers agree on the same action and produce signature to that effect, a\ntransaction can be generated and sent for ordering."
+    },
+    "protosResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "description": "A status code that should follow the HTTP status codes."
+        },
+        "message": {
+          "type": "string",
+          "description": "A message associated with the response code."
+        },
+        "payload": {
+          "type": "string",
+          "format": "byte",
+          "description": "A payload that can be used to include metadata with this response."
+        }
+      },
+      "description": "A response with a representation similar to an HTTP response that can\nbe used within another message."
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "serviceChaincodeInput": {
+      "type": "object",
+      "properties": {
+        "chaincode": {
+          "type": "string",
+          "title": "Chaincode name"
+        },
+        "channel": {
+          "type": "string",
+          "title": "Channel name"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "byte"
+          },
+          "description": "Input contains the arguments for invocation."
+        },
+        "transient": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "format": "byte"
+          },
+          "description": "TransientMap contains data (e.g. cryptographic material) that might be used\nto implement some form of application-level confidentiality. The contents\nof this field are supposed to always be omitted from the transaction and\nexcluded from the ledger."
+        }
+      }
+    },
+    "serviceInvocationType": {
+      "type": "string",
+      "enum": [
+        "QUERY",
+        "INVOKE"
+      ],
+      "default": "QUERY"
+    }
+  }
+}

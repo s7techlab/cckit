@@ -1,7 +1,7 @@
 package debug
 
 import (
-	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 )
 
 // DelStateByPrefixes deletes from state entries with matching key prefix

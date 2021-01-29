@@ -3,7 +3,7 @@ package expect
 import (
 	"fmt"
 
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	g "github.com/onsi/gomega"
 )
 

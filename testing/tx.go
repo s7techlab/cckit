@@ -2,16 +2,16 @@ package testing
 
 import (
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/testing/expect"
+	"go.uber.org/zap"
 )
 
 type (
 	TxHandler struct {
 		MockStub *MockStub
-		Logger   *shim.ChaincodeLogger
+		Logger   *zap.Logger
 		Context  router.Context
 	}
 

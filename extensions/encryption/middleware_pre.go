@@ -1,11 +1,12 @@
 package encryption
 
 import (
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
+	"go.uber.org/zap"
 )
 
 // ArgsDecryptIfKeyProvided  - pre middleware, decrypts chaincode method arguments if key provided in transient map
@@ -50,7 +51,7 @@ func argsDecryptor(next router.ContextHandlerFunc, keyShouldBe bool, exceptMetho
 		key, err := KeyFromTransient(c)
 		// no key provided
 		if err != nil {
-			c.Logger().Debugf(`no decrypt key provided: %s`, err)
+			c.Logger().Debug(`no decrypt key provided`, zap.Error(err))
 			if err == ErrKeyNotDefinedInTransientMap && keyShouldBe {
 				return response.Error(err)
 			}

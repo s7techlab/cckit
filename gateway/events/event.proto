@@ -1,12 +1,11 @@
 syntax = "proto3";
 
+option go_package = "github.com/s7techlab/gateway/events";
 package events;
-
-option go_package = ".;events";
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
-import "github.com/hyperledger/fabric/protos/peer/chaincode_event.proto";
+import "peer/chaincode_event.proto";
 
 service ChaincodeEvent {
     rpc EventStream (google.protobuf.Empty) returns (stream protos.ChaincodeEvent) {

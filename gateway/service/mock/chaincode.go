@@ -5,9 +5,9 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/protos/peer"
 	"github.com/s7techlab/cckit/gateway/service"
 	"github.com/s7techlab/cckit/testing"
 )
@@ -18,6 +18,7 @@ const (
 
 type (
 	ChaincodeService struct {
+		service.UnimplementedChaincodeServer
 		// channel name -> chaincode name
 		Peer    *testing.MockedPeer
 		m       sync.Mutex

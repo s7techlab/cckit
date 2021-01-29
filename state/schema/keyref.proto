@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package cckit.state.schema;
-option go_package = "schema";
+option go_package = "github.com/s7techlab/cckit/state/schema;schema";
 
 
 // KeyRefId  id part of key reference

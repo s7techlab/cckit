@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/hyperledger/fabric/protos/peer"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/examples/cars"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -24,7 +24,6 @@ var (
 	ids = idtestdata.MustIdentities(idtestdata.Certificates, idtestdata.DefaultMSP)
 
 	Authority = ids[0]
-	Someone   = ids[1]
 )
 
 const (

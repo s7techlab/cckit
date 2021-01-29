@@ -4,7 +4,9 @@ import (
 	"context"
 )
 
-const CtxTransientKey = `TransientMap`
+type contextKey string
+
+const CtxTransientKey = contextKey(`TransientMap`)
 
 func ContextWithTransientMap(ctx context.Context, transient map[string][]byte) context.Context {
 	return context.WithValue(ctx, CtxTransientKey, transient)

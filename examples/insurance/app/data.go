@@ -7,7 +7,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 )
 
 // Key consists of prefix + UUID of the contract type

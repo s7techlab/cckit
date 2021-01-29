@@ -22,7 +22,6 @@ func TestState(t *testing.T) {
 
 var (
 	booksCC *testcc.MockStub
-	err     error
 
 	Owner = identitytestdata.Certificates[0].MustIdentity(`SOME_MSP`)
 )
