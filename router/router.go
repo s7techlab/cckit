@@ -243,8 +243,13 @@ func NewContext(stub shim.ChaincodeStubInterface, logger *zap.Logger) *context {
 // NewLogger creates new instance of shim.ChaincodeLogger
 func NewLogger(name string) *zap.Logger {
 	conf := zap.NewProductionConfig()
-	if err := conf.Level.UnmarshalText([]byte(os.Getenv(`CORE_CHAINCODE_LOGGING_LEVEL`))); err != nil {
-		panic(err)
+	logLevel := os.Getenv(`CORE_CHAINCODE_LOGGING_LEVEL`)
+	if logLevel != `` {
+		if err := conf.Level.UnmarshalText([]byte(logLevel)); err != nil {
+			panic(err)
+		}
+	} else {
+		conf.Level = zap.NewAtomicLevel()
 	}
 
 	logger, err := conf.Build()

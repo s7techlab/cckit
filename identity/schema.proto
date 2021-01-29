@@ -6,11 +6,11 @@ package s7techlab.cckit.identity;
 import "google/protobuf/timestamp.proto";
 
 message Identity {
-  string msp_id = 1; // MSP identifier
-  bytes pem = 2; // certificate
+    string msp_id = 1; // MSP identifier
+    bytes pem = 2; // certificate
 }
 
 message ActionInfo {
-  google.protobuf.Timestamp at = 1; //  time of action
-  Identity by = 2; // identity, initiates action
+    google.protobuf.Timestamp at = 1; //  time of action
+    Identity by = 2; // identity, initiates action
 }

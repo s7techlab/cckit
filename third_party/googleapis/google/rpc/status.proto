@@ -78,15 +78,15 @@ option objc_class_prefix = "RPC";
 // - Logging. If some API errors are stored in logs, the message `Status` could
 //     be used directly after any stripping needed for security/privacy reasons.
 message Status {
-  // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-  int32 code = 1;
+    // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+    int32 code = 1;
 
-  // A developer-facing error message, which should be in English. Any
-  // user-facing error message should be localized and sent in the
-  // [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-  string message = 2;
+    // A developer-facing error message, which should be in English. Any
+    // user-facing error message should be localized and sent in the
+    // [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+    string message = 2;
 
-  // A list of messages that carry the error details.  There is a common set of
-  // message types for APIs to use.
-  repeated google.protobuf.Any details = 3;
+    // A list of messages that carry the error details.  There is a common set of
+    // message types for APIs to use.
+    repeated google.protobuf.Any details = 3;
 }

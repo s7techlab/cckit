@@ -9,56 +9,56 @@ import "cpaper_asservice/schema/schema.proto";
 
 // Commercial paper chaincode-as-service
 service CPaper {
-  // List method returns all registered commercial papers
-  rpc List (google.protobuf.Empty) returns (cpaper_asservice.schema.CommercialPaperList) {
-    option (google.api.http) = {
-      get: "/cpaper"
-    };
-  }
+    // List method returns all registered commercial papers
+    rpc List (google.protobuf.Empty) returns (cpaper_asservice.schema.CommercialPaperList) {
+        option (google.api.http) = {
+            get: "/cpaper"
+        };
+    }
 
-  // Get method returns commercial paper data by id
-  rpc Get (cpaper_asservice.schema.CommercialPaperId) returns (cpaper_asservice.schema.CommercialPaper) {
-    option (google.api.http) = {
-      get: "/cpaper/{issuer}/{paper_number}"
-    };
-  }
+    // Get method returns commercial paper data by id
+    rpc Get (cpaper_asservice.schema.CommercialPaperId) returns (cpaper_asservice.schema.CommercialPaper) {
+        option (google.api.http) = {
+            get: "/cpaper/{issuer}/{paper_number}"
+        };
+    }
 
-  // GetByExternalId
-  rpc GetByExternalId (cpaper_asservice.schema.ExternalId) returns (cpaper_asservice.schema.CommercialPaper) {
-    option (google.api.http) = {
-      get: "/cpaper/extid/{id}"
-    };
-  }
+    // GetByExternalId
+    rpc GetByExternalId (cpaper_asservice.schema.ExternalId) returns (cpaper_asservice.schema.CommercialPaper) {
+        option (google.api.http) = {
+            get: "/cpaper/extid/{id}"
+        };
+    }
 
-  // Issue commercial paper
-  rpc Issue (cpaper_asservice.schema.IssueCommercialPaper) returns (cpaper_asservice.schema.CommercialPaper) {
-    option (google.api.http) = {
-      post : "/cpaper/issue"
-      body: "*"
-    };
-  }
+    // Issue commercial paper
+    rpc Issue (cpaper_asservice.schema.IssueCommercialPaper) returns (cpaper_asservice.schema.CommercialPaper) {
+        option (google.api.http) = {
+            post : "/cpaper/issue"
+            body: "*"
+        };
+    }
 
-  // Buy commercial paper
-  rpc Buy (cpaper_asservice.schema.BuyCommercialPaper) returns (cpaper_asservice.schema.CommercialPaper) {
-    option (google.api.http) = {
-      post: "/cpaper/buy"
-      body: "*"
-    };
-  }
+    // Buy commercial paper
+    rpc Buy (cpaper_asservice.schema.BuyCommercialPaper) returns (cpaper_asservice.schema.CommercialPaper) {
+        option (google.api.http) = {
+            post: "/cpaper/buy"
+            body: "*"
+        };
+    }
 
-  // Redeem commercial paper
-  rpc Redeem (cpaper_asservice.schema.RedeemCommercialPaper) returns (cpaper_asservice.schema.CommercialPaper) {
-    option (google.api.http) = {
-      post: "/cpaper/redeem"
-      body: "*"
-    };
-  }
+    // Redeem commercial paper
+    rpc Redeem (cpaper_asservice.schema.RedeemCommercialPaper) returns (cpaper_asservice.schema.CommercialPaper) {
+        option (google.api.http) = {
+            post: "/cpaper/redeem"
+            body: "*"
+        };
+    }
 
-  // Delete commercial paper
-  rpc Delete (cpaper_asservice.schema.CommercialPaperId) returns (cpaper_asservice.schema.CommercialPaper) {
-    option (google.api.http) = {
-      delete: "/cpaper/{issuer}/{paper_number}"
-    };
-  }
+    // Delete commercial paper
+    rpc Delete (cpaper_asservice.schema.CommercialPaperId) returns (cpaper_asservice.schema.CommercialPaper) {
+        option (google.api.http) = {
+            delete: "/cpaper/{issuer}/{paper_number}"
+        };
+    }
 }
 
