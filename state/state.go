@@ -2,7 +2,6 @@ package state
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"reflect"
 	"strings"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
+	"go.uber.org/zap"
 )
 
 // HistoryEntry struct containing history information of a single entry

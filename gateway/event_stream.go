@@ -2,7 +2,6 @@ package gateway
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	"github.com/golang/protobuf/proto"
@@ -71,16 +70,18 @@ func (s *ChaincodeEventServerStream) SendMsg(m interface{}) (err error) {
 }
 
 func (s *ChaincodeEventServerStream) Recv(e *peer.ChaincodeEvent) error {
-	return s.RecvMsg(e)
+	return s.recv(e)
 }
 
 func (s *ChaincodeEventServerStream) RecvMsg(m interface{}) error {
-	ev, ok := m.(*peer.ChaincodeEvent)
-	if !ok {
-		return errors.New(`expected peer.ChaincodeEvent`)
-	}
-	if ev, ok = <-s.events; ok {
-		m = ev
+	return s.recv(m.(*peer.ChaincodeEvent))
+}
+
+func (s *ChaincodeEventServerStream) recv(ev *peer.ChaincodeEvent) error {
+	_ = ev
+	if e, ok := <-s.events; ok {
+		ev = e
+		_ = ev
 		return nil
 	}
 	return ErrEventChannelClosed
