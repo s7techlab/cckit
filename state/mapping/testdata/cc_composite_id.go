@@ -51,6 +51,7 @@ func invokeCreateComposite(c router.Context) (interface{}, error) {
 	entity := &schema.EntityWithCompositeId{
 		IdFirstPart:  create.IdFirstPart,
 		IdSecondPart: create.IdSecondPart,
+		IdThirdPart:  create.IdThirdPart,
 		Name:         create.Name,
 		Value:        create.Value,
 	}
@@ -65,7 +66,11 @@ func invokeCreateComposite(c router.Context) (interface{}, error) {
 func invokeUpdateComposite(c router.Context) (interface{}, error) {
 	update := c.Param().(*schema.UpdateEntityWithCompositeId)
 	entity, _ := c.State().Get(
-		&schema.EntityCompositeId{IdFirstPart: update.IdFirstPart, IdSecondPart: update.IdSecondPart},
+		&schema.EntityCompositeId{
+			IdFirstPart:  update.IdFirstPart,
+			IdSecondPart: update.IdSecondPart,
+			IdThirdPart:  update.IdThirdPart,
+		},
 		&schema.EntityWithCompositeId{})
 
 	e := entity.(*schema.EntityWithCompositeId)

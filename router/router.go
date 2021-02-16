@@ -3,12 +3,12 @@ package router
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"os"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/response"
+	"go.uber.org/zap"
 )
 
 type (
@@ -252,6 +252,7 @@ func NewLogger(name string) *zap.Logger {
 		conf.Level = zap.NewAtomicLevel()
 	}
 
+	conf.DisableStacktrace = true
 	logger, err := conf.Build()
 	if err != nil {
 		panic(err)
