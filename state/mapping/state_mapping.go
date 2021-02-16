@@ -24,6 +24,7 @@ type (
 		Schema() interface{}
 		List() interface{}
 		Namespace() state.Key
+		// PrimaryKey returns primary key for entry
 		PrimaryKey(instance interface{}) (key state.Key, err error)
 		Keys(instance interface{}) (key []state.KeyValue, err error)
 		KeyerFor() interface{}

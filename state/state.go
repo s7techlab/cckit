@@ -370,7 +370,7 @@ func (s *Impl) Insert(entry interface{}, values ...interface{}) error {
 		return err
 	} else if exists {
 		key, _ := s.Key(entry)
-		return errors.Errorf(`%s: %s`, ErrKeyAlreadyExists, key.Origin)
+		return fmt.Errorf(`%w: %s`, ErrKeyAlreadyExists, key.Origin)
 	}
 
 	key, value, err := s.argKeyValue(entry, values)

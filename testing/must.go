@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/s7techlab/cckit/convert"
-
-	"github.com/golang/protobuf/ptypes/timestamp"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/s7techlab/cckit/convert"
 )
 
 // PanicIfError
@@ -51,4 +49,19 @@ func MustConvertFromBytes(bb []byte, target interface{}) interface{} {
 	v, err := convert.FromBytes(bb, target)
 	PanicIfError(err)
 	return v
+}
+
+// MustTime returns Timestamp for date string or panic
+func MustTime(s string) *timestamp.Timestamp {
+	t, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		panic(err)
+	}
+
+	ts, err := ptypes.TimestampProto(t)
+	if err != nil {
+		panic(err)
+	}
+
+	return ts
 }
