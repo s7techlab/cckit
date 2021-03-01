@@ -10,6 +10,10 @@ import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 )
 
+const (
+	emptyTicketNumber = `empty ticket number`
+)
+
 // Error returns shim.Error
 func Error(err interface{}) peer.Response {
 	return shim.Error(fmt.Sprintf("%s", err))
@@ -48,6 +52,9 @@ func Create(data interface{}, err interface{}) peer.Response {
 	}
 
 	if errObj != nil {
+		if errObj.Error() == emptyTicketNumber {
+			return peer.Response{ Status: shim.ERRORTHRESHOLD, Message: emptyTicketNumber }
+		}
 		return Error(errObj)
 	}
 	return Success(data)
