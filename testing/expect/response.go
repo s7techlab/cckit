@@ -1,6 +1,7 @@
 package expect
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -19,6 +20,8 @@ func ResponseOk(response peer.Response, okMatcher ...interface{}) peer.Response 
 			g.Expect(response.Message).To(g.ContainSubstring(t), "ok message not match: "+response.Message)
 		case g.OmegaMatcher:
 			g.Expect(response.Message).To(t, "ok message not match: "+response.Message)
+		default:
+			panic("Matcher type not supported")
 		}
 	}
 	return response
@@ -30,12 +33,14 @@ func ResponseError(response peer.Response, errMatcher ...interface{}) peer.Respo
 
 	if len(errMatcher) > 0 {
 		switch t := errMatcher[0].(type) {
-		case string:
-			g.Expect(response.Message).To(g.ContainSubstring(t),
+		case string, error:
+			g.Expect(response.Message).To(g.ContainSubstring(fmt.Sprintf(`%s`, errMatcher[0])),
 				"error message not match: "+response.Message)
 		case g.OmegaMatcher:
 			g.Expect(response.Message).To(t,
 				"error message not match: "+response.Message)
+		default:
+			panic("Matcher type not supported")
 		}
 	}
 	return response
