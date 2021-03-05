@@ -74,7 +74,7 @@ var _ = Describe(`Mapping`, func() {
 		})
 
 		It("Disallow to insert entries with same primary key", func() {
-			expectcc.ResponseError(compositeIDCC.Invoke(`create`, create1), ContainSubstring(state.ErrKeyAlreadyExists.Error()))
+			expectcc.ResponseError(compositeIDCC.Invoke(`create`, create1), state.ErrKeyAlreadyExists)
 		})
 
 		It("Allow to get entry list", func() {
@@ -133,7 +133,7 @@ var _ = Describe(`Mapping`, func() {
 				&schema.EntityWithCompositeIdList{}).(*schema.EntityWithCompositeIdList)
 
 			Expect(len(ee.Items)).To(Equal(2))
-			expectcc.ResponseError(compositeIDCC.Invoke(`get`, toDelete), ContainSubstring(state.ErrKeyNotFound.Error()))
+			expectcc.ResponseError(compositeIDCC.Invoke(`get`, toDelete), state.ErrKeyNotFound)
 		})
 
 		It("Allow to insert entry once more time", func() {
@@ -154,7 +154,7 @@ var _ = Describe(`Mapping`, func() {
 
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
 			Expect(keys[0]).To(Equal(
-				"\x00" + `EntityWithComplexId` + string(0) + ent1.Id.IdPart1 + string(0) + ent1.Id.IdPart2 + string(0)))
+				"\x00" + `EntityWithComplexId` + string(rune(0)) + ent1.Id.IdPart1 + string(rune(0)) + ent1.Id.IdPart2 + string(rune(0))))
 		})
 
 		It("Allow to get entity", func() {
@@ -184,7 +184,7 @@ var _ = Describe(`Mapping`, func() {
 			Expect(len(keys)).To(Equal(1))
 
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
-			Expect(keys[0]).To(Equal("\x00" + `EntityWithSliceId` + string(0) + ent2.Id[0] + string(0) + ent2.Id[1] + string(0)))
+			Expect(keys[0]).To(Equal("\x00" + `EntityWithSliceId` + string(rune(0)) + ent2.Id[0] + string(rune(0)) + ent2.Id[1] + string(rune(0))))
 		})
 
 		It("Allow to get entity", func() {
@@ -218,7 +218,7 @@ var _ = Describe(`Mapping`, func() {
 			// errored on checking uniq key
 			expectcc.ResponseError(
 				indexesCC.Invoke(`create`, create1),
-				ContainSubstring(mapping.ErrMappingUniqKeyExists.Error()))
+				mapping.ErrMappingUniqKeyExists)
 		})
 
 		It("Allow finding data by uniq key", func() {
@@ -249,7 +249,7 @@ var _ = Describe(`Mapping`, func() {
 		It("Disallow finding data by non existent uniq key", func() {
 			expectcc.ResponseError(
 				indexesCC.Query(`getByExternalId`, `some-non-existent-id`),
-				ContainSubstring(mapping.ErrIndexReferenceNotFound.Error()))
+				mapping.ErrIndexReferenceNotFound)
 		})
 
 		It("Allow to add data with multiple external id", func() {
@@ -301,7 +301,7 @@ var _ = Describe(`Mapping`, func() {
 		It("Disallow to find data by previous multi key", func() {
 			expectcc.ResponseError(
 				indexesCC.Query(`getByOptMultiExternalId`, create2.OptionalExternalIds[1]),
-				ContainSubstring(mapping.ErrIndexReferenceNotFound.Error()))
+				mapping.ErrIndexReferenceNotFound)
 		})
 
 		It("Allow to find data by updated uniq key", func() {
@@ -316,7 +316,7 @@ var _ = Describe(`Mapping`, func() {
 		It("Disallow to find data by previous uniq key", func() {
 			expectcc.ResponseError(
 				indexesCC.Query(`getByExternalId`, create2.ExternalId),
-				ContainSubstring(mapping.ErrIndexReferenceNotFound.Error()))
+				mapping.ErrIndexReferenceNotFound)
 		})
 
 		It("Allow to delete entry", func() {
@@ -327,7 +327,7 @@ var _ = Describe(`Mapping`, func() {
 				&schema.EntityWithIndexesList{}).(*schema.EntityWithIndexesList)
 
 			Expect(len(ee.Items)).To(Equal(1))
-			expectcc.ResponseError(indexesCC.Invoke(`get`, create2.Id), ContainSubstring(state.ErrKeyNotFound.Error()))
+			expectcc.ResponseError(indexesCC.Invoke(`get`, create2.Id), state.ErrKeyNotFound)
 		})
 
 		It("Allow to insert entry once more time", func() {

@@ -10,24 +10,34 @@ import (
 )
 
 // ResponseOk expects peer.Response has shim.OK status and message has okMatcher matcher
-func ResponseOk(response peer.Response, okMatcher ...g.OmegaMatcher) peer.Response {
+func ResponseOk(response peer.Response, okMatcher ...interface{}) peer.Response {
 	g.Expect(int(response.Status)).To(g.Equal(shim.OK), response.Message)
 
 	if len(okMatcher) > 0 {
-		g.Expect(response.Message).To(okMatcher[0], "ok message not match: "+response.Message)
+		switch t := okMatcher[0].(type) {
+		case string:
+			g.Expect(response.Message).To(g.ContainSubstring(t), "ok message not match: "+response.Message)
+		case g.OmegaMatcher:
+			g.Expect(response.Message).To(t, "ok message not match: "+response.Message)
+		}
 	}
 	return response
 }
 
 // ResponseError expects peer.Response has shim.ERROR status and message has errMatcher matcher
-func ResponseError(response peer.Response, errMatcher ...g.OmegaMatcher) peer.Response {
+func ResponseError(response peer.Response, errMatcher ...interface{}) peer.Response {
 	g.Expect(int(response.Status)).To(g.Equal(shim.ERROR), response.Message)
 
 	if len(errMatcher) > 0 {
-		g.Expect(response.Message).To(errMatcher[0],
-			"error message not match: "+response.Message)
+		switch t := errMatcher[0].(type) {
+		case string:
+			g.Expect(response.Message).To(g.ContainSubstring(t),
+				"error message not match: "+response.Message)
+		case g.OmegaMatcher:
+			g.Expect(response.Message).To(t,
+				"error message not match: "+response.Message)
+		}
 	}
-
 	return response
 }
 

@@ -349,14 +349,14 @@ Describe("ERC-20 transfer", func() {
         expectcc.ResponseError(
             erc20fs.From(actors[`token_owner`]).Invoke(
                 `transfer`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(), 100),
-            ContainSubstring(ErrForbiddenToTransferToSameAccount.Error()))
+            ErrForbiddenToTransferToSameAccount)
     })
 
     It("Disallow token holder with zero balance to transfer tokens", func() {
         expectcc.ResponseError(
             erc20fs.From(actors[`account_holder1`]).Invoke(
                 `transfer`, actors[`token_owner`].GetMSPID(), actors[`token_owner`].GetID(), 100),
-            ContainSubstring(ErrNotEnoughFunds.Error()))
+            ErrNotEnoughFunds)
     })
 
     It("Allow token holder with non zero balance to transfer tokens", func() {
