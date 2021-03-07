@@ -279,9 +279,8 @@ During tests we can check `Response` attribute:
 
 Most frequently used helpers are:
 
-* `ResponseOk` (*response* **peer.Response**) expects that peer response contains `ok` status code(`200`)
-* `ResponseError` (*response* **peer.Response**)  expects that peer response contains error statuc code (`500`). Optionally
-you can pass expected error substring.
+* `ResponseOk` (*response* **peer.Response**) expects that peer response contains `ok` status code(`200`). Optionally you can pass either a `string` or an `OmegaMatcher` [any available matcher provided by Gomega](http://onsi.github.io/gomega/#provided-matchers), to check, for example, if the error contains a specific substring.
+* `ResponseError` (*response* **peer.Response**)  expects that peer response contains error status code (`500`). Optionally you can pass either a `string`, an `error` or an `OmegaMatcher` as for `ResponseOk`
 * `PayloadIs`(*response* **peer.Response**, *target* **interface{}) expects that peer response contains `ok` status code (`200`) 
 and converts response to **target** type using `CCKit` [convert](../convert) package
 
@@ -394,7 +393,7 @@ The simple [car](../examples/cars) contains logic to control who can invoke `car
 			//invoke chaincode method from non authority actor
 			expectcc.ResponseError(
 				cc.From(actors[`someone`]).Invoke(`carRegister`, cars.Payloads[0]),
-				owner.ErrOwnerOnly) // expect "only owner" error
+				ContainSubstring(owner.ErrOwnerOnly.Error())) // expect "only owner" error
 		})
 
 	It("Allow authority to add information about car", func() {

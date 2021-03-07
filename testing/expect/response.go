@@ -2,7 +2,6 @@ package expect
 
 import (
 	"fmt"
-
 	"strconv"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -11,25 +10,39 @@ import (
 	"github.com/s7techlab/cckit/convert"
 )
 
-// ResponseOk expects peer.Response has shim.OK status and message has okSubstr prefix
-func ResponseOk(response peer.Response, okSubstr ...string) peer.Response {
+// ResponseOk expects peer.Response has shim.OK status and message has okMatcher matcher
+func ResponseOk(response peer.Response, okMatcher ...interface{}) peer.Response {
 	g.Expect(int(response.Status)).To(g.Equal(shim.OK), response.Message)
 
-	if len(okSubstr) > 0 {
-		g.Expect(response.Message).To(g.HavePrefix(okSubstr[0]), "ok message not match: "+response.Message)
+	if len(okMatcher) > 0 {
+		switch t := okMatcher[0].(type) {
+		case string:
+			g.Expect(response.Message).To(g.ContainSubstring(t), "ok message not match: "+response.Message)
+		case g.OmegaMatcher:
+			g.Expect(response.Message).To(t, "ok message not match: "+response.Message)
+		default:
+			panic("Matcher type not supported")
+		}
 	}
 	return response
 }
 
-// ResponseError expects peer.Response has shim.ERROR status and message has errorSubstr prefix
-func ResponseError(response peer.Response, errorSubstr ...interface{}) peer.Response {
+// ResponseError expects peer.Response has shim.ERROR status and message has errMatcher matcher
+func ResponseError(response peer.Response, errMatcher ...interface{}) peer.Response {
 	g.Expect(int(response.Status)).To(g.Equal(shim.ERROR), response.Message)
 
-	if len(errorSubstr) > 0 {
-		g.Expect(response.Message).To(g.HavePrefix(fmt.Sprintf(`%s`, errorSubstr[0])),
-			"error message not match: "+response.Message)
+	if len(errMatcher) > 0 {
+		switch t := errMatcher[0].(type) {
+		case string, error:
+			g.Expect(response.Message).To(g.ContainSubstring(fmt.Sprintf(`%s`, errMatcher[0])),
+				"error message not match: "+response.Message)
+		case g.OmegaMatcher:
+			g.Expect(response.Message).To(t,
+				"error message not match: "+response.Message)
+		default:
+			panic("Matcher type not supported")
+		}
 	}
-
 	return response
 }
 
