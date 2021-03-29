@@ -2,6 +2,7 @@ package mapping
 
 import (
 	"fmt"
+
 	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
@@ -25,14 +26,14 @@ type (
 	}
 
 	Impl struct {
-		state    state.State
+		state.State
 		mappings StateMappings
 	}
 )
 
 func WrapState(s state.State, mappings StateMappings) *Impl {
 	return &Impl{
-		state:    s,
+		State:    s,
 		mappings: mappings,
 	}
 }
@@ -49,7 +50,7 @@ func (s *Impl) MappingNamespace(schema interface{}) (state.Key, error) {
 func (s *Impl) Get(entry interface{}, target ...interface{}) (interface{}, error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.Get(entry, target...) // return as is
+		return s.State.Get(entry, target...) // return as is
 	}
 
 	// target was not set, but we can knew about target from mapping
@@ -63,35 +64,31 @@ func (s *Impl) Get(entry interface{}, target ...interface{}) (interface{}, error
 		target = append(target, targetFromMapping)
 	}
 
-	return s.state.Get(mapped, target...)
-}
-
-func (s *Impl) GetInt(entry interface{}, defaultValue int) (int, error) {
-	return s.state.GetInt(entry, defaultValue)
+	return s.State.Get(mapped, target...)
 }
 
 func (s *Impl) GetHistory(entry interface{}, target interface{}) (state.HistoryEntryList, error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.GetHistory(entry, target) // return as is
+		return s.State.GetHistory(entry, target) // return as is
 	}
 
-	return s.state.GetHistory(mapped, target)
+	return s.State.GetHistory(mapped, target)
 }
 
 func (s *Impl) Exists(entry interface{}) (bool, error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.Exists(entry) // return as is
+		return s.State.Exists(entry) // return as is
 	}
 
-	return s.state.Exists(mapped)
+	return s.State.Exists(mapped)
 }
 
 func (s *Impl) Put(entry interface{}, value ...interface{}) error {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.Put(entry, value...) // return as is
+		return s.State.Put(entry, value...) // return as is
 	}
 
 	// update ref keys
@@ -129,26 +126,26 @@ func (s *Impl) Put(entry interface{}, value ...interface{}) error {
 
 		// delete previous key refs if key exists
 		for _, kr := range deleteKeyRefs {
-			if err = s.state.Delete(kr); err != nil {
+			if err = s.State.Delete(kr); err != nil {
 				return errors.Wrap(err, `delete previous mapping key ref`)
 			}
 		}
 
 		// insert new key refs
 		for _, kr := range insertKeyRefs {
-			if err = s.state.Insert(kr); err != nil {
+			if err = s.State.Insert(kr); err != nil {
 				return fmt.Errorf(`%s: %s`, ErrMappingUniqKeyExists, err)
 			}
 		}
 	}
 
-	return s.state.Put(mapped)
+	return s.State.Put(mapped)
 }
 
 func (s *Impl) Insert(entry interface{}, value ...interface{}) error {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.Insert(entry, value...) // return as is
+		return s.State.Insert(entry, value...) // return as is
 	}
 
 	keyRefs, err := mapped.Keys() // key refs, defined by mapping indexes
@@ -158,17 +155,17 @@ func (s *Impl) Insert(entry interface{}, value ...interface{}) error {
 
 	// insert key refs, if key already exists - error returned
 	for _, kr := range keyRefs {
-		if err = s.state.Insert(kr); err != nil {
+		if err = s.State.Insert(kr); err != nil {
 			return fmt.Errorf(`%s: %s`, ErrMappingUniqKeyExists, err)
 		}
 	}
 
-	return s.state.Insert(mapped)
+	return s.State.Insert(mapped)
 }
 
 func (s *Impl) List(entry interface{}, target ...interface{}) (interface{}, error) {
 	if !s.mappings.Exists(entry) {
-		return s.state.List(entry, target...)
+		return s.State.List(entry, target...)
 	}
 
 	m, err := s.mappings.Get(entry)
@@ -179,7 +176,7 @@ func (s *Impl) List(entry interface{}, target ...interface{}) (interface{}, erro
 	namespace := m.Namespace()
 	s.Logger().Debug(`state mapped LIST`, zap.String(`namespace`, namespace.String()))
 
-	return s.state.List(namespace, m.Schema(), m.List())
+	return s.State.List(namespace, m.Schema(), m.List())
 }
 
 func (s *Impl) ListWith(entry interface{}, key state.Key) (result interface{}, err error) {
@@ -194,7 +191,7 @@ func (s *Impl) ListWith(entry interface{}, key state.Key) (result interface{}, e
 	namespace := m.Namespace()
 	s.Logger().Debug(`state mapped LIST`, zap.String(`namespace`, namespace.String()), zap.String(`list`, namespace.Append(key).String()))
 
-	return s.state.List(namespace.Append(key), m.Schema(), m.List())
+	return s.State.List(namespace.Append(key), m.Schema(), m.List())
 }
 
 func (s *Impl) GetByUniqKey(
@@ -209,17 +206,17 @@ func (s *Impl) GetByKey(
 		return nil, ErrStateMappingNotFound
 	}
 
-	keyRef, err := s.state.Get(NewKeyRefIDMapped(entry, idx, idxVal), &schema.KeyRef{})
+	keyRef, err := s.State.Get(NewKeyRefIDMapped(entry, idx, idxVal), &schema.KeyRef{})
 	if err != nil {
 		return nil, errors.Errorf(`%s: {%s}.%s: %s`, ErrIndexReferenceNotFound, mapKey(entry), idx, err)
 	}
 
-	return s.state.Get(keyRef.(*schema.KeyRef).PKey, target...)
+	return s.State.Get(keyRef.(*schema.KeyRef).PKey, target...)
 }
 
 func (s *Impl) Delete(entry interface{}) error {
 	if !s.mappings.Exists(entry) {
-		return s.state.Delete(entry) // return as is
+		return s.State.Delete(entry) // return as is
 	}
 
 	// we need full entry data fro state
@@ -242,52 +239,44 @@ func (s *Impl) Delete(entry interface{}) error {
 
 	// delete uniq key refs
 	for _, kr := range keyRefs {
-		if err = s.state.Delete(kr); err != nil {
+		if err = s.State.Delete(kr); err != nil {
 			return errors.Wrap(err, `delete ref key`)
 		}
 	}
 
-	return s.state.Delete(mapped)
+	return s.State.Delete(mapped)
 }
 
 func (s *Impl) Logger() *zap.Logger {
-	return s.state.Logger()
+	return s.State.Logger()
 }
 
 func (s *Impl) UseKeyTransformer(kt state.KeyTransformer) state.State {
-	return s.state.UseKeyTransformer(kt)
-}
-
-func (s *Impl) UseStateGetTransformer(fb state.FromBytesTransformer) state.State {
-	return s.state.UseStateGetTransformer(fb)
-}
-
-func (s *Impl) UseStatePutTransformer(tb state.ToBytesTransformer) state.State {
-	return s.state.UseStatePutTransformer(tb)
+	return s.State.UseKeyTransformer(kt)
 }
 
 func (s *Impl) GetPrivate(collection string, entry interface{}, target ...interface{}) (result interface{}, err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.GetPrivate(collection, entry, target...) // return as is
+		return s.State.GetPrivate(collection, entry, target...) // return as is
 	}
 
-	return s.state.GetPrivate(collection, mapped, target...)
+	return s.State.GetPrivate(collection, mapped, target...)
 }
 
 func (s *Impl) DeletePrivate(collection string, entry interface{}) (err error) {
 
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.DeletePrivate(collection, entry) // return as is
+		return s.State.DeletePrivate(collection, entry) // return as is
 	}
 
-	return s.state.DeletePrivate(collection, mapped)
+	return s.State.DeletePrivate(collection, mapped)
 }
 
 func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, namespace interface{}, target ...interface{}) (result interface{}, err error) {
 	if !s.mappings.Exists(namespace) {
-		return s.state.ListPrivate(collection, usePrivateDataIterator, namespace, target...)
+		return s.State.ListPrivate(collection, usePrivateDataIterator, namespace, target...)
 	}
 	m, err := s.mappings.Get(namespace)
 	if err != nil {
@@ -296,13 +285,13 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 
 	namespace = m.Namespace()
 	s.Logger().Debug(`private state mapped LIST`, zap.Reflect(`namespace`, namespace))
-	return s.state.ListPrivate(collection, usePrivateDataIterator, namespace, target[0], m.List())
+	return s.State.ListPrivate(collection, usePrivateDataIterator, namespace, target[0], m.List())
 }
 
 func (s *Impl) InsertPrivate(collection string, entry interface{}, value ...interface{}) (err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.InsertPrivate(collection, entry, value...) // return as is
+		return s.State.InsertPrivate(collection, entry, value...) // return as is
 	}
 
 	keyRefs, err := mapped.Keys() // additional keys
@@ -312,18 +301,18 @@ func (s *Impl) InsertPrivate(collection string, entry interface{}, value ...inte
 
 	// insert uniq key refs. if key already exists - error returned
 	for _, kr := range keyRefs {
-		if err = s.state.InsertPrivate(collection, kr); err != nil {
+		if err = s.State.InsertPrivate(collection, kr); err != nil {
 			return fmt.Errorf(`%s: %s`, ErrMappingUniqKeyExists, err)
 		}
 	}
 
-	return s.state.InsertPrivate(collection, mapped)
+	return s.State.InsertPrivate(collection, mapped)
 }
 
 func (s *Impl) PutPrivate(collection string, entry interface{}, value ...interface{}) (err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.PutPrivate(collection, entry, value...) // return as is
+		return s.State.PutPrivate(collection, entry, value...) // return as is
 	}
 
 	keyRefs, err := mapped.Keys() // additional keys
@@ -335,19 +324,19 @@ func (s *Impl) PutPrivate(collection string, entry interface{}, value ...interfa
 
 	// put uniq key refs. if key already exists - error returned
 	for _, kr := range keyRefs {
-		if err = s.state.PutPrivate(collection, kr); err != nil {
+		if err = s.State.PutPrivate(collection, kr); err != nil {
 			return fmt.Errorf(`%s: %s`, ErrMappingUniqKeyExists, err)
 		}
 	}
 
-	return s.state.PutPrivate(collection, mapped)
+	return s.State.PutPrivate(collection, mapped)
 }
 
 func (s *Impl) ExistsPrivate(collection string, entry interface{}) (exists bool, err error) {
 	mapped, err := s.mappings.Map(entry)
 	if err != nil { // mapping is not exists
-		return s.state.ExistsPrivate(collection, entry) // return as is
+		return s.State.ExistsPrivate(collection, entry) // return as is
 	}
 
-	return s.state.ExistsPrivate(collection, mapped)
+	return s.State.ExistsPrivate(collection, mapped)
 }
