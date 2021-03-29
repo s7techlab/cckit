@@ -62,6 +62,9 @@ type State interface {
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	Get(entry interface{}, target ...interface{}) (result interface{}, err error)
 
+	// GetState data by key from state, direct from stub
+	GetState(key string) ([]byte, error)
+
 	// Get returns value from state, converted to int
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	GetInt(entry interface{}, defaultValue int) (result int, err error)
@@ -80,6 +83,10 @@ type State interface {
 	// ToByter interface value can be omitted
 	Put(entry interface{}, value ...interface{}) (err error)
 
+	// PutState puts the specified `key` and `value` into the transaction's
+	// writeset as a data-write proposal.
+	PutState(key string, bb []byte) error
+
 	// Insert returns result of inserting entry to state
 	// If same key exists in state error wil be returned
 	// entry can be Key (string or []string) or type implementing Keyer interface
@@ -90,6 +97,10 @@ type State interface {
 	// List returns slice of target type
 	// namespace can be part of key (string or []string) or entity with defined mapping
 	List(namespace interface{}, target ...interface{}) (result interface{}, err error)
+
+	// GetStateByPartialCompositeKey queries the state in the ledger based on
+	//a given partial composite key.
+	GetStateByPartialCompositeKey(objectType string, keys []string) (shim.StateQueryIteratorInterface, error)
 
 	// Delete returns result of deleting entry from state
 	// entry can be Key (string or []string) or type implementing Keyer interface
@@ -198,6 +209,11 @@ func (s *Impl) Key(key interface{}) (*TransformedKey, error) {
 	return trKey, nil
 }
 
+// Get data by key from state, direct from stub
+func (s *Impl) GetState(key string) ([]byte, error) {
+	return s.stub.GetState(key)
+}
+
 // Get data by key from state, trying to convert to target interface
 func (s *Impl) Get(entry interface{}, config ...interface{}) (interface{}, error) {
 	key, err := s.Key(entry)
@@ -207,7 +223,7 @@ func (s *Impl) Get(entry interface{}, config ...interface{}) (interface{}, error
 
 	//bytes from state
 	s.logger.Debug(`state GET`, zap.String(`key`, key.String))
-	bb, err := s.stub.GetState(key.String)
+	bb, err := s.GetState(key.String)
 	if err != nil {
 		return nil, err
 	}
@@ -276,11 +292,17 @@ func (s *Impl) Exists(entry interface{}) (bool, error) {
 		return false, err
 	}
 	s.logger.Debug(`state check EXISTENCE`, zap.String(`key`, key.String))
-	bb, err := s.stub.GetState(key.String)
+	bb, err := s.GetState(key.String)
 	if err != nil {
 		return false, err
 	}
 	return len(bb) != 0, nil
+}
+
+// GetStateByPartialCompositeKey queries the state in the ledger based on
+//a given partial composite key.
+func (s *Impl) GetStateByPartialCompositeKey(objectType string, keys []string) (shim.StateQueryIteratorInterface, error) {
+	return s.stub.GetStateByPartialCompositeKey(objectType, keys)
 }
 
 // List data from state using objectType prefix in composite key, trying to convert to target interface.
@@ -344,6 +366,12 @@ func (s *Impl) argKeyValue(arg interface{}, values []interface{}) (key Key, valu
 	}
 }
 
+// PutState puts the specified `key` and `value` into the transaction's
+// writeset as a data-write proposal.
+func (s *Impl) PutState(key string, bb []byte) error {
+	return s.stub.PutState(key, bb)
+}
+
 // Put data value in state with key, trying convert data to []byte
 func (s *Impl) Put(entry interface{}, values ...interface{}) error {
 	entryKey, value, err := s.argKeyValue(entry, values)
@@ -361,7 +389,7 @@ func (s *Impl) Put(entry interface{}, values ...interface{}) error {
 	}
 
 	s.logger.Debug(`state PUT`, zap.String(`key`, key.String))
-	return s.stub.PutState(key.String, bb)
+	return s.PutState(key.String, bb)
 }
 
 // Insert value into chaincode state, returns error if key already exists
