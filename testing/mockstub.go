@@ -4,12 +4,12 @@ import (
 	"container/list"
 	"crypto/rand"
 	"fmt"
-	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"strings"
 	"sync"
 	"unicode/utf8"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
@@ -29,9 +29,15 @@ var (
 	ErrKeyAlreadyExistsInTransientMap = errors.New(`key already exists in transient map`)
 )
 
+type StateItem struct {
+	Key   string
+	Value []byte
+}
+
 // MockStub replacement of shim.MockStub with creator mocking facilities
 type MockStub struct {
 	shimtest.MockStub
+	StateBuffer                 []*StateItem
 	cc                          shim.Chaincode
 	m                           sync.Mutex
 	mockCreator                 []byte
@@ -57,6 +63,22 @@ func NewMockStub(name string, cc shim.Chaincode) *MockStub {
 		InvokablesFull:          make(map[string]*MockStub),
 		PrivateKeys:             make(map[string]*list.List),
 	}
+}
+
+// PutState wrapped functions puts state items in queue and dumps
+// to state after invocation
+func (stub *MockStub) PutState(key string, value []byte) error {
+	if stub.TxID == "" {
+		err := errors.New("cannot PutState without a transactions - call stub.MockTransactionStart()?")
+		return err
+	}
+
+	stub.StateBuffer = append(stub.StateBuffer, &StateItem{
+		Key:   key,
+		Value: value,
+	})
+
+	return nil
 }
 
 // GetArgs mocked args
@@ -187,9 +209,15 @@ func (stub *MockStub) InitBytes(args ...[]byte) peer.Response {
 
 // MockInit mocked init function
 func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
+
 	stub.SetArgs(args)
+	// clear state buffer
+	stub.StateBuffer = nil
+
 	stub.MockTransactionStart(uuid)
 	res := stub.cc.Init(stub)
+
+	stub.DumpStateBuffer()
 	stub.MockTransactionEnd(uuid)
 
 	if stub.ClearCreatorAfterInvoke {
@@ -198,6 +226,15 @@ func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
 	}
 
 	return res
+}
+
+func (stub *MockStub) DumpStateBuffer() {
+	// dump state buffer to state
+	for i := range stub.StateBuffer {
+		s := stub.StateBuffer[i]
+		_ = stub.MockStub.PutState(s.Key, s.Value)
+	}
+	stub.StateBuffer = nil
 }
 
 // MockQuery
@@ -216,9 +253,15 @@ func (stub *MockStub) MockInvoke(uuid string, args [][]byte) peer.Response {
 	//empty event
 	stub.ChaincodeEvent = nil
 
+	// empty state buffer
+	stub.StateBuffer = nil
+
 	// now do the invoke with the correct stub
 	stub.MockTransactionStart(uuid)
 	res := stub.cc.Invoke(stub)
+
+	stub.DumpStateBuffer()
+
 	stub.MockTransactionEnd(uuid)
 
 	if stub.ClearCreatorAfterInvoke {

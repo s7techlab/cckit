@@ -52,6 +52,7 @@ func (p *TxHandler) Invoke(invoke func(ctx router.Context) (interface{}, error))
 
 	p.MockStub.MockTransactionStart(uuid)
 	res, err := invoke(p.Context)
+	p.MockStub.DumpStateBuffer()
 	p.MockStub.MockTransactionEnd(uuid)
 
 	txRes := &TxResult{
@@ -69,6 +70,7 @@ func (p *TxHandler) Tx(tx func()) {
 
 	p.MockStub.MockTransactionStart(uuid)
 	tx()
+	p.MockStub.DumpStateBuffer()
 	p.MockStub.MockTransactionEnd(uuid)
 }
 
