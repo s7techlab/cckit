@@ -4,7 +4,6 @@ import (
 	"container/list"
 	"crypto/rand"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -217,8 +216,6 @@ func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
 
 	stub.MockTransactionStart(uuid)
 	res := stub.cc.Init(stub)
-
-	log.Println(`dump state after INIT`)
 
 	stub.DumpStateBuffer()
 	stub.MockTransactionEnd(uuid)
