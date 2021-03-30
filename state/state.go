@@ -61,10 +61,6 @@ type State interface {
 	// Get returns value from state, converted to target type
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	Get(entry interface{}, target ...interface{}) (result interface{}, err error)
-
-	// GetState data by key from state, direct from stub
-	GetState(key string) ([]byte, error)
-
 	// Get returns value from state, converted to int
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	GetInt(entry interface{}, defaultValue int) (result int, err error)
@@ -83,10 +79,6 @@ type State interface {
 	// ToByter interface value can be omitted
 	Put(entry interface{}, value ...interface{}) (err error)
 
-	// PutState puts the specified `key` and `value` into the transaction's
-	// writeset as a data-write proposal.
-	PutState(key string, bb []byte) error
-
 	// Insert returns result of inserting entry to state
 	// If same key exists in state error wil be returned
 	// entry can be Key (string or []string) or type implementing Keyer interface
@@ -97,10 +89,6 @@ type State interface {
 	// List returns slice of target type
 	// namespace can be part of key (string or []string) or entity with defined mapping
 	List(namespace interface{}, target ...interface{}) (result interface{}, err error)
-
-	// GetStateByPartialCompositeKey queries the state in the ledger based on
-	//a given partial composite key.
-	GetStateByPartialCompositeKey(objectType string, keys []string) (shim.StateQueryIteratorInterface, error)
 
 	// Delete returns result of deleting entry from state
 	// entry can be Key (string or []string) or type implementing Keyer interface
@@ -155,6 +143,8 @@ func (k Key) String() string {
 type Impl struct {
 	stub                shim.ChaincodeStubInterface
 	logger              *zap.Logger
+	PutState            func(string, []byte) error
+	GetState            func(string) ([]byte, error)
 	StateKeyTransformer KeyTransformer
 	StateGetTransformer FromBytesTransformer
 	StatePutTransformer ToBytesTransformer
@@ -162,13 +152,26 @@ type Impl struct {
 
 // NewState creates wrapper on shim.ChaincodeStubInterface for working with state
 func NewState(stub shim.ChaincodeStubInterface, logger *zap.Logger) *Impl {
-	return &Impl{
+	i := &Impl{
 		stub:                stub,
 		logger:              logger,
 		StateKeyTransformer: KeyAsIs,
 		StateGetTransformer: ConvertFromBytes,
 		StatePutTransformer: ConvertToBytes,
 	}
+
+	// Get data by key from state, direct from stub
+	i.GetState = func(key string) ([]byte, error) {
+		return stub.GetState(key)
+	}
+
+	// PutState puts the specified `key` and `value` into the transaction's
+	// writeset as a data-write proposal.
+	i.PutState = func(key string, bb []byte) error {
+		return stub.PutState(key, bb)
+	}
+
+	return i
 }
 
 func (s *Impl) Logger() *zap.Logger {
@@ -207,11 +210,6 @@ func (s *Impl) Key(key interface{}) (*TransformedKey, error) {
 	}
 
 	return trKey, nil
-}
-
-// Get data by key from state, direct from stub
-func (s *Impl) GetState(key string) ([]byte, error) {
-	return s.stub.GetState(key)
 }
 
 // Get data by key from state, trying to convert to target interface
@@ -299,12 +297,6 @@ func (s *Impl) Exists(entry interface{}) (bool, error) {
 	return len(bb) != 0, nil
 }
 
-// GetStateByPartialCompositeKey queries the state in the ledger based on
-//a given partial composite key.
-func (s *Impl) GetStateByPartialCompositeKey(objectType string, keys []string) (shim.StateQueryIteratorInterface, error) {
-	return s.stub.GetStateByPartialCompositeKey(objectType, keys)
-}
-
 // List data from state using objectType prefix in composite key, trying to convert to target interface.
 // Keys -  additional components of composite key
 func (s *Impl) List(namespace interface{}, target ...interface{}) (interface{}, error) {
@@ -364,12 +356,6 @@ func (s *Impl) argKeyValue(arg interface{}, values []interface{}) (key Key, valu
 	default:
 		return nil, nil, ErrAllowOnlyOneValue
 	}
-}
-
-// PutState puts the specified `key` and `value` into the transaction's
-// writeset as a data-write proposal.
-func (s *Impl) PutState(key string, bb []byte) error {
-	return s.stub.PutState(key, bb)
 }
 
 // Put data value in state with key, trying convert data to []byte

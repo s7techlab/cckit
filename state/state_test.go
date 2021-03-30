@@ -66,14 +66,25 @@ var _ = Describe(`State`, func() {
 		})
 
 		It("Allow to upsert entry", func() {
-			book2Updated := testdata.Books[2]
-			book2Updated.Title = `thirdiest title`
+			bookToUpdate := testdata.Books[2]
+			bookToUpdate.Title = `thirdiest title`
 
-			updateRes := expectcc.PayloadIs(booksCC.Invoke(`bookUpsert`, &book2Updated), &schema.Book{}).(schema.Book)
-			Expect(updateRes.Title).To(Equal(book2Updated.Title))
+			bookUpdated := expectcc.PayloadIs(booksCC.Invoke(`bookUpsert`, &bookToUpdate), &schema.Book{}).(schema.Book)
+			Expect(bookUpdated.Title).To(Equal(bookToUpdate.Title))
 
-			book3FromCC := expectcc.PayloadIs(booksCC.Invoke(`bookGet`, testdata.Books[2].Id), &schema.Book{}).(schema.Book)
-			Expect(book3FromCC).To(Equal(book2Updated))
+			bookFromCC := expectcc.PayloadIs(booksCC.Invoke(`bookGet`, bookToUpdate.Id), &schema.Book{}).(schema.Book)
+			Expect(bookFromCC).To(Equal(bookUpdated))
+		})
+
+		It("Allow to upsert entry with tx state caching", func() {
+			bookToUpdate := testdata.Books[1]
+			bookToUpdate.Title = `once more strange uniq title`
+
+			bookUpdated := expectcc.PayloadIs(booksCC.Invoke(`bookUpsertWithCache`, &bookToUpdate), &schema.Book{}).(schema.Book)
+			Expect(bookUpdated.Title).To(Equal(bookToUpdate.Title))
+
+			bookFromCC := expectcc.PayloadIs(booksCC.Invoke(`bookGet`, bookToUpdate.Id), &schema.Book{}).(schema.Book)
+			Expect(bookFromCC).To(Equal(bookToUpdate))
 		})
 
 		It("Allow to delete entry", func() {

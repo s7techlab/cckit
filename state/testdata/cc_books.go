@@ -7,6 +7,7 @@ import (
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
+	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/testdata/schema"
 )
 
@@ -21,6 +22,7 @@ func NewBooksCC() *router.Chaincode {
 		Invoke(`bookGet`, bookGet, p.String(`id`)).
 		Invoke(`bookInsert`, bookInsert, p.Struct(`book`, &schema.Book{})).
 		Invoke(`bookUpsert`, bookUpsert, p.Struct(`book`, &schema.Book{})).
+		Invoke(`bookUpsertWithCache`, bookUpsertWithCache, p.Struct(`book`, &schema.Book{})).
 		Invoke(`bookDelete`, bookDelete, p.String(`id`)).
 		Invoke(`privateBookList`, privateBookList).
 		Invoke(`privateBookGet`, privateBookGet, p.String(`id`)).
@@ -54,9 +56,33 @@ func bookUpsert(c router.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	// state read in same tx must return previous value
+	// state read in same tx must return PREVIOOUS value
 	if book.Title == upsertedBook.(schema.Book).Title {
 		return nil, errors.New(`read after write in same tx must return previous value`)
+	}
+
+	return book, err
+}
+
+func bookUpsertWithCache(c router.Context) (interface{}, error) {
+	book := c.Param(`book`).(schema.Book)
+
+	stateCached := state.WithCache(c.State())
+
+	// udate data in state
+	if err := stateCached.Put(book); err != nil {
+		return nil, err
+	}
+
+	//try to read new data in same transaction
+	upsertedBook, err := stateCached.Get(schema.Book{Id: book.Id}, &schema.Book{})
+	if err != nil {
+		return nil, err
+	}
+
+	// state read in same tx with state caching must return NEW value
+	if book.Title != upsertedBook.(schema.Book).Title {
+		return nil, errors.New(`read after write with tx state caching must return same value`)
 	}
 
 	return book, err
