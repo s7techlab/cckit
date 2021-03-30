@@ -1,6 +1,8 @@
 package testdata
 
 import (
+	"errors"
+
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
@@ -39,8 +41,25 @@ func bookInsert(c router.Context) (interface{}, error) {
 }
 
 func bookUpsert(c router.Context) (interface{}, error) {
-	book := c.Param(`book`)
-	return book, c.State().Put(book)
+	book := c.Param(`book`).(schema.Book)
+
+	// udate data in state
+	if err := c.State().Put(book); err != nil {
+		return nil, err
+	}
+
+	//try to read new data in same transaction
+	upsertedBook, err := c.State().Get(schema.Book{Id: book.Id}, &schema.Book{})
+	if err != nil {
+		return nil, err
+	}
+
+	// state read in same tx must return previous value
+	if book.Title == upsertedBook.(schema.Book).Title {
+		return nil, errors.New(`read after write in same tx must return previous value`)
+	}
+
+	return book, err
 }
 
 func bookGet(c router.Context) (interface{}, error) {
