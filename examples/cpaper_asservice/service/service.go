@@ -18,7 +18,8 @@ func New() *CPaperImpl {
 	return &CPaperImpl{}
 }
 
-func (cc *CPaperImpl) state(ctx router.Context) m.MappedState {
+// State with chaincode mappings
+func State(ctx router.Context) m.MappedState {
 	return m.WrapState(ctx.State(), m.StateMappings{}.
 		//  Create mapping for Commercial Paper entity
 		Add(&schema.CommercialPaper{},
@@ -28,7 +29,8 @@ func (cc *CPaperImpl) state(ctx router.Context) m.MappedState {
 		))
 }
 
-func (cc *CPaperImpl) event(ctx router.Context) state.Event {
+// Event with chaincode mappings
+func Event(ctx router.Context) state.Event {
 	return m.WrapEvent(ctx.Event(), m.EventMappings{}.
 		// Event name will be "IssueCommercialPaper", payload - same as issue payload
 		Add(&schema.IssueCommercialPaper{}).
@@ -43,7 +45,7 @@ func (cc *CPaperImpl) List(ctx router.Context, in *empty.Empty) (*schema.Commerc
 	// namespace of our contract type, in this example that's "CommercialPaper", then it unmarshals received bytes via
 	// proto.Ummarshal method and creates a []schema.CommercialPaperList as defined in the
 	// "StateMappings" variable at the top of the file
-	if res, err := cc.state(ctx).List(&schema.CommercialPaper{}); err != nil {
+	if res, err := State(ctx).List(&schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaperList), nil
@@ -51,7 +53,7 @@ func (cc *CPaperImpl) List(ctx router.Context, in *empty.Empty) (*schema.Commerc
 }
 
 func (cc *CPaperImpl) Get(ctx router.Context, id *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
-	if res, err := cc.state(ctx).Get(id, &schema.CommercialPaper{}); err != nil {
+	if res, err := State(ctx).Get(id, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*schema.CommercialPaper), nil
@@ -59,7 +61,7 @@ func (cc *CPaperImpl) Get(ctx router.Context, id *schema.CommercialPaperId) (*sc
 }
 
 func (cc *CPaperImpl) GetByExternalId(ctx router.Context, id *schema.ExternalId) (*schema.CommercialPaper, error) {
-	if res, err := cc.state(ctx).GetByKey(
+	if res, err := State(ctx).GetByKey(
 		&schema.CommercialPaper{}, "ExternalId", []string{id.Id}, &schema.CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
@@ -85,11 +87,11 @@ func (cc *CPaperImpl) Issue(ctx router.Context, issue *schema.IssueCommercialPap
 		ExternalId:   issue.ExternalId,
 	}
 
-	if err := cc.event(ctx).Set(issue); err != nil {
+	if err := Event(ctx).Set(issue); err != nil {
 		return nil, err
 	}
 
-	if err := cc.state(ctx).Insert(cpaper); err != nil {
+	if err := State(ctx).Insert(cpaper); err != nil {
 		return nil, err
 	}
 	return cpaper, nil
@@ -123,11 +125,11 @@ func (cc *CPaperImpl) Buy(ctx router.Context, buy *schema.BuyCommercialPaper) (*
 			cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
 	}
 
-	if err = cc.event(ctx).Set(buy); err != nil {
+	if err = Event(ctx).Set(buy); err != nil {
 		return nil, err
 	}
 
-	if err = cc.state(ctx).Put(cpaper); err != nil {
+	if err = State(ctx).Put(cpaper); err != nil {
 		return nil, err
 	}
 
@@ -157,11 +159,11 @@ func (cc *CPaperImpl) Redeem(ctx router.Context, redeem *schema.RedeemCommercial
 		return nil, fmt.Errorf("redeeming owner does not own paper %s %s", cpaper.Issuer, cpaper.PaperNumber)
 	}
 
-	if err = cc.event(ctx).Set(redeem); err != nil {
+	if err = Event(ctx).Set(redeem); err != nil {
 		return nil, err
 	}
 
-	if err = cc.state(ctx).Put(cpaper); err != nil {
+	if err = State(ctx).Put(cpaper); err != nil {
 		return nil, err
 	}
 
@@ -174,7 +176,7 @@ func (cc *CPaperImpl) Delete(ctx router.Context, id *schema.CommercialPaperId) (
 		return nil, errors.Wrap(err, "get cpaper")
 	}
 
-	if err = cc.state(ctx).Delete(id); err != nil {
+	if err = State(ctx).Delete(id); err != nil {
 		return nil, err
 	}
 

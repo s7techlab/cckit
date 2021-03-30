@@ -232,14 +232,6 @@ func New(name string) *Group {
 	return g
 }
 
-// NewContext creates new instance of router.Context
-func NewContext(stub shim.ChaincodeStubInterface, logger *zap.Logger) *context {
-	return &context{
-		stub:   stub,
-		logger: logger,
-	}
-}
-
 // NewLogger creates new instance of shim.ChaincodeLogger
 func NewLogger(name string) *zap.Logger {
 	conf := zap.NewProductionConfig()
