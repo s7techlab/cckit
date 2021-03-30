@@ -229,7 +229,8 @@ func (stub *MockStub) DumpStateBuffer() {
 			sub <- stub.ChaincodeEvent
 		}
 
-		stub.MockStub.SetEvent(stub.ChaincodeEvent.EventName, stub.ChaincodeEvent.Payload)
+		// actually no chances to have error here
+		_ = stub.MockStub.SetEvent(stub.ChaincodeEvent.EventName, stub.ChaincodeEvent.Payload)
 	}
 }
 
