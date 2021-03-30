@@ -81,7 +81,11 @@ func invokeCarRegister(c router.Context) (interface{}, error) {
 		UpdatedAt: t,
 	}
 
-	// trigger event
+	// trigger multiple event
+	if err := c.Event().Set(CarRegisteredEvent+`First`, car); err != nil {
+		return nil, err
+	}
+
 	if err := c.Event().Set(CarRegisteredEvent, car); err != nil {
 		return nil, err
 	}
