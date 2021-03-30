@@ -98,11 +98,7 @@ func (stub *MockStub) SetEvent(name string, payload []byte) error {
 	}
 
 	stub.ChaincodeEvent = &peer.ChaincodeEvent{EventName: name, Payload: payload}
-	for _, sub := range stub.chaincodeEventSubscriptions {
-		sub <- stub.ChaincodeEvent
-	}
-
-	return stub.MockStub.SetEvent(name, payload)
+	return nil
 }
 
 func (stub *MockStub) EventSubscription() chan *peer.ChaincodeEvent {
@@ -211,19 +207,10 @@ func (stub *MockStub) InitBytes(args ...[]byte) peer.Response {
 func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
 
 	stub.SetArgs(args)
-	// clear state buffer
-	stub.StateBuffer = nil
 
 	stub.MockTransactionStart(uuid)
 	res := stub.cc.Init(stub)
-
-	stub.DumpStateBuffer()
 	stub.MockTransactionEnd(uuid)
-
-	if stub.ClearCreatorAfterInvoke {
-		stub.mockCreator = nil
-		stub.transient = nil
-	}
 
 	return res
 }
@@ -235,11 +222,42 @@ func (stub *MockStub) DumpStateBuffer() {
 		_ = stub.MockStub.PutState(s.Key, s.Value)
 	}
 	stub.StateBuffer = nil
+
+	if stub.ChaincodeEvent != nil {
+		// send only last event
+		for _, sub := range stub.chaincodeEventSubscriptions {
+			sub <- stub.ChaincodeEvent
+		}
+
+		stub.MockStub.SetEvent(stub.ChaincodeEvent.EventName, stub.ChaincodeEvent.Payload)
+	}
 }
 
 // MockQuery
 func (stub *MockStub) MockQuery(uuid string, args [][]byte) peer.Response {
 	return stub.MockInvoke(uuid, args)
+}
+
+func (stub *MockStub) MockTransactionStart(uuid string) {
+	//empty event
+	stub.ChaincodeEvent = nil
+
+	// empty state buffer
+	stub.StateBuffer = nil
+
+	stub.MockStub.MockTransactionStart(uuid)
+}
+
+func (stub *MockStub) MockTransactionEnd(uuid string) {
+
+	stub.DumpStateBuffer()
+
+	stub.MockStub.MockTransactionEnd(uuid)
+
+	if stub.ClearCreatorAfterInvoke {
+		stub.mockCreator = nil
+		stub.transient = nil
+	}
 }
 
 // MockInvoke
@@ -250,24 +268,10 @@ func (stub *MockStub) MockInvoke(uuid string, args [][]byte) peer.Response {
 	// this is a hack here to set MockStub.args, because its not accessible otherwise
 	stub.SetArgs(args)
 
-	//empty event
-	stub.ChaincodeEvent = nil
-
-	// empty state buffer
-	stub.StateBuffer = nil
-
 	// now do the invoke with the correct stub
 	stub.MockTransactionStart(uuid)
 	res := stub.cc.Invoke(stub)
-
-	stub.DumpStateBuffer()
-
 	stub.MockTransactionEnd(uuid)
-
-	if stub.ClearCreatorAfterInvoke {
-		stub.mockCreator = nil
-		stub.transient = nil
-	}
 
 	return res
 }
