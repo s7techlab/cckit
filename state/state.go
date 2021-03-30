@@ -289,12 +289,15 @@ func (s *Impl) Exists(entry interface{}) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	s.logger.Debug(`state check EXISTENCE`, zap.String(`key`, key.String))
+
 	bb, err := s.GetState(key.String)
 	if err != nil {
 		return false, err
 	}
-	return len(bb) != 0, nil
+
+	exists := len(bb) != 0
+	s.logger.Debug(`state check EXISTENCE`, zap.String(`key`, key.String), zap.Bool(`exists`, exists))
+	return exists, nil
 }
 
 // List data from state using objectType prefix in composite key, trying to convert to target interface.

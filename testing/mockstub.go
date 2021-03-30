@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -217,12 +218,9 @@ func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
 	stub.MockTransactionStart(uuid)
 	res := stub.cc.Init(stub)
 
-	// dump state buffer to state
-	for i := range stub.StateBuffer {
-		s := stub.StateBuffer[i]
-		_ = stub.MockStub.PutState(s.Key, s.Value)
-	}
-	stub.StateBuffer = nil
+	log.Println(`dump state after INIT`)
+
+	stub.DumpStateBuffer()
 	stub.MockTransactionEnd(uuid)
 
 	if stub.ClearCreatorAfterInvoke {
@@ -231,6 +229,15 @@ func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
 	}
 
 	return res
+}
+
+func (stub *MockStub) DumpStateBuffer() {
+	// dump state buffer to state
+	for i := range stub.StateBuffer {
+		s := stub.StateBuffer[i]
+		_ = stub.MockStub.PutState(s.Key, s.Value)
+	}
+	stub.StateBuffer = nil
 }
 
 // MockQuery
@@ -256,11 +263,8 @@ func (stub *MockStub) MockInvoke(uuid string, args [][]byte) peer.Response {
 	stub.MockTransactionStart(uuid)
 	res := stub.cc.Invoke(stub)
 
-	for i := range stub.StateBuffer {
-		s := stub.StateBuffer[i]
-		_ = stub.MockStub.PutState(s.Key, s.Value)
-	}
-	stub.StateBuffer = nil
+	stub.DumpStateBuffer()
+
 	stub.MockTransactionEnd(uuid)
 
 	if stub.ClearCreatorAfterInvoke {
