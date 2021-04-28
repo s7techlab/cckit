@@ -1,0 +1,69 @@
+syntax = "proto3";
+// Commercial paper service
+option go_package = "extensions/debug";
+package s7techlab.extension.debug;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+
+message Prefixes {
+    repeated string prefix = 1;
+}
+
+message Prefix {
+    string prefix = 1;
+}
+
+message PrefixesCount {
+    map<string, uint32> prefix = 1;
+}
+
+
+message Keys {
+    repeated string keys = 1;
+}
+
+message Key {
+    string key = 1;
+}
+
+message Value {
+    string key = 1;
+    bytes raw = 2;
+    string json = 3;
+}
+
+
+service DebugState {
+
+    rpc Clear (Prefixes) returns (PrefixesCount) {
+        option (google.api.http) = {
+            put: "/state/clear"
+        };
+    }
+
+    rpc KeyList (Prefix) returns (Keys) {
+        option (google.api.http) = {
+            get: "/state/keys"
+        };
+    }
+
+    rpc Get (Key) returns (Value) {
+        option (google.api.http) = {
+            get: "/state/value/{key}"
+        };
+    }
+
+    rpc Put (Value) returns (Value) {
+        option (google.api.http) = {
+            put : "/state/value"
+        };
+    }
+
+    rpc Delete (Key) returns (Value) {
+        option (google.api.http) = {
+            delete: "/state/value/{key}"
+        };
+    }
+}
