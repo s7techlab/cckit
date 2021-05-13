@@ -82,10 +82,11 @@ var _ = Describe(`State`, func() {
 				})
 			}
 
+			// put proto message
 			cc.From(Owner).Tx(func() {
 				_, err := dbg.StatePut(ctx, &debug.Value{
 					Key:   []string{`keyA`},
-					Value: []byte(`valueKeyA`),
+					Value: testcc.MustProtoMarshal(&debug.Prefix{Key: []string{`keyA`}}),
 				})
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -107,7 +108,8 @@ var _ = Describe(`State`, func() {
 					Key: []string{`keyA`},
 				})
 				Expect(err).NotTo(HaveOccurred())
-				Expect(val.Value).To(Equal([]byte(`valueKeyA`)))
+				Expect(val.Value).To(Equal(testcc.MustProtoMarshal(&debug.Prefix{Key: []string{`keyA`}})))
+				Expect(val.Json).To(Equal(``)) // we have no mapping in state for this entry
 			})
 		})
 

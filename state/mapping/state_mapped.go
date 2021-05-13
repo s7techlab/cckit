@@ -7,25 +7,33 @@ import (
 
 type (
 	ProtoStateMapped struct {
-		instance    interface{}
+		instanceKey interface{}
 		stateMapper StateMapper
 	}
 )
 
-func NewProtoStateMapped(instance interface{}, stateMapper StateMapper) *ProtoStateMapped {
-	return &ProtoStateMapped{instance, stateMapper}
+func NewProtoStateMapped(instanceKey interface{}, stateMapper StateMapper) *ProtoStateMapped {
+	return &ProtoStateMapped{
+		instanceKey: instanceKey,
+		stateMapper: stateMapper,
+	}
 }
 
 func (pm *ProtoStateMapped) Key() (state.Key, error) {
-	return pm.stateMapper.PrimaryKey(pm.instance)
+	switch instanceKey := pm.instanceKey.(type) {
+	case []string:
+		return instanceKey, nil
+	default:
+		return pm.stateMapper.PrimaryKey(instanceKey)
+	}
 }
 
 func (pm *ProtoStateMapped) Keys() ([]state.KeyValue, error) {
-	return pm.stateMapper.Keys(pm.instance)
+	return pm.stateMapper.Keys(pm.instanceKey)
 }
 
 func (pm *ProtoStateMapped) ToBytes() ([]byte, error) {
-	return proto.Marshal(pm.instance.(proto.Message))
+	return proto.Marshal(pm.instanceKey.(proto.Message))
 }
 
 func (pm *ProtoStateMapped) Mapper() StateMapper {

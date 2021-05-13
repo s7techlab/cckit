@@ -53,7 +53,13 @@ func invokePaymentCreateManualEncryptWithoutMapping(c router.Context) (interface
 	}
 
 	// manually set key
-	return returnVal, s.Put([]string{`Payment`, paymentType, paymentId}, &schema.Payment{Type: paymentType, Id: paymentId, Amount: int32(paymentAmount)})
+	return returnVal, s.Put(
+		[]string{`PaymentManual`, paymentType, paymentId},
+		&schema.Payment{
+			Type:   paymentType,
+			Id:     paymentId,
+			Amount: int32(paymentAmount)},
+	)
 }
 
 func queryPaymentsWithoutMapping(c router.Context) (interface{}, error) {

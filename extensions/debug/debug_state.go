@@ -1,6 +1,9 @@
 package debug
 
 import (
+	"encoding/json"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
@@ -77,9 +80,16 @@ func (s *StateService) StateGet(ctx router.Context, key *CompositeKey) (*Value, 
 		return nil, err
 	}
 
+	var jsonVal []byte
+	switch val.(type) {
+	case proto.Message:
+		jsonVal, _ = json.Marshal(val)
+	}
+
 	return &Value{
 		Key:   key.Key,
 		Value: bb,
+		Json:  string(jsonVal),
 	}, nil
 }
 

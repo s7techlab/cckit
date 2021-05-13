@@ -35,6 +35,7 @@ message CompositeKey {
 message Value {
     repeated string key = 1;
     bytes value = 2;
+    string json = 3;
 }
 
 // Debug state service

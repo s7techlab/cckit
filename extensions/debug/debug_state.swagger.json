@@ -264,6 +264,9 @@
         "value": {
           "type": "string",
           "format": "byte"
+        },
+        "json": {
+          "type": "string"
         }
       },
       "title": "State value"
