@@ -33,7 +33,7 @@ func NewExternaldCC(encCCName, channelName string) *router.Chaincode {
 			}
 
 			// we need to encrypt state key, not all args (method name `debugStateGet` must remain unencrypted )
-			encPaymentKey, err := encryption.KeyPartsEncryptor(encKey)(paymentKey)
+			encPaymentKey, err := encryption.KeyEncryptor(encKey)(paymentKey)
 			if err != nil {
 				return nil, err
 			}

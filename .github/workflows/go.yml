@@ -16,6 +16,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
       - name: Calc coverage
+        run: go test -v -covermode=count -coverprofile=coverage.out.tmp ./...
+      - name: Strip generated code
         run: go test -v -covermode=count -coverprofile=coverage.out ./...
       - name: Convert coverage to lcov
         uses: jandelgado/gcov2lcov-action@v1.0.5

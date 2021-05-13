@@ -21,10 +21,6 @@ import (
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
 )
 
-type ValidatorInterface interface {
-	Validate() error
-}
-
 // CPaperChaincode  method names
 const (
 	CPaperChaincode_List = "List"
@@ -41,6 +37,11 @@ const (
 
 	CPaperChaincode_Delete = "Delete"
 )
+
+// CPaperChaincodeResolver interface for service resolver
+type CPaperChaincodeResolver interface {
+	CPaperChaincode(ctx cckit_router.Context) (CPaperChaincode, error)
+}
 
 // CPaperChaincode chaincode methods interface
 type CPaperChaincode interface {
@@ -64,7 +65,7 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 
 	r.Query(CPaperChaincode_List,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(ValidatorInterface); ok {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
@@ -75,7 +76,7 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 
 	r.Query(CPaperChaincode_Get,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(ValidatorInterface); ok {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
@@ -86,7 +87,7 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 
 	r.Query(CPaperChaincode_GetByExternalId,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(ValidatorInterface); ok {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
@@ -97,7 +98,7 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 
 	r.Invoke(CPaperChaincode_Issue,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(ValidatorInterface); ok {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
@@ -108,7 +109,7 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 
 	r.Invoke(CPaperChaincode_Buy,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(ValidatorInterface); ok {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
@@ -119,7 +120,7 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 
 	r.Invoke(CPaperChaincode_Redeem,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(ValidatorInterface); ok {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
@@ -130,7 +131,7 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 
 	r.Invoke(CPaperChaincode_Delete,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(ValidatorInterface); ok {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
@@ -153,13 +154,18 @@ type CPaperGateway struct {
 	Gateway cckit_gateway.Chaincode
 }
 
-// ApiDef returns service definition
-func (c *CPaperGateway) ApiDef() cckit_gateway.ServiceDef {
+// ServiceDef returns service definition
+func (c *CPaperGateway) ServiceDef() cckit_gateway.ServiceDef {
 	return cckit_gateway.ServiceDef{
 		Desc:                        &_CPaper_serviceDesc,
 		Service:                     c,
 		HandlerFromEndpointRegister: RegisterCPaperHandlerFromEndpoint,
 	}
+}
+
+// ApiDef deprecated, use ServiceDef
+func (c *CPaperGateway) ApiDef() cckit_gateway.ServiceDef {
+	return c.ServiceDef()
 }
 
 // Events returns events subscription
@@ -169,7 +175,7 @@ func (c *CPaperGateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEven
 
 func (c *CPaperGateway) List(ctx context.Context, in *empty.Empty) (*schema.CommercialPaperList, error) {
 	var inMsg interface{} = in
-	if v, ok := inMsg.(ValidatorInterface); ok {
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
 		}
@@ -184,7 +190,7 @@ func (c *CPaperGateway) List(ctx context.Context, in *empty.Empty) (*schema.Comm
 
 func (c *CPaperGateway) Get(ctx context.Context, in *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
 	var inMsg interface{} = in
-	if v, ok := inMsg.(ValidatorInterface); ok {
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
 		}
@@ -199,7 +205,7 @@ func (c *CPaperGateway) Get(ctx context.Context, in *schema.CommercialPaperId) (
 
 func (c *CPaperGateway) GetByExternalId(ctx context.Context, in *schema.ExternalId) (*schema.CommercialPaper, error) {
 	var inMsg interface{} = in
-	if v, ok := inMsg.(ValidatorInterface); ok {
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
 		}
@@ -214,7 +220,7 @@ func (c *CPaperGateway) GetByExternalId(ctx context.Context, in *schema.External
 
 func (c *CPaperGateway) Issue(ctx context.Context, in *schema.IssueCommercialPaper) (*schema.CommercialPaper, error) {
 	var inMsg interface{} = in
-	if v, ok := inMsg.(ValidatorInterface); ok {
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
 		}
@@ -229,7 +235,7 @@ func (c *CPaperGateway) Issue(ctx context.Context, in *schema.IssueCommercialPap
 
 func (c *CPaperGateway) Buy(ctx context.Context, in *schema.BuyCommercialPaper) (*schema.CommercialPaper, error) {
 	var inMsg interface{} = in
-	if v, ok := inMsg.(ValidatorInterface); ok {
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
 		}
@@ -244,7 +250,7 @@ func (c *CPaperGateway) Buy(ctx context.Context, in *schema.BuyCommercialPaper) 
 
 func (c *CPaperGateway) Redeem(ctx context.Context, in *schema.RedeemCommercialPaper) (*schema.CommercialPaper, error) {
 	var inMsg interface{} = in
-	if v, ok := inMsg.(ValidatorInterface); ok {
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
 		}
@@ -259,7 +265,7 @@ func (c *CPaperGateway) Redeem(ctx context.Context, in *schema.RedeemCommercialP
 
 func (c *CPaperGateway) Delete(ctx context.Context, in *schema.CommercialPaperId) (*schema.CommercialPaper, error) {
 	var inMsg interface{} = in
-	if v, ok := inMsg.(ValidatorInterface); ok {
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
 		}

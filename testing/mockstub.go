@@ -13,7 +13,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
-	gologging "github.com/op/go-logging"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 )
@@ -37,7 +36,7 @@ type StateItem struct {
 // MockStub replacement of shim.MockStub with creator mocking facilities
 type MockStub struct {
 	shimtest.MockStub
-	StateBuffer                 []*StateItem
+	StateBuffer                 []*StateItem // buffer for state changes during transaction
 	cc                          shim.Chaincode
 	m                           sync.Mutex
 	mockCreator                 []byte
@@ -69,8 +68,7 @@ func NewMockStub(name string, cc shim.Chaincode) *MockStub {
 // to state after invocation
 func (stub *MockStub) PutState(key string, value []byte) error {
 	if stub.TxID == "" {
-		err := errors.New("cannot PutState without a transactions - call stub.MockTransactionStart()?")
-		return err
+		return errors.New("cannot PutState without a transactions - call stub.MockTransactionStart()?")
 	}
 
 	stub.StateBuffer = append(stub.StateBuffer, &StateItem{
@@ -385,20 +383,15 @@ type PrivateMockStateRangeQueryIterator struct {
 	Collection string
 }
 
-// Logger for the shim package.
-var mockLogger = gologging.MustGetLogger("mock")
-
 // HasNext returns true if the range query iterator contains additional keys
 // and values.
 func (iter *PrivateMockStateRangeQueryIterator) HasNext() bool {
 	if iter.Closed {
 		// previously called Close()
-		mockLogger.Debug("HasNext() but already closed")
 		return false
 	}
 
 	if iter.Current == nil {
-		mockLogger.Error("HasNext() couldn't get Current")
 		return false
 	}
 
@@ -412,10 +405,8 @@ func (iter *PrivateMockStateRangeQueryIterator) HasNext() bool {
 		comp2 := strings.Compare(current.Value.(string), iter.EndKey)
 		if comp1 >= 0 {
 			if comp2 < 0 {
-				mockLogger.Debug("HasNext() got next")
 				return true
 			} else {
-				mockLogger.Debug("HasNext() but no next")
 				return false
 
 			}
@@ -424,7 +415,6 @@ func (iter *PrivateMockStateRangeQueryIterator) HasNext() bool {
 	}
 
 	// we've reached the end of the underlying values
-	mockLogger.Debug("HasNext() but no next")
 	return false
 }
 
@@ -432,13 +422,11 @@ func (iter *PrivateMockStateRangeQueryIterator) HasNext() bool {
 func (iter *PrivateMockStateRangeQueryIterator) Next() (*queryresult.KV, error) {
 	if iter.Closed {
 		err := errors.New("PrivateMockStateRangeQueryIterator.Next() called after Close()")
-		mockLogger.Errorf("%+v", err)
 		return nil, err
 	}
 
 	if !iter.HasNext() {
 		err := errors.New("PrivateMockStateRangeQueryIterator.Next() called when it does not HaveNext()")
-		mockLogger.Errorf("%+v", err)
 		return nil, err
 	}
 
@@ -455,18 +443,14 @@ func (iter *PrivateMockStateRangeQueryIterator) Next() (*queryresult.KV, error) 
 		}
 		iter.Current = iter.Current.Next()
 	}
-	err := errors.New("PrivateMockStateRangeQueryIterator.Next() went past end of range")
-	mockLogger.Errorf("%+v", err)
-	return nil, err
+	return nil, errors.New("PrivateMockStateRangeQueryIterator.Next() went past end of range")
 }
 
 // Close closes the range query iterator. This should be called when done
 // reading from the iterator to free up resources.
 func (iter *PrivateMockStateRangeQueryIterator) Close() error {
 	if iter.Closed {
-		err := errors.New("PrivateMockStateRangeQueryIterator.Close() called after Close()")
-		mockLogger.Errorf("%+v", err)
-		return err
+		return errors.New("PrivateMockStateRangeQueryIterator.Close() called after Close()")
 	}
 
 	iter.Closed = true
@@ -474,7 +458,7 @@ func (iter *PrivateMockStateRangeQueryIterator) Close() error {
 }
 
 func NewPrivateMockStateRangeQueryIterator(stub *MockStub, collection string, startKey string, endKey string) *PrivateMockStateRangeQueryIterator {
-	mockLogger.Debug("NewPrivateMockStateRangeQueryIterator(", stub, startKey, endKey, ")")
+
 	if _, ok := stub.PrivateKeys[collection]; !ok {
 		stub.PrivateKeys[collection] = list.New()
 	}
@@ -486,21 +470,7 @@ func NewPrivateMockStateRangeQueryIterator(stub *MockStub, collection string, st
 	iter.Current = stub.PrivateKeys[collection].Front()
 	iter.Collection = collection
 
-	iter.Print()
-
 	return iter
-}
-
-func (iter *PrivateMockStateRangeQueryIterator) Print() {
-	mockLogger.Debug("PrivateMockStateRangeQueryIterator {")
-	mockLogger.Debug("Closed?", iter.Closed)
-	mockLogger.Debug("Stub", iter.Stub)
-	mockLogger.Debug("StartKey", iter.StartKey)
-	mockLogger.Debug("EndKey", iter.EndKey)
-	mockLogger.Debug("Current", iter.Current)
-	mockLogger.Debug("HasNext?", iter.HasNext())
-	mockLogger.Debug("Collection", iter.Collection)
-	mockLogger.Debug("}")
 }
 
 // PutPrivateData mocked
@@ -517,21 +487,17 @@ func (stub *MockStub) PutPrivateData(collection string, key string, value []byte
 	for elem := stub.PrivateKeys[collection].Front(); elem != nil; elem = elem.Next() {
 		elemValue := elem.Value.(string)
 		comp := strings.Compare(key, elemValue)
-		mockLogger.Debug("MockStub", stub.Name, "Compared", key, elemValue, " and got ", comp)
 		if comp < 0 {
 			// key < elem, insert it before elem
 			stub.PrivateKeys[collection].InsertBefore(key, elem)
-			mockLogger.Debug("MockStub", stub.Name, "Key", key, " inserted before", elem.Value)
 			break
 		} else if comp == 0 {
 			// keys exists, no need to change
-			mockLogger.Debug("MockStub", stub.Name, "Key", key, "already in State")
 			break
 		} else { // comp > 0
 			// key > elem, keep looking unless this is the end of the list
 			if elem.Next() == nil {
 				stub.PrivateKeys[collection].PushBack(key)
-				mockLogger.Debug("MockStub", stub.Name, "Key", key, "appended")
 				break
 			}
 		}
@@ -540,7 +506,6 @@ func (stub *MockStub) PutPrivateData(collection string, key string, value []byte
 	// special case for empty Keys list
 	if stub.PrivateKeys[collection].Len() == 0 {
 		stub.PrivateKeys[collection].PushFront(key)
-		mockLogger.Debug("MockStub", stub.Name, "Key", key, "is first element in list")
 	}
 
 	return nil
