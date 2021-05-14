@@ -1,6 +1,9 @@
 package debug_test
 
 import (
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	"strconv"
 	"testing"
 
@@ -8,11 +11,9 @@ import (
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/router"
+	statetest "github.com/s7techlab/cckit/state/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 func TestDebug(t *testing.T) {
@@ -24,7 +25,7 @@ var (
 	Owner = testdata.Certificates[0].MustIdentity(`SOME_MSP`)
 )
 
-func New() *router.Chaincode {
+func NewChaincode() *router.Chaincode {
 	r := router.New(`debuggable`).Init(owner.InvokeSetFromCreator)
 	debug.AddHandlers(r, `debug`, owner.Only)
 	return router.NewChaincode(r)
@@ -33,7 +34,7 @@ func New() *router.Chaincode {
 var _ = Describe(`Debuggable`, func() {
 
 	//Create chaincode mock
-	cc := testcc.NewMockStub(`debuggable`, New())
+	cc := testcc.NewMockStub(`debuggable`, NewChaincode())
 	cc.From(Owner).Init()
 
 	Describe("Debug", func() {
@@ -41,9 +42,9 @@ var _ = Describe(`Debuggable`, func() {
 		It("Allow to clean empty state", func() {
 			emptyResult := expectcc.PayloadIs(cc.From(Owner).Invoke(
 				`debugStateClean`,
-				[]string{`some`, `non existent`, `keys`}), new(map[string]int)).(map[string]int)
+				[]string{`some`, `non existent`, `key prefixes`}), new(map[string]uint32)).(map[string]uint32)
 
-			Expect(emptyResult[`some`]).To(Equal(0))
+			Expect(emptyResult[`some`]).To(Equal(uint32(0)))
 			Expect(len(emptyResult)).To(Equal(3))
 		})
 
@@ -68,13 +69,14 @@ var _ = Describe(`Debuggable`, func() {
 			cc.From(Owner).Invoke(`debugStatePut`, []string{`keyC`}, []byte(`valueKeyC`))
 		})
 
-		It("Allow to get value in state", func() {
+		It("Allow to get value from state", func() {
 			Expect(cc.From(Owner).Invoke(`debugStateGet`, []string{`prefixA`, `key1`}).Payload).To(Equal([]byte(`value1`)))
 			Expect(cc.From(Owner).Invoke(`debugStateGet`, []string{`keyA`}).Payload).To(Equal([]byte(`valueKeyA`)))
 		})
 
 		It("Allow to get keys", func() {
-			keys := expectcc.PayloadIs(cc.From(Owner).Invoke(`debugStateKeys`, []string{`prefixA`}), &[]string{}).([]string)
+
+			keys := expectcc.PayloadIs(cc.From(Owner).Invoke(`debugStateKeys`, `prefixA`), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(5))
 
 			key0, key0rest, _ := cc.SplitCompositeKey(keys[0])
@@ -82,17 +84,18 @@ var _ = Describe(`Debuggable`, func() {
 			Expect(key0rest).To(Equal([]string{`key0`}))
 
 			keys = expectcc.PayloadIs(cc.From(Owner).Invoke(
-				`debugStateKeys`, []string{`prefixB`, `subprefixB`}), &[]string{}).([]string)
+				`debugStateKeys`, statetest.MustCreateCompositeKey(`prefixB`, []string{`subprefixB`})),
+				&[]string{}).([]string)
 			Expect(len(keys)).To(Equal(7))
 		})
 
 		It("Allow to delete state entry", func() {
 			expectcc.ResponseOk(cc.From(Owner).Invoke(`debugStateDelete`, []string{`prefixA`, `key0`}))
-			keys := expectcc.PayloadIs(cc.From(Owner).Invoke(`debugStateKeys`, []string{`prefixA`}), &[]string{}).([]string)
+			keys := expectcc.PayloadIs(cc.From(Owner).Invoke(`debugStateKeys`, `prefixA`), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(4))
 
 			expectcc.ResponseOk(cc.From(Owner).Invoke(`debugStateDelete`, []string{`prefixA`, `key4`}))
-			keys = expectcc.PayloadIs(cc.From(Owner).Invoke(`debugStateKeys`, []string{`prefixA`}), &[]string{}).([]string)
+			keys = expectcc.PayloadIs(cc.From(Owner).Invoke(`debugStateKeys`, `prefixA`), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(3))
 		})
 
@@ -103,7 +106,7 @@ var _ = Describe(`Debuggable`, func() {
 			Expect(cleanResult[`prefixA`]).To(Equal(3))
 			Expect(len(cleanResult)).To(Equal(1))
 
-			keys := expectcc.PayloadIs(cc.From(Owner).Invoke(`debugStateKeys`, []string{`prefixA`}), &[]string{}).([]string)
+			keys := expectcc.PayloadIs(cc.From(Owner).Invoke(`debugStateKeys`, `prefixA`), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(0))
 		})
 

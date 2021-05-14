@@ -2,6 +2,7 @@ package encryption
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
@@ -20,7 +21,8 @@ func State(c router.Context, key []byte) (state.State, error) {
 	//current state
 	s := c.State()
 
-	s.UseKeyTransformer(KeyPartsEncryptor(key))
+	s.UseKeyTransformer(KeyEncryptor(key))
+	s.UseKeyReverseTransformer(KeyDecryptor(key))
 	s.UseStateGetTransformer(FromBytesDecryptor(key))
 	s.UseStatePutTransformer(ToBytesEncryptor(key))
 
@@ -65,19 +67,39 @@ func StateWithTransientKeyIfProvided(c router.Context) (state.State, error) {
 	return nil, err
 }
 
-// KeyPartsEncryptedWith encrypts key parts
-func KeyPartsEncryptor(encryptKey []byte) state.KeyTransformer {
-	return func(keyParts []string) ([]string, error) {
-		keyPartsEnc := make([]string, len(keyParts))
+// KeyEncryptor encrypts state key
+func KeyEncryptor(encryptKey []byte) state.KeyTransformer {
+	return func(key state.Key) (state.Key, error) {
+		keyEnc := make(state.Key, len(key))
 
-		for i, p := range keyParts {
+		for i, p := range key {
 			keyPartEnc, err := Encrypt(encryptKey, p)
 			if err != nil {
-				return nil, errors.Wrap(err, `key part encrypt error`)
+				return nil, fmt.Errorf(`encrypt key: %w`, err)
 			}
-			keyPartsEnc[i] = base64.StdEncoding.EncodeToString(keyPartEnc)
+			keyEnc[i] = base64.StdEncoding.EncodeToString(keyPartEnc)
 		}
-		return keyPartsEnc, nil
+		return keyEnc, nil
+	}
+}
+
+// KeyDecryptor decrypts state key
+func KeyDecryptor(encryptKey []byte) state.KeyTransformer {
+	return func(key state.Key) (state.Key, error) {
+		keyEnc := make(state.Key, len(key))
+
+		for i, p := range key {
+			keyPartEnc, err := base64.StdEncoding.DecodeString(p)
+			if err != nil {
+				return nil, fmt.Errorf(`decrypt key base4 decode: %w`, err)
+			}
+			keyPart, err := Decrypt(encryptKey, keyPartEnc)
+			if err != nil {
+				return nil, fmt.Errorf(`decrypt key: %w`, err)
+			}
+			keyEnc[i] = string(keyPart)
+		}
+		return keyEnc, nil
 	}
 }
 

@@ -1,0 +1,80 @@
+syntax = "proto3";
+// Commercial paper service
+option go_package = "github.com/s7techlab/cckit/extensions/debug";
+package cckit.extension.debug;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+// State key prefix
+message Prefix {
+    // parts of key
+    repeated string key = 1;
+}
+
+message Prefixes {
+    repeated Prefix prefixes = 1;
+}
+
+// State key prefix match count
+message PrefixesMatchCount {
+    map<string, uint32> matches = 1;
+}
+
+// State keys
+message CompositeKeys {
+    repeated CompositeKey keys = 1;
+}
+
+// State key
+message CompositeKey {
+    repeated string key = 1;
+}
+
+// State value
+message Value {
+    repeated string key = 1;
+    bytes value = 2;
+    string json = 3;
+}
+
+// Debug state service
+// allows to directly manage chaincode state
+service DebugState {
+    // Clear all state or, if prefixes are defined, only prefix matched
+    rpc StateClean (Prefixes) returns (PrefixesMatchCount) {
+        option (google.api.http) = {
+            put: "/state/clear"
+            body: "*"
+        };
+    }
+
+    // Get keys list, returns all keys or, if prefixes are defined, only prefix matched
+    rpc StateKeys (Prefix) returns (CompositeKeys) {
+        option (google.api.http) = {
+            get: "/state/keys/{key}"
+        };
+    }
+
+    // Get state value by key
+    rpc StateGet (CompositeKey) returns (Value) {
+        option (google.api.http) = {
+            get: "/state/{key}"
+        };
+    }
+
+    // Put state value
+    rpc StatePut (Value) returns (Value) {
+        option (google.api.http) = {
+            put : "/state"
+            body: "*"
+        };
+    }
+
+    // Delete state value
+    rpc StateDelete (CompositeKey) returns (Value) {
+        option (google.api.http) = {
+            delete: "/state/{key}"
+        };
+    }
+}

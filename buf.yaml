@@ -9,6 +9,7 @@ version: v1beta1
 build:
   roots:
     - examples
+    - extensions
     - gateway
     - state
     - vendor

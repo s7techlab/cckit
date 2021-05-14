@@ -3,16 +3,10 @@
 # The only currently-valid value is v1beta1.
 version: v1beta1
 
-# The plugins to run.
+
 plugins:
 
-  # The name of the plugin.
-  # Required.
-  # By default, buf generate will look for a binary named protoc-gen-NAME on your $PATH.
   - name: go
-
-    # The the relative output directory.
-    # Required.
     out: .
 
     # Any options to provide to the plugin.
@@ -58,15 +52,24 @@ plugins:
     out: .
     opt:
       - paths=source_relative
+
   - name: openapiv2
     out: .
     opt:
       - logtostderr=true
+
   - name: grpc-gateway
     out: .
     opt:
       - logtostderr=true
       - paths=source_relative
+
+  - name: cc-gateway
+    out: .
+    opt:
+      - logtostderr=true
+      - paths=source_relative
+
 ## TODO specify doc correct out params
 #  - name: doc
 #    out: .

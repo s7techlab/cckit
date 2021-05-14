@@ -26,8 +26,10 @@ type (
 		Namespace() state.Key
 		// PrimaryKey returns primary key for entry
 		PrimaryKey(instance interface{}) (key state.Key, err error)
+		// Keys returns additional keys for
 		Keys(instance interface{}) (key []state.KeyValue, err error)
-		KeyerFor() interface{}
+		//KeyerFor returns target entity if mapper is key mapper
+		KeyerFor() (schema interface{})
 		Indexes() []*StateIndex
 	}
 
@@ -103,11 +105,16 @@ func SchemaNamespace(schema interface{}) state.Key {
 
 // Get mapper for mapped entry
 func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
-	m, ok := smm[mapKey(entry)]
-	if !ok {
-		return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, mapKey(entry))
+	switch id := entry.(type) {
+	case []string:
+		return smm.GetByNamespace(id[0:1])
+	default:
+		m, ok := smm[mapKey(entry)]
+		if !ok {
+			return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, mapKey(entry))
+		}
+		return m, nil
 	}
-	return m, nil
 }
 
 // Get mapper by string namespace. It can be used in block explorer: we know state key, but don't know
@@ -141,7 +148,7 @@ func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) 
 	}
 
 	switch entry.(type) {
-	case proto.Message:
+	case proto.Message, []string:
 		return NewProtoStateMapped(entry, mapper), nil
 	default:
 		return nil, ErrEntryTypeNotSupported

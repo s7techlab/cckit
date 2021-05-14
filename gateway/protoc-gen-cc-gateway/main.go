@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -42,6 +43,22 @@ func main() {
 	}
 
 	g := generator.New(reg)
+
+	for _, param := range strings.Split(req.GetParameter(), ",") {
+		var value string
+		if i := strings.Index(param, "="); i >= 0 {
+			value = param[i+1:]
+			param = param[0:i]
+		}
+		switch param {
+		case "paths":
+			switch value {
+			case "source_relative":
+				g.PathsSourceRelative = true
+			}
+		}
+	}
+
 	var (
 		targets []*descriptor.File
 		f       *descriptor.File

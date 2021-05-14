@@ -15,8 +15,9 @@ import (
 )
 
 type Generator struct {
-	reg     *descriptor.Registry
-	imports []descriptor.GoPackage // common imports
+	reg                 *descriptor.Registry
+	imports             []descriptor.GoPackage // common imports
+	PathsSourceRelative bool
 }
 
 // New returns a new generator which generates handler wrappers.
@@ -59,7 +60,12 @@ func (g *Generator) generateCC(file *descriptor.File) (*plugin.CodeGeneratorResp
 	ext := filepath.Ext(name)
 	base := strings.TrimSuffix(name, ext)
 
-	output := fmt.Sprintf(filepath.Join(file.GoPkg.Path, "%s.pb.cc.go"), base)
+	basePath := file.GoPkg.Name
+	if !g.PathsSourceRelative {
+		basePath = file.GoPkg.Path
+	}
+
+	output := fmt.Sprintf(filepath.Join(basePath, "%s.pb.cc.go"), base)
 	output = filepath.Clean(output)
 
 	return &plugin.CodeGeneratorResponse_File{

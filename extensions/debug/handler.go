@@ -19,8 +19,11 @@ var (
 	// KeyParam parameter for get, put, delete data from state
 	KeyParam = param.Strings(`key`)
 
-	// PrefixParam parameter for key, value lists
-	PrefixParam = param.Strings(`prefix`)
+	// PrefixParam parameter
+	PrefixParam = param.String(`prefix`)
+
+	// PrefixesParams parameter
+	PrefixesParam = param.Strings(`prefixes`)
 
 	// ValueParam  parameter for putting value in state
 	ValueParam = param.Bytes(`value`)
@@ -34,7 +37,7 @@ func AddHandlers(r *router.Group, prefix string, middleware ...router.Middleware
 	r.Invoke(
 		prefix+InvokeStateCleanFunc,
 		InvokeStateClean,
-		append([]router.MiddlewareFunc{PrefixParam}, middleware...)...)
+		append([]router.MiddlewareFunc{PrefixesParam}, middleware...)...)
 
 	// query keys by prefix
 	r.Query(
@@ -61,7 +64,7 @@ func AddHandlers(r *router.Group, prefix string, middleware ...router.Middleware
 
 // InvokeStateClean delete entries from state, prefix []string contains key prefixes or whole key
 func InvokeStateClean(c router.Context) (interface{}, error) {
-	return DelStateByPrefixes(c.Stub(), c.Param(`prefix`).([]string))
+	return DeleteStateByPrefixes(c.State(), c.Param(`prefixes`).([]string))
 }
 
 // InvokeValueByKeyPut router handler puts value in chaincode state with composite key,
@@ -76,23 +79,7 @@ func InvokeStatePut(c router.Context) (interface{}, error) {
 
 // QueryKeysList router handler returns string slice with keys by prefix (object type)
 func QueryKeysList(c router.Context) (interface{}, error) {
-	prefixes := c.Param(`prefix`).([]string)
-	iter, err := c.Stub().GetStateByPartialCompositeKey(prefixes[0], prefixes[1:])
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() { _ = iter.Close() }()
-	var keys []string
-	for iter.HasNext() {
-		v, err := iter.Next()
-		if err != nil {
-			return nil, err
-		}
-
-		keys = append(keys, v.Key)
-	}
-	return keys, nil
+	return c.State().Keys(c.ParamString(`prefix`))
 }
 
 // QueryStateGet router handler returns state entry by key ([]string)

@@ -173,7 +173,7 @@ var _ = Describe(`Mapping`, func() {
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(complexIDCC.Invoke(`entityInsert`, ent1))
 			keys := expectcc.PayloadIs(complexIDCC.From(Owner).Invoke(
-				`debugStateKeys`, []string{`EntityWithComplexId`}), &[]string{}).([]string)
+				`debugStateKeys`, `EntityWithComplexId`), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(1))
 
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
@@ -203,7 +203,7 @@ var _ = Describe(`Mapping`, func() {
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(sliceIDCC.Invoke(`entityInsert`, ent2))
 			keys := expectcc.PayloadIs(sliceIDCC.From(Owner).Invoke(
-				`debugStateKeys`, []string{`EntityWithSliceId`}), &[]string{}).([]string)
+				`debugStateKeys`, `EntityWithSliceId`), &[]string{}).([]string)
 
 			Expect(len(keys)).To(Equal(1))
 
