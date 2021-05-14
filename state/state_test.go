@@ -49,9 +49,17 @@ var _ = Describe(`State`, func() {
 		It("Allow to get entry list", func() {
 			books := expectcc.PayloadIs(booksCC.Invoke(`bookList`), &[]schema.Book{}).([]schema.Book)
 			Expect(len(books)).To(Equal(3))
-			Expect(books[0]).To(Equal(testdata.Books[0]))
-			Expect(books[1]).To(Equal(testdata.Books[1]))
-			Expect(books[2]).To(Equal(testdata.Books[2]))
+			for i := range testdata.Books {
+				Expect(books[i]).To(Equal(testdata.Books[i]))
+			}
+		})
+
+		It("Allow to get entry ids", func() {
+			ids := expectcc.PayloadIs(booksCC.Invoke(`bookIds`), &[]string{}).([]string)
+			Expect(len(ids)).To(Equal(3))
+			for i := range testdata.Books {
+				Expect(ids[i]).To(Equal(testdata.MustCreateCompositeKey(schema.BookEntity, []string{testdata.Books[i].Id})))
+			}
 		})
 
 		It("Allow to get entry converted to target type", func() {

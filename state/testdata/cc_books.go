@@ -19,6 +19,7 @@ func NewBooksCC() *router.Chaincode {
 
 	r.Init(owner.InvokeSetFromCreator).
 		Invoke(`bookList`, bookList).
+		Invoke(`bookIds`, bookIds).
 		Invoke(`bookGet`, bookGet, p.String(`id`)).
 		Invoke(`bookInsert`, bookInsert, p.Struct(`book`, &schema.Book{})).
 		Invoke(`bookUpsert`, bookUpsert, p.Struct(`book`, &schema.Book{})).
@@ -35,6 +36,10 @@ func NewBooksCC() *router.Chaincode {
 
 func bookList(c router.Context) (interface{}, error) {
 	return c.State().List(schema.BookEntity, &schema.Book{})
+}
+
+func bookIds(c router.Context) (interface{}, error) {
+	return c.State().Keys(schema.BookEntity)
 }
 
 func bookInsert(c router.Context) (interface{}, error) {
