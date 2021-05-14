@@ -26,8 +26,10 @@ type (
 		Namespace() state.Key
 		// PrimaryKey returns primary key for entry
 		PrimaryKey(instance interface{}) (key state.Key, err error)
+		// Keys returns additional keys for
 		Keys(instance interface{}) (key []state.KeyValue, err error)
-		KeyerFor() interface{}
+		//KeyerFor returns target entity if mapper is key mapper
+		KeyerFor() (schema interface{})
 		Indexes() []*StateIndex
 	}
 
@@ -115,6 +117,10 @@ func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 	}
 }
 
+func (smm StateMappings) GetMapped(entry interface{}) {
+
+}
+
 // Get mapper by string namespace. It can be used in block explorer: we know state key, but don't know
 // type actually mapped to state
 func (smm StateMappings) GetByNamespace(namespace state.Key) (StateMapper, error) {
@@ -145,6 +151,9 @@ func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) 
 		return nil, errors.Wrap(err, `mapping`)
 	}
 
+	if mapper.KeyerFor() != nil {
+
+	}
 	switch entry.(type) {
 	case proto.Message, []string:
 		return NewProtoStateMapped(entry, mapper), nil

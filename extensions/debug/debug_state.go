@@ -14,6 +14,7 @@ type (
 		State StateFn
 	}
 
+	// StateFn function can add mappings to state, for correct convertation in StateGet
 	StateFn func(router.Context) state.State
 )
 
