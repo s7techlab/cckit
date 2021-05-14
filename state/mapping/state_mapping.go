@@ -151,9 +151,6 @@ func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) 
 		return nil, errors.Wrap(err, `mapping`)
 	}
 
-	if mapper.KeyerFor() != nil {
-
-	}
 	switch entry.(type) {
 	case proto.Message, []string:
 		return NewProtoStateMapped(entry, mapper), nil
