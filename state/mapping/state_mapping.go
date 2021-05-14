@@ -117,10 +117,6 @@ func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 	}
 }
 
-func (smm StateMappings) GetMapped(entry interface{}) {
-
-}
-
 // Get mapper by string namespace. It can be used in block explorer: we know state key, but don't know
 // type actually mapped to state
 func (smm StateMappings) GetByNamespace(namespace state.Key) (StateMapper, error) {
