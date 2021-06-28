@@ -14,6 +14,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/convert"
 )
 
@@ -29,8 +30,9 @@ var (
 )
 
 type StateItem struct {
-	Key   string
-	Value []byte
+	Key    string
+	Value  []byte
+	Delete bool
 }
 
 // MockStub replacement of shim.MockStub with creator mocking facilities
@@ -43,7 +45,7 @@ type MockStub struct {
 	transient                   map[string][]byte
 	ClearCreatorAfterInvoke     bool
 	_args                       [][]byte
-	InvokablesFull              map[string]*MockStub        // invokable this version of MockStub
+	Invokables                  map[string]*MockStub        // invokable this version of MockStub
 	creatorTransformer          CreatorTransformer          // transformer for tx creator data, used in From func
 	ChaincodeEvent              *peer.ChaincodeEvent        // event in last tx
 	chaincodeEventSubscriptions []chan *peer.ChaincodeEvent // multiple event subscriptions
@@ -59,7 +61,7 @@ func NewMockStub(name string, cc shim.Chaincode) *MockStub {
 		cc:       cc,
 		// by default tx creator data and transient map are cleared after each cc method query/invoke
 		ClearCreatorAfterInvoke: true,
-		InvokablesFull:          make(map[string]*MockStub),
+		Invokables:              make(map[string]*MockStub),
 		PrivateKeys:             make(map[string]*list.List),
 	}
 }
@@ -74,6 +76,19 @@ func (stub *MockStub) PutState(key string, value []byte) error {
 	stub.StateBuffer = append(stub.StateBuffer, &StateItem{
 		Key:   key,
 		Value: value,
+	})
+
+	return nil
+}
+
+func (stub *MockStub) DelState(key string) error {
+	if stub.TxID == "" {
+		return errors.New("cannot PutState without a transactions - call stub.MockTransactionStart()?")
+	}
+
+	stub.StateBuffer = append(stub.StateBuffer, &StateItem{
+		Key:    key,
+		Delete: true,
 	})
 
 	return nil
@@ -124,13 +139,13 @@ func (stub *MockStub) GetStringArgs() []string {
 
 // MockPeerChaincode link to another MockStub
 func (stub *MockStub) MockPeerChaincode(invokableChaincodeName string, otherStub *MockStub) {
-	stub.InvokablesFull[invokableChaincodeName] = otherStub
+	stub.Invokables[invokableChaincodeName] = otherStub
 }
 
 // MockedPeerChaincodes returns names of mocked chaincodes, available for invoke from current stub
 func (stub *MockStub) MockedPeerChaincodes() []string {
 	keys := make([]string, 0)
-	for k := range stub.InvokablesFull {
+	for k := range stub.Invokables {
 		keys = append(keys, k)
 	}
 	return keys
@@ -144,7 +159,7 @@ func (stub *MockStub) InvokeChaincode(chaincodeName string, args [][]byte, chann
 		chaincodeName = chaincodeName + "/" + channel
 	}
 
-	otherStub, exists := stub.InvokablesFull[chaincodeName]
+	otherStub, exists := stub.Invokables[chaincodeName]
 	if !exists {
 		return shim.Error(fmt.Sprintf(
 			`%s	: try to invoke chaincode "%s" in channel "%s" (%s). Available mocked chaincodes are: %s`,
@@ -217,7 +232,12 @@ func (stub *MockStub) DumpStateBuffer() {
 	// dump state buffer to state
 	for i := range stub.StateBuffer {
 		s := stub.StateBuffer[i]
-		_ = stub.MockStub.PutState(s.Key, s.Value)
+		if s.Delete {
+			_ = stub.MockStub.DelState(s.Key)
+		} else {
+			_ = stub.MockStub.PutState(s.Key, s.Value)
+		}
+
 	}
 	stub.StateBuffer = nil
 

@@ -6,8 +6,9 @@ import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	"github.com/pkg/errors"
-	"github.com/s7techlab/cckit/convert"
 	"go.uber.org/zap"
+
+	"github.com/s7techlab/cckit/convert"
 )
 
 // HistoryEntry struct containing history information of a single entry
@@ -107,6 +108,7 @@ type Impl struct {
 	logger                     *zap.Logger
 	PutState                   func(string, []byte) error
 	GetState                   func(string) ([]byte, error)
+	DeleteState                func(string) error
 	StateKeyTransformer        KeyTransformer
 	StateKeyReverseTransformer KeyTransformer
 	StateGetTransformer        FromBytesTransformer
@@ -133,6 +135,10 @@ func NewState(stub shim.ChaincodeStubInterface, logger *zap.Logger) *Impl {
 	// writeset as a data-write proposal.
 	i.PutState = func(key string, bb []byte) error {
 		return stub.PutState(key, bb)
+	}
+
+	i.DeleteState = func(key string) error {
+		return stub.DelState(key)
 	}
 
 	return i
@@ -396,7 +402,7 @@ func (s *Impl) Delete(entry interface{}) error {
 	}
 
 	s.logger.Debug(`state DELETE`, zap.String(`key`, key.String))
-	return s.stub.DelState(key.String)
+	return s.DeleteState(key.String)
 }
 
 func (s *Impl) UseKeyTransformer(kt KeyTransformer) State {
