@@ -105,7 +105,7 @@ func NewCachedQueryIterator(iterator shim.StateQueryIteratorInterface, prefix st
 	}
 
 	sort.Slice(queryIterator.KVs, func(i, j int) bool {
-		return queryIterator.KVs[i].Key > queryIterator.KVs[i].Key
+		return queryIterator.KVs[i].Key < queryIterator.KVs[j].Key
 	})
 
 	return queryIterator, nil
