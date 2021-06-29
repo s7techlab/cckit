@@ -3,10 +3,10 @@ package router
 import (
 	"time"
 
-	"go.uber.org/zap"
-
 	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"go.uber.org/zap"
+
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -264,4 +264,8 @@ func (c *context) Get(key string) interface{} {
 
 func (c *context) SetEvent(name string, payload interface{}) error {
 	return c.Event().Set(name, payload)
+}
+
+func ContextWithStateCache(ctx Context) Context {
+	return ctx.Clone().UseState(state.WithCache(ctx.State()))
 }

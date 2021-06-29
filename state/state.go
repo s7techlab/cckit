@@ -104,11 +104,15 @@ type State interface {
 }
 
 type Impl struct {
-	stub                       shim.ChaincodeStubInterface
-	logger                     *zap.Logger
-	PutState                   func(string, []byte) error
-	GetState                   func(string) ([]byte, error)
-	DeleteState                func(string) error
+	stub   shim.ChaincodeStubInterface
+	logger *zap.Logger
+
+	// wrappers for state access methods
+	PutState                      func(string, []byte) error
+	GetState                      func(string) ([]byte, error)
+	DelState                      func(string) error
+	GetStateByPartialCompositeKey func(objectType string, keys []string) (shim.StateQueryIteratorInterface, error)
+
 	StateKeyTransformer        KeyTransformer
 	StateKeyReverseTransformer KeyTransformer
 	StateGetTransformer        FromBytesTransformer
@@ -137,8 +141,16 @@ func NewState(stub shim.ChaincodeStubInterface, logger *zap.Logger) *Impl {
 		return stub.PutState(key, bb)
 	}
 
-	i.DeleteState = func(key string) error {
+	// DelState records the specified `key` to be deleted in the writeset of
+	// the transaction proposal.
+	i.DelState = func(key string) error {
 		return stub.DelState(key)
+	}
+
+	// GetStateByPartialCompositeKey queries the state in the ledger based on
+	// a given partial composite key
+	i.GetStateByPartialCompositeKey = func(objectType string, keys []string) (shim.StateQueryIteratorInterface, error) {
+		return stub.GetStateByPartialCompositeKey(objectType, keys)
 	}
 
 	return i
@@ -302,7 +314,7 @@ func (s *Impl) createStateQueryIterator(namespace interface{}) (shim.StateQueryI
 		attrs = keyTransformed[1:]
 	}
 
-	return s.stub.GetStateByPartialCompositeKey(objectType, attrs)
+	return s.GetStateByPartialCompositeKey(objectType, attrs)
 }
 
 func (s *Impl) Keys(namespace interface{}) ([]string, error) {
@@ -402,7 +414,7 @@ func (s *Impl) Delete(entry interface{}) error {
 	}
 
 	s.logger.Debug(`state DELETE`, zap.String(`key`, key.String))
-	return s.DeleteState(key.String)
+	return s.DelState(key.String)
 }
 
 func (s *Impl) UseKeyTransformer(kt KeyTransformer) State {
