@@ -9,10 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	ErrCachedQueryIteratorNoNext = errors.New(`cached query iterator no next`)
-)
-
 type (
 	TxWriteSet  map[string][]byte
 	TxDeleteSet map[string]interface{}
