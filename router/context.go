@@ -267,5 +267,6 @@ func (c *context) SetEvent(name string, payload interface{}) error {
 }
 
 func ContextWithStateCache(ctx Context) Context {
-	return ctx.Clone().UseState(state.WithCache(ctx.State()))
+	clone := ctx.Clone()
+	return clone.UseState(state.WithCache(clone.State()))
 }
