@@ -101,6 +101,9 @@ type State interface {
 	// ExistsPrivate returns entry existence in private state
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	ExistsPrivate(collection string, entry interface{}) (bool, error)
+
+	// Clone state for next changing transformers, state access methods etc
+	Clone() State
 }
 
 type Impl struct {
@@ -154,6 +157,21 @@ func NewState(stub shim.ChaincodeStubInterface, logger *zap.Logger) *Impl {
 	}
 
 	return i
+}
+
+func (s *Impl) Clone() State {
+	return &Impl{
+		stub:                          s.stub,
+		logger:                        s.logger,
+		PutState:                      s.PutState,
+		GetState:                      s.GetState,
+		DelState:                      s.DelState,
+		GetStateByPartialCompositeKey: s.GetStateByPartialCompositeKey,
+		StateKeyTransformer:           s.StateKeyTransformer,
+		StateKeyReverseTransformer:    s.StateKeyReverseTransformer,
+		StateGetTransformer:           s.StateGetTransformer,
+		StatePutTransformer:           s.StatePutTransformer,
+	}
 }
 
 func (s *Impl) Logger() *zap.Logger {

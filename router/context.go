@@ -107,7 +107,10 @@ func NewContext(stub shim.ChaincodeStubInterface, logger *zap.Logger) *context {
 }
 
 func (c *context) Clone() Context {
-	return NewContext(c.stub, c.logger)
+	ctx := NewContext(c.stub, c.logger)
+	ctx.state = c.state.Clone()
+
+	return ctx
 }
 
 func (c *context) Stub() shim.ChaincodeStubInterface {
