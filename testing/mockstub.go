@@ -14,6 +14,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/convert"
 )
 
@@ -29,25 +30,34 @@ var (
 )
 
 type StateItem struct {
-	Key   string
-	Value []byte
+	Key    string
+	Value  []byte
+	Delete bool
 }
 
 // MockStub replacement of shim.MockStub with creator mocking facilities
 type MockStub struct {
 	shimtest.MockStub
-	StateBuffer                 []*StateItem // buffer for state changes during transaction
-	cc                          shim.Chaincode
-	m                           sync.Mutex
-	mockCreator                 []byte
-	transient                   map[string][]byte
-	ClearCreatorAfterInvoke     bool
-	_args                       [][]byte
-	InvokablesFull              map[string]*MockStub        // invokable this version of MockStub
-	creatorTransformer          CreatorTransformer          // transformer for tx creator data, used in From func
+	cc shim.Chaincode
+
+	StateBuffer []*StateItem // buffer for state changes during transaction
+
+	m sync.Mutex
+
+	_args       [][]byte
+	transient   map[string][]byte
+	mockCreator []byte
+	TxResult    peer.Response // last tx result
+
+	ClearCreatorAfterInvoke bool
+	creatorTransformer      CreatorTransformer // transformer for tx creator data, used in From func
+
+	Invokables map[string]*MockStub // invokable this version of MockStub
+
 	ChaincodeEvent              *peer.ChaincodeEvent        // event in last tx
 	chaincodeEventSubscriptions []chan *peer.ChaincodeEvent // multiple event subscriptions
-	PrivateKeys                 map[string]*list.List
+
+	PrivateKeys map[string]*list.List
 }
 
 type CreatorTransformer func(...interface{}) (mspID string, certPEM []byte, err error)
@@ -59,7 +69,7 @@ func NewMockStub(name string, cc shim.Chaincode) *MockStub {
 		cc:       cc,
 		// by default tx creator data and transient map are cleared after each cc method query/invoke
 		ClearCreatorAfterInvoke: true,
-		InvokablesFull:          make(map[string]*MockStub),
+		Invokables:              make(map[string]*MockStub),
 		PrivateKeys:             make(map[string]*list.List),
 	}
 }
@@ -70,10 +80,21 @@ func (stub *MockStub) PutState(key string, value []byte) error {
 	if stub.TxID == "" {
 		return errors.New("cannot PutState without a transactions - call stub.MockTransactionStart()?")
 	}
-
 	stub.StateBuffer = append(stub.StateBuffer, &StateItem{
 		Key:   key,
 		Value: value,
+	})
+
+	return nil
+}
+
+func (stub *MockStub) DelState(key string) error {
+	if stub.TxID == "" {
+		return errors.New("cannot PutState without a transactions - call stub.MockTransactionStart()?")
+	}
+	stub.StateBuffer = append(stub.StateBuffer, &StateItem{
+		Key:    key,
+		Delete: true,
 	})
 
 	return nil
@@ -124,13 +145,13 @@ func (stub *MockStub) GetStringArgs() []string {
 
 // MockPeerChaincode link to another MockStub
 func (stub *MockStub) MockPeerChaincode(invokableChaincodeName string, otherStub *MockStub) {
-	stub.InvokablesFull[invokableChaincodeName] = otherStub
+	stub.Invokables[invokableChaincodeName] = otherStub
 }
 
 // MockedPeerChaincodes returns names of mocked chaincodes, available for invoke from current stub
 func (stub *MockStub) MockedPeerChaincodes() []string {
 	keys := make([]string, 0)
-	for k := range stub.InvokablesFull {
+	for k := range stub.Invokables {
 		keys = append(keys, k)
 	}
 	return keys
@@ -144,7 +165,7 @@ func (stub *MockStub) InvokeChaincode(chaincodeName string, args [][]byte, chann
 		chaincodeName = chaincodeName + "/" + channel
 	}
 
-	otherStub, exists := stub.InvokablesFull[chaincodeName]
+	otherStub, exists := stub.Invokables[chaincodeName]
 	if !exists {
 		return shim.Error(fmt.Sprintf(
 			`%s	: try to invoke chaincode "%s" in channel "%s" (%s). Available mocked chaincodes are: %s`,
@@ -203,21 +224,29 @@ func (stub *MockStub) InitBytes(args ...[]byte) peer.Response {
 
 // MockInit mocked init function
 func (stub *MockStub) MockInit(uuid string, args [][]byte) peer.Response {
+	stub.m.Lock()
+	defer stub.m.Unlock()
 
 	stub.SetArgs(args)
 
 	stub.MockTransactionStart(uuid)
-	res := stub.cc.Init(stub)
+	stub.TxResult = stub.cc.Init(stub)
 	stub.MockTransactionEnd(uuid)
 
-	return res
+	return stub.TxResult
 }
 
 func (stub *MockStub) DumpStateBuffer() {
 	// dump state buffer to state
-	for i := range stub.StateBuffer {
-		s := stub.StateBuffer[i]
-		_ = stub.MockStub.PutState(s.Key, s.Value)
+	if stub.TxResult.Status == shim.OK {
+		for i := range stub.StateBuffer {
+			s := stub.StateBuffer[i]
+			if s.Delete {
+				_ = stub.MockStub.DelState(s.Key)
+			} else {
+				_ = stub.MockStub.PutState(s.Key, s.Value)
+			}
+		}
 	}
 	stub.StateBuffer = nil
 
@@ -240,9 +269,9 @@ func (stub *MockStub) MockQuery(uuid string, args [][]byte) peer.Response {
 func (stub *MockStub) MockTransactionStart(uuid string) {
 	//empty event
 	stub.ChaincodeEvent = nil
-
 	// empty state buffer
 	stub.StateBuffer = nil
+	stub.TxResult = peer.Response{}
 
 	stub.MockStub.MockTransactionStart(uuid)
 }
@@ -269,10 +298,10 @@ func (stub *MockStub) MockInvoke(uuid string, args [][]byte) peer.Response {
 
 	// now do the invoke with the correct stub
 	stub.MockTransactionStart(uuid)
-	res := stub.cc.Invoke(stub)
+	stub.TxResult = stub.cc.Invoke(stub)
 	stub.MockTransactionEnd(uuid)
 
-	return res
+	return stub.TxResult
 }
 
 // Invoke sugared invoke function with autogenerated tx uuid

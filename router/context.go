@@ -3,10 +3,10 @@ package router
 import (
 	"time"
 
-	"go.uber.org/zap"
-
 	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"go.uber.org/zap"
+
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -107,7 +107,12 @@ func NewContext(stub shim.ChaincodeStubInterface, logger *zap.Logger) *context {
 }
 
 func (c *context) Clone() Context {
-	return NewContext(c.stub, c.logger)
+	ctx := NewContext(c.stub, c.logger)
+	if c.state != nil {
+		ctx.state = c.state.Clone()
+	}
+
+	return ctx
 }
 
 func (c *context) Stub() shim.ChaincodeStubInterface {
@@ -264,4 +269,9 @@ func (c *context) Get(key string) interface{} {
 
 func (c *context) SetEvent(name string, payload interface{}) error {
 	return c.Event().Set(name, payload)
+}
+
+func ContextWithStateCache(ctx Context) Context {
+	clone := ctx.Clone()
+	return clone.UseState(state.WithCache(clone.State()))
 }

@@ -6,8 +6,9 @@ import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	"github.com/pkg/errors"
-	"github.com/s7techlab/cckit/convert"
 	"go.uber.org/zap"
+
+	"github.com/s7techlab/cckit/convert"
 )
 
 // HistoryEntry struct containing history information of a single entry
@@ -100,13 +101,21 @@ type State interface {
 	// ExistsPrivate returns entry existence in private state
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	ExistsPrivate(collection string, entry interface{}) (bool, error)
+
+	// Clone state for next changing transformers, state access methods etc
+	Clone() State
 }
 
 type Impl struct {
-	stub                       shim.ChaincodeStubInterface
-	logger                     *zap.Logger
-	PutState                   func(string, []byte) error
-	GetState                   func(string) ([]byte, error)
+	stub   shim.ChaincodeStubInterface
+	logger *zap.Logger
+
+	// wrappers for state access methods
+	PutState                      func(string, []byte) error
+	GetState                      func(string) ([]byte, error)
+	DelState                      func(string) error
+	GetStateByPartialCompositeKey func(objectType string, keys []string) (shim.StateQueryIteratorInterface, error)
+
 	StateKeyTransformer        KeyTransformer
 	StateKeyReverseTransformer KeyTransformer
 	StateGetTransformer        FromBytesTransformer
@@ -135,7 +144,34 @@ func NewState(stub shim.ChaincodeStubInterface, logger *zap.Logger) *Impl {
 		return stub.PutState(key, bb)
 	}
 
+	// DelState records the specified `key` to be deleted in the writeset of
+	// the transaction proposal.
+	i.DelState = func(key string) error {
+		return stub.DelState(key)
+	}
+
+	// GetStateByPartialCompositeKey queries the state in the ledger based on
+	// a given partial composite key
+	i.GetStateByPartialCompositeKey = func(objectType string, keys []string) (shim.StateQueryIteratorInterface, error) {
+		return stub.GetStateByPartialCompositeKey(objectType, keys)
+	}
+
 	return i
+}
+
+func (s *Impl) Clone() State {
+	return &Impl{
+		stub:                          s.stub,
+		logger:                        s.logger,
+		PutState:                      s.PutState,
+		GetState:                      s.GetState,
+		DelState:                      s.DelState,
+		GetStateByPartialCompositeKey: s.GetStateByPartialCompositeKey,
+		StateKeyTransformer:           s.StateKeyTransformer,
+		StateKeyReverseTransformer:    s.StateKeyReverseTransformer,
+		StateGetTransformer:           s.StateGetTransformer,
+		StatePutTransformer:           s.StatePutTransformer,
+	}
 }
 
 func (s *Impl) Logger() *zap.Logger {
@@ -296,7 +332,7 @@ func (s *Impl) createStateQueryIterator(namespace interface{}) (shim.StateQueryI
 		attrs = keyTransformed[1:]
 	}
 
-	return s.stub.GetStateByPartialCompositeKey(objectType, attrs)
+	return s.GetStateByPartialCompositeKey(objectType, attrs)
 }
 
 func (s *Impl) Keys(namespace interface{}) ([]string, error) {
@@ -396,7 +432,7 @@ func (s *Impl) Delete(entry interface{}) error {
 	}
 
 	s.logger.Debug(`state DELETE`, zap.String(`key`, key.String))
-	return s.stub.DelState(key.String)
+	return s.DelState(key.String)
 }
 
 func (s *Impl) UseKeyTransformer(kt KeyTransformer) State {
