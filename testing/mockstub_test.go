@@ -13,7 +13,6 @@ import (
 
 	"github.com/s7techlab/cckit/examples/cars"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
-	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 	"github.com/s7techlab/cckit/testing/testdata"
@@ -177,9 +176,10 @@ var _ = Describe(`Testing`, func() {
 	})
 
 	Describe(`Tx isolation`, func() {
-		It("Read after write returns error", func() {
-			expectcc.ResponseError(
-				txIsolationCC.Invoke(testdata.TxIsolationReadAfterWrite), state.ErrKeyNotFound)
+		It("Read after write returns empty", func() {
+			res := txIsolationCC.Invoke(testdata.TxIsolationReadAfterWrite)
+			Expect(int(res.Status)).To(Equal(shim.OK))
+			Expect(res.Payload).To(Equal([]byte{}))
 		})
 
 		It("Read after delete returns state entry", func() {

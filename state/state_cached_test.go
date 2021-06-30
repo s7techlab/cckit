@@ -4,7 +4,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -25,7 +24,8 @@ var _ = Describe(`State caching`, func() {
 	})
 
 	It("Read after delete returns empty entry", func() {
-		expectcc.ResponseError(stateCachedCC.Invoke(testdata.TxStateCachedReadAfterDelete), state.ErrKeyNotFound)
+		resp := stateCachedCC.Invoke(testdata.TxStateCachedReadAfterDelete)
+		Expect(resp.Payload).To(Equal([]byte{}))
 	})
 
 	It("List after write returns list", func() {
@@ -44,6 +44,5 @@ var _ = Describe(`State caching`, func() {
 		// first key is deleted
 		Expect(resp).To(Equal([]testdata.Value{
 			testdata.KeyValue(testdata.Keys[1]), testdata.KeyValue(testdata.Keys[2])}))
-
 	})
 })
