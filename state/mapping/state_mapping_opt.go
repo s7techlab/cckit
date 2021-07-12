@@ -8,6 +8,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -223,8 +224,15 @@ func keysFromValue(v reflect.Value) ([]state.Key, error) {
 func keyFromValue(v reflect.Value) (state.Key, error) {
 	var key state.Key
 
-	if v.Kind() == reflect.Ptr {
+	switch v.Kind() {
 
+	// enum in protobuf
+	case reflect.Int32:
+		if stringer, ok := v.Interface().(fmt.Stringer); ok {
+			return state.Key{stringer.String()}, nil
+		}
+
+	case reflect.Ptr:
 		// todo: extract key producer and add custom serializers
 		switch val := v.Interface().(type) {
 
@@ -250,7 +258,6 @@ func keyFromValue(v reflect.Value) (state.Key, error) {
 			}
 
 			return key, nil
-
 		}
 	}
 
