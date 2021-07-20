@@ -12,4 +12,5 @@ message EntityWithComplexId {
 message EntityComplexId {
     repeated string idPart1 = 1;
     string idPart2 = 2;
+    google.protobuf.Timestamp idPart3 = 3;
 }

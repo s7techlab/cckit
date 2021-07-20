@@ -3,6 +3,7 @@ package mapping_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -169,7 +170,11 @@ var _ = Describe(`Mapping`, func() {
 
 	Describe(`Entity with complex id`, func() {
 
-		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{IdPart1: []string{`aaa`, `bb`}, IdPart2: `ccc`}}
+		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{
+			IdPart1: []string{`aaa`, `bb`},
+			IdPart2: `ccc`,
+			IdPart3: testcc.MustTime(`2020-01-28T17:00:00Z`),
+		}}
 
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(complexIDCC.Invoke(`entityInsert`, ent1))
@@ -177,13 +182,15 @@ var _ = Describe(`Mapping`, func() {
 				`debugStateKeys`, `EntityWithComplexId`), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(1))
 
+			timeStr := time.Unix(ent1.Id.IdPart3.GetSeconds(), int64(ent1.Id.IdPart3.GetNanos())).Format(`2006-01-02`)
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
 			Expect(keys[0]).To(Equal(
-				"\x00" + `EntityWithComplexId` +
-					string(rune(0)) + ent1.Id.IdPart1[0] +
-					string(rune(0)) + ent1.Id.IdPart1[1] +
-					string(rune(0)) + ent1.Id.IdPart2 +
-					string(rune(0))))
+				string(rune(0)) +
+					`EntityWithComplexId` + string(rune(0)) +
+					ent1.Id.IdPart1[0] + string(rune(0)) +
+					ent1.Id.IdPart1[1] + string(rune(0)) +
+					ent1.Id.IdPart2 + string(rune(0)) +
+					timeStr + string(rune(0))))
 		})
 
 		It("Allow to get entity", func() {
