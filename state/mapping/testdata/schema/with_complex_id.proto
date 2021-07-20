@@ -10,6 +10,6 @@ message EntityWithComplexId {
 
 // EntityComplexId
 message EntityComplexId {
-    string idPart1 = 1;
+    repeated string idPart1 = 1;
     string idPart2 = 2;
 }

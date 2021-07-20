@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -60,6 +61,7 @@ type (
 		Keyer    InstanceMultiKeyer // index can have multiple keys
 	}
 
+	// StateIndexDef additional index definition
 	StateIndexDef struct {
 		Name     string
 		Fields   []string

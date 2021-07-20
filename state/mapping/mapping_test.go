@@ -10,6 +10,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric-protos-go/peer"
+
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
@@ -168,7 +169,7 @@ var _ = Describe(`Mapping`, func() {
 
 	Describe(`Entity with complex id`, func() {
 
-		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{IdPart1: `aaa`, IdPart2: `bbb`}}
+		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{IdPart1: []string{`aaa`, `bb`}, IdPart2: `ccc`}}
 
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(complexIDCC.Invoke(`entityInsert`, ent1))
@@ -178,7 +179,11 @@ var _ = Describe(`Mapping`, func() {
 
 			// from hyperledger/fabric/core/chaincode/shim/chaincode.go
 			Expect(keys[0]).To(Equal(
-				"\x00" + `EntityWithComplexId` + string(rune(0)) + ent1.Id.IdPart1 + string(rune(0)) + ent1.Id.IdPart2 + string(rune(0))))
+				"\x00" + `EntityWithComplexId` +
+					string(rune(0)) + ent1.Id.IdPart1[0] +
+					string(rune(0)) + ent1.Id.IdPart1[1] +
+					string(rune(0)) + ent1.Id.IdPart2 +
+					string(rune(0))))
 		})
 
 		It("Allow to get entity", func() {
