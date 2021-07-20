@@ -65,6 +65,7 @@ func WithIndex(idx *StateIndexDef) StateMappingOpt {
 				aa = idx.Fields
 			}
 
+			// multiple external ids refers to one entry
 			if idx.Multi {
 				keyer = attrMultiKeyer(aa[0])
 			} else {
@@ -222,8 +223,6 @@ func keysFromValue(v reflect.Value) ([]state.Key, error) {
 
 // keyFromValue creates string representation of value for state key
 func keyFromValue(v reflect.Value) (state.Key, error) {
-	var key state.Key
-
 	switch v.Kind() {
 
 	// enum in protobuf
@@ -244,7 +243,7 @@ func keyFromValue(v reflect.Value) (state.Key, error) {
 			return state.Key{t.Format(TimestampKeyLayout)}, nil
 
 		default:
-
+			key := state.Key{}
 			s := reflect.ValueOf(v.Interface()).Elem()
 			fs := s.Type()
 			// get all field values from struct
@@ -253,7 +252,11 @@ func keyFromValue(v reflect.Value) (state.Key, error) {
 				if skipField(fs.Field(i).Name, field) {
 					continue
 				} else {
-					key = append(key, reflect.Indirect(v).Field(i).String())
+					subKey, err := keyFromValue(reflect.Indirect(v).Field(i))
+					if err != nil {
+						return nil, fmt.Errorf(`sub key=%s: %w`, fs.Field(i).Name, err)
+					}
+					key = key.Append(subKey)
 				}
 			}
 
@@ -265,17 +268,17 @@ func keyFromValue(v reflect.Value) (state.Key, error) {
 
 	case `string`, `int32`, `bool`:
 		// multi key possible
-		key = state.Key{v.String()}
+		return state.Key{v.String()}, nil
 
 	case `[]string`:
+		key := state.Key{}
 		// every slice element is a part of one key
 		for i := 0; i < v.Len(); i++ {
 			key = append(key, v.Index(i).String())
 		}
+		return key, nil
 
 	default:
 		return nil, ErrFieldTypeNotSupportedForKeyExtraction
 	}
-
-	return key, nil
 }
