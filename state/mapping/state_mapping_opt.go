@@ -178,7 +178,7 @@ func attrsKeyer(attrs []string) InstanceKeyer {
 	}
 }
 
-// attrMultiKeyer creates keyer based of one field and can return multiple keys
+// attrMultiKeyer creates keyer based of one field and can return multiple keyss
 func attrMultiKeyer(attr string) InstanceMultiKeyer {
 	return func(instance interface{}) ([]state.Key, error) {
 		inst := reflect.Indirect(reflect.ValueOf(instance))
@@ -223,8 +223,15 @@ func keysFromValue(v reflect.Value) ([]state.Key, error) {
 
 // keyFromValue creates string representation of value for state key
 func keyFromValue(v reflect.Value) (state.Key, error) {
-	if v.Kind() == reflect.Ptr {
+	switch v.Kind() {
 
+	// enum in protobuf
+	case reflect.Int32:
+		if stringer, ok := v.Interface().(fmt.Stringer); ok {
+			return state.Key{stringer.String()}, nil
+		}
+
+	case reflect.Ptr:
 		// todo: extract key producer and add custom serializers
 		switch val := v.Interface().(type) {
 

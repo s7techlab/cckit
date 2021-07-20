@@ -1,18 +1,21 @@
 package testing_test
 
 import (
-	"context"
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"context"
+	"testing"
+
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
+	"github.com/s7techlab/hlf-sdk-go/api"
+
 	"github.com/s7techlab/cckit/examples/cars"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-	"github.com/s7techlab/hlf-sdk-go/api"
+	"github.com/s7techlab/cckit/testing/testdata"
 )
 
 func TestMockstub(t *testing.T) {
@@ -27,16 +30,19 @@ var (
 )
 
 const (
-	Channel            = `my_channel`
-	ChaincodeName      = `cars`
-	ChaincodeProxyName = `cars_proxy`
+	Channel              = `my_channel`
+	CarsChaincode        = `cars`
+	CarsProxyChaincode   = `cars_proxy`
+	TxIsolationChaincode = `tx_isolation`
 )
 
 var _ = Describe(`Testing`, func() {
 
 	//Create chaincode mocks
-	cc := testcc.NewMockStub(ChaincodeName, cars.New())
-	ccproxy := testcc.NewMockStub(ChaincodeProxyName, cars.NewProxy(Channel, ChaincodeName))
+	cc := testcc.NewMockStub(CarsChaincode, cars.New())
+	ccproxy := testcc.NewMockStub(CarsProxyChaincode, cars.NewProxy(Channel, CarsChaincode))
+
+	txIsolationCC := testcc.NewMockStub(TxIsolationChaincode, testdata.NewTxIsolationCC())
 
 	// ccproxy can invoke cc and vice versa
 	mockedPeer := testcc.NewPeer().WithChannel(Channel, cc, ccproxy)
@@ -121,12 +127,12 @@ var _ = Describe(`Testing`, func() {
 		It("Allow to invoke mocked chaincode ", func(done Done) {
 			ctx := context.Background()
 
-			events, err := mockedPeer.Subscribe(ctx, Authority, Channel, ChaincodeName)
+			events, err := mockedPeer.Subscribe(ctx, Authority, Channel, CarsChaincode)
 			Expect(err).NotTo(HaveOccurred())
 
 			// double check interface api.Invoker
 			resp, _, err := interface{}(mockedPeer).(api.Invoker).Invoke(
-				ctx, Authority, Channel, ChaincodeName, `carRegister`,
+				ctx, Authority, Channel, CarsChaincode, `carRegister`,
 				[][]byte{testcc.MustJSONMarshal(cars.Payloads[3])}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -146,7 +152,7 @@ var _ = Describe(`Testing`, func() {
 
 		It("Allow to query mocked chaincode ", func() {
 			resp, err := mockedPeer.Query(
-				context.Background(), Authority, Channel, ChaincodeName,
+				context.Background(), Authority, Channel, CarsChaincode,
 				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -158,7 +164,7 @@ var _ = Describe(`Testing`, func() {
 
 		It("Allow to query mocked chaincode from chaincode", func() {
 			resp, err := mockedPeer.Query(
-				context.Background(), Authority, Channel, ChaincodeProxyName,
+				context.Background(), Authority, Channel, CarsProxyChaincode,
 				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -167,5 +173,20 @@ var _ = Describe(`Testing`, func() {
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
 		})
+	})
+
+	Describe(`Tx isolation`, func() {
+		It("Read after write returns empty", func() {
+			res := txIsolationCC.Invoke(testdata.TxIsolationReadAfterWrite)
+			Expect(int(res.Status)).To(Equal(shim.OK))
+			Expect(res.Payload).To(Equal([]byte{}))
+		})
+
+		It("Read after delete returns state entry", func() {
+			res := txIsolationCC.Invoke(testdata.TxIsolationReadAfterDelete)
+			Expect(int(res.Status)).To(Equal(shim.OK))
+			Expect(res.Payload).To(Equal(testdata.Value1))
+		})
+
 	})
 })

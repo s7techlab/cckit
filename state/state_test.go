@@ -1,11 +1,11 @@
 package state_test
 
 import (
-	"encoding/json"
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"encoding/json"
+	"testing"
 
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
