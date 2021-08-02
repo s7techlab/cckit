@@ -66,3 +66,14 @@ func (stub *MockStub) GetStateByPartialCompositeKeyWithPagination(objectType str
 		Bookmark:            bookmark,
 	}, nil
 }
+
+// GetStateByRangeWithPagination mocked
+func (stub *MockStub) GetStateByRangeWithPagination(startKey, endKey string, pageSize int32,
+	bookmark string) (shim.StateQueryIteratorInterface, *pb.QueryResponseMetadata, error) {
+	iter := NewMockStatesRangeQueryPagedIterator(stub, startKey, endKey, pageSize, bookmark)
+
+	return iter, &pb.QueryResponseMetadata{
+		FetchedRecordsCount: pageSize,
+		Bookmark:            bookmark,
+	}, nil
+}
