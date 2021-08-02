@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
+	pb "github.com/hyperledger/fabric-protos-go/peer"
+
 	"github.com/s7techlab/cckit/convert"
 )
 
@@ -55,6 +57,10 @@ type State interface {
 	// List returns slice of target type
 	// namespace can be part of key (string or []string) or entity with defined mapping
 	List(namespace interface{}, target ...interface{}) (interface{}, error)
+
+	// ListPaginated returns slice of target type with pagination
+	// namespace can be part of key (string or []string) or entity with defined mapping
+	ListPaginated(namespace interface{}, pageSize int32, bookmark string, target ...interface{}) (interface{}, *pb.QueryResponseMetadata, error)
 
 	// Keys returns slice of keys
 	// namespace can be part of key (string or []string) or entity with defined mapping
@@ -111,10 +117,11 @@ type Impl struct {
 	logger *zap.Logger
 
 	// wrappers for state access methods
-	PutState                      func(string, []byte) error
-	GetState                      func(string) ([]byte, error)
-	DelState                      func(string) error
-	GetStateByPartialCompositeKey func(objectType string, keys []string) (shim.StateQueryIteratorInterface, error)
+	PutState                                    func(string, []byte) error
+	GetState                                    func(string) ([]byte, error)
+	DelState                                    func(string) error
+	GetStateByPartialCompositeKey               func(objectType string, keys []string) (shim.StateQueryIteratorInterface, error)
+	GetStateByPartialCompositeKeyWithPagination func(objectType string, keys []string, pageSize int32, bookmark string) (shim.StateQueryIteratorInterface, *pb.QueryResponseMetadata, error)
 
 	StateKeyTransformer        KeyTransformer
 	StateKeyReverseTransformer KeyTransformer
@@ -156,6 +163,12 @@ func NewState(stub shim.ChaincodeStubInterface, logger *zap.Logger) *Impl {
 		return stub.GetStateByPartialCompositeKey(objectType, keys)
 	}
 
+	i.GetStateByPartialCompositeKeyWithPagination = func(
+		objectType string, keys []string, pageSize int32, bookmark string) (
+		shim.StateQueryIteratorInterface, *pb.QueryResponseMetadata, error) {
+		return stub.GetStateByPartialCompositeKeyWithPagination(objectType, keys, pageSize, bookmark)
+	}
+
 	return i
 }
 
@@ -167,10 +180,11 @@ func (s *Impl) Clone() State {
 		GetState:                      s.GetState,
 		DelState:                      s.DelState,
 		GetStateByPartialCompositeKey: s.GetStateByPartialCompositeKey,
-		StateKeyTransformer:           s.StateKeyTransformer,
-		StateKeyReverseTransformer:    s.StateKeyReverseTransformer,
-		StateGetTransformer:           s.StateGetTransformer,
-		StatePutTransformer:           s.StatePutTransformer,
+		GetStateByPartialCompositeKeyWithPagination: s.GetStateByPartialCompositeKeyWithPagination,
+		StateKeyTransformer:                         s.StateKeyTransformer,
+		StateKeyReverseTransformer:                  s.StateKeyReverseTransformer,
+		StateGetTransformer:                         s.StateGetTransformer,
+		StatePutTransformer:                         s.StatePutTransformer,
 	}
 }
 
@@ -333,6 +347,56 @@ func (s *Impl) createStateQueryIterator(namespace interface{}) (shim.StateQueryI
 	}
 
 	return s.GetStateByPartialCompositeKey(objectType, attrs)
+}
+
+func (s *Impl) ListPaginated(
+	namespace interface{}, pageSize int32, bookmark string, target ...interface{}) (
+	interface{}, *pb.QueryResponseMetadata, error) {
+	stateList, err := NewStateList(target...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	iter, md, err := s.createStateQueryPagedIterator(namespace, pageSize, bookmark)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, `state iterator`)
+	}
+
+	defer func() { _ = iter.Close() }()
+	list, err := stateList.Fill(iter, s.StateGetTransformer)
+
+	return list, md, err
+}
+
+func (s *Impl) createStateQueryPagedIterator(namespace interface{}, pageSize int32, bookmark string) (
+	shim.StateQueryIteratorInterface, *pb.QueryResponseMetadata, error) {
+	key, err := NormalizeKey(s.stub, namespace)
+	if err != nil {
+		return nil, nil, fmt.Errorf(`list prefix: %w`, err)
+	}
+
+	keyTransformed, err := s.StateKeyTransformer(key)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	s.logger.Debug(`state KEYS with composite key`,
+		zap.String(`key`, key.String()), zap.String(`transformed`, keyTransformed.String()))
+
+	if len(keyTransformed) == 0 || keyTransformed[0] == `` {
+		return s.stub.GetStateByRangeWithPagination(``, ``, pageSize, bookmark) // all state entries
+	}
+
+	var (
+		objectType = keyTransformed[0]
+		attrs      []string
+	)
+
+	if len(keyTransformed) > 1 {
+		attrs = keyTransformed[1:]
+	}
+
+	return s.GetStateByPartialCompositeKeyWithPagination(objectType, attrs, pageSize, bookmark)
 }
 
 func (s *Impl) Keys(namespace interface{}) ([]string, error) {

@@ -3,6 +3,7 @@ package mapping
 import (
 	"fmt"
 
+	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"go.uber.org/zap"
 
 	"github.com/pkg/errors"
@@ -16,6 +17,10 @@ type (
 
 		// ListWith allows to refine search criteria by adding to namespace key parts
 		ListWith(schema interface{}, key state.Key) (result interface{}, err error)
+
+		// ListPaginatedWith allows to refine search criteria by adding to namespace key parts with pagination
+		ListPaginatedWith(schema interface{}, key state.Key, pageSize int32, bookmark string) (
+			result interface{}, metadata *pb.QueryResponseMetadata, err error)
 
 		// GetByUniqKey return one entry
 		// Deprecated: use GetByKey
@@ -192,6 +197,23 @@ func (s *Impl) ListWith(entry interface{}, key state.Key) (result interface{}, e
 	s.Logger().Debug(`state mapped LIST`, zap.String(`namespace`, namespace.String()), zap.String(`list`, namespace.Append(key).String()))
 
 	return s.State.List(namespace.Append(key), m.Schema(), m.List())
+}
+
+func (s *Impl) ListPaginatedWith(
+	schema interface{}, key state.Key, pageSize int32, bookmark string) (
+	result interface{}, metadata *pb.QueryResponseMetadata, err error) {
+	if !s.mappings.Exists(schema) {
+		return nil, nil, ErrStateMappingNotFound
+	}
+	m, err := s.mappings.Get(schema)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, `mapping`)
+	}
+
+	namespace := m.Namespace()
+	s.Logger().Debug(`state mapped LIST`, zap.String(`namespace`, namespace.String()), zap.String(`list`, namespace.Append(key).String()))
+
+	return s.State.ListPaginated(namespace.Append(key), pageSize, bookmark, m.Schema(), m.List())
 }
 
 func (s *Impl) GetByUniqKey(
