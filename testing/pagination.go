@@ -1,50 +1,94 @@
 package testing
 
 import (
+	"container/list"
+	"strings"
+
 	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
+	"github.com/pkg/errors"
 )
 
 // MockStateRangeQueryPagedIterator represents paged version of shimtest.MockStateRangeQueryIterator
 type MockStateRangeQueryPagedIterator struct {
-	*shimtest.MockStateRangeQueryIterator
-
-	position, size int
+	Closed       bool
+	Stub         *MockStub
+	Keys         *list.List
+	Current      *list.Element
+	nextBookmark string
 }
 
-func (page *MockStateRangeQueryPagedIterator) HasNext() bool {
-	if page.position >= page.size {
-		return false
+func (iter *MockStateRangeQueryPagedIterator) Len() int32 {
+	return int32(iter.Keys.Len())
+}
+
+func (iter *MockStateRangeQueryPagedIterator) NextBookmark() string {
+	return iter.nextBookmark
+}
+
+func (iter *MockStateRangeQueryPagedIterator) Close() error {
+	iter.Closed = true
+
+	return nil
+}
+
+func (iter *MockStateRangeQueryPagedIterator) HasNext() bool {
+	return iter.Current != nil
+}
+
+func (iter *MockStateRangeQueryPagedIterator) Next() (*queryresult.KV, error) {
+	if iter.Closed {
+		err := errors.New("MockStateRangeQueryPagedIterator.Next() called after Close()")
+		return nil, err
 	}
 
-	return page.MockStateRangeQueryIterator.HasNext()
-}
-
-func (page *MockStateRangeQueryPagedIterator) Next() (*queryresult.KV, error) {
-	r, err := page.MockStateRangeQueryIterator.Next()
-	if err == nil {
-		page.position++
+	if !iter.HasNext() {
+		err := errors.New("MockStateRangeQueryPagedIterator.Next() called when it does not HaveNext()")
+		return nil, err
 	}
 
-	return r, err
+	key := iter.Current.Value.(string)
+	value, err := iter.Stub.GetState(key)
+	iter.Current = iter.Current.Next()
+
+	return &queryresult.KV{Key: key, Value: value}, err
 }
 
-// NewMockStatesRangeQueryPagedIterator creates MockStateRangeQueryIterator starting from bookmark
+// NewMockStatesRangeQueryPagedIterator creates iterator starting from bookmark
 // and limited by pageSize
 func NewMockStatesRangeQueryPagedIterator(stub *MockStub, startKey string, endKey string, pageSize int32, bookmark string) *MockStateRangeQueryPagedIterator {
 	iter := new(MockStateRangeQueryPagedIterator)
-	iter.MockStateRangeQueryIterator = shimtest.NewMockStateRangeQueryIterator(&stub.MockStub, startKey, endKey)
-	iter.size = int(pageSize)
+	iter.Stub = stub
+	iter.Keys = new(list.List)
 
-	// Forward iterator key to non empty bookmark
-	for iter.Current != nil && bookmark != "" {
-		iter.Current = iter.Current.Next()
-		if iter.Current.Value.(string) == bookmark {
+	var elem = stub.Keys.Front()
+	// rewind until bookmark if is set
+	for bookmark != "" && elem != nil {
+		if elem.Value.(string) == bookmark {
 			break
 		}
+		elem = elem.Next()
 	}
+
+	// Loop through keys until pageSize exceeded and find bookmark for next page
+	for elem != nil {
+		comp1 := strings.Compare(elem.Value.(string), startKey)
+		comp2 := strings.Compare(elem.Value.(string), endKey)
+		if (comp1 >= 0 && comp2 < 0) || (startKey == "" && endKey == "") {
+			if iter.Keys.Len() < int(pageSize) {
+				iter.Keys.PushBack(elem.Value)
+				elem = elem.Next()
+
+				continue
+			}
+			iter.nextBookmark = elem.Value.(string)
+			break
+		}
+		elem = elem.Next()
+	}
+
+	iter.Current = iter.Keys.Front()
 
 	return iter
 }
@@ -62,8 +106,8 @@ func (stub *MockStub) GetStateByPartialCompositeKeyWithPagination(objectType str
 		stub, partialCompositeKey, partialCompositeKey+string(maxUnicodeRuneValue), pageSize, bookmark)
 
 	return iter, &pb.QueryResponseMetadata{
-		FetchedRecordsCount: pageSize,
-		Bookmark:            bookmark,
+		FetchedRecordsCount: iter.Len(),
+		Bookmark:            iter.NextBookmark(),
 	}, nil
 }
 
@@ -73,7 +117,7 @@ func (stub *MockStub) GetStateByRangeWithPagination(startKey, endKey string, pag
 	iter := NewMockStatesRangeQueryPagedIterator(stub, startKey, endKey, pageSize, bookmark)
 
 	return iter, &pb.QueryResponseMetadata{
-		FetchedRecordsCount: pageSize,
-		Bookmark:            bookmark,
+		FetchedRecordsCount: iter.Len(),
+		Bookmark:            iter.NextBookmark(),
 	}, nil
 }

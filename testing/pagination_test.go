@@ -1,10 +1,12 @@
 package testing_test
 
 import (
-	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-protos-go/peer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-protos-go/peer"
+
 	testcc "github.com/s7techlab/cckit/testing"
 )
 
@@ -40,18 +42,21 @@ var _ = Describe("MockStateRangePagedIterator", func() {
 		It("should iterate over first 2 items", func() {
 			iter = testcc.NewMockStatesRangeQueryPagedIterator(
 				mockStub, "aa", "b", 2, "")
-			Expect(iter.HasNext()).To(Equal(true))
+			Expect(iter.Len()).To(Equal(int32(2)))
+			Expect(iter.NextBookmark()).To(Equal("ac"))
 
+			Expect(iter.HasNext()).To(Equal(true))
 			kv, err := iter.Next()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(kv.Key).To(Equal("aa"))
 			Expect(kv.Value).To(Equal([]byte{10}))
-			Expect(iter.HasNext()).To(Equal(true))
 
+			Expect(iter.HasNext()).To(Equal(true))
 			kv, err = iter.Next()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(kv.Key).To(Equal("ab"))
 			Expect(kv.Value).To(Equal([]byte{11}))
+
 			Expect(iter.HasNext()).To(Equal(false))
 		})
 	})
@@ -60,6 +65,8 @@ var _ = Describe("MockStateRangePagedIterator", func() {
 		It("should iterate over 2 items from bookmark (inclusive)", func() {
 			iter = testcc.NewMockStatesRangeQueryPagedIterator(
 				mockStub, "aa", "b", 3, "ab")
+			Expect(iter.Len()).To(Equal(int32(3)))
+			Expect(iter.NextBookmark()).To(Equal("ae"))
 
 			Expect(iter.HasNext()).To(Equal(true))
 			kv, err := iter.Next()
@@ -87,6 +94,8 @@ var _ = Describe("MockStateRangePagedIterator", func() {
 		It("should iterate over 2 items from startKey", func() {
 			iter = testcc.NewMockStatesRangeQueryPagedIterator(
 				mockStub, "ac", "bb", 2, "ab")
+			Expect(iter.Len()).To(Equal(int32(2)))
+			Expect(iter.NextBookmark()).To(Equal("ae"))
 
 			Expect(iter.HasNext()).To(Equal(true))
 			kv, err := iter.Next()
@@ -110,6 +119,38 @@ var _ = Describe("MockStateRangePagedIterator", func() {
 				mockStub, "ac", "ae", 2, "ba")
 
 			Expect(iter.HasNext()).To(Equal(false))
+			Expect(iter.Len()).To(Equal(int32(0)))
+			Expect(iter.NextBookmark()).To(Equal(""))
+		})
+	})
+
+	Context("with empty state", func() {
+		It("shouldn't contains elements", func() {
+			emptyStub := testcc.NewMockStub("test", nil)
+			iter = testcc.NewMockStatesRangeQueryPagedIterator(emptyStub, "", "", 10, "")
+
+			Expect(iter.Len()).To(Equal(int32(0)))
+			Expect(iter.HasNext()).To(Equal(false))
+			Expect(iter.NextBookmark()).To(Equal(""))
+		})
+	})
+
+	Context("with unbound range", func() {
+		It("should contains upto pageSize elements", func() {
+			iter = testcc.NewMockStatesRangeQueryPagedIterator(mockStub, "", "", 6, "")
+
+			Expect(iter.Len()).To(Equal(int32(6)))
+			Expect(iter.HasNext()).To(Equal(true))
+			Expect(iter.NextBookmark()).To(Equal("ag"))
+		})
+	})
+
+	Context("when iterate over last elements", func() {
+		It("shouldn't has next page", func() {
+			iter = testcc.NewMockStatesRangeQueryPagedIterator(mockStub, "", "", 6, "ae")
+			Expect(iter.Len()).To(Equal(int32(5)))
+			Expect(iter.HasNext()).To(Equal(true))
+			Expect(iter.NextBookmark()).To(Equal(""))
 		})
 	})
 })
