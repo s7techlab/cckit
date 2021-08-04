@@ -3,10 +3,11 @@ package mapping
 import (
 	"fmt"
 
-	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"go.uber.org/zap"
 
+	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/schema"
 )
@@ -184,6 +185,24 @@ func (s *Impl) List(entry interface{}, target ...interface{}) (interface{}, erro
 	return s.State.List(namespace, m.Schema(), m.List())
 }
 
+func (s *Impl) ListPaginated(entry interface{}, pageSize int32, bookmark string, target ...interface{}) (
+	interface{}, *pb.QueryResponseMetadata, error) {
+	if !s.mappings.Exists(entry) {
+		return s.State.ListPaginated(entry, pageSize, bookmark, target...)
+	}
+
+	m, err := s.mappings.Get(entry)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, `mapping`)
+	}
+
+	namespace := m.Namespace()
+	s.Logger().Debug(`state mapped LIST`, zap.String(`namespace`, namespace.String()),
+		zap.Int32("pageSize", pageSize), zap.String("bookmark", bookmark))
+
+	return s.State.ListPaginated(namespace, pageSize, bookmark, m.Schema(), m.List())
+}
+
 func (s *Impl) ListWith(entry interface{}, key state.Key) (result interface{}, err error) {
 	if !s.mappings.Exists(entry) {
 		return nil, ErrStateMappingNotFound
@@ -211,7 +230,9 @@ func (s *Impl) ListPaginatedWith(
 	}
 
 	namespace := m.Namespace()
-	s.Logger().Debug(`state mapped LIST`, zap.String(`namespace`, namespace.String()), zap.String(`list`, namespace.Append(key).String()))
+	s.Logger().Debug(`state mapped LIST`,
+		zap.String(`namespace`, namespace.String()), zap.String(`list`, namespace.Append(key).String()),
+		zap.Int32("pageSize", pageSize), zap.String("bookmark", bookmark))
 
 	return s.State.ListPaginated(namespace.Append(key), pageSize, bookmark, m.Schema(), m.List())
 }
