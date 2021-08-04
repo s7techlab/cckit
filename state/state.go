@@ -322,6 +322,23 @@ func (s *Impl) List(namespace interface{}, target ...interface{}) (interface{}, 
 }
 
 func (s *Impl) createStateQueryIterator(namespace interface{}) (shim.StateQueryIteratorInterface, error) {
+	kb, err := s.getKeyBunch(namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	s.logger.Debug(`state KEYS with composite key`,
+		zap.String(`key`, kb.normalized.String()), zap.String(`transformed`, kb.transformed.String()))
+
+	objectType, attrs, ok := kb.Parts()
+	if !ok {
+		return s.stub.GetStateByRange(``, ``) // all state entries
+	}
+
+	return s.GetStateByPartialCompositeKey(objectType, attrs)
+}
+
+func (s *Impl) getKeyBunch(namespace interface{}) (*keyBunch, error) {
 	key, err := NormalizeKey(s.stub, namespace)
 	if err != nil {
 		return nil, fmt.Errorf(`list prefix: %w`, err)
@@ -331,22 +348,30 @@ func (s *Impl) createStateQueryIterator(namespace interface{}) (shim.StateQueryI
 	if err != nil {
 		return nil, err
 	}
-	s.logger.Debug(`state KEYS with composite key`,
-		zap.String(`key`, key.String()), zap.String(`transformed`, keyTransformed.String()))
 
-	if len(keyTransformed) == 0 || keyTransformed[0] == `` {
-		return s.stub.GetStateByRange(``, ``) // all state entries
+	return &keyBunch{
+		normalized:  key,
+		transformed: keyTransformed,
+	}, nil
+}
+
+// keyBunch is a helper wrapper for getting parts of composite key
+type keyBunch struct {
+	normalized, transformed Key
+}
+
+// Parts returns an object type, attributes slices and and true flag if object type is not empty
+func (kp *keyBunch) Parts() (objectType string, attrs []string, ok bool) {
+	if len(kp.transformed) > 0 {
+		objectType = kp.transformed[0]
+		ok = true
+
+		if len(kp.transformed) > 1 {
+			attrs = kp.transformed[1:]
+		}
 	}
-	var (
-		objectType = keyTransformed[0]
-		attrs      []string
-	)
 
-	if len(keyTransformed) > 1 {
-		attrs = keyTransformed[1:]
-	}
-
-	return s.GetStateByPartialCompositeKey(objectType, attrs)
+	return
 }
 
 func (s *Impl) ListPaginated(
@@ -370,30 +395,18 @@ func (s *Impl) ListPaginated(
 
 func (s *Impl) createStateQueryPagedIterator(namespace interface{}, pageSize int32, bookmark string) (
 	shim.StateQueryIteratorInterface, *pb.QueryResponseMetadata, error) {
-	key, err := NormalizeKey(s.stub, namespace)
-	if err != nil {
-		return nil, nil, fmt.Errorf(`list prefix: %w`, err)
-	}
-
-	keyTransformed, err := s.StateKeyTransformer(key)
+	kb, err := s.getKeyBunch(namespace)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	s.logger.Debug(`state KEYS with composite key`,
-		zap.String(`key`, key.String()), zap.String(`transformed`, keyTransformed.String()))
+		zap.String(`key`, kb.normalized.String()), zap.String(`transformed`, kb.transformed.String()),
+		zap.Int32("pageSize", pageSize), zap.String("bookmark", bookmark))
 
-	if len(keyTransformed) == 0 || keyTransformed[0] == `` {
-		return s.stub.GetStateByRangeWithPagination(``, ``, pageSize, bookmark) // all state entries
-	}
-
-	var (
-		objectType = keyTransformed[0]
-		attrs      []string
-	)
-
-	if len(keyTransformed) > 1 {
-		attrs = keyTransformed[1:]
+	objectType, attrs, ok := kb.Parts()
+	if !ok {
+		return s.stub.GetStateByRangeWithPagination(``, ``, pageSize, bookmark)
 	}
 
 	return s.GetStateByPartialCompositeKeyWithPagination(objectType, attrs, pageSize, bookmark)
