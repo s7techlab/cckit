@@ -67,6 +67,18 @@ func (k Key) String() string {
 	return strings.Join(k, ` | `)
 }
 
+// Parts returns object type and attributes slice
+func (k Key) Parts() (objectType string, attrs []string) {
+	if len(k) > 0 {
+		objectType = k[0]
+
+		if len(k) > 1 {
+			attrs = k[1:]
+		}
+	}
+	return
+}
+
 func NormalizeKey(stub shim.ChaincodeStubInterface, key interface{}) (Key, error) {
 	switch k := key.(type) {
 	case Key:

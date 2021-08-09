@@ -2,7 +2,7 @@ package testdata
 
 import (
 	"errors"
-
+	"fmt"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
@@ -19,6 +19,7 @@ func NewBooksCC() *router.Chaincode {
 
 	r.Init(owner.InvokeSetFromCreator).
 		Invoke(`bookList`, bookList).
+		Invoke(`bookListPaginated`, bookListPaginated, p.Struct(`in`, &schema.BookListRequest{})).
 		Invoke(`bookIds`, bookIds).
 		Invoke(`bookGet`, bookGet, p.String(`id`)).
 		Invoke(`bookInsert`, bookInsert, p.Struct(`book`, &schema.Book{})).
@@ -36,6 +37,29 @@ func NewBooksCC() *router.Chaincode {
 
 func bookList(c router.Context) (interface{}, error) {
 	return c.State().List(schema.BookEntity, &schema.Book{})
+}
+
+func bookListPaginated(c router.Context) (interface{}, error) {
+	in, ok := c.Param(`in`).(schema.BookListRequest)
+	if !ok {
+		return nil, fmt.Errorf("unexpected argument type")
+	}
+
+	list, md, err := c.State().ListPaginated(schema.BookEntity, in.PageSize, in.Bookmark, &schema.Book{})
+	if err != nil {
+		return nil, err
+	}
+
+	var books []*schema.Book
+	for _, item := range list.([]interface{}) {
+		var b = item.(schema.Book)
+		books = append(books, &b)
+	}
+
+	return schema.BookList{
+		Items: books,
+		Next:  md.Bookmark,
+	}, nil
 }
 
 func bookIds(c router.Context) (interface{}, error) {

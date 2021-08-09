@@ -54,6 +54,32 @@ var _ = Describe(`State`, func() {
 			}
 		})
 
+		It("allow to get list with pagination", func() {
+			req := &schema.BookListRequest{ //  query first page
+				PageSize: 2,
+			}
+			pr := booksCC.Invoke(`bookListPaginated`, req)
+			res := expectcc.PayloadIs(pr, &schema.BookList{}).(schema.BookList)
+
+			Expect(len(res.Items)).To(Equal(2))
+			Expect(res.Next == ``).To(Equal(false))
+			for i := range testdata.Books[0:2] {
+				Expect(res.Items[i].Id).To(Equal(testdata.Books[i].Id))
+			}
+
+			req2 := &schema.BookListRequest{ // query second page
+				PageSize: 2,
+				Bookmark: res.Next,
+			}
+			pr2 := booksCC.Invoke(`bookListPaginated`, req2)
+			res2 := expectcc.PayloadIs(pr2, &schema.BookList{}).(schema.BookList)
+			Expect(len(res2.Items)).To(Equal(1))
+			Expect(res2.Next == ``).To(Equal(true))
+			for i := range testdata.Books[2:3] {
+				Expect(res.Items[i].Id).To(Equal(testdata.Books[i].Id))
+			}
+		})
+
 		It("Allow to get entry ids", func() {
 			ids := expectcc.PayloadIs(booksCC.Invoke(`bookIds`), &[]string{}).([]string)
 			Expect(len(ids)).To(Equal(3))
