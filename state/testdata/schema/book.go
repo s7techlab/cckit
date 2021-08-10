@@ -28,3 +28,13 @@ type PrivateBook struct {
 func (pb PrivateBook) Key() ([]string, error) {
 	return []string{PrivateBookEntity, pb.Id}, nil
 }
+
+type BookListRequest struct {
+	PageSize int32
+	Bookmark string
+}
+
+type BookList struct {
+	Items []*Book
+	Next  string
+}

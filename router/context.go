@@ -68,8 +68,11 @@ type (
 		// ParamBytes returns parameter value as bytes.
 		ParamBytes(name string) []byte
 
-		// ParamInt returns parameter value as bytes.
+		// ParamInt returns parameter value as int.
 		ParamInt(name string) int
+
+		// ParamInt32 returns parameter value as int32.
+		ParamInt32(name string) int32
 
 		// SetParam sets parameter value.
 		SetParam(name string, value interface{})
@@ -253,6 +256,12 @@ func (c *context) ArgInt(name string) int {
 
 func (c *context) ParamInt(name string) int {
 	out, _ := c.Param(name).(int)
+	return out
+}
+
+// ParamInt32 returns parameter value as int32.
+func (c *context) ParamInt32(name string) int32 {
+	out, _ := c.Param(name).(int32)
 	return out
 }
 
