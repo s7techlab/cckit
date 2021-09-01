@@ -172,6 +172,7 @@ func (stub *MockStub) InvokeChaincode(chaincodeName string, args [][]byte, chann
 			ErrChaincodeNotExists, ccName, channel, chaincodeName, stub.MockedPeerChaincodes()))
 	}
 
+	otherStub.mockCreator = stub.mockCreator
 	res := otherStub.MockInvoke(stub.TxID, args)
 	return res
 }
