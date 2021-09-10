@@ -5,15 +5,19 @@ import (
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/router/param/defparam"
+	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
 )
 
 var (
-	EntityWithCompositeIdStateMapping = mapping.StateMappings{}.
-		Add(&schema.EntityWithCompositeId{},
-			mapping.PKeySchema(&schema.EntityCompositeId{}),
-			mapping.List(&schema.EntityWithCompositeIdList{}))
+	EntityCompositeIdNamespace        = state.Key{`entity-composite-id`}
+	EntityWithCompositeIdStateMapping = mapping.StateMappings{}.Add(&schema.EntityWithCompositeId{},
+		// explicit set namespace for primary key, otherwise namespace will be based of schema type string representation
+		mapping.StateNamespace(EntityCompositeIdNamespace),
+		//  schema for Primary Key
+		mapping.PKeySchema(&schema.EntityCompositeId{}),
+		mapping.List(&schema.EntityWithCompositeIdList{}))
 )
 
 func NewCompositeIdCC() *router.Chaincode {

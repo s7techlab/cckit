@@ -90,8 +90,18 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.primaryKeyer = attrsKeyer(attrs)
 
-		//add mapping namespace for id schema same as schema
-		smm.Add(pkeySchema, StateNamespace(SchemaNamespace(sm.schema)), PKeyAttr(attrs...), KeyerFor(sm.schema))
+		// inherit namespace from "parent" mapping
+		namespace := sm.namespace
+		if len(namespace) == 0 {
+			namespace = sm.DefaultNamespace()
+		}
+
+		//add mapping for schema identifier
+		smm.Add(
+			pkeySchema,
+			StateNamespace(namespace),
+			PKeyAttr(attrs...),
+			KeyerFor(sm.schema))
 	}
 }
 
