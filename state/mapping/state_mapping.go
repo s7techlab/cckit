@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -73,8 +74,9 @@ type (
 	StateMappingOpt func(*StateMapping, StateMappings)
 )
 
-func mapKey(entry interface{}) string {
-	return reflect.TypeOf(entry).String()
+// mapKey schema string representation
+func mapKey(schema interface{}) string {
+	return reflect.TypeOf(schema).String()
 }
 
 func (smm StateMappings) Add(schema interface{}, opts ...StateMappingOpt) StateMappings {
@@ -94,10 +96,11 @@ func (smm StateMappings) Add(schema interface{}, opts ...StateMappingOpt) StateM
 func applyStateMappingDefaults(sm *StateMapping) {
 	// default namespace based on type name
 	if len(sm.namespace) == 0 {
-		sm.namespace = SchemaNamespace(sm.schema)
+		sm.namespace = sm.DefaultNamespace()
 	}
 }
 
+// SchemaNamespace produces string representation of Schema type
 func SchemaNamespace(schema interface{}) state.Key {
 	t := reflect.TypeOf(schema).String()
 	return state.Key{t[strings.Index(t, `.`)+1:]}
@@ -106,18 +109,15 @@ func SchemaNamespace(schema interface{}) state.Key {
 // Get mapper for mapped entry
 func (smm StateMappings) Get(entry interface{}) (StateMapper, error) {
 	switch id := entry.(type) {
+	// entry is Key, namespace is first element of key
 	case []string:
 		return smm.GetByNamespace(id[0:1])
 	default:
-		m, ok := smm[mapKey(entry)]
-		if !ok {
-			return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, mapKey(entry))
-		}
-		return m, nil
+		return smm.GetBySchema(entry)
 	}
 }
 
-// Get mapper by string namespace. It can be used in block explorer: we know state key, but don't know
+// GetByNamespace returns mapper by string namespace. It can be used in block explorer: we know state key, but don't know
 // type actually mapped to state
 func (smm StateMappings) GetByNamespace(namespace state.Key) (StateMapper, error) {
 	for _, m := range smm {
@@ -126,6 +126,14 @@ func (smm StateMappings) GetByNamespace(namespace state.Key) (StateMapper, error
 		}
 	}
 	return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, namespace)
+}
+
+func (smm StateMappings) GetBySchema(schema interface{}) (StateMapper, error) {
+	m, ok := smm[mapKey(schema)]
+	if !ok {
+		return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, mapKey(schema))
+	}
+	return m, nil
 }
 
 func (smm StateMappings) Exists(entry interface{}) bool {
@@ -163,6 +171,10 @@ func (smm *StateMappings) IdxKey(entity interface{}, idx string, idxVal state.Ke
 
 func (sm *StateMapping) Namespace() state.Key {
 	return sm.namespace
+}
+
+func (sm *StateMapping) DefaultNamespace() state.Key {
+	return SchemaNamespace(sm.schema)
 }
 
 func (sm *StateMapping) Indexes() []*StateIndex {

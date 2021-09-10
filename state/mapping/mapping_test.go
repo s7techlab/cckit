@@ -10,6 +10,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric-protos-go/peer"
+
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
@@ -53,10 +54,7 @@ var _ = Describe(`Mapping`, func() {
 		create3 := testdata.CreateEntityWithCompositeId[2]
 
 		It("Allow to get mapping data by namespace", func() {
-			// key base on entity type
-			baseKey := state.Key{`EntityWithCompositeId`}
-
-			mapping, err := testdata.EntityWithCompositeIdStateMapping.GetByNamespace(baseKey)
+			mapping, err := testdata.EntityWithCompositeIdStateMapping.GetByNamespace(testdata.EntityCompositeIdNamespace)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(mapping.Schema()).To(BeEquivalentTo(&schema.EntityWithCompositeId{}))
 
@@ -68,7 +66,8 @@ var _ = Describe(`Mapping`, func() {
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(key).To(Equal(
-				baseKey.Append(state.Key{create1.IdFirstPart, create1.IdSecondPart, testdata.Dates[0]})))
+				testdata.EntityCompositeIdNamespace.Append(
+					state.Key{create1.IdFirstPart, create1.IdSecondPart, testdata.Dates[0]})))
 		})
 
 		It("Allow to add data to chaincode state", func(done Done) {
