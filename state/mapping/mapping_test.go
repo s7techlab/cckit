@@ -28,7 +28,7 @@ func TestState(t *testing.T) {
 }
 
 var (
-	compositeIDCC, complexIDCC, sliceIDCC, indexesCC *testcc.MockStub
+	compositeIDCC, complexIDCC, sliceIDCC, indexesCC, configCC *testcc.MockStub
 
 	Owner = identitytestdata.Certificates[0].MustIdentity(`SOME_MSP`)
 )
@@ -47,6 +47,9 @@ var _ = Describe(`Mapping`, func() {
 
 		indexesCC = testcc.NewMockStub(`indexes`, testdata.NewIndexesCC())
 		indexesCC.From(Owner).Init()
+
+		configCC = testcc.NewMockStub(`config`, testdata.NewCCWithConfig())
+		configCC.From(Owner).Init()
 	})
 
 	Describe(`Entity with composite id`, func() {
@@ -366,6 +369,28 @@ var _ = Describe(`Mapping`, func() {
 
 		It("Allow to insert entry once more time", func() {
 			expectcc.ResponseOk(indexesCC.Invoke(`create`, create2))
+		})
+
+	})
+
+	Describe(`Entity with static key`, func() {
+		configSample := &schema.Config{
+			Field1: `aaa`,
+			Field2: `bbb`,
+		}
+
+		It("Disallow to get config before set", func() {
+			expectcc.ResponseError(configCC.Invoke(`configGet`), `state entry not found: Config | config`)
+		})
+
+		It("Allow to set config", func() {
+			expectcc.ResponseOk(configCC.Invoke(`configSet`, configSample))
+		})
+
+		It("Allow to get config", func() {
+			confFromCC := expectcc.PayloadIs(configCC.Invoke(`configGet`), &schema.Config{}).(*schema.Config)
+			Expect(confFromCC.Field1).To(Equal(configSample.Field1))
+			Expect(confFromCC.Field2).To(Equal(configSample.Field2))
 		})
 
 	})
