@@ -380,7 +380,7 @@ var _ = Describe(`Mapping`, func() {
 		}
 
 		It("Disallow to get config before set", func() {
-			expectcc.ResponseError(configCC.Invoke(`configGet`), `state entry not found: Config | config`)
+			expectcc.ResponseError(configCC.Invoke(`configGet`), `state entry not found: config`)
 		})
 
 		It("Allow to set config", func() {

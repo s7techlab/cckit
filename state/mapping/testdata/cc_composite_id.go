@@ -14,7 +14,7 @@ var (
 	EntityCompositeIdNamespace        = state.Key{`entity-composite-id`}
 	EntityWithCompositeIdStateMapping = mapping.StateMappings{}.Add(&schema.EntityWithCompositeId{},
 		// explicit set namespace for primary key, otherwise namespace will be based of schema type string representation
-		mapping.WithStateNamespace(EntityCompositeIdNamespace),
+		mapping.WithNamespace(EntityCompositeIdNamespace),
 		//  schema for Primary Key
 		mapping.PKeySchema(&schema.EntityCompositeId{}),
 		mapping.List(&schema.EntityWithCompositeIdList{}))
