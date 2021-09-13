@@ -16,10 +16,19 @@ const (
 	TimestampKeyLayout = `2006-01-02`
 )
 
-// StateNamespace sets namespace for mapping
-func StateNamespace(namespace state.Key) StateMappingOpt {
+// WithStateNamespace sets namespace for mapping
+func WithStateNamespace(namespace state.Key) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.namespace = namespace
+	}
+}
+
+// WithStaticPKey set static key for all instances of mapped entry
+func WithStaticPKey(key state.Key) StateMappingOpt {
+	return func(sm *StateMapping, smm StateMappings) {
+		sm.primaryKeyer = func(_ interface{}) (state.Key, error) {
+			return key, nil
+		}
 	}
 }
 
@@ -99,7 +108,7 @@ func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 		//add mapping for schema identifier
 		smm.Add(
 			pkeySchema,
-			StateNamespace(namespace),
+			WithStateNamespace(namespace),
 			PKeyAttr(attrs...),
 			KeyerFor(sm.schema))
 	}
@@ -131,7 +140,7 @@ func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		sm.primaryKeyer = attrsKeyer([]string{`Id`})
 		smm.Add(pkeySchema,
-			StateNamespace(SchemaNamespace(sm.schema)),
+			WithStateNamespace(SchemaNamespace(sm.schema)),
 			PKeyAttr(attrsFrom(pkeySchema)...),
 			KeyerFor(sm.schema))
 	}
