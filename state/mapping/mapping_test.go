@@ -32,7 +32,7 @@ var (
 
 	Owner = identitytestdata.Certificates[0].MustIdentity(`SOME_MSP`)
 )
-var _ = Describe(`Mapping`, func() {
+var _ = Describe(`State mapping in chaincode`, func() {
 
 	BeforeSuite(func() {
 
