@@ -8,6 +8,14 @@ import (
 var (
 	Dates = []string{`2021-02-15`, `2021-02-16`, `2021-03-15`}
 
+	CreateEntityWithComplextId = []*schema.EntityWithComplexId{{
+		Id: &schema.EntityComplexId{
+			IdPart1: []string{`aaa`, `bb`},
+			IdPart2: `ccc`,
+			IdPart3: testing.MustTime(`2020-01-28T17:00:00Z`),
+		},
+	}}
+
 	CreateEntityWithCompositeId = []*schema.CreateEntityWithCompositeId{{
 		IdFirstPart:  "A",
 		IdSecondPart: "1",

@@ -171,11 +171,7 @@ var _ = Describe(`State mapping in chaincode`, func() {
 
 	Describe(`Entity with complex id`, func() {
 
-		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{
-			IdPart1: []string{`aaa`, `bb`},
-			IdPart2: `ccc`,
-			IdPart3: testcc.MustTime(`2020-01-28T17:00:00Z`),
-		}}
+		ent1 := testdata.CreateEntityWithComplextId[0]
 
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(complexIDCC.Invoke(`entityInsert`, ent1))
