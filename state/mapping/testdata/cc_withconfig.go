@@ -4,7 +4,6 @@ import (
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/router/param/defparam"
-	"github.com/s7techlab/cckit/state"
 	m "github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
 )
@@ -15,7 +14,7 @@ func NewCCWithConfig() *router.Chaincode {
 	// Mappings for chaincode state
 	r.Use(m.MapStates(m.StateMappings{}.
 		//key will be <`config`>
-		Add(&schema.Config{}, m.WithStaticPKey(state.Key{`config`}))))
+		Add(&schema.Config{}, m.WithStaticPKey())))
 
 	r.Init(owner.InvokeSetFromCreator)
 
