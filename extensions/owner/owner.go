@@ -2,7 +2,8 @@
 package owner
 
 import (
-	"github.com/pkg/errors"
+	"errors"
+	"fmt"
 
 	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
@@ -78,7 +79,7 @@ func SetFromArgs(c r.Context) (*identity.Entry, error) {
 func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 
 	if ownerSetted, err := IsSetted(c); err != nil {
-		return nil, errors.Wrap(err, `check owner is set`)
+		return nil, fmt.Errorf(`check owner is set: %w`, err)
 	} else if ownerSetted {
 		return nil, ErrOwnerAlreadySetted
 	}
@@ -90,7 +91,7 @@ func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 
 	identityEntry, err := identity.CreateEntry(id)
 	if err != nil {
-		return nil, errors.Wrap(err, `create owner entry`)
+		return nil, fmt.Errorf(`create owner entry: %w`, err)
 	}
 	return identityEntry, c.State().Insert(OwnerStateKey, identityEntry)
 }
@@ -149,8 +150,12 @@ func IsTxCreator(ctx r.Context) error {
 	}
 
 	if ownerEntry.GetMSPID() != invoker.GetMSPIdentifier() {
-		return ErrMSPIdentifierNotEqual
+		return fmt.Errorf(`%s : %w`, ErrMSPIdentifierNotEqual, ErrOwnerOnly)
 	}
 
-	return identity.CertEqual(invoker, ownerEntry)
+	if err = identity.CertEqual(invoker, ownerEntry); err != nil {
+		return fmt.Errorf(`%s : %w`, err, ErrOwnerOnly)
+	}
+
+	return nil
 }
