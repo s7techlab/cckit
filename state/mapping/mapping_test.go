@@ -162,11 +162,6 @@ var _ = Describe(`State mapping in chaincode`, func() {
 		It("Allow to insert entry once more time", func() {
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create1))
 		})
-
-		It("Check entry keying", func() {
-
-		})
-
 	})
 
 	Describe(`Entity with complex id`, func() {
@@ -174,7 +169,7 @@ var _ = Describe(`State mapping in chaincode`, func() {
 		ent1 := testdata.CreateEntityWithComplextId[0]
 
 		It("Allow to add data to chaincode state", func() {
-			expectcc.ResponseOk(complexIDCC.Invoke(`entityInsert`, ent1))
+			expectcc.ResponseOk(complexIDCC.From(Owner).Invoke(`entityInsert`, ent1))
 			keys := expectcc.PayloadIs(complexIDCC.From(Owner).Invoke(
 				`debugStateKeys`, `EntityWithComplexId`), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(1))

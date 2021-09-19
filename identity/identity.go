@@ -14,9 +14,9 @@ type Identity interface {
 	// Deprecated: GetMSPID msp identifier. Use GetMspIdentifier instead
 	GetMSPID() string
 
-	//  GetSubject string representation of X.509 cert subject
+	// GetSubject string representation of X.509 cert subject
 	GetSubject() string
-	//  GetIssuer string representation of X.509 cert issuer
+	// GetIssuer string representation of X.509 cert issuer
 	GetIssuer() string
 
 	// GetPublicKey *rsa.PublicKey or *dsa.PublicKey or *ecdsa.PublicKey:

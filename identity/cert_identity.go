@@ -3,6 +3,7 @@ package identity
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -10,7 +11,6 @@ import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	protomsp "github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/pkg/errors"
 )
 
 // New creates CertIdentity struct from an mspID and certificate
@@ -23,18 +23,18 @@ func New(mspID string, certPEM []byte) (ci *CertIdentity, err error) {
 }
 
 // FromStub creates Identity interface  from tx creator mspID and certificate (stub.GetCreator)
-func FromStub(stub shim.ChaincodeStubInterface) (ci *CertIdentity, err error) {
+func FromStub(stub shim.ChaincodeStubInterface) (*CertIdentity, error) {
 	clientIdentity, err := cid.New(stub)
 	if err != nil {
-		return nil, errors.Wrap(err, `client identity from stub`)
+		return nil, fmt.Errorf(`client identity from stub: %w`, err)
 	}
 	mspID, err := clientIdentity.GetMSPID()
 	if err != nil {
-		return
+		return nil, err
 	}
 	cert, err := clientIdentity.GetX509Certificate()
 	if err != nil {
-		return
+		return nil, err
 	}
 	return &CertIdentity{mspID, cert}, nil
 }
@@ -56,6 +56,7 @@ func (ci CertIdentity) GetID() string {
 }
 
 // Deprecated: GetMSPID returns invoker's membership service provider id
+// Use GetMSPIdentifier()
 func (ci CertIdentity) GetMSPID() string {
 	return ci.MspID
 }

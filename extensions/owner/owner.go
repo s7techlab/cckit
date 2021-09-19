@@ -3,6 +3,7 @@ package owner
 
 import (
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
 )
@@ -16,6 +17,9 @@ var (
 
 	// ErrOwnerAlreadySetted owner already setted
 	ErrOwnerAlreadySetted = errors.New(`owner already setted`)
+
+	// ErrMSPIdentifierNotEqual occurs when tx creator and cc owner certificate did not match
+	ErrMSPIdentifierNotEqual = errors.New(`msp identifier not equal`)
 )
 
 func IsSetted(c r.Context) (bool, error) {
@@ -49,6 +53,7 @@ func SetFromCreator(c r.Context) (*identity.Entry, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return identityEntry, c.State().Insert(OwnerStateKey, identityEntry)
 }
 
@@ -69,7 +74,7 @@ func SetFromArgs(c r.Context) (*identity.Entry, error) {
 	return Get(c)
 }
 
-// Insert
+// Insert information about owner to chaincode state
 func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 
 	if ownerSetted, err := IsSetted(c); err != nil {
@@ -92,8 +97,8 @@ func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 
 // IsInvokerOr checks tx creator and compares with owner of another identity
 func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
-	if isOwner, err := IsInvoker(c); isOwner || err != nil {
-		return isOwner, err
+	if err := IsTxCreator(c); err == nil {
+		return true, nil
 	}
 	if len(allowedTo) == 0 {
 		return false, nil
@@ -111,7 +116,7 @@ func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
 	return false, nil
 }
 
-// IdentityFromState
+// IdentityEntryFromState returns identity.Entry with chaincode owner certificate
 func IdentityEntryFromState(c r.Context) (identity.Entry, error) {
 	res, err := c.State().Get(OwnerStateKey, &identity.Entry{})
 	if err != nil {
@@ -121,16 +126,31 @@ func IdentityEntryFromState(c r.Context) (identity.Entry, error) {
 	return res.(identity.Entry), nil
 }
 
-// IsInvoker checks  than tx creator is chain code owner
-func IsInvoker(c r.Context) (bool, error) {
-	invoker, err := identity.FromStub(c.Stub())
-	if err != nil {
-		return false, err
-	}
-	ownerEntry, err := IdentityEntryFromState(c)
-	if err != nil {
+// Deprecated: IsInvoker checks  than tx creator is chain code owner
+// use IsTxCreator
+func IsInvoker(ctx r.Context) (bool, error) {
+	if err := IsTxCreator(ctx); err != nil {
 		return false, err
 	}
 
-	return ownerEntry.MSPId == invoker.MspID && ownerEntry.Subject == invoker.GetSubject(), nil
+	return true, nil
+}
+
+// IsTxCreator returns error if owner identity  (msp_id + certificate) did not match tx creator identity
+func IsTxCreator(ctx r.Context) error {
+	invoker, err := identity.FromStub(ctx.Stub())
+	if err != nil {
+		return err
+	}
+
+	ownerEntry, err := IdentityEntryFromState(ctx)
+	if err != nil {
+		return err
+	}
+
+	if ownerEntry.GetMSPID() != invoker.GetMSPIdentifier() {
+		return ErrMSPIdentifierNotEqual
+	}
+
+	return identity.CertEqual(invoker, ownerEntry)
 }

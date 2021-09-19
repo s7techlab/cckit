@@ -14,7 +14,7 @@ func NewCCWithConfig() *router.Chaincode {
 	// Mappings for chaincode state
 	r.Use(m.MapStates(m.StateMappings{}.
 		//key will be <`config`>
-		Add(&schema.Config{}, m.WithStaticPKey())))
+		Add(&schema.Config{}, m.WithConstPKey())))
 
 	r.Init(owner.InvokeSetFromCreator)
 

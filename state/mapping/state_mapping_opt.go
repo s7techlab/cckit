@@ -24,7 +24,7 @@ func WithNamespace(namespace state.Key) StateMappingOpt {
 }
 
 // WithStaticPKey set static key for all instances of mapped entry
-func WithStaticPKey(keys ...state.Key) StateMappingOpt {
+func WithConstPKey(keys ...state.Key) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		key := state.Key{}
 		for _, k := range keys {

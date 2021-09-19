@@ -89,7 +89,7 @@ func (e Entry) GetIdentityEntry() Entry {
 // CreateEntry creates IdentityEntry structure from an identity interface
 func CreateEntry(i Identity) (g *Entry, err error) {
 	return &Entry{
-		MSPId:   i.GetMSPID(),
+		MSPId:   i.GetMSPIdentifier(),
 		Subject: i.GetSubject(),
 		Issuer:  i.GetIssuer(),
 		PEM:     i.GetPEM(),
