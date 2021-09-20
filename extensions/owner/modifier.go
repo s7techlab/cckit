@@ -1,7 +1,10 @@
 package owner
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/router"
 )
 
@@ -13,10 +16,10 @@ var (
 // Only allow access from chain code owner
 func Only(next router.HandlerFunc, pos ...int) router.HandlerFunc {
 	return func(c router.Context) (interface{}, error) {
-		invokerIsOwner, err := IsInvoker(c)
-		if invokerIsOwner && err == nil {
+		err := IsTxCreator(c)
+		if err == nil {
 			return next(c)
 		}
-		return nil, ErrOwnerOnly
+		return nil, fmt.Errorf(`%s: %w`, err, ErrOwnerOnly)
 	}
 }

@@ -126,7 +126,7 @@ func (smm StateMappings) GetByNamespace(namespace state.Key) (StateMapper, error
 			return m, nil
 		}
 	}
-	return nil, fmt.Errorf(`%s: %s`, ErrStateMappingNotFound, namespace)
+	return nil, fmt.Errorf(`namespace=%s: %w`, namespace, ErrStateMappingNotFound)
 }
 
 func (smm StateMappings) GetBySchema(schema interface{}) (StateMapper, error) {

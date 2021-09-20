@@ -32,7 +32,7 @@ var (
 
 	Owner = identitytestdata.Certificates[0].MustIdentity(`SOME_MSP`)
 )
-var _ = Describe(`Mapping`, func() {
+var _ = Describe(`State mapping in chaincode`, func() {
 
 	BeforeSuite(func() {
 
@@ -162,23 +162,14 @@ var _ = Describe(`Mapping`, func() {
 		It("Allow to insert entry once more time", func() {
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create1))
 		})
-
-		It("Check entry keying", func() {
-
-		})
-
 	})
 
 	Describe(`Entity with complex id`, func() {
 
-		ent1 := &schema.EntityWithComplexId{Id: &schema.EntityComplexId{
-			IdPart1: []string{`aaa`, `bb`},
-			IdPart2: `ccc`,
-			IdPart3: testcc.MustTime(`2020-01-28T17:00:00Z`),
-		}}
+		ent1 := testdata.CreateEntityWithComplextId[0]
 
 		It("Allow to add data to chaincode state", func() {
-			expectcc.ResponseOk(complexIDCC.Invoke(`entityInsert`, ent1))
+			expectcc.ResponseOk(complexIDCC.From(Owner).Invoke(`entityInsert`, ent1))
 			keys := expectcc.PayloadIs(complexIDCC.From(Owner).Invoke(
 				`debugStateKeys`, `EntityWithComplexId`), &[]string{}).([]string)
 			Expect(len(keys)).To(Equal(1))
@@ -380,7 +371,7 @@ var _ = Describe(`Mapping`, func() {
 		}
 
 		It("Disallow to get config before set", func() {
-			expectcc.ResponseError(configCC.Invoke(`configGet`), `state entry not found: Config | config`)
+			expectcc.ResponseError(configCC.Invoke(`configGet`), `state entry not found: Config`)
 		})
 
 		It("Allow to set config", func() {

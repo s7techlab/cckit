@@ -23,6 +23,7 @@ func (r *TxRes) HasError(err interface{}) *TxRes {
 	if err == nil {
 		g.Expect(r.Err).NotTo(g.HaveOccurred())
 	} else {
+		g.Expect(r.Err).To(g.HaveOccurred())
 		g.Expect(fmt.Sprintf(`%s`, r.Err)).To(g.ContainSubstring(fmt.Sprintf(`%s`, err)))
 	}
 	return r
