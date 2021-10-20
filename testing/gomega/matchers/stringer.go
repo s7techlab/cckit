@@ -33,10 +33,10 @@ func (matcher *StringerEqualMatcher) Match(actual interface{}) (success bool, er
 }
 
 func (matcher *StringerEqualMatcher) FailureMessage(actual interface{}) (message string) {
-	actualString, actualOK := actual.(string)
-	expectedString, expectedOK := matcher.Expected.(string)
+	actualStringer, actualOK := actual.(Stringer)
+	expectedStringer, expectedOK := matcher.Expected.(Stringer)
 	if actualOK && expectedOK {
-		return format.MessageWithDiff(actualString, "to equal", expectedString)
+		return format.MessageWithDiff(actualStringer.String(), "to equal", expectedStringer.String())
 	}
 
 	return format.Message(actual, "to equal", matcher.Expected)
