@@ -15,7 +15,7 @@ require (
 	github.com/onsi/gomega v1.9.0
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/errors v0.8.1
-	github.com/s7techlab/hlf-sdk-go v0.6.0
+	github.com/s7techlab/hlf-sdk-go/v2 v2.0.0-20211021114534-b3f0602d2193 // indirect
 	go.uber.org/zap v1.14.1
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect

@@ -9,7 +9,7 @@ import (
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/s7techlab/hlf-sdk-go/api"
+	"github.com/s7techlab/hlf-sdk-go/v2/api"
 
 	"github.com/s7techlab/cckit/examples/cars"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
