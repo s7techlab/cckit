@@ -173,6 +173,21 @@ var _ = Describe(`Testing`, func() {
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
 		})
+
+		It("Should return error when unknown channel provided", func() {
+			_, err := mockedPeer.Query(
+				context.Background(), Authority, "unknown-channel", CarsProxyChaincode,
+				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+			Expect(err).To(HaveOccurred())
+
+		})
+
+		It("Should return error when unknown carID provided", func() {
+			_, err := mockedPeer.Query(
+				context.Background(), Authority, Channel, CarsProxyChaincode,
+				`carGet`, [][]byte{[]byte("unknown_car_id")}, nil)
+			Expect(err).To(HaveOccurred())
+		})
 	})
 
 	Describe(`Tx isolation`, func() {
