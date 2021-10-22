@@ -3,32 +3,90 @@ package service
 import (
 	"context"
 
+	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric-protos-go/peer"
+	"github.com/hyperledger/fabric/msp"
 	"github.com/pkg/errors"
-	"github.com/s7techlab/hlf-sdk-go/v2/api"
 )
 
+type ChaincodeService struct {
+	sdk FabricAPI
+}
+
+// gateway/chaincode.go needds access to grpc stream
 type (
-	// Chaincode service interface
-	Chaincode             = ChaincodeServer
+	//Chaincode             = ChaincodeServer
 	ChaincodeEventsServer = chaincodeEventsServer
 )
 
-// ChaincodeService implementation based of hlf-sdk-go
-type ChaincodeService struct {
-	sdk api.Core
+type FabricAPI interface {
+	// Channel returns channel instance by channel name
+	Channel(name string) ChannelAPI
+	DeliverClient(mspId string, identity msp.SigningIdentity) (DeliverClientAPI, error)
+	CurrentIdentity() msp.SigningIdentity
 }
 
-func New(sdk api.Core) *ChaincodeService {
+/* channel api interfaces section*/
+type ChannelAPI interface {
+	// Chaincode returns chaincode instance by chaincode name
+	Chaincode(ctx context.Context, name string) (ChaincodeAPI, error)
+}
+
+type ChaincodeAPI interface {
+	// Invoke returns invoke builder for presented chaincode function
+	Invoke(fn string) ChaincodeAPIInvokeBuilder
+	// Query returns query builder for presented function and arguments
+	Query(fn string, args ...string) ChaincodeAPIQueryBuilder
+}
+
+// ChaincodeAPIQueryBuilder describe possibilities how to get query results
+type ChaincodeAPIQueryBuilder interface {
+	// WithIdentity allows to invoke chaincode from custom identity
+	WithIdentity(identity msp.SigningIdentity) ChaincodeAPIQueryBuilder
+	// Transient allows to pass arguments to transient map
+	Transient(args map[string][]byte) ChaincodeAPIQueryBuilder
+	// AsProposalResponse allows to get raw peer response
+	AsProposalResponse(ctx context.Context) (*peer.ProposalResponse, error)
+}
+
+type ChaincodeAPIInvokeBuilder interface {
+	// WithIdentity allows to invoke chaincode from custom identity
+	WithIdentity(identity msp.SigningIdentity) ChaincodeAPIInvokeBuilder
+	// Transient allows to pass arguments to transient map
+	Transient(args map[string][]byte) ChaincodeAPIInvokeBuilder
+	// ArgBytes set slice of bytes as argument
+	ArgBytes([][]byte) ChaincodeAPIInvokeBuilder
+	// Do makes invoke with built arguments
+	Do(ctx context.Context) (res *peer.Response, chaincodeTx string, err error)
+}
+
+/* deliver client interfaces section */
+
+type DeliverClientAPI interface {
+	// SubscribeCC allows to subscribe on chaincode events using name of channel, chaincode and block offset
+	SubscribeCC(
+		ctx context.Context,
+		channelName string,
+		ccName string,
+		eventCCSeekOption ...func() (*orderer.SeekPosition, *orderer.SeekPosition),
+	) (EventCCSubscriptionAPI, error)
+}
+type EventCCSubscriptionAPI interface {
+	// Events initiates internal GRPC stream and returns channel on chaincode events
+	Events() chan *peer.ChaincodeEvent
+}
+
+func New(sdk FabricAPI) *ChaincodeService {
 	return &ChaincodeService{sdk: sdk}
 }
 
 func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.ProposalResponse, error) {
-	if in.Type == InvocationType_QUERY {
+	switch in.Type {
+	case InvocationType_QUERY:
 		return cs.Query(ctx, in.Input)
-	} else if in.Type == InvocationType_INVOKE {
+	case InvocationType_INVOKE:
 		return cs.Invoke(ctx, in.Input)
-	} else {
+	default:
 		return nil, ErrUnknownInvocationType
 	}
 }
@@ -50,7 +108,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		WithIdentity(signer).
 		ArgBytes(in.Args[1:]).
 		Transient(in.Transient).
-		Do(ctx, DoOptionFromContext(ctx)...)
+		Do(ctx)
 
 	if err != nil {
 		return nil, err
@@ -91,8 +149,7 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 }
 
 func (cs *ChaincodeService) Events(in *ChaincodeLocator, stream Chaincode_EventsServer) error {
-
-	deliver, err := cs.sdk.PeerPool().DeliverClient(cs.sdk.CurrentIdentity().GetMSPIdentifier(), cs.sdk.CurrentIdentity())
+	deliver, err := cs.sdk.DeliverClient(cs.sdk.CurrentIdentity().GetMSPIdentifier(), cs.sdk.CurrentIdentity())
 	if err != nil {
 		return err
 	}

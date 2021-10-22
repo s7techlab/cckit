@@ -5,7 +5,6 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/s7techlab/hlf-sdk-go/v2/api"
 
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/gateway/service"
@@ -22,14 +21,6 @@ func WithDefaultSigner(defaultSigner msp.SigningIdentity) Opt {
 	return func(c *chaincode) {
 		c.ContextOpts = append(c.ContextOpts, func(ctx context.Context) context.Context {
 			return service.ContextWithDefaultSigner(ctx, defaultSigner)
-		})
-	}
-}
-
-func WithDefaultDoOpts(defaultDoOpts ...api.DoOption) Opt {
-	return func(c *chaincode) {
-		c.ContextOpts = append(c.ContextOpts, func(ctx context.Context) context.Context {
-			return service.ContextWithDefaultDoOption(ctx, defaultDoOpts...)
 		})
 	}
 }
