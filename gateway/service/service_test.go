@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/s7techlab/hlf-sdk-go/client/chaincode"
-	"github.com/s7techlab/hlf-sdk-go/client/chaincode/txwaiter"
+	"github.com/s7techlab/hlf-sdk-go/v2/client/chaincode"
+	"github.com/s7techlab/hlf-sdk-go/v2/client/chaincode/txwaiter"
 
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"

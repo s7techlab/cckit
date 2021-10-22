@@ -9,7 +9,7 @@ import (
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/s7techlab/hlf-sdk-go/api"
+	"github.com/s7techlab/hlf-sdk-go/v2/api"
 
 	"github.com/s7techlab/cckit/examples/cars"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
@@ -172,6 +172,21 @@ var _ = Describe(`Testing`, func() {
 
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
+		})
+
+		It("Should return error when unknown channel provided", func() {
+			_, err := mockedPeer.Query(
+				context.Background(), Authority, "unknown-channel", CarsProxyChaincode,
+				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+			Expect(err).To(HaveOccurred())
+
+		})
+
+		It("Should return error when unknown carID provided", func() {
+			_, err := mockedPeer.Query(
+				context.Background(), Authority, Channel, CarsProxyChaincode,
+				`carGet`, [][]byte{[]byte("unknown_car_id")}, nil)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 

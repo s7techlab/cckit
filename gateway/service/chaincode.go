@@ -5,7 +5,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/pkg/errors"
-	"github.com/s7techlab/hlf-sdk-go/api"
+	"github.com/s7techlab/hlf-sdk-go/v2/api"
 )
 
 type (
@@ -39,10 +39,14 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		return nil, err
 	}
 
-	response, _, err := cs.sdk.
+	ccApi, err := cs.sdk.
 		Channel(in.Channel).
-		Chaincode(in.Chaincode).
-		Invoke(string(in.Args[0])).
+		Chaincode(ctx, in.Chaincode)
+	if err != nil {
+		return nil, err
+	}
+
+	response, _, err := ccApi.Invoke(string(in.Args[0])).
 		WithIdentity(signer).
 		ArgBytes(in.Args[1:]).
 		Transient(in.Transient).
@@ -70,11 +74,20 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 		return nil, err
 	}
 
-	if resp, err := cs.sdk.Channel(in.Channel).Chaincode(in.Chaincode).Query(argSs[0], argSs[1:]...).WithIdentity(signer).Transient(in.Transient).AsProposalResponse(ctx); err != nil {
-		return nil, errors.Wrap(err, `failed to query chaincode`)
-	} else {
-		return resp, nil
+	ccApi, err := cs.sdk.Channel(in.Channel).Chaincode(ctx, in.Chaincode)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := ccApi.Query(argSs[0], argSs[1:]...).
+		WithIdentity(signer).
+		Transient(in.Transient).
+		AsProposalResponse(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, `failed to query chaincode`)
+	}
+
+	return resp, nil
 }
 
 func (cs *ChaincodeService) Events(in *ChaincodeLocator, stream Chaincode_EventsServer) error {
