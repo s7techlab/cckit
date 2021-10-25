@@ -9,7 +9,6 @@ import (
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/s7techlab/hlf-sdk-go/v2/api"
 
 	"github.com/s7techlab/cckit/examples/cars"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
@@ -131,7 +130,7 @@ var _ = Describe(`Testing`, func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			// double check interface api.Invoker
-			resp, _, err := interface{}(mockedPeer).(api.Invoker).Invoke(
+			resp, _, err := mockedPeer.Invoke(
 				ctx, Authority, Channel, CarsChaincode, `carRegister`,
 				[][]byte{testcc.MustJSONMarshal(cars.Payloads[3])}, nil)
 			Expect(err).NotTo(HaveOccurred())
@@ -141,7 +140,7 @@ var _ = Describe(`Testing`, func() {
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
 
-			Expect(<-events.Events()).To(BeEquivalentTo(&peer.ChaincodeEvent{
+			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
 				EventName: cars.CarRegisteredEvent,
 				Payload:   resp.Payload,
 			}))

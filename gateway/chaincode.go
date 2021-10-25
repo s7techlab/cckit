@@ -30,7 +30,7 @@ type ChaincodeEventSub interface {
 }
 
 type chaincode struct {
-	Service   service.Chaincode
+	Service   service.ChaincodeServer
 	Channel   string
 	Chaincode string
 
@@ -40,7 +40,7 @@ type chaincode struct {
 	EventOpts   []EventOpt
 }
 
-func NewChaincode(service service.Chaincode, channelName, chaincodeName string, opts ...Opt) *chaincode {
+func NewChaincode(service service.ChaincodeServer, channelName, chaincodeName string, opts ...Opt) *chaincode {
 	c := &chaincode{
 		Service:   service,
 		Channel:   channelName,
