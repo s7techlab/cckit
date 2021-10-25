@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
+	fmt "fmt"
 
 	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/pkg/errors"
 )
 
 type ChaincodeService struct {
@@ -63,10 +63,9 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.
 }
 
 func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
-	signer, err := SignerFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// underlying hlf-sdk can handle 'nil' identity cases and set default if call identity wasn't provided
+	// if smth goes wrong we'll see it on step below
+	signer, _ := SignerFromContext(ctx)
 
 	response, _, err := cs.peerSDK.Invoke(
 		ctx,
@@ -77,7 +76,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		in.Transient,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, `failed to invoke chaincode`)
+		return nil, fmt.Errorf("invoke chaincode: %w", err)
 	}
 
 	// todo: add to hlf-sdk-go method returning ProposalResponse
@@ -88,10 +87,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 }
 
 func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
-	signer, err := SignerFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
+	signer, _ := SignerFromContext(ctx)
 
 	resp, err := cs.peerSDK.Query(
 		ctx,
@@ -102,17 +98,14 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 		in.Transient,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, `failed to query chaincode`)
+		return nil, fmt.Errorf("query chaincode: %w", err)
 	}
 
 	return resp, nil
 }
 
 func (cs *ChaincodeService) Events(in *ChaincodeLocator, stream Chaincode_EventsServer) error {
-	signer, err := SignerFromContext(stream.Context())
-	if err != nil {
-		return err
-	}
+	signer, _ := SignerFromContext(stream.Context())
 
 	events, err := cs.peerSDK.Events(
 		stream.Context(),
