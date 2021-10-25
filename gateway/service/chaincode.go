@@ -3,32 +3,72 @@ package service
 import (
 	"context"
 
+	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric-protos-go/peer"
+	"github.com/hyperledger/fabric/msp"
 	"github.com/pkg/errors"
-	"github.com/s7techlab/hlf-sdk-go/v2/api"
 )
 
+type ChaincodeService struct {
+	peerSDK Peer
+}
+
+// gateway/chaincode.go needds access to grpc stream
 type (
-	// Chaincode service interface
-	Chaincode             = ChaincodeServer
+	//Chaincode             = ChaincodeServer
 	ChaincodeEventsServer = chaincodeEventsServer
 )
 
-// ChaincodeService implementation based of hlf-sdk-go
-type ChaincodeService struct {
-	sdk api.Core
+type Peer interface {
+	ChannelChaincode(ctx context.Context, chanName string, ccName string) (Chaincode, error)
+	Events(
+		ctx context.Context,
+		channelName string,
+		ccName string,
+		eventCCSeekOption ...func() (*orderer.SeekPosition, *orderer.SeekPosition),
+	) (chan *peer.ChaincodeEvent, error)
+	CurrentIdentity() msp.SigningIdentity
 }
 
-func New(sdk api.Core) *ChaincodeService {
-	return &ChaincodeService{sdk: sdk}
+type Chaincode interface {
+	// Invoke returns invoke builder for presented chaincode function
+	Invoke(fn string) ChaincodeInvokeBuilder
+	// Query returns query builder for presented function and arguments
+	Query(fn string, args ...string) ChaincodeQueryBuilder
+}
+
+// ChaincodeQueryBuilder describe possibilities how to get query results
+type ChaincodeQueryBuilder interface {
+	// WithIdentity allows to invoke chaincode from custom identity
+	WithIdentity(identity msp.SigningIdentity) ChaincodeQueryBuilder
+	// Transient allows to pass arguments to transient map
+	Transient(args map[string][]byte) ChaincodeQueryBuilder
+	// AsProposalResponse allows to get raw peer response
+	AsProposalResponse(ctx context.Context) (*peer.ProposalResponse, error)
+}
+
+type ChaincodeInvokeBuilder interface {
+	// WithIdentity allows to invoke chaincode from custom identity
+	WithIdentity(identity msp.SigningIdentity) ChaincodeInvokeBuilder
+	// Transient allows to pass arguments to transient map
+	Transient(args map[string][]byte) ChaincodeInvokeBuilder
+	// ArgBytes set slice of bytes as argument
+	ArgBytes([][]byte) ChaincodeInvokeBuilder
+	// Do makes invoke with built arguments
+	Do(ctx context.Context) (res *peer.Response, chaincodeTx string, err error)
+}
+
+func New(peerSDK Peer) *ChaincodeService {
+	return &ChaincodeService{peerSDK: peerSDK}
 }
 
 func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.ProposalResponse, error) {
-	if in.Type == InvocationType_QUERY {
+	switch in.Type {
+	case InvocationType_QUERY:
 		return cs.Query(ctx, in.Input)
-	} else if in.Type == InvocationType_INVOKE {
+	case InvocationType_INVOKE:
 		return cs.Invoke(ctx, in.Input)
-	} else {
+	default:
 		return nil, ErrUnknownInvocationType
 	}
 }
@@ -39,24 +79,22 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		return nil, err
 	}
 
-	ccApi, err := cs.sdk.
-		Channel(in.Channel).
-		Chaincode(ctx, in.Chaincode)
+	ccAPI, err := cs.peerSDK.ChannelChaincode(ctx, in.Channel, in.Chaincode)
 	if err != nil {
 		return nil, err
 	}
 
-	response, _, err := ccApi.Invoke(string(in.Args[0])).
+	response, _, err := ccAPI.Invoke(string(in.Args[0])).
 		WithIdentity(signer).
 		ArgBytes(in.Args[1:]).
 		Transient(in.Transient).
-		Do(ctx, DoOptionFromContext(ctx)...)
+		Do(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	// todo: add to hlf-sdk-go method returning ProposalResponse
+	// todo: add to hlf-peerSDK-go method returning ProposalResponse
 	proposalResponse := &peer.ProposalResponse{
 		Response: response,
 	}
@@ -74,12 +112,12 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 		return nil, err
 	}
 
-	ccApi, err := cs.sdk.Channel(in.Channel).Chaincode(ctx, in.Chaincode)
+	ccAPI, err := cs.peerSDK.ChannelChaincode(ctx, in.Channel, in.Chaincode)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := ccApi.Query(argSs[0], argSs[1:]...).
+	resp, err := ccAPI.Query(argSs[0], argSs[1:]...).
 		WithIdentity(signer).
 		Transient(in.Transient).
 		AsProposalResponse(ctx)
@@ -91,19 +129,13 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 }
 
 func (cs *ChaincodeService) Events(in *ChaincodeLocator, stream Chaincode_EventsServer) error {
-
-	deliver, err := cs.sdk.PeerPool().DeliverClient(cs.sdk.CurrentIdentity().GetMSPIdentifier(), cs.sdk.CurrentIdentity())
-	if err != nil {
-		return err
-	}
-
-	events, err := deliver.SubscribeCC(stream.Context(), in.Channel, in.Chaincode)
+	events, err := cs.peerSDK.Events(stream.Context(), in.Channel, in.Chaincode)
 	if err != nil {
 		return err
 	}
 
 	for {
-		e, ok := <-events.Events()
+		e, ok := <-events
 		if !ok {
 			return nil
 		}

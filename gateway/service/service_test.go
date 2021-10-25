@@ -8,8 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/s7techlab/hlf-sdk-go/v2/client/chaincode"
-	"github.com/s7techlab/hlf-sdk-go/v2/client/chaincode/txwaiter"
 
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
@@ -56,16 +54,6 @@ var _ = Describe(`Service`, func() {
 
 	It("Allow to get empty commercial paper list", func() {
 		pp, err := cPaperGateway.List(ctx, &empty.Empty{})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(pp.Items).To(HaveLen(0))
-	})
-
-	It("Allow to propagate api.DoOption", func() {
-		ctxWithOpts := service.ContextWithDoOption(
-			ctx,
-			chaincode.WithTxWaiter(txwaiter.All),
-		)
-		pp, err := cPaperGateway.List(ctxWithOpts, &empty.Empty{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(pp.Items).To(HaveLen(0))
 	})

@@ -144,7 +144,7 @@ func RegisterCPaperChaincode(r *cckit_router.Group, cc CPaperChaincode) error {
 }
 
 // NewCPaperGateway creates gateway to access chaincode method via chaincode service
-func NewCPaperGateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperGateway {
+func NewCPaperGateway(ccService cckit_ccservice.ChaincodeServer, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperGateway {
 	return &CPaperGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
 }
 

@@ -112,7 +112,7 @@ func RegisterDebugStateChaincode(r *cckit_router.Group, cc DebugStateChaincode) 
 }
 
 // NewDebugStateGateway creates gateway to access chaincode method via chaincode service
-func NewDebugStateGateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *DebugStateGateway {
+func NewDebugStateGateway(ccService cckit_ccservice.ChaincodeServer, channel, chaincode string, opts ...cckit_gateway.Opt) *DebugStateGateway {
 	return &DebugStateGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
 }
 
