@@ -24,9 +24,8 @@ type Peer interface {
 		ctx context.Context,
 		chanName string,
 		ccName string,
-		identity msp.SigningIdentity,
-		fnName string,
 		args [][]byte,
+		identity msp.SigningIdentity,
 		transient map[string][]byte,
 	) (res *peer.Response, chaincodeTx string, err error)
 
@@ -34,9 +33,8 @@ type Peer interface {
 		ctx context.Context,
 		chanName string,
 		ccName string,
+		args [][]byte,
 		identity msp.SigningIdentity,
-		fnName string,
-		args []string,
 		transient map[string][]byte,
 	) (*peer.ProposalResponse, error)
 
@@ -74,9 +72,8 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		ctx,
 		in.Channel,
 		in.Chaincode,
+		in.Args,
 		signer,
-		string(in.Args[0]),
-		in.Args[1:],
 		in.Transient,
 	)
 	if err != nil {
@@ -91,11 +88,6 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 }
 
 func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
-	argSs := make([]string, 0)
-	for _, arg := range in.Args {
-		argSs = append(argSs, string(arg))
-	}
-
 	signer, err := SignerFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -105,9 +97,8 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 		ctx,
 		in.Channel,
 		in.Chaincode,
+		in.Args,
 		signer,
-		argSs[0],
-		argSs[1:],
 		in.Transient,
 	)
 	if err != nil {
