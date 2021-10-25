@@ -13,13 +13,17 @@ require (
 	github.com/mwitkow/go-proto-validators v0.3.2
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.9.0
-	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
+	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/s7techlab/hlf-sdk-go/v2 v2.0.0-20211021114534-b3f0602d2193 // indirect
+	github.com/spf13/afero v1.2.2 // indirect
+	github.com/spf13/viper v1.4.0 // indirect
+	github.com/sykesm/zap-logfmt v0.0.3 // indirect
 	go.uber.org/zap v1.14.1
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/genproto v0.0.0-20210122163508-8081c04a3579
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.25.0
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )

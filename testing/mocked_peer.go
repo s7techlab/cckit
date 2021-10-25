@@ -10,7 +10,6 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/s7techlab/hlf-sdk-go/v2/api"
 )
 
 type (
@@ -62,7 +61,7 @@ func (mi *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *Mocke
 
 func (mi *MockedPeer) Invoke(
 	ctx context.Context, from msp.SigningIdentity, channel string, chaincode string,
-	fn string, args [][]byte, transArgs api.TransArgs, _ ...api.DoOption) (*peer.Response, api.ChaincodeTx, error) {
+	fn string, args [][]byte, transArgs map[string][]byte) (*peer.Response, string, error) {
 
 	mi.m.Lock()
 	defer mi.m.Unlock()
@@ -76,12 +75,12 @@ func (mi *MockedPeer) Invoke(
 		err = errors.New(response.Message)
 	}
 
-	return &response, api.ChaincodeTx(mockStub.TxID), err
+	return &response, mockStub.TxID, err
 }
 
 func (mi *MockedPeer) Query(
 	ctx context.Context, from msp.SigningIdentity, channel string, chaincode string,
-	fn string, args [][]byte, transArgs api.TransArgs) (*peer.Response, error) {
+	fn string, args [][]byte, transArgs map[string][]byte) (*peer.Response, error) {
 	mi.m.Lock()
 	defer mi.m.Unlock()
 	mockStub, err := mi.Chaincode(channel, chaincode)
@@ -97,7 +96,7 @@ func (mi *MockedPeer) Query(
 }
 
 func (mi *MockedPeer) Subscribe(
-	ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (api.EventCCSubscription, error) {
+	ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (chan *peer.ChaincodeEvent, error) {
 	mockStub, err := mi.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err
@@ -114,7 +113,7 @@ func (mi *MockedPeer) Subscribe(
 		close(sub.errors)
 	}()
 
-	return sub, nil
+	return sub.Events(), nil
 }
 
 func (mi *MockedPeer) Chaincode(channel string, chaincode string) (*MockStub, error) {
