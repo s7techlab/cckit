@@ -63,8 +63,8 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.
 }
 
 func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
-	// underlying hlf-sdk can handle 'nil' identity cases and set default if call identity wasn't provided
-	// if smth goes wrong we'll see it on step below
+	// underlying hlf-sdk(or your implementation must handle it) can handle 'nil' identity cases and set default if call identity wasn't provided
+	// if smth goes wrong we'll see it on the step below
 	signer, _ := SignerFromContext(ctx)
 
 	response, _, err := cs.peerSDK.Invoke(
