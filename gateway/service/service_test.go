@@ -6,10 +6,12 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/golang/protobuf/ptypes/empty"
 
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
+	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/gateway/service"
 	"github.com/s7techlab/cckit/gateway/service/mock"
@@ -56,6 +58,30 @@ var _ = Describe(`Service`, func() {
 		pp, err := cPaperGateway.List(ctx, &empty.Empty{})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(pp.Items).To(HaveLen(0))
+	})
+
+	It("Invoke chaincode with 'tx waiter' in context", func() {
+		ctx = service.ContextWithTxWaiter(ctx, "all")
+		_, err := cPaperGateway.Issue(ctx, &schema.IssueCommercialPaper{
+			Issuer:       "issuer",
+			PaperNumber:  "1337",
+			ExternalId:   "228",
+			IssueDate:    timestamppb.Now(),
+			MaturityDate: timestamppb.Now(),
+			FaceValue:    2,
+		})
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("Invoke chaincode with custom identity in context", func() {
+		signer := idtestdata.Certificates[1].MustIdentity(idtestdata.DefaultMSP)
+		ctx = service.ContextWithDefaultSigner(ctx, signer)
+
+		_, err := cPaperGateway.Delete(ctx, &schema.CommercialPaperId{
+			Issuer:      "issuer",
+			PaperNumber: "1337",
+		})
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("Allow to imitate error while access to peer", func() {
