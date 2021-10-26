@@ -14,7 +14,7 @@ func (c contextKey) String() string {
 
 const (
 	CtxSignerKey   = contextKey(`SigningIdentity`)
-	CtxDoOptionKey = contextKey(`SdkDoOption`)
+	CtxTxWaiterKey = contextKey(`TxWaiter`)
 )
 
 func ContextWithDefaultSigner(ctx context.Context, defaultSigner msp.SigningIdentity) context.Context {
@@ -35,4 +35,18 @@ func SignerFromContext(ctx context.Context) (msp.SigningIdentity, error) {
 	} else {
 		return signer, nil
 	}
+}
+
+func ContextWithTxWaiter(ctx context.Context, txWaiterType string) context.Context {
+	return context.WithValue(ctx, CtxTxWaiterKey, txWaiterType)
+}
+
+// TxWaiterFromContext - fetch 'txWaiterType' param which identify transaction waiting policy
+// what params you'll have depends on your implementation
+// for example, in hlf-sdk:
+// available: 'self'(wait for one peer of endorser org), 'all'(wait for each organizations from endorsement policy)
+// default is 'self'(even if you pass empty string)
+func TxWaiterFromContext(ctx context.Context) string {
+	txWaiter, _ := ctx.Value(CtxTxWaiterKey).(string)
+	return txWaiter
 }

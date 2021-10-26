@@ -27,6 +27,7 @@ type Peer interface {
 		args [][]byte,
 		identity msp.SigningIdentity,
 		transient map[string][]byte,
+		txWaiterType string,
 	) (res *peer.Response, chaincodeTx string, err error)
 
 	Query(
@@ -74,6 +75,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		in.Args,
 		signer,
 		in.Transient,
+		TxWaiterFromContext(ctx),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("invoke chaincode: %w", err)
