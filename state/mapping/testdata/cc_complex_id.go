@@ -36,7 +36,13 @@ func entityInsert(c router.Context) (interface{}, error) {
 	var (
 		entity = c.Param()
 	)
-	return entity, c.State().Insert(entity)
+
+	mapper := m.NewEntryMapper()
+	mapper.Commands.Insert(entity)
+	mapper.Event.Name = `EntityInserted`
+	mapper.Event.Payload = entity // same as entity
+
+	return entity, mapper.Apply(c.State(), c.Event())
 }
 
 func entityGet(c router.Context) (interface{}, error) {
