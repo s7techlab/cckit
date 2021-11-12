@@ -3,7 +3,9 @@ package expect
 import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 	g "github.com/onsi/gomega"
+
 	"github.com/s7techlab/cckit/convert"
+	"github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/testing/gomega"
 )
 
@@ -33,4 +35,14 @@ func EventPayloadIs(event *peer.ChaincodeEvent, target interface{}) interface{} 
 	}
 	g.Expect(err).To(g.BeNil(), description)
 	return data
+}
+
+// EventEqual expects that *peer.ChaincodeEvent stringer equal to mapping.Event
+func EventEqual(event *peer.ChaincodeEvent, expected *mapping.Event) {
+	EventStringerEqual(event, expected.Name, expected.Payload)
+}
+
+// EventPayloadEqual
+func EventPayloadEqual(event *peer.ChaincodeEvent, expectedPayload interface{}) {
+	EventEqual(event, mapping.EventFromPayload(expectedPayload))
 }
