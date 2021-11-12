@@ -35,6 +35,11 @@ type (
 		Name(instance interface{}) (string, error)
 	}
 
+	Event struct {
+		Name    string
+		Payload interface{}
+	}
+
 	EventMappingOpt func(*EventMapping)
 )
 
@@ -55,8 +60,7 @@ func (emm EventMappings) Add(schema interface{}, opts ...EventMappingOpt) EventM
 func applyEventMappingDefaults(em *EventMapping) {
 	// default namespace based on type names
 	if len(em.name) == 0 {
-		t := reflect.TypeOf(em.schema).String()
-		em.name = t[strings.Index(t, `.`)+1:]
+		em.name = EventNameForPayload(em.schema)
 	}
 }
 
@@ -93,4 +97,16 @@ func (em EventMapping) Schema() interface{} {
 
 func (em EventMapping) Name(instance interface{}) (string, error) {
 	return em.name, nil
+}
+
+func EventNameForPayload(payload interface{}) string {
+	t := reflect.TypeOf(payload).String()
+	return t[strings.Index(t, `.`)+1:]
+}
+
+func EventFromPayload(payload interface{}) *Event {
+	return &Event{
+		Name:    EventNameForPayload(payload),
+		Payload: payload,
+	}
 }
