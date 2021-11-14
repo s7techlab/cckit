@@ -3,6 +3,7 @@ package mapping
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -249,11 +250,16 @@ func keysFromValue(v reflect.Value) ([]state.Key, error) {
 func keyFromValue(v reflect.Value) (state.Key, error) {
 	switch v.Kind() {
 
-	// enum in protobuf
-	case reflect.Int32:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return state.Key{strconv.Itoa(int(v.Uint()))}, nil
+
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		// if it is enum in protobuf
 		if stringer, ok := v.Interface().(fmt.Stringer); ok {
 			return state.Key{stringer.String()}, nil
 		}
+
+		return state.Key{strconv.Itoa(int(v.Int()))}, nil
 
 	case reflect.Ptr:
 		// todo: extract key producer and add custom serializers
@@ -290,7 +296,7 @@ func keyFromValue(v reflect.Value) (state.Key, error) {
 
 	switch v.Type().String() {
 
-	case `string`, `int32`, `bool`:
+	case `string`, `int32`, `uint32`, `bool`:
 		// multi key possible
 		return state.Key{v.String()}, nil
 

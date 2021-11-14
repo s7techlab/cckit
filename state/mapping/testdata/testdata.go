@@ -18,19 +18,19 @@ var (
 
 	CreateEntityWithCompositeId = []*schema.CreateEntityWithCompositeId{{
 		IdFirstPart:  "A",
-		IdSecondPart: "1",
+		IdSecondPart: 1,
 		IdThirdPart:  testing.MustTime(Dates[0] + `T00:00:00Z`),
 		Name:         "Lorem",
 		Value:        1,
 	}, {
 		IdFirstPart:  "B",
-		IdSecondPart: "1",
+		IdSecondPart: 1,
 		IdThirdPart:  testing.MustTime(Dates[1] + `T00:00:00Z`),
 		Name:         "Ipsum",
 		Value:        2,
 	}, {
 		IdFirstPart:  "B",
-		IdSecondPart: "2",
+		IdSecondPart: 2,
 		IdThirdPart:  testing.MustTime(Dates[2] + `T00:00:00Z`),
 		Name:         "Dolor",
 		Value:        3,

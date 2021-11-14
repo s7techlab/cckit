@@ -1,6 +1,7 @@
 package mapping_test
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -71,7 +72,7 @@ var _ = Describe(`State mapping in chaincode`, func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(key).To(Equal(
 				testdata.EntityCompositeIdNamespace.Append(
-					state.Key{create1.IdFirstPart, create1.IdSecondPart, testdata.Dates[0]})))
+					state.Key{create1.IdFirstPart, strconv.Itoa(int(create1.IdSecondPart)), testdata.Dates[0]})))
 		})
 
 		It("Allow to add data to chaincode state", func(done Done) {
