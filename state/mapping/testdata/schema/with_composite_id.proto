@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 // EntityWithCompositeId
 message EntityWithCompositeId {
     string id_first_part = 1; // part of composite primary key
-    string id_second_part = 2; // part of composite primary key
+    uint32 id_second_part = 2; // part of composite primary key
     google.protobuf.Timestamp id_third_part = 3; // part of composite primary key
 
     string name = 4;
@@ -16,7 +16,7 @@ message EntityWithCompositeId {
 // EntityCompositeId - container for composite primary key
 message EntityCompositeId {
     string id_first_part = 1;
-    string id_second_part = 2;
+    uint32 id_second_part = 2;
     google.protobuf.Timestamp id_third_part = 3;
 }
 
@@ -28,7 +28,7 @@ message EntityWithCompositeIdList {
 // CreateEntityWithCompositeId
 message CreateEntityWithCompositeId {
     string id_first_part = 1;
-    string id_second_part = 2;
+    uint32 id_second_part = 2;
     google.protobuf.Timestamp id_third_part = 3;
     string name = 4;
     int32 value = 5;
@@ -37,7 +37,7 @@ message CreateEntityWithCompositeId {
 // UpdateEntityWithCompositeId
 message UpdateEntityWithCompositeId {
     string id_first_part = 1;
-    string id_second_part = 2;
+    uint32 id_second_part = 2;
     google.protobuf.Timestamp id_third_part = 3;
     string name = 4;
     int32 value = 5;
