@@ -9,21 +9,15 @@ import (
 	r "github.com/s7techlab/cckit/router"
 )
 
-// OwnerStateKey key used to store owner grant struct in chain code state
-const OwnerStateKey = `OWNER`
-
 var (
 	// ErrOwnerNotProvided occurs when providing owner identity in init arguments
 	ErrOwnerNotProvided = errors.New(`owner not provided`)
 
 	// ErrOwnerAlreadySetted owner already setted
 	ErrOwnerAlreadySetted = errors.New(`owner already setted`)
-
-	// ErrMSPIdentifierNotEqual occurs when tx creator and cc owner certificate did not match
-	ErrMSPIdentifierNotEqual = errors.New(`msp identifier not equal`)
 )
 
-func IsSetted(c r.Context) (bool, error) {
+func IsSet(c r.Context) (bool, error) {
 	return c.State().Exists(OwnerStateKey)
 }
 
@@ -39,7 +33,7 @@ func Get(c r.Context) (*identity.Entry, error) {
 
 // SetFromCreator sets chain code owner from stub creator
 func SetFromCreator(c r.Context) (*identity.Entry, error) {
-	if ownerSetted, err := IsSetted(c); err != nil {
+	if ownerSetted, err := IsSet(c); err != nil {
 		return nil, err
 	} else if ownerSetted {
 		return Get(c)
@@ -66,7 +60,7 @@ func SetFromArgs(c r.Context) (*identity.Entry, error) {
 		return Insert(c, string(args[0]), args[1])
 	}
 
-	if isSetted, err := IsSetted(c); err != nil {
+	if isSetted, err := IsSet(c); err != nil {
 		return nil, err
 	} else if !isSetted {
 		return nil, ErrOwnerNotProvided
@@ -78,7 +72,7 @@ func SetFromArgs(c r.Context) (*identity.Entry, error) {
 // Insert information about owner to chaincode state
 func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 
-	if ownerSetted, err := IsSetted(c); err != nil {
+	if ownerSetted, err := IsSet(c); err != nil {
 		return nil, fmt.Errorf(`check owner is set: %w`, err)
 	} else if ownerSetted {
 		return nil, ErrOwnerAlreadySetted
@@ -127,7 +121,7 @@ func IdentityEntryFromState(c r.Context) (identity.Entry, error) {
 	return res.(identity.Entry), nil
 }
 
-// Deprecated: IsInvoker checks  than tx creator is chain code owner
+// Deprecated: IsInvoker checks than tx creator is chain code owner
 // use IsTxCreator
 func IsInvoker(ctx r.Context) (bool, error) {
 	if err := IsTxCreator(ctx); err != nil {
@@ -149,11 +143,7 @@ func IsTxCreator(ctx r.Context) error {
 		return err
 	}
 
-	if ownerEntry.GetMSPID() != invoker.GetMSPIdentifier() {
-		return fmt.Errorf(`%s : %w`, ErrMSPIdentifierNotEqual, ErrOwnerOnly)
-	}
-
-	if err = identity.CertEqual(invoker, ownerEntry); err != nil {
+	if err = identity.Equal(invoker, ownerEntry); err != nil {
 		return fmt.Errorf(`%s : %w`, err, ErrOwnerOnly)
 	}
 

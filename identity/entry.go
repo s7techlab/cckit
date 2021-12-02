@@ -36,8 +36,13 @@ func (e Entry) GetID() string {
 	return ID(e.Subject, e.Issuer)
 }
 
+// Deprecated: use GetMSPIdentifier
 // GetMSPID membership service provider identifier
 func (e Entry) GetMSPID() string {
+	return e.MSPId
+}
+
+func (e Entry) GetMSPIdentifier() string {
 	return e.MSPId
 }
 
@@ -73,7 +78,7 @@ func (e Entry) GetPublicKey() interface{} {
 
 // Is checks IdentityEntry is equal to an other Identity
 func (e Entry) Is(id Identity) bool {
-	return e.MSPId == id.GetMSPID() && e.Subject == id.GetSubject()
+	return e.MSPId == id.GetMSPIdentifier() && e.Subject == id.GetSubject()
 }
 
 //func (e Entry) FromBytes(bb []byte) (interface{}, error) {

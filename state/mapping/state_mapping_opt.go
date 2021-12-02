@@ -97,8 +97,9 @@ func WithIndex(idx *StateIndexDef) StateMappingOpt {
 	}
 }
 
-// PKeySchema registers all fields from pkeySchema as part of primary key
-// also register keyer for pkeySchema with with namespace from current schema
+// PKeySchema registers all fields from pkeySchema as part of primary key.
+// Same fields should exists in mapped entity.
+// Also register keyer for pkeySchema with with namespace from current schema.
 func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 	attrs := attrsFrom(pkeySchema)
 

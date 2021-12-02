@@ -8,12 +8,6 @@ import (
 type Identity interface {
 	msp.Identity
 
-	// Deprecated: GetID Identifier, based on Subject and Issuer. Use GetIdentifier instead
-	GetID() string
-
-	// Deprecated: GetMSPID msp identifier. Use GetMspIdentifier instead
-	GetMSPID() string
-
 	// GetSubject string representation of X.509 cert subject
 	GetSubject() string
 	// GetIssuer string representation of X.509 cert issuer

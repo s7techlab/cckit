@@ -1,0 +1,297 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "owner/chaincode_owner.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ChaincodeOwnerService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/chaincode/owners": {
+      "get": {
+        "summary": "Get owners list",
+        "operationId": "ChaincodeOwnerService_OwnersList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwners"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      },
+      "post": {
+        "summary": "Register new chaincode owner, method can be call by current owner or if no owner exists\nIf chaincode owner with same MspID, certificate subject and issuer exists - throws error",
+        "operationId": "ChaincodeOwnerService_OwnerRegister",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ownerOwnerRegisterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      },
+      "put": {
+        "summary": "Update chaincode owner. Msp id and certificate subject must be equal to current owner certificate",
+        "operationId": "ChaincodeOwnerService_OwnerUpdate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ownerOwnerUpdateRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      }
+    },
+    "/chaincode/owners/{mspId}/{subject}": {
+      "get": {
+        "summary": "Get owner by msp_id and certificate subject",
+        "operationId": "ChaincodeOwnerService_OwnerGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mspId",
+            "description": "Msp Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "description": "Certificate subject",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete owner",
+        "operationId": "ChaincodeOwnerService_OwnerDelete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "mspId",
+            "description": "Msp Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "description": "Certificate subject",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ownerChaincodeOwner": {
+      "type": "object",
+      "properties": {
+        "mspId": {
+          "type": "string",
+          "title": "Msp Id"
+        },
+        "subject": {
+          "type": "string",
+          "title": "certificate subject"
+        },
+        "issuer": {
+          "type": "string",
+          "title": "certificate issuer"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "title": "cert valid not after"
+        },
+        "cert": {
+          "type": "string",
+          "format": "byte",
+          "title": "Certificate"
+        },
+        "updatedByMspId": {
+          "type": "string",
+          "title": "Creator identity info"
+        },
+        "updatedByCert": {
+          "type": "string",
+          "format": "byte",
+          "title": "Certificate"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Updated at"
+        }
+      },
+      "title": "State: information stored in chaincode state about chaincode owner"
+    },
+    "ownerChaincodeOwners": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ownerChaincodeOwner"
+          }
+        }
+      },
+      "title": "List: Chaincode owners"
+    },
+    "ownerOwnerRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "mspId": {
+          "type": "string",
+          "title": "Msp Id"
+        },
+        "cert": {
+          "type": "string",
+          "format": "byte",
+          "title": "Certificate"
+        }
+      },
+      "title": "Request: register owner"
+    },
+    "ownerOwnerUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "mspId": {
+          "type": "string",
+          "title": "Msp Id"
+        },
+        "cert": {
+          "type": "string",
+          "format": "byte",
+          "title": "Current certificate"
+        }
+      },
+      "title": "Request: update owner certificate"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

@@ -55,12 +55,6 @@ func (ci CertIdentity) GetID() string {
 	return IDByCert(ci.Cert)
 }
 
-// Deprecated: GetMSPID returns invoker's membership service provider id
-// Use GetMSPIdentifier()
-func (ci CertIdentity) GetMSPID() string {
-	return ci.MspID
-}
-
 func (ci CertIdentity) ExpiresAt() time.Time {
 	return ci.Cert.NotAfter
 }

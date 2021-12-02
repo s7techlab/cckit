@@ -5,6 +5,9 @@ import (
 )
 
 var (
+	// ErrMSPIdentifierNotEqual occurs when msp id did not match
+	ErrMSPIdentifierNotEqual = errors.New(`msp identifier not equal`)
+
 	ErrSubjectNotEqual = errors.New(`certificate subject not equal`)
 	ErrIssuerNotEqual  = errors.New(`certificate issuer not equal`)
 )
@@ -14,7 +17,22 @@ type (
 		GetSubject() string
 		GetIssuer() string
 	}
+
+	IdentityAttrs interface {
+		SubjectIssuer
+		GetMSPIdentifier() string
+	}
 )
+
+// Equal checks identity attributes (Msp id, cert subject and cert issuer) equality
+func Equal(identity1, identity2 IdentityAttrs) error {
+
+	if identity1.GetMSPIdentifier() != identity1.GetMSPIdentifier() {
+		return ErrMSPIdentifierNotEqual
+	}
+
+	return CertEqual(identity1, identity2)
+}
 
 // CertEqual checks certificate equality
 func CertEqual(cert1, cert2 SubjectIssuer) error {
