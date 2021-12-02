@@ -26,8 +26,7 @@ type (
 
 // Equal checks identity attributes (Msp id, cert subject and cert issuer) equality
 func Equal(identity1, identity2 IdentityAttrs) error {
-
-	if identity1.GetMSPIdentifier() != identity1.GetMSPIdentifier() {
+	if identity1.GetMSPIdentifier() != identity2.GetMSPIdentifier() {
 		return ErrMSPIdentifierNotEqual
 	}
 
