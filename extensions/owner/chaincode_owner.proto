@@ -14,6 +14,13 @@ import "github.com/mwitkow/go-proto-validators/validator.proto";
 // ChaincodeOwnerService allows to store information about chaincode "owners" in chaincode state
 service ChaincodeOwnerService {
 
+    // Checks tx creator is owner
+    rpc TxCreatorIsOwner (google.protobuf.Empty) returns (ChaincodeOwner) {
+        option (google.api.http) = {
+            get: "/chaincode/owners/whoami"
+        };
+    }
+
     // Get owners list
     rpc OwnersList (google.protobuf.Empty) returns (ChaincodeOwners) {
         option (google.api.http) = {

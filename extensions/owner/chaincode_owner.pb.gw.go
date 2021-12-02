@@ -29,6 +29,24 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
+func request_ChaincodeOwnerService_TxCreatorIsOwner_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeOwnerServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq empty.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.TxCreatorIsOwner(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ChaincodeOwnerService_TxCreatorIsOwner_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeOwnerServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq empty.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.TxCreatorIsOwner(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_ChaincodeOwnerService_OwnersList_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeOwnerServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq empty.Empty
 	var metadata runtime.ServerMetadata
@@ -272,6 +290,26 @@ func local_request_ChaincodeOwnerService_OwnerDelete_0(ctx context.Context, mars
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 func RegisterChaincodeOwnerServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ChaincodeOwnerServiceServer) error {
 
+	mux.Handle("GET", pattern_ChaincodeOwnerService_TxCreatorIsOwner_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ChaincodeOwnerService_TxCreatorIsOwner_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeOwnerService_TxCreatorIsOwner_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ChaincodeOwnerService_OwnersList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -413,6 +451,26 @@ func RegisterChaincodeOwnerServiceHandler(ctx context.Context, mux *runtime.Serv
 // "ChaincodeOwnerServiceClient" to call the correct interceptors.
 func RegisterChaincodeOwnerServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ChaincodeOwnerServiceClient) error {
 
+	mux.Handle("GET", pattern_ChaincodeOwnerService_TxCreatorIsOwner_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ChaincodeOwnerService_TxCreatorIsOwner_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeOwnerService_TxCreatorIsOwner_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ChaincodeOwnerService_OwnersList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -517,6 +575,8 @@ func RegisterChaincodeOwnerServiceHandlerClient(ctx context.Context, mux *runtim
 }
 
 var (
+	pattern_ChaincodeOwnerService_TxCreatorIsOwner_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"chaincode", "owners", "whoami"}, "", runtime.AssumeColonVerbOpt(true)))
+
 	pattern_ChaincodeOwnerService_OwnersList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "owners"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_ChaincodeOwnerService_OwnerGet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3}, []string{"chaincode", "owners", "msp_id", "subject"}, "", runtime.AssumeColonVerbOpt(true)))
@@ -529,6 +589,8 @@ var (
 )
 
 var (
+	forward_ChaincodeOwnerService_TxCreatorIsOwner_0 = runtime.ForwardResponseMessage
+
 	forward_ChaincodeOwnerService_OwnersList_0 = runtime.ForwardResponseMessage
 
 	forward_ChaincodeOwnerService_OwnerGet_0 = runtime.ForwardResponseMessage

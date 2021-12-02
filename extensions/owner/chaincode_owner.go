@@ -28,6 +28,28 @@ func NewService() *ChaincodeOwnerService {
 type ChaincodeOwnerService struct {
 }
 
+func (c *ChaincodeOwnerService) TxCreatorIsOwner(ctx router.Context, _ *empty.Empty) (*ChaincodeOwner, error) {
+	txCreator, err := identity.FromStub(ctx.Stub())
+	if err != nil {
+		return nil, err
+	}
+
+	owner, err := c.OwnerGet(ctx, &OwnerId{
+		MspId:   txCreator.GetMSPIdentifier(),
+		Subject: txCreator.GetSubject(),
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf(`find owner by tx creator's msp_id and cert subject: %w`, err)
+	}
+
+	if err := identity.Equal(txCreator, owner); err != nil {
+		return nil, fmt.Errorf(`owner with tx creator's' msp_id and cert subject found, but: %w`, err)
+	}
+
+	return owner, nil
+}
+
 func (c *ChaincodeOwnerService) OwnersList(ctx router.Context, _ *empty.Empty) (*ChaincodeOwners, error) {
 	if res, err := State(ctx).List(&ChaincodeOwner{}); err != nil {
 		return nil, err

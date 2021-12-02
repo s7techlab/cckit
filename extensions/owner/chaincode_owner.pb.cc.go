@@ -22,6 +22,8 @@ import (
 
 // ChaincodeOwnerServiceChaincode  method names
 const (
+	ChaincodeOwnerServiceChaincode_TxCreatorIsOwner = "TxCreatorIsOwner"
+
 	ChaincodeOwnerServiceChaincode_OwnersList = "OwnersList"
 
 	ChaincodeOwnerServiceChaincode_OwnerGet = "OwnerGet"
@@ -40,6 +42,8 @@ type ChaincodeOwnerServiceChaincodeResolver interface {
 
 // ChaincodeOwnerServiceChaincode chaincode methods interface
 type ChaincodeOwnerServiceChaincode interface {
+	TxCreatorIsOwner(cckit_router.Context, *empty.Empty) (*ChaincodeOwner, error)
+
 	OwnersList(cckit_router.Context, *empty.Empty) (*ChaincodeOwners, error)
 
 	OwnerGet(cckit_router.Context, *OwnerId) (*ChaincodeOwner, error)
@@ -53,6 +57,17 @@ type ChaincodeOwnerServiceChaincode interface {
 
 // RegisterChaincodeOwnerServiceChaincode registers service methods as chaincode router handlers
 func RegisterChaincodeOwnerServiceChaincode(r *cckit_router.Group, cc ChaincodeOwnerServiceChaincode) error {
+
+	r.Query(ChaincodeOwnerServiceChaincode_TxCreatorIsOwner,
+		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return nil, cckit_param.PayloadValidationError(err)
+				}
+			}
+			return cc.TxCreatorIsOwner(ctx, ctx.Param().(*empty.Empty))
+		},
+		cckit_defparam.Proto(&empty.Empty{}))
 
 	r.Query(ChaincodeOwnerServiceChaincode_OwnersList,
 		func(ctx cckit_router.Context) (interface{}, error) {
@@ -140,6 +155,21 @@ func (c *ChaincodeOwnerServiceGateway) ApiDef() cckit_gateway.ServiceDef {
 // Events returns events subscription
 func (c *ChaincodeOwnerServiceGateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
 	return c.Gateway.Events(ctx)
+}
+
+func (c *ChaincodeOwnerServiceGateway) TxCreatorIsOwner(ctx context.Context, in *empty.Empty) (*ChaincodeOwner, error) {
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Gateway.Query(ctx, ChaincodeOwnerServiceChaincode_TxCreatorIsOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*ChaincodeOwner), nil
+	}
 }
 
 func (c *ChaincodeOwnerServiceGateway) OwnersList(ctx context.Context, in *empty.Empty) (*ChaincodeOwners, error) {

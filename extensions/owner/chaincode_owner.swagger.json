@@ -101,6 +101,28 @@
         ]
       }
     },
+    "/chaincode/owners/whoami": {
+      "get": {
+        "operationId": "ChaincodeOwnerService_TxCreatorIsOwner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      }
+    },
     "/chaincode/owners/{mspId}/{subject}": {
       "get": {
         "summary": "Get owner by msp_id and certificate subject",

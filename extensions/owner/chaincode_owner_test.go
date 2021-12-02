@@ -83,6 +83,26 @@ var _ = Describe(`Chaincode owner`, func() {
 		})
 	})
 
+	Context(`Check`, func() {
+
+		It("Non owner receives error", func() {
+			cc.From(nonOwnerIdentity).Tx(func() {
+				cc.Expect(ownerSvc.TxCreatorIsOwner(ctx, &emptypb.Empty{})).
+					HasError(`find owner by tx creator's msp_id and cert subject: state entry not found: ChaincodeOwner`)
+			})
+		})
+
+		It("Owner receives owner info", func() {
+			cc.From(ownerIdentity1).Tx(func() {
+				owner, err := ownerSvc.TxCreatorIsOwner(ctx, &emptypb.Empty{})
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(owner.MspId).To(Equal(ownerIdentity1.GetMSPIdentifier()))
+				Expect(owner.Cert).To(Equal(ownerIdentity1.GetPEM()))
+			})
+		})
+	})
+
 	Context(`Update`, func() {
 
 		It("Disallow non owner to update owner", func() {
