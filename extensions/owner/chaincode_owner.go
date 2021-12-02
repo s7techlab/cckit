@@ -28,6 +28,11 @@ func NewService() *ChaincodeOwnerService {
 type ChaincodeOwnerService struct {
 }
 
+// IsTxCreator - wrapper for TxCreatorIsOwner for local calls
+func (c *ChaincodeOwnerService) IsTxCreator(ctx router.Context) (*ChaincodeOwner, error) {
+	return c.TxCreatorIsOwner(ctx, &empty.Empty{})
+}
+
 func (c *ChaincodeOwnerService) TxCreatorIsOwner(ctx router.Context, _ *empty.Empty) (*ChaincodeOwner, error) {
 	txCreator, err := identity.FromStub(ctx.Stub())
 	if err != nil {
