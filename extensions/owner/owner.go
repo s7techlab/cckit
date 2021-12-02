@@ -21,6 +21,8 @@ func IsSet(c r.Context) (bool, error) {
 	return c.State().Exists(OwnerStateKey)
 }
 
+// Get returns current chaincode owner identity.Entry
+// Service implementation recommended, see chaincode_owner.proto
 func Get(c r.Context) (*identity.Entry, error) {
 	ownerEntry, err := c.State().Get(OwnerStateKey, &identity.Entry{})
 	if err != nil {
@@ -32,6 +34,7 @@ func Get(c r.Context) (*identity.Entry, error) {
 }
 
 // SetFromCreator sets chain code owner from stub creator
+// Service implementation recommended, see chaincode_owner.proto
 func SetFromCreator(c r.Context) (*identity.Entry, error) {
 	if ownerSetted, err := IsSet(c); err != nil {
 		return nil, err
@@ -91,6 +94,7 @@ func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 }
 
 // IsInvokerOr checks tx creator and compares with owner of another identity
+// Service implementation recommended, see chaincode_owner.proto
 func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
 	if err := IsTxCreator(c); err == nil {
 		return true, nil
@@ -112,6 +116,7 @@ func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
 }
 
 // IdentityEntryFromState returns identity.Entry with chaincode owner certificate
+// Service implementation recommended, see chaincode_owner.proto
 func IdentityEntryFromState(c r.Context) (identity.Entry, error) {
 	res, err := c.State().Get(OwnerStateKey, &identity.Entry{})
 	if err != nil {
@@ -121,8 +126,8 @@ func IdentityEntryFromState(c r.Context) (identity.Entry, error) {
 	return res.(identity.Entry), nil
 }
 
-// Deprecated: IsInvoker checks than tx creator is chain code owner
-// use IsTxCreator
+// IsInvoker checks than tx creator is chain code owner
+// Service implementation recommended, see chaincode_owner.proto
 func IsInvoker(ctx r.Context) (bool, error) {
 	if err := IsTxCreator(ctx); err != nil {
 		return false, err
@@ -132,6 +137,7 @@ func IsInvoker(ctx r.Context) (bool, error) {
 }
 
 // IsTxCreator returns error if owner identity  (msp_id + certificate) did not match tx creator identity
+// Service implementation recommended, see chaincode_owner.proto
 func IsTxCreator(ctx r.Context) error {
 	invoker, err := identity.FromStub(ctx.Stub())
 	if err != nil {
