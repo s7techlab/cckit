@@ -33,6 +33,11 @@ func (c *ChaincodeOwnerService) IsTxCreator(ctx router.Context) (*ChaincodeOwner
 	return c.TxCreatorIsOwner(ctx, &empty.Empty{})
 }
 
+// RegisterTxCreator Wrapper for OwnerRegisterTxCreator
+func (c *ChaincodeOwnerService) RegisterTxCreator(ctx router.Context) (*ChaincodeOwner, error) {
+	return c.OwnerRegisterTxCreator(ctx, &empty.Empty{})
+}
+
 func (c *ChaincodeOwnerService) TxCreatorIsOwner(ctx router.Context, _ *empty.Empty) (*ChaincodeOwner, error) {
 	txCreator, err := identity.FromStub(ctx.Stub())
 	if err != nil {
@@ -102,6 +107,18 @@ func (c *ChaincodeOwnerService) txCreatorAllowedToModify(ctx router.Context) (id
 	}
 
 	return txCreator, c.allowToModifyBy(ctx, txCreator)
+}
+
+func (c *ChaincodeOwnerService) OwnerRegisterTxCreator(ctx router.Context, _ *empty.Empty) (*ChaincodeOwner, error) {
+	txCreator, err := identity.FromStub(ctx.Stub())
+	if err != nil {
+		return nil, err
+	}
+
+	return c.OwnerRegister(ctx, &OwnerRegisterRequest{
+		MspId: txCreator.GetMSPIdentifier(),
+		Cert:  txCreator.GetPEM(),
+	})
 }
 
 func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, registerRequest *OwnerRegisterRequest) (*ChaincodeOwner, error) {

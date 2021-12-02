@@ -101,8 +101,42 @@
         ]
       }
     },
+    "/chaincode/owners/txcreator": {
+      "post": {
+        "summary": "Register tx creator as chaincode owner",
+        "operationId": "ChaincodeOwnerService_OwnerRegisterTxCreator",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      }
+    },
     "/chaincode/owners/whoami": {
       "get": {
+        "summary": "Checks tx creator is owner",
         "operationId": "ChaincodeOwnerService_TxCreatorIsOwner",
         "responses": {
           "200": {

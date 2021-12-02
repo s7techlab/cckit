@@ -25,10 +25,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Allow to register self as owner on empty state", func() {
 			cc.From(ownerIdentity1).Tx(func() {
-				owner, err := ownerSvc.OwnerRegister(ctx, &owner.OwnerRegisterRequest{
-					MspId: ownerIdentity1.GetMSPIdentifier(),
-					Cert:  ownerIdentity1.GetPEM(),
-				})
+				owner, err := ownerSvc.OwnerRegisterTxCreator(ctx, &emptypb.Empty{})
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(owner.MspId).To(Equal(ownerIdentity1.GetMSPIdentifier()))

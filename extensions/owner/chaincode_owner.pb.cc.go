@@ -30,6 +30,8 @@ const (
 
 	ChaincodeOwnerServiceChaincode_OwnerRegister = "OwnerRegister"
 
+	ChaincodeOwnerServiceChaincode_OwnerRegisterTxCreator = "OwnerRegisterTxCreator"
+
 	ChaincodeOwnerServiceChaincode_OwnerUpdate = "OwnerUpdate"
 
 	ChaincodeOwnerServiceChaincode_OwnerDelete = "OwnerDelete"
@@ -49,6 +51,8 @@ type ChaincodeOwnerServiceChaincode interface {
 	OwnerGet(cckit_router.Context, *OwnerId) (*ChaincodeOwner, error)
 
 	OwnerRegister(cckit_router.Context, *OwnerRegisterRequest) (*ChaincodeOwner, error)
+
+	OwnerRegisterTxCreator(cckit_router.Context, *empty.Empty) (*ChaincodeOwner, error)
 
 	OwnerUpdate(cckit_router.Context, *OwnerUpdateRequest) (*ChaincodeOwner, error)
 
@@ -101,6 +105,17 @@ func RegisterChaincodeOwnerServiceChaincode(r *cckit_router.Group, cc ChaincodeO
 			return cc.OwnerRegister(ctx, ctx.Param().(*OwnerRegisterRequest))
 		},
 		cckit_defparam.Proto(&OwnerRegisterRequest{}))
+
+	r.Invoke(ChaincodeOwnerServiceChaincode_OwnerRegisterTxCreator,
+		func(ctx cckit_router.Context) (interface{}, error) {
+			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return nil, cckit_param.PayloadValidationError(err)
+				}
+			}
+			return cc.OwnerRegisterTxCreator(ctx, ctx.Param().(*empty.Empty))
+		},
+		cckit_defparam.Proto(&empty.Empty{}))
 
 	r.Invoke(ChaincodeOwnerServiceChaincode_OwnerUpdate,
 		func(ctx cckit_router.Context) (interface{}, error) {
@@ -211,6 +226,21 @@ func (c *ChaincodeOwnerServiceGateway) OwnerRegister(ctx context.Context, in *Ow
 	}
 
 	if res, err := c.Gateway.Invoke(ctx, ChaincodeOwnerServiceChaincode_OwnerRegister, []interface{}{in}, &ChaincodeOwner{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*ChaincodeOwner), nil
+	}
+}
+
+func (c *ChaincodeOwnerServiceGateway) OwnerRegisterTxCreator(ctx context.Context, in *empty.Empty) (*ChaincodeOwner, error) {
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Gateway.Invoke(ctx, ChaincodeOwnerServiceChaincode_OwnerRegisterTxCreator, []interface{}{in}, &ChaincodeOwner{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ChaincodeOwner), nil

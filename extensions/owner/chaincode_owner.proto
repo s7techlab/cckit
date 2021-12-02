@@ -44,6 +44,14 @@ service ChaincodeOwnerService {
         };
     }
 
+    // Register tx creator as chaincode owner
+    rpc OwnerRegisterTxCreator (google.protobuf.Empty) returns (ChaincodeOwner) {
+        option (google.api.http) = {
+            post: "/chaincode/owners/txcreator"
+            body: "*"
+        };
+    }
+
     //  Update chaincode owner. Msp id and certificate subject must be equal to current owner certificate
     rpc OwnerUpdate (OwnerUpdateRequest) returns (ChaincodeOwner) {
         option (google.api.http) = {
