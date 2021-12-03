@@ -6,9 +6,10 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/router"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
