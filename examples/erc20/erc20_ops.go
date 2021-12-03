@@ -62,12 +62,12 @@ func invokeTransfer(c r.Context) (interface{}, error) {
 	}
 
 	// Disallow to transfer token to same account
-	if invoker.GetMSPID() == toMspId && invoker.GetID() == toCertId {
+	if invoker.GetMSPIdentifier() == toMspId && invoker.GetID() == toCertId {
 		return nil, ErrForbiddenToTransferToSameAccount
 	}
 
 	// get information about invoker balance from state
-	invokerBalance, err := getBalance(c, invoker.GetMSPID(), invoker.GetID())
+	invokerBalance, err := getBalance(c, invoker.GetMSPIdentifier(), invoker.GetID())
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func invokeTransfer(c r.Context) (interface{}, error) {
 	}
 
 	// Update payer and recipient balance
-	if err = setBalance(c, invoker.GetMSPID(), invoker.GetID(), invokerBalance-amount); err != nil {
+	if err = setBalance(c, invoker.GetMSPIdentifier(), invoker.GetID(), invokerBalance-amount); err != nil {
 		return nil, err
 	}
 
@@ -95,7 +95,7 @@ func invokeTransfer(c r.Context) (interface{}, error) {
 	// Trigger event with name "transfer" and payload - serialized to json Transfer structure
 	if err = c.SetEvent(`transfer`, &Transfer{
 		From: identity.Id{
-			MSP:  invoker.GetMSPID(),
+			MSP:  invoker.GetMSPIdentifier(),
 			Cert: invoker.GetID(),
 		},
 		To: identity.Id{
@@ -128,13 +128,13 @@ func invokeApprove(c r.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	if err = setAllowance(c, invoker.GetMSPID(), invoker.GetID(), spenderMspId, spenderCertId, amount); err != nil {
+	if err = setAllowance(c, invoker.GetMSPIdentifier(), invoker.GetID(), spenderMspId, spenderCertId, amount); err != nil {
 		return nil, err
 	}
 
 	if err = c.SetEvent(`approve`, &Approve{
 		From: identity.Id{
-			MSP:  invoker.GetMSPID(),
+			MSP:  invoker.GetMSPIdentifier(),
 			Cert: invoker.GetID(),
 		},
 		Spender: identity.Id{
@@ -166,7 +166,7 @@ func invokeTransferFrom(c r.Context) (interface{}, error) {
 	}
 
 	// check method invoker has allowances
-	allowance, err := getAllowance(c, fromMspId, fromCertId, invoker.GetMSPID(), invoker.GetID())
+	allowance, err := getAllowance(c, fromMspId, fromCertId, invoker.GetMSPIdentifier(), invoker.GetID())
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func invokeTransferFrom(c r.Context) (interface{}, error) {
 	}
 
 	// decrease invoker allowance
-	if err = setAllowance(c, fromMspId, fromCertId, invoker.GetMSPID(), invoker.GetID(), allowance-amount); err != nil {
+	if err = setAllowance(c, fromMspId, fromCertId, invoker.GetMSPIdentifier(), invoker.GetID(), allowance-amount); err != nil {
 		return nil, err
 	}
 

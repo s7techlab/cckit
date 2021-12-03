@@ -1,0 +1,148 @@
+// Chaincode owner service
+
+syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/extensions/owner";
+
+package cckit.extension.owner;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+
+// ChaincodeOwnerService allows to store information about chaincode "owners" in chaincode state
+service ChaincodeOwnerService {
+
+    // Checks tx creator is owner
+    rpc TxCreatorIsOwner (google.protobuf.Empty) returns (ChaincodeOwner) {
+        option (google.api.http) = {
+            get: "/chaincode/owners/whoami"
+        };
+    }
+
+    // Get owners list
+    rpc OwnersList (google.protobuf.Empty) returns (ChaincodeOwners) {
+        option (google.api.http) = {
+            get: "/chaincode/owners"
+        };
+    }
+
+    // Get owner by msp_id and certificate subject
+    rpc OwnerGet (OwnerId) returns (ChaincodeOwner) {
+        option (google.api.http) = {
+            get: "/chaincode/owners/{msp_id}/{subject}"
+        };
+    }
+
+    // Register new chaincode owner, method can be call by current owner or if no owner exists
+    // If chaincode owner with same MspID, certificate subject and issuer exists - throws error
+    rpc OwnerRegister (OwnerRegisterRequest) returns (ChaincodeOwner) {
+        option (google.api.http) = {
+            post: "/chaincode/owners"
+            body: "*"
+        };
+    }
+
+    // Register tx creator as chaincode owner
+    rpc OwnerRegisterTxCreator (google.protobuf.Empty) returns (ChaincodeOwner) {
+        option (google.api.http) = {
+            post: "/chaincode/owners/txcreator"
+            body: "*"
+        };
+    }
+
+    //  Update chaincode owner. Msp id and certificate subject must be equal to current owner certificate
+    rpc OwnerUpdate (OwnerUpdateRequest) returns (ChaincodeOwner) {
+        option (google.api.http) = {
+            put: "/chaincode/owners"
+            body: "*"
+        };
+    }
+
+    // Delete owner
+    rpc OwnerDelete (OwnerId) returns (ChaincodeOwner) {
+        option (google.api.http) = {
+            delete: "/chaincode/owners/{msp_id}/{subject}"
+        };
+    }
+}
+
+// List: Chaincode owners
+message ChaincodeOwners {
+    repeated ChaincodeOwner items = 1;
+}
+
+// State: information stored in chaincode state about chaincode owner
+message ChaincodeOwner {
+    // Msp Id
+    string msp_id = 1;
+    //  certificate subject
+    string subject = 2;
+    //  certificate issuer
+    string issuer = 3;
+    // cert valid not after
+    google.protobuf.Timestamp expires_at = 4;
+    // Certificate
+    bytes cert = 5;
+    // Creator identity info
+    string updated_by_msp_id = 6;
+    // Certificate
+    bytes updated_by_cert = 7;
+    // Updated at
+    google.protobuf.Timestamp updated_at = 8;
+}
+
+// Request: register owner
+message OwnerRegisterRequest {
+    // Msp Id
+    string msp_id = 1 [(validator.field) = {string_not_empty: true}];
+    // Certificate
+    bytes cert = 2 [(validator.field) = {length_gt: 0}];
+}
+
+// Request: update owner certificate
+message OwnerUpdateRequest {
+    // Msp Id
+    string msp_id = 1 [(validator.field) = {string_not_empty: true}];
+    // Current certificate
+    bytes cert = 2 [(validator.field) = {length_gt: 0}];
+}
+
+// Id: owner identifier
+message OwnerId {
+    // Msp Id
+    string msp_id = 1 [(validator.field) = {string_not_empty: true}];
+    // Certificate subject
+    string subject = 2 [(validator.field) = {string_not_empty: true}];
+}
+
+// Event: new chaincode owner registered
+message ChaincodeOwnerRegistered {
+    // Msp Id
+    string msp_id = 1;
+    // certificate subject
+    string subject = 2;
+    //  certificate issuer
+    string issuer = 3;
+    // cert valid not after
+    google.protobuf.Timestamp expires_at = 4;
+}
+
+// Event: new chaincode owner registered
+message ChaincodeOwnerUpdated {
+    // Msp Id
+    string msp_id = 1;
+    // certificate subject
+    string subject = 2;
+    // cert valid not after
+    google.protobuf.Timestamp expires_at = 3;
+}
+
+// Event: chaincode owner deleted`
+message ChaincodeOwnerDeleted {
+    // Msp Id
+    string msp_id = 1;
+    // certificate subject
+    string subject = 2;
+}

@@ -9,24 +9,20 @@ import (
 	r "github.com/s7techlab/cckit/router"
 )
 
-// OwnerStateKey key used to store owner grant struct in chain code state
-const OwnerStateKey = `OWNER`
-
 var (
 	// ErrOwnerNotProvided occurs when providing owner identity in init arguments
 	ErrOwnerNotProvided = errors.New(`owner not provided`)
 
 	// ErrOwnerAlreadySetted owner already setted
 	ErrOwnerAlreadySetted = errors.New(`owner already setted`)
-
-	// ErrMSPIdentifierNotEqual occurs when tx creator and cc owner certificate did not match
-	ErrMSPIdentifierNotEqual = errors.New(`msp identifier not equal`)
 )
 
-func IsSetted(c r.Context) (bool, error) {
+func IsSet(c r.Context) (bool, error) {
 	return c.State().Exists(OwnerStateKey)
 }
 
+// Get returns current chaincode owner identity.Entry
+// Service implementation recommended, see chaincode_owner.proto
 func Get(c r.Context) (*identity.Entry, error) {
 	ownerEntry, err := c.State().Get(OwnerStateKey, &identity.Entry{})
 	if err != nil {
@@ -38,8 +34,9 @@ func Get(c r.Context) (*identity.Entry, error) {
 }
 
 // SetFromCreator sets chain code owner from stub creator
+// Service implementation recommended, see chaincode_owner.proto
 func SetFromCreator(c r.Context) (*identity.Entry, error) {
-	if ownerSetted, err := IsSetted(c); err != nil {
+	if ownerSetted, err := IsSet(c); err != nil {
 		return nil, err
 	} else if ownerSetted {
 		return Get(c)
@@ -66,7 +63,7 @@ func SetFromArgs(c r.Context) (*identity.Entry, error) {
 		return Insert(c, string(args[0]), args[1])
 	}
 
-	if isSetted, err := IsSetted(c); err != nil {
+	if isSetted, err := IsSet(c); err != nil {
 		return nil, err
 	} else if !isSetted {
 		return nil, ErrOwnerNotProvided
@@ -78,7 +75,7 @@ func SetFromArgs(c r.Context) (*identity.Entry, error) {
 // Insert information about owner to chaincode state
 func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 
-	if ownerSetted, err := IsSetted(c); err != nil {
+	if ownerSetted, err := IsSet(c); err != nil {
 		return nil, fmt.Errorf(`check owner is set: %w`, err)
 	} else if ownerSetted {
 		return nil, ErrOwnerAlreadySetted
@@ -97,6 +94,7 @@ func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
 }
 
 // IsInvokerOr checks tx creator and compares with owner of another identity
+// Service implementation recommended, see chaincode_owner.proto
 func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
 	if err := IsTxCreator(c); err == nil {
 		return true, nil
@@ -118,6 +116,7 @@ func IsInvokerOr(c r.Context, allowedTo ...identity.Identity) (bool, error) {
 }
 
 // IdentityEntryFromState returns identity.Entry with chaincode owner certificate
+// Service implementation recommended, see chaincode_owner.proto
 func IdentityEntryFromState(c r.Context) (identity.Entry, error) {
 	res, err := c.State().Get(OwnerStateKey, &identity.Entry{})
 	if err != nil {
@@ -127,8 +126,8 @@ func IdentityEntryFromState(c r.Context) (identity.Entry, error) {
 	return res.(identity.Entry), nil
 }
 
-// Deprecated: IsInvoker checks  than tx creator is chain code owner
-// use IsTxCreator
+// IsInvoker checks than tx creator is chain code owner
+// Service implementation recommended, see chaincode_owner.proto
 func IsInvoker(ctx r.Context) (bool, error) {
 	if err := IsTxCreator(ctx); err != nil {
 		return false, err
@@ -138,6 +137,7 @@ func IsInvoker(ctx r.Context) (bool, error) {
 }
 
 // IsTxCreator returns error if owner identity  (msp_id + certificate) did not match tx creator identity
+// Service implementation recommended, see chaincode_owner.proto
 func IsTxCreator(ctx r.Context) error {
 	invoker, err := identity.FromStub(ctx.Stub())
 	if err != nil {
@@ -149,11 +149,7 @@ func IsTxCreator(ctx r.Context) error {
 		return err
 	}
 
-	if ownerEntry.GetMSPID() != invoker.GetMSPIdentifier() {
-		return fmt.Errorf(`%s : %w`, ErrMSPIdentifierNotEqual, ErrOwnerOnly)
-	}
-
-	if err = identity.CertEqual(invoker, ownerEntry); err != nil {
+	if err = identity.Equal(invoker, ownerEntry); err != nil {
 		return fmt.Errorf(`%s : %w`, err, ErrOwnerOnly)
 	}
 
