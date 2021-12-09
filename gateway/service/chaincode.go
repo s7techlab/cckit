@@ -9,12 +9,12 @@ import (
 
 type (
 	ChaincodeService struct {
-		peer         Peer
-		eventService *ChaincodeEventService
+		Peer         Peer
+		EventService *ChaincodeEventService
 	}
 
 	ChaincodeEventService struct {
-		eventDelivery EventDelivery
+		EventDelivery EventDelivery
 	}
 )
 
@@ -27,13 +27,13 @@ type (
 
 func NewChaincodeService(peer Peer) *ChaincodeService {
 	return &ChaincodeService{
-		peer:         peer,
-		eventService: NewChaincodeEventService(peer),
+		Peer:         peer,
+		EventService: NewChaincodeEventService(peer),
 	}
 }
 
 func NewChaincodeEventService(eventDelivery EventDelivery) *ChaincodeEventService {
-	return &ChaincodeEventService{eventDelivery: eventDelivery}
+	return &ChaincodeEventService{EventDelivery: eventDelivery}
 }
 
 func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.ProposalResponse, error) {
@@ -52,7 +52,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 	// if smth goes wrong we'll see it on the step below
 	signer, _ := SignerFromContext(ctx)
 
-	response, _, err := cs.peer.Invoke(
+	response, _, err := cs.Peer.Invoke(
 		ctx,
 		in.Chaincode.Channel,
 		in.Chaincode.Chaincode,
@@ -75,7 +75,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
 	signer, _ := SignerFromContext(ctx)
 
-	resp, err := cs.peer.Query(
+	resp, err := cs.Peer.Query(
 		ctx,
 		in.Chaincode.Channel,
 		in.Chaincode.Chaincode,
@@ -91,7 +91,7 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 }
 
 func (cs *ChaincodeService) Events(in *ChaincodeEventsRequest, stream ChaincodeService_EventsServer) error {
-	return cs.eventService.Events(in, stream)
+	return cs.EventService.Events(in, stream)
 }
 
 func (ce *ChaincodeEventService) Events(in *ChaincodeEventsRequest, stream ChaincodeService_EventsServer) error {
@@ -102,7 +102,7 @@ func (ce *ChaincodeEventService) Events(in *ChaincodeEventsRequest, stream Chain
 		blockRange = []int64{in.Block.From, in.Block.To}
 	}
 
-	events, err := ce.eventDelivery.Events(
+	events, err := ce.EventDelivery.Events(
 		stream.Context(),
 		in.Chaincode.Channel,
 		in.Chaincode.Chaincode,
