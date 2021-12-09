@@ -18,6 +18,26 @@ type (
 	}
 )
 
+func NewChaincodeInstanceService(peer Peer, channel, chaincode string) *ChaincodeInstanceService {
+	return &ChaincodeInstanceService{
+		ChaincodeService: NewChaincodeService(peer),
+		Locator: &ChaincodeLocator{
+			Channel:   channel,
+			Chaincode: chaincode,
+		},
+	}
+}
+
+func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode string) *ChaincodeInstanceEventService {
+	return &ChaincodeInstanceEventService{
+		EventService: NewChaincodeEventService(delivery),
+		Locator: &ChaincodeLocator{
+			Channel:   channel,
+			Chaincode: chaincode,
+		},
+	}
+}
+
 func (cis *ChaincodeInstanceService) Exec(ctx context.Context, exec *ChaincodeInstanceExec) (*peer.ProposalResponse, error) {
 	return cis.ChaincodeService.Exec(ctx, &ChaincodeExec{
 		Type: exec.Type,
