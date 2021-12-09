@@ -4,52 +4,36 @@ import (
 	"context"
 	fmt "fmt"
 
-	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/hyperledger/fabric/msp"
+	"github.com/s7techlab/cckit/gateway"
 )
 
-type ChaincodeService struct {
-	peerSDK Peer
-}
-
-// gateway/chaincode.go needds access to grpc stream
 type (
-	Chaincode             = ChaincodeServer
-	ChaincodeEventsServer = chaincodeEventsServer
+	ChaincodeService struct {
+		peer         gateway.Peer
+		eventService *ChaincodeEventService
+	}
+
+	ChaincodeEventService struct {
+		eventDelivery gateway.EventDelivery
+	}
 )
 
-type Peer interface {
-	Invoke(
-		ctx context.Context,
-		chanName string,
-		ccName string,
-		args [][]byte,
-		identity msp.SigningIdentity,
-		transient map[string][]byte,
-		txWaiterType string,
-	) (res *peer.Response, chaincodeTx string, err error)
+// gateway/chaincode.go needs access to grpc stream
+type (
+	Chaincode             = ChaincodeServiceServer
+	ChaincodeEventsServer = chaincodeServiceEventsServer
+)
 
-	Query(
-		ctx context.Context,
-		chanName string,
-		ccName string,
-		args [][]byte,
-		identity msp.SigningIdentity,
-		transient map[string][]byte,
-	) (*peer.ProposalResponse, error)
-
-	Events(
-		ctx context.Context,
-		channelName string,
-		ccName string,
-		identity msp.SigningIdentity,
-		eventCCSeekOption ...func() (*orderer.SeekPosition, *orderer.SeekPosition),
-	) (chan *peer.ChaincodeEvent, error)
+func NewChaincodeService(peer gateway.Peer) *ChaincodeService {
+	return &ChaincodeService{
+		peer:         peer,
+		eventService: NewChaincodeEventService(peer),
+	}
 }
 
-func New(peerSDK Peer) *ChaincodeService {
-	return &ChaincodeService{peerSDK: peerSDK}
+func NewChaincodeEventService(eventDelivery gateway.EventDelivery) *ChaincodeEventService {
+	return &ChaincodeEventService{eventDelivery: eventDelivery}
 }
 
 func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.ProposalResponse, error) {
@@ -68,10 +52,10 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 	// if smth goes wrong we'll see it on the step below
 	signer, _ := SignerFromContext(ctx)
 
-	response, _, err := cs.peerSDK.Invoke(
+	response, _, err := cs.peer.Invoke(
 		ctx,
-		in.Channel,
-		in.Chaincode,
+		in.Chaincode.Channel,
+		in.Chaincode.Chaincode,
 		in.Args,
 		signer,
 		in.Transient,
@@ -91,10 +75,10 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
 	signer, _ := SignerFromContext(ctx)
 
-	resp, err := cs.peerSDK.Query(
+	resp, err := cs.peer.Query(
 		ctx,
-		in.Channel,
-		in.Chaincode,
+		in.Chaincode.Channel,
+		in.Chaincode.Chaincode,
 		in.Args,
 		signer,
 		in.Transient,
@@ -106,14 +90,24 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 	return resp, nil
 }
 
-func (cs *ChaincodeService) Events(in *ChaincodeLocator, stream Chaincode_EventsServer) error {
+func (cs *ChaincodeService) Events(in *ChaincodeEventsRequest, stream ChaincodeService_EventsServer) error {
+	return cs.eventService.Events(in, stream)
+}
+
+func (ce *ChaincodeEventService) Events(in *ChaincodeEventsRequest, stream ChaincodeService_EventsServer) error {
 	signer, _ := SignerFromContext(stream.Context())
 
-	events, err := cs.peerSDK.Events(
+	var blockRange []int64
+	if in.Block != nil {
+		blockRange = []int64{in.Block.From, in.Block.To}
+	}
+
+	events, err := ce.eventDelivery.Events(
 		stream.Context(),
-		in.Channel,
-		in.Chaincode,
+		in.Chaincode.Channel,
+		in.Chaincode.Chaincode,
 		signer,
+		blockRange...,
 	)
 	if err != nil {
 		return err

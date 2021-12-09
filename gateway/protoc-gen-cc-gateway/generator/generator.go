@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"log"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
@@ -52,7 +52,7 @@ func (g *Generator) generateCC(file *descriptor.File) (*plugin.CodeGeneratorResp
 
 	formatted, err := format.Source([]byte(code))
 	if err != nil {
-		glog.Errorf("%v: %s", err, annotateString(code))
+		log.Printf("%v: %s", err, annotateString(code))
 		return nil, err
 	}
 

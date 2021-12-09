@@ -116,7 +116,12 @@ func (stub *MockStub) SetEvent(name string, payload []byte) error {
 		return errors.New("event name can not be nil string")
 	}
 
-	stub.ChaincodeEvent = &peer.ChaincodeEvent{EventName: name, Payload: payload}
+	stub.ChaincodeEvent = &peer.ChaincodeEvent{
+		ChaincodeId: stub.Name,
+		TxId:        stub.TxID,
+		EventName:   name,
+		Payload:     payload,
+	}
 	return nil
 }
 

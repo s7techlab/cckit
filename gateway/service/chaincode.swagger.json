@@ -6,7 +6,16 @@
   },
   "tags": [
     {
-      "name": "Chaincode"
+      "name": "ChaincodeService"
+    },
+    {
+      "name": "ChaincodeEventsService"
+    },
+    {
+      "name": "ChaincodeInstanceService"
+    },
+    {
+      "name": "ChaincodeInstanceEventsService"
     }
   ],
   "consumes": [
@@ -15,7 +24,342 @@
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/chaincode-instance/events": {
+      "get": {
+        "summary": "Chaincode events stream",
+        "operationId": "ChaincodeInstanceEventsService_Events",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/protosChaincodeEvent"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of protosChaincodeEvent"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "block.from",
+            "description": "from block.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "block.to",
+            "description": "to block.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ChaincodeInstanceEventsService"
+        ]
+      }
+    },
+    "/chaincode-instance/exec": {
+      "post": {
+        "summary": "Exec: Query or Invoke",
+        "operationId": "ChaincodeInstanceService_Exec",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protosProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/serviceChaincodeInstanceExec"
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeInstanceService"
+        ]
+      }
+    },
+    "/chaincode-instance/invoke": {
+      "post": {
+        "summary": "Invoke chaincode on peers, according to endorsement policy and the SEND to orderer",
+        "operationId": "ChaincodeInstanceService_Invoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protosProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/serviceChaincodeInstanceInput"
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeInstanceService"
+        ]
+      }
+    },
+    "/chaincode-instance/query": {
+      "get": {
+        "summary": "Query chaincode on home peer. Do NOT send to orderer.",
+        "operationId": "ChaincodeInstanceService_Query",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protosProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "args",
+            "description": "Input contains the arguments for invocation.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "byte"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "ChaincodeInstanceService"
+        ]
+      }
+    },
+    "/chaincode/events": {
+      "get": {
+        "summary": "Chaincode events stream",
+        "operationId": "ChaincodeEventsService_Events",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/protosChaincodeEvent"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of protosChaincodeEvent"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chaincode.chaincode",
+            "description": "Chaincode name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "chaincode.channel",
+            "description": "Channel name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "block.from",
+            "description": "from block.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "block.to",
+            "description": "to block.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ChaincodeEventsService"
+        ]
+      }
+    },
+    "/chaincode/exec": {
+      "post": {
+        "summary": "Exec: Query or Invoke",
+        "operationId": "ChaincodeService_Exec",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protosProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/serviceChaincodeExec"
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeService"
+        ]
+      }
+    },
+    "/chaincode/invoke": {
+      "post": {
+        "summary": "Invoke chaincode on peers, according to endorsement policy and the SEND to orderer",
+        "operationId": "ChaincodeService_Invoke",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protosProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/serviceChaincodeInput"
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeService"
+        ]
+      }
+    },
+    "/chaincode/query": {
+      "get": {
+        "summary": "Query chaincode on home peer. Do NOT send to orderer.",
+        "operationId": "ChaincodeService_Query",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protosProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chaincode.chaincode",
+            "description": "Chaincode name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "chaincode.channel",
+            "description": "Channel name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "args",
+            "description": "Input contains the arguments for invocation.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "byte"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "ChaincodeService"
+        ]
+      }
+    }
+  },
   "definitions": {
     "protobufAny": {
       "type": "object",
@@ -131,16 +475,37 @@
         }
       }
     },
+    "serviceBlockRange": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "format": "int64",
+          "title": "from block"
+        },
+        "to": {
+          "type": "string",
+          "format": "int64",
+          "title": "to block"
+        }
+      }
+    },
+    "serviceChaincodeExec": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/serviceInvocationType"
+        },
+        "input": {
+          "$ref": "#/definitions/serviceChaincodeInput"
+        }
+      }
+    },
     "serviceChaincodeInput": {
       "type": "object",
       "properties": {
         "chaincode": {
-          "type": "string",
-          "title": "Chaincode name"
-        },
-        "channel": {
-          "type": "string",
-          "title": "Channel name"
+          "$ref": "#/definitions/serviceChaincodeLocator"
         },
         "args": {
           "type": "array",
@@ -157,6 +522,51 @@
             "format": "byte"
           },
           "description": "TransientMap contains data (e.g. cryptographic material) that might be used\nto implement some form of application-level confidentiality. The contents\nof this field are supposed to always be omitted from the transaction and\nexcluded from the ledger."
+        }
+      }
+    },
+    "serviceChaincodeInstanceExec": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/serviceInvocationType"
+        },
+        "input": {
+          "$ref": "#/definitions/serviceChaincodeInstanceInput"
+        }
+      }
+    },
+    "serviceChaincodeInstanceInput": {
+      "type": "object",
+      "properties": {
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "byte"
+          },
+          "description": "Input contains the arguments for invocation."
+        },
+        "transient": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "format": "byte"
+          },
+          "description": "TransientMap contains data (e.g. cryptographic material) that might be used\nto implement some form of application-level confidentiality. The contents\nof this field are supposed to always be omitted from the transaction and\nexcluded from the ledger."
+        }
+      }
+    },
+    "serviceChaincodeLocator": {
+      "type": "object",
+      "properties": {
+        "chaincode": {
+          "type": "string",
+          "title": "Chaincode name"
+        },
+        "channel": {
+          "type": "string",
+          "title": "Channel name"
         }
       }
     },
