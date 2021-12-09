@@ -5,34 +5,34 @@ import (
 	fmt "fmt"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/s7techlab/cckit/gateway"
 )
 
 type (
 	ChaincodeService struct {
-		peer         gateway.Peer
+		peer         Peer
 		eventService *ChaincodeEventService
 	}
 
 	ChaincodeEventService struct {
-		eventDelivery gateway.EventDelivery
+		eventDelivery EventDelivery
 	}
 )
 
 // gateway/chaincode.go needs access to grpc stream
 type (
 	Chaincode             = ChaincodeServiceServer
+	ChaincodeServer       = ChaincodeServiceServer
 	ChaincodeEventsServer = chaincodeServiceEventsServer
 )
 
-func NewChaincodeService(peer gateway.Peer) *ChaincodeService {
+func NewChaincodeService(peer Peer) *ChaincodeService {
 	return &ChaincodeService{
 		peer:         peer,
 		eventService: NewChaincodeEventService(peer),
 	}
 }
 
-func NewChaincodeEventService(eventDelivery gateway.EventDelivery) *ChaincodeEventService {
+func NewChaincodeEventService(eventDelivery EventDelivery) *ChaincodeEventService {
 	return &ChaincodeEventService{eventDelivery: eventDelivery}
 }
 

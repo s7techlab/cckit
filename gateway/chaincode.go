@@ -30,7 +30,7 @@ type ChaincodeEventSub interface {
 }
 
 type chaincode struct {
-	Service   service.ChaincodeServer
+	Service   service.ChaincodeServiceServer
 	Channel   string
 	Chaincode string
 
@@ -40,7 +40,7 @@ type chaincode struct {
 	EventOpts   []EventOpt
 }
 
-func NewChaincode(service service.ChaincodeServer, channelName, chaincodeName string, opts ...Opt) *chaincode {
+func NewChaincode(service service.ChaincodeServiceServer, channelName, chaincodeName string, opts ...Opt) *chaincode {
 	c := &chaincode{
 		Service:   service,
 		Channel:   channelName,
@@ -58,9 +58,11 @@ func (g *chaincode) Events(ctx context.Context) (ChaincodeEventSub, error) {
 	stream := NewChaincodeEventServerStream(ctx, g.EventOpts...)
 
 	go func() {
-		err := g.Service.Events(&service.ChaincodeLocator{
-			Channel:   g.Channel,
-			Chaincode: g.Chaincode,
+		err := g.Service.Events(&service.ChaincodeEventsRequest{
+			Chaincode: &service.ChaincodeLocator{
+				Channel:   g.Channel,
+				Chaincode: g.Chaincode,
+			},
 		}, &service.ChaincodeEventsServer{ServerStream: stream})
 
 		if err != nil {
@@ -113,9 +115,11 @@ func (g *chaincode) ccInput(ctx context.Context, action Action, fn string, args 
 	}
 
 	ccInput = &service.ChaincodeInput{
-		Channel:   g.Channel,
-		Chaincode: g.Chaincode,
-		Args:      append([][]byte{[]byte(fn)}, argsBytes...),
+		Chaincode: &service.ChaincodeLocator{
+			Channel:   g.Channel,
+			Chaincode: g.Chaincode,
+		},
+		Args: append([][]byte{[]byte(fn)}, argsBytes...),
 	}
 
 	if ccInput.Transient, err = TransientFromContext(ctx); err != nil {

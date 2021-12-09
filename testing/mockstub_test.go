@@ -75,8 +75,10 @@ var _ = Describe(`Testing`, func() {
 			resp := expectcc.ResponseOk(cc.From(Authority).Invoke(`carRegister`, cars.Payloads[1]))
 
 			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				TxId:        cc.LastTxID,
+				ChaincodeId: cc.Name,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			close(done)
@@ -98,18 +100,24 @@ var _ = Describe(`Testing`, func() {
 			Expect(len(sub2)).To(Equal(1))
 
 			Expect(<-sub1).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				ChaincodeId: cc.Name,
+				TxId:        cc.LastTxID,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			Expect(<-sub2).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				ChaincodeId: cc.Name,
+				TxId:        cc.LastTxID,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				ChaincodeId: cc.Name,
+				TxId:        cc.LastTxID,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
@@ -141,8 +149,10 @@ var _ = Describe(`Testing`, func() {
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
 
 			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				ChaincodeId: cc.Name,
+				TxId:        cc.LastTxID,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			close(done)

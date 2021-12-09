@@ -17,7 +17,7 @@ func FailInvokeChaincode(chaincodes ...string) ChaincodeInvoker {
 	return func(ctx context.Context, mockstub *testing.MockStub, in *service.ChaincodeExec) *peer.Response {
 		if in.Type == service.InvocationType_INVOKE {
 			for _, c := range chaincodes {
-				if in.Input.Chaincode == c {
+				if in.Input.Chaincode.Chaincode == c {
 					return InvokeErrorResponse
 				}
 			}
@@ -29,7 +29,7 @@ func FailInvokeChaincode(chaincodes ...string) ChaincodeInvoker {
 func FailChaincode(chaincodes ...string) ChaincodeInvoker {
 	return func(ctx context.Context, mockstub *testing.MockStub, in *service.ChaincodeExec) *peer.Response {
 		for _, c := range chaincodes {
-			if in.Input.Chaincode == c {
+			if in.Input.Chaincode.Chaincode == c {
 				return InvokeErrorResponse
 			}
 		}

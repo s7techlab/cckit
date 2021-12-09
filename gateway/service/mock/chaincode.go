@@ -8,6 +8,7 @@ import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
+
 	"github.com/s7techlab/cckit/gateway/service"
 	"github.com/s7techlab/cckit/testing"
 )
@@ -18,7 +19,7 @@ const (
 
 type (
 	ChaincodeService struct {
-		service.UnimplementedChaincodeServer
+		service.UnimplementedChaincodeServiceServer
 		// channel name -> chaincode name
 		Peer    *testing.MockedPeer
 		m       sync.Mutex
@@ -83,7 +84,7 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec)
 	cs.m.Lock()
 	defer cs.m.Unlock()
 
-	if mockStub, err = cs.Peer.Chaincode(in.Input.Channel, in.Input.Chaincode); err != nil {
+	if mockStub, err = cs.Peer.Chaincode(in.Input.Chaincode.Channel, in.Input.Chaincode.Chaincode); err != nil {
 		return nil, err
 	}
 
@@ -114,11 +115,11 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *service.ChaincodeInp
 	})
 }
 
-func (cs *ChaincodeService) Events(in *service.ChaincodeLocator, stream service.Chaincode_EventsServer) (err error) {
+func (cs *ChaincodeService) Events(in *service.ChaincodeEventsRequest, stream service.ChaincodeService_EventsServer) (err error) {
 	var (
 		mockStub *testing.MockStub
 	)
-	if mockStub, err = cs.Peer.Chaincode(in.Channel, in.Chaincode); err != nil {
+	if mockStub, err = cs.Peer.Chaincode(in.Chaincode.Channel, in.Chaincode.Chaincode); err != nil {
 		return
 	}
 	events := mockStub.EventSubscription()

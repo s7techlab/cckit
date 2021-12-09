@@ -30,7 +30,7 @@ type (
 	}
 )
 
-// NewInvoker implements Invoker interface from hlf-sdk-go
+// NewPeer implements Peer interface
 func NewPeer() *MockedPeer {
 	return &MockedPeer{
 		ChannelCC: make(ChannelsMockStubs),
