@@ -242,7 +242,9 @@ var _ = Describe(`Router`, func() {
 
 			//event name and payload is encrypted with key
 			Expect(<-events).To(BeEquivalentTo(encryption.MustEncryptEvent(encKey, &peer.ChaincodeEvent{
-				EventName: `PaymentEvent`,
+				ChaincodeId: encCCInvoker.MockStub.Name,
+				TxId:        encCCInvoker.MockStub.LastTxID,
+				EventName:   `PaymentEvent`,
 				Payload: testcc.MustProtoMarshal(&schema.PaymentEvent{
 					Type:   pType,
 					Id:     pID1,

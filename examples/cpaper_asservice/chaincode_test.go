@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
@@ -89,10 +88,8 @@ var _ = Describe(`CommercialPaper`, func() {
 			expectcc.ResponseOk(cc.Invoke(s.CPaperChaincode_Issue, issuePayload))
 
 			// Validate event has been emitted with the transaction data
-			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `IssueCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(issuePayload),
-			}))
+			expectcc.EventStringerEqual(<-cc.ChaincodeEventsChannel,
+				`IssueCommercialPaper`, issuePayload)
 
 			// Clear events channel after a test case that emits an event
 			cc.ClearEvents()
@@ -161,11 +158,8 @@ var _ = Describe(`CommercialPaper`, func() {
 			Expect(paper.Owner).To(Equal(BuyerName))
 			Expect(paper.State).To(Equal(schema.CommercialPaper_TRADING))
 
-			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `BuyCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(buyTransactionData),
-			}))
-
+			expectcc.EventStringerEqual(<-cc.ChaincodeEventsChannel,
+				`BuyCommercialPaper`, buyTransactionData)
 			cc.ClearEvents()
 		})
 
@@ -188,10 +182,8 @@ var _ = Describe(`CommercialPaper`, func() {
 			Expect(paper.Owner).To(Equal(IssuerName))
 			Expect(paper.State).To(Equal(schema.CommercialPaper_REDEEMED))
 
-			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `RedeemCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(redeemTransactionData),
-			}))
+			expectcc.EventStringerEqual(<-cc.ChaincodeEventsChannel,
+				`RedeemCommercialPaper`, redeemTransactionData)
 
 			cc.ClearEvents()
 		})
@@ -216,10 +208,8 @@ var _ = Describe(`CommercialPaper`, func() {
 			expectcc.ResponseOk(ccEncWrapped.Invoke(s.CPaperChaincode_Issue, issuePayload))
 
 			// Validate event has been emitted with the transaction data, and event name and payload is encrypted
-			Expect(<-ccEnc.ChaincodeEventsChannel).To(BeEquivalentTo(encryption.MustEncryptEvent(encKey, &peer.ChaincodeEvent{
-				EventName: `IssueCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(issuePayload),
-			})))
+			expectcc.EventStringerEqual(ccEncWrapped.LastEvent(),
+				`IssueCommercialPaper`, issuePayload)
 
 			// Clear events channel after a test case that emits an event
 			cc.ClearEvents()
