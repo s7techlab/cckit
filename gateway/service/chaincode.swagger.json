@@ -83,7 +83,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protosProposalResponse"
+              "$ref": "#/definitions/protosResponse"
             }
           },
           "default": {
@@ -116,7 +116,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protosProposalResponse"
+              "$ref": "#/definitions/protosResponse"
             }
           },
           "default": {
@@ -149,7 +149,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protosProposalResponse"
+              "$ref": "#/definitions/protosResponse"
             }
           },
           "default": {
@@ -250,7 +250,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protosProposalResponse"
+              "$ref": "#/definitions/protosResponse"
             }
           },
           "default": {
@@ -283,7 +283,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protosProposalResponse"
+              "$ref": "#/definitions/protosResponse"
             }
           },
           "default": {
@@ -316,7 +316,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protosProposalResponse"
+              "$ref": "#/definitions/protosResponse"
             }
           },
           "default": {
@@ -392,51 +392,6 @@
       },
       "title": "ChaincodeEvent is used for events and registrations that are specific to chaincode\nstring type - \"chaincode\""
     },
-    "protosEndorsement": {
-      "type": "object",
-      "properties": {
-        "endorser": {
-          "type": "string",
-          "format": "byte",
-          "title": "Identity of the endorser (e.g. its certificate)"
-        },
-        "signature": {
-          "type": "string",
-          "format": "byte",
-          "title": "Signature of the payload included in ProposalResponse concatenated with\nthe endorser's certificate; ie, sign(ProposalResponse.payload + endorser)"
-        }
-      },
-      "title": "An endorsement is a signature of an endorser over a proposal response.  By\nproducing an endorsement message, an endorser implicitly \"approves\" that\nproposal response and the actions contained therein. When enough\nendorsements have been collected, a transaction can be generated out of a\nset of proposal responses.  Note that this message only contains an identity\nand a signature but no signed payload. This is intentional because\nendorsements are supposed to be collected in a transaction, and they are all\nexpected to endorse a single proposal response/action (many endorsements\nover a single proposal response)"
-    },
-    "protosProposalResponse": {
-      "type": "object",
-      "properties": {
-        "version": {
-          "type": "integer",
-          "format": "int32",
-          "title": "Version indicates message protocol version"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time",
-          "title": "Timestamp is the time that the message\nwas created as  defined by the sender"
-        },
-        "response": {
-          "$ref": "#/definitions/protosResponse",
-          "title": "A response message indicating whether the\nendorsement of the action was successful"
-        },
-        "payload": {
-          "type": "string",
-          "format": "byte",
-          "title": "The payload of response. It is the bytes of ProposalResponsePayload"
-        },
-        "endorsement": {
-          "$ref": "#/definitions/protosEndorsement",
-          "title": "The endorsement of the proposal, basically\nthe endorser's signature over the payload"
-        }
-      },
-      "description": "A ProposalResponse is returned from an endorser to the proposal submitter.\nThe idea is that this message contains the endorser's response to the\nrequest of a client to perform an action over a chaincode (or more\ngenerically on the ledger); the response might be success/error (conveyed in\nthe Response field) together with a description of the action and a\nsignature over it by that endorser.  If a sufficient number of distinct\nendorsers agree on the same action and produce signature to that effect, a\ntransaction can be generated and sent for ordering."
-    },
     "protosResponse": {
       "type": "object",
       "properties": {
@@ -488,7 +443,8 @@
           "format": "int64",
           "title": "to block"
         }
-      }
+      },
+      "title": "Block range for event subscription.\nValues can be negative. If from is negative - subscription starts from x block from channel height"
     },
     "serviceChaincodeExec": {
       "type": "object",
@@ -499,7 +455,8 @@
         "input": {
           "$ref": "#/definitions/serviceChaincodeInput"
         }
-      }
+      },
+      "title": "Chaincode execution specification"
     },
     "serviceChaincodeInput": {
       "type": "object",
@@ -523,7 +480,8 @@
           },
           "description": "TransientMap contains data (e.g. cryptographic material) that might be used\nto implement some form of application-level confidentiality. The contents\nof this field are supposed to always be omitted from the transaction and\nexcluded from the ledger."
         }
-      }
+      },
+      "title": "Chaincode invocation input"
     },
     "serviceChaincodeInstanceExec": {
       "type": "object",
@@ -555,7 +513,8 @@
           },
           "description": "TransientMap contains data (e.g. cryptographic material) that might be used\nto implement some form of application-level confidentiality. The contents\nof this field are supposed to always be omitted from the transaction and\nexcluded from the ledger."
         }
-      }
+      },
+      "title": "Chaincode instance chaincode input spec"
     },
     "serviceChaincodeLocator": {
       "type": "object",
@@ -568,7 +527,8 @@
           "type": "string",
           "title": "Channel name"
         }
-      }
+      },
+      "title": "Chaincode locator - channel name and chaincode name"
     },
     "serviceInvocationType": {
       "type": "string",
@@ -576,7 +536,9 @@
         "QUERY",
         "INVOKE"
       ],
-      "default": "QUERY"
+      "default": "QUERY",
+      "description": "- QUERY: Simulation\n - INVOKE: Simulation and applying to ledger",
+      "title": "Chaincode invocation type"
     }
   }
 }

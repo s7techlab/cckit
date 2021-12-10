@@ -37,7 +37,7 @@ type ChaincodeQuerier interface {
 		args [][]byte,
 		identity msp.SigningIdentity,
 		transient map[string][]byte,
-	) (*peer.ProposalResponse, error)
+	) (*peer.Response, error)
 }
 
 type EventDelivery interface {

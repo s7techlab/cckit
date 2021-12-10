@@ -83,7 +83,7 @@ func (g *chaincode) Query(ctx context.Context, fn string, args []interface{}, ta
 	if response, err := g.Service.Query(c, ccInput); err != nil {
 		return nil, err
 	} else {
-		return g.ccOutput(c, Query, response.Response, target)
+		return g.ccOutput(c, Query, response, target)
 	}
 }
 
@@ -97,7 +97,7 @@ func (g *chaincode) Invoke(ctx context.Context, fn string, args []interface{}, t
 	if response, err := g.Service.Invoke(c, ccInput); err != nil {
 		return nil, err
 	} else {
-		return g.ccOutput(c, Invoke, response.Response, target)
+		return g.ccOutput(c, Invoke, response, target)
 	}
 }
 

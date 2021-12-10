@@ -36,7 +36,7 @@ func NewChaincodeEventService(eventDelivery EventDelivery) *ChaincodeEventServic
 	return &ChaincodeEventService{EventDelivery: eventDelivery}
 }
 
-func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.ProposalResponse, error) {
+func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.Response, error) {
 	switch in.Type {
 	case InvocationType_QUERY:
 		return cs.Query(ctx, in.Input)
@@ -47,7 +47,7 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.
 	}
 }
 
-func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
+func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*peer.Response, error) {
 	// underlying hlf-sdk(or your implementation must handle it) can handle 'nil' identity cases and set default if call identity wasn't provided
 	// if smth goes wrong we'll see it on the step below
 	signer, _ := SignerFromContext(ctx)
@@ -65,14 +65,10 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 		return nil, fmt.Errorf("invoke chaincode: %w", err)
 	}
 
-	// todo: add to hlf-sdk-go method returning ProposalResponse
-	proposalResponse := &peer.ProposalResponse{
-		Response: response,
-	}
-	return proposalResponse, nil
+	return response, nil
 }
 
-func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.ProposalResponse, error) {
+func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.Response, error) {
 	signer, _ := SignerFromContext(ctx)
 
 	resp, err := cs.Peer.Query(

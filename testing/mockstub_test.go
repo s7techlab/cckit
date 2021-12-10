@@ -134,13 +134,14 @@ var _ = Describe(`Testing`, func() {
 		It("Allow to invoke mocked chaincode ", func(done Done) {
 			ctx := context.Background()
 
-			events, err := mockedPeer.Subscribe(ctx, Authority, Channel, CarsChaincode)
+			events, err := mockedPeer.Events(ctx, Channel, CarsChaincode, Authority)
 			Expect(err).NotTo(HaveOccurred())
 
-			// double check interface api.Invoker
+			// double check interface Peer
 			resp, _, err := mockedPeer.Invoke(
-				ctx, Authority, Channel, CarsChaincode, `carRegister`,
-				[][]byte{testcc.MustJSONMarshal(cars.Payloads[3])}, nil)
+				ctx, Channel, CarsChaincode,
+				[][]byte{[]byte(`carRegister`), testcc.MustJSONMarshal(cars.Payloads[3])},
+				Authority, nil, ``)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -161,8 +162,10 @@ var _ = Describe(`Testing`, func() {
 
 		It("Allow to query mocked chaincode ", func() {
 			resp, err := mockedPeer.Query(
-				context.Background(), Authority, Channel, CarsChaincode,
-				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+				context.Background(),
+				Channel, CarsChaincode,
+				[][]byte{[]byte(`carGet`), []byte(cars.Payloads[3].Id)},
+				Authority, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -173,8 +176,10 @@ var _ = Describe(`Testing`, func() {
 
 		It("Allow to query mocked chaincode from chaincode", func() {
 			resp, err := mockedPeer.Query(
-				context.Background(), Authority, Channel, CarsProxyChaincode,
-				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+				context.Background(),
+				Channel, CarsProxyChaincode,
+				[][]byte{[]byte(`carGet`), []byte(cars.Payloads[3].Id)},
+				Authority, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -185,16 +190,20 @@ var _ = Describe(`Testing`, func() {
 
 		It("Should return error when unknown channel provided", func() {
 			_, err := mockedPeer.Query(
-				context.Background(), Authority, "unknown-channel", CarsProxyChaincode,
-				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+				context.Background(),
+				"unknown-channel", CarsProxyChaincode,
+				[][]byte{[]byte(`carGet`), []byte(cars.Payloads[3].Id)},
+				Authority, nil)
 			Expect(err).To(HaveOccurred())
 
 		})
 
 		It("Should return error when unknown carID provided", func() {
 			_, err := mockedPeer.Query(
-				context.Background(), Authority, Channel, CarsProxyChaincode,
-				`carGet`, [][]byte{[]byte("unknown_car_id")}, nil)
+				context.Background(),
+				Channel, CarsProxyChaincode,
+				[][]byte{[]byte(`carGet`), []byte("unknown_car_id")},
+				Authority, nil)
 			Expect(err).To(HaveOccurred())
 		})
 	})

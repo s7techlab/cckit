@@ -74,7 +74,7 @@ func DefaultInvoker(ctx context.Context, mockStub *testing.MockStub, in *service
 	return &response
 }
 
-func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec) (*peer.ProposalResponse, error) {
+func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec) (*peer.Response, error) {
 	var (
 		mockStub *testing.MockStub
 		response *peer.Response
@@ -94,21 +94,17 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec)
 		return nil, errors.New(response.Message)
 	}
 
-	return &peer.ProposalResponse{
-		Version:   MessageProtocolVersion,
-		Timestamp: mockStub.TxTimestamp,
-		Response:  response,
-	}, nil
+	return response, nil
 }
 
-func (cs *ChaincodeService) Query(ctx context.Context, in *service.ChaincodeInput) (*peer.ProposalResponse, error) {
+func (cs *ChaincodeService) Query(ctx context.Context, in *service.ChaincodeInput) (*peer.Response, error) {
 	return cs.Exec(ctx, &service.ChaincodeExec{
 		Type:  service.InvocationType_QUERY,
 		Input: in,
 	})
 }
 
-func (cs *ChaincodeService) Invoke(ctx context.Context, in *service.ChaincodeInput) (proposalResponse *peer.ProposalResponse, err error) {
+func (cs *ChaincodeService) Invoke(ctx context.Context, in *service.ChaincodeInput) (proposalResponse *peer.Response, err error) {
 	return cs.Exec(ctx, &service.ChaincodeExec{
 		Type:  service.InvocationType_INVOKE,
 		Input: in,

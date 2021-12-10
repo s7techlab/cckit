@@ -38,7 +38,7 @@ func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode
 	}
 }
 
-func (cis *ChaincodeInstanceService) Exec(ctx context.Context, exec *ChaincodeInstanceExec) (*peer.ProposalResponse, error) {
+func (cis *ChaincodeInstanceService) Exec(ctx context.Context, exec *ChaincodeInstanceExec) (*peer.Response, error) {
 	return cis.ChaincodeService.Exec(ctx, &ChaincodeExec{
 		Type: exec.Type,
 		Input: &ChaincodeInput{
@@ -49,14 +49,14 @@ func (cis *ChaincodeInstanceService) Exec(ctx context.Context, exec *ChaincodeIn
 	})
 }
 
-func (cis *ChaincodeInstanceService) Query(ctx context.Context, input *ChaincodeInstanceInput) (*peer.ProposalResponse, error) {
+func (cis *ChaincodeInstanceService) Query(ctx context.Context, input *ChaincodeInstanceInput) (*peer.Response, error) {
 	return cis.Exec(ctx, &ChaincodeInstanceExec{
 		Type:  InvocationType_QUERY,
 		Input: input,
 	})
 }
 
-func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, input *ChaincodeInstanceInput) (*peer.ProposalResponse, error) {
+func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, input *ChaincodeInstanceInput) (*peer.Response, error) {
 	return cis.Exec(ctx, &ChaincodeInstanceExec{
 		Type:  InvocationType_INVOKE,
 		Input: input,

@@ -12,7 +12,7 @@ import "peer/chaincode_event.proto";
 // Chaincode communication service. Allows to locate channel/chaincode.
 service ChaincodeService {
     // Exec: Query or Invoke
-    rpc Exec (ChaincodeExec) returns (protos.ProposalResponse) {
+    rpc Exec (ChaincodeExec) returns (protos.Response) {
         option (google.api.http) = {
             post: "/chaincode/exec"
             body: "*"
@@ -20,14 +20,14 @@ service ChaincodeService {
     }
 
     // Query chaincode on home peer. Do NOT send to orderer.
-    rpc Query (ChaincodeInput) returns (protos.ProposalResponse) {
+    rpc Query (ChaincodeInput) returns (protos.Response) {
         option (google.api.http) = {
             get: "/chaincode/query"
         };
     }
 
     // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
-    rpc Invoke (ChaincodeInput) returns (protos.ProposalResponse) {
+    rpc Invoke (ChaincodeInput) returns (protos.Response) {
         option (google.api.http) = {
             post: "/chaincode/invoke"
             body: "*"
@@ -57,7 +57,7 @@ service ChaincodeEventsService {
 // Chaincode instance communication service. Channel/chaincode already fixed.
 service ChaincodeInstanceService {
     // Exec: Query or Invoke
-    rpc Exec (ChaincodeInstanceExec) returns (protos.ProposalResponse) {
+    rpc Exec (ChaincodeInstanceExec) returns (protos.Response) {
         option (google.api.http) = {
             post: "/chaincode-instance/exec"
             body: "*"
@@ -65,13 +65,13 @@ service ChaincodeInstanceService {
     }
 
     // Query chaincode on home peer. Do NOT send to orderer.
-    rpc Query (ChaincodeInstanceInput) returns (protos.ProposalResponse) {
+    rpc Query (ChaincodeInstanceInput) returns (protos.Response) {
         option (google.api.http) = {
             get: "/chaincode-instance/query"
         };
     }
     // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
-    rpc Invoke (ChaincodeInstanceInput) returns (protos.ProposalResponse) {
+    rpc Invoke (ChaincodeInstanceInput) returns (protos.Response) {
         option (google.api.http) = {
             post: "/chaincode-instance/invoke"
             body: "*"
