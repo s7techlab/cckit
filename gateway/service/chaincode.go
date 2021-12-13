@@ -25,6 +25,11 @@ type (
 	ChaincodeEventsServer = chaincodeServiceEventsServer
 )
 
+// Deprecated: use NewChaincodeService instead
+func New(peer Peer) *ChaincodeService {
+	return NewChaincodeService(peer)
+}
+
 func NewChaincodeService(peer Peer) *ChaincodeService {
 	return &ChaincodeService{
 		Peer:         peer,
