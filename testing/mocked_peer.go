@@ -9,8 +9,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 	"github.com/pkg/errors"
-
-	"github.com/s7techlab/cckit/gateway/service"
 )
 
 type (
@@ -30,8 +28,6 @@ type (
 		closer sync.Once
 	}
 )
-
-var _ service.Peer = &MockedPeer{}
 
 // NewPeer implements Peer interface
 func NewPeer() *MockedPeer {
