@@ -18,9 +18,8 @@ type (
 	}
 )
 
-// gateway/chaincode.go needs access to grpc stream
+// ChaincodeEventsServer  gateway/chaincode.go needs access to grpc stream
 type (
-	ChaincodeServer       = ChaincodeServiceServer
 	ChaincodeEventsServer = chaincodeServiceEventsServer
 )
 
