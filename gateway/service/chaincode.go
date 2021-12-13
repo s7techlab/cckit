@@ -41,6 +41,11 @@ func NewChaincodeEventService(eventDelivery EventDelivery) *ChaincodeEventServic
 	return &ChaincodeEventService{EventDelivery: eventDelivery}
 }
 
+// ChaincodeInstance returns ChaincodeInstanceService for current Peer interface and provided channel and chaincode name
+func (cs *ChaincodeService) ChaincodeInstance(channel, chaincode string) *ChaincodeInstanceService {
+	return NewChaincodeInstanceService(cs.Peer, channel, chaincode)
+}
+
 func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.Response, error) {
 	switch in.Type {
 	case InvocationType_QUERY:
