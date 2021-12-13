@@ -5,7 +5,6 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/convert"
-	"github.com/s7techlab/cckit/gateway/service"
 )
 
 type Action string
@@ -30,7 +29,7 @@ type ChaincodeEventSub interface {
 }
 
 type chaincode struct {
-	Service   service.ChaincodeServiceServer
+	Service   ChaincodeServiceServer
 	Channel   string
 	Chaincode string
 
@@ -40,7 +39,7 @@ type chaincode struct {
 	EventOpts   []EventOpt
 }
 
-func NewChaincode(service service.ChaincodeServiceServer, channelName, chaincodeName string, opts ...Opt) *chaincode {
+func NewChaincode(service ChaincodeServiceServer, channelName, chaincodeName string, opts ...Opt) *chaincode {
 	c := &chaincode{
 		Service:   service,
 		Channel:   channelName,
@@ -58,12 +57,12 @@ func (g *chaincode) Events(ctx context.Context) (ChaincodeEventSub, error) {
 	stream := NewChaincodeEventServerStream(ctx, g.EventOpts...)
 
 	go func() {
-		err := g.Service.Events(&service.ChaincodeEventsRequest{
-			Chaincode: &service.ChaincodeLocator{
+		err := g.Service.Events(&ChaincodeEventsRequest{
+			Chaincode: &ChaincodeLocator{
 				Channel:   g.Channel,
 				Chaincode: g.Chaincode,
 			},
-		}, &service.ChaincodeEventsServer{ServerStream: stream})
+		}, &ChaincodeEventsServer{ServerStream: stream})
 
 		if err != nil {
 			stream.Close()
@@ -108,14 +107,14 @@ func (g *chaincode) context(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (g *chaincode) ccInput(ctx context.Context, action Action, fn string, args []interface{}) (ccInput *service.ChaincodeInput, err error) {
+func (g *chaincode) ccInput(ctx context.Context, action Action, fn string, args []interface{}) (ccInput *ChaincodeInput, err error) {
 	var argsBytes [][]byte
 	if argsBytes, err = convert.ArgsToBytes(args...); err != nil {
 		return nil, err
 	}
 
-	ccInput = &service.ChaincodeInput{
-		Chaincode: &service.ChaincodeLocator{
+	ccInput = &ChaincodeInput{
+		Chaincode: &ChaincodeLocator{
 			Channel:   g.Channel,
 			Chaincode: g.Chaincode,
 		},

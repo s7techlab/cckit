@@ -2,8 +2,8 @@
 // Two types of gateways: 1. Gateway to all chaincodes in Network 2. Gateway to some concrete chaincode instance in some channel
 syntax = "proto3";
 
-option go_package = "github.com/s7techlab/cckit/gateway/service";
-package s7techlab.gateway.service;
+option go_package = "github.com/s7techlab/cckit/gateway";
+package cckit.gateway;
 
 import "google/api/annotations.proto";
 import "peer/proposal_response.proto";

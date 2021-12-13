@@ -1,11 +1,13 @@
-package service_test
+package gateway_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/s7techlab/cckit/gateway"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -13,8 +15,7 @@ import (
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
-	"github.com/s7techlab/cckit/gateway/service"
-	"github.com/s7techlab/cckit/gateway/service/mock"
+	"github.com/s7techlab/cckit/gateway/mock"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 )
@@ -30,10 +31,10 @@ const (
 )
 
 var (
-	cPaperService *mock.ChaincodeService
+	ccService     *mock.ChaincodeService
 	cPaperGateway *cpservice.CPaperGateway
 
-	ctx = service.ContextWithSigner(
+	ctx = gateway.ContextWithSigner(
 		context.Background(),
 		idtestdata.Certificates[0].MustIdentity(idtestdata.DefaultMSP),
 	)
@@ -47,11 +48,13 @@ var _ = Describe(`Service`, func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// peer imitation
-		cPaperService = mock.New()
-		cPaperService.Peer.WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
+		ccService = mock.New()
+		ccService.Peer.WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
+
+		fmt.Println(`-->`, ccService.Peer)
 
 		// "sdk" for deal with cpaper chaincode
-		cPaperGateway = cpservice.NewCPaperGateway(cPaperService, Channel, ChaincodeName)
+		cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
 	})
 
 	It("Allow to get empty commercial paper list", func() {
@@ -61,7 +64,7 @@ var _ = Describe(`Service`, func() {
 	})
 
 	It("Invoke chaincode with 'tx waiter' in context", func() {
-		ctx = service.ContextWithTxWaiter(ctx, "all")
+		ctx = gateway.ContextWithTxWaiter(ctx, "all")
 		_, err := cPaperGateway.Issue(ctx, &schema.IssueCommercialPaper{
 			Issuer:       "issuer",
 			PaperNumber:  "1337",
@@ -75,7 +78,7 @@ var _ = Describe(`Service`, func() {
 
 	It("Invoke chaincode with custom identity in context", func() {
 		signer := idtestdata.Certificates[1].MustIdentity(idtestdata.DefaultMSP)
-		ctx = service.ContextWithDefaultSigner(ctx, signer)
+		ctx = gateway.ContextWithDefaultSigner(ctx, signer)
 
 		_, err := cPaperGateway.Delete(ctx, &schema.CommercialPaperId{
 			Issuer:      "issuer",
@@ -85,7 +88,7 @@ var _ = Describe(`Service`, func() {
 	})
 
 	It("Allow to imitate error while access to peer", func() {
-		cPaperService.Invoker = mock.FailChaincode(ChaincodeName)
+		ccService.Invoker = mock.FailChaincode(ChaincodeName)
 
 		_, err := cPaperGateway.List(ctx, &empty.Empty{})
 		Expect(err).To(HaveOccurred())

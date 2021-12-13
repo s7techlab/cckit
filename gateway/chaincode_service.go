@@ -1,12 +1,10 @@
-package service
+package gateway
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
-
-	cckit_gateway "github.com/s7techlab/cckit/gateway"
 )
 
 type (
@@ -22,7 +20,6 @@ type (
 
 // gateway/chaincode.go needs access to grpc stream
 type (
-	Chaincode             = ChaincodeServiceServer
 	ChaincodeServer       = ChaincodeServiceServer
 	ChaincodeEventsServer = chaincodeServiceEventsServer
 )
@@ -49,8 +46,8 @@ func (cs *ChaincodeService) InstanceService(channel, chaincode string) *Chaincod
 }
 
 // ServiceDef returns service definition
-func (cs *ChaincodeService) ServiceDef() cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
+func (cs *ChaincodeService) ServiceDef() ServiceDef {
+	return ServiceDef{
 		Desc:                        &_ChaincodeService_serviceDesc,
 		Service:                     cs,
 		HandlerFromEndpointRegister: RegisterChaincodeServiceHandlerFromEndpoint,
@@ -92,6 +89,9 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.Response, error) {
 	signer, _ := SignerFromContext(ctx)
 
+	fmt.Println(`--->`, cs.Peer)
+	fmt.Println(in)
+
 	resp, err := cs.Peer.Query(
 		ctx,
 		in.Chaincode.Channel,
@@ -112,8 +112,8 @@ func (cs *ChaincodeService) Events(in *ChaincodeEventsRequest, stream ChaincodeS
 }
 
 // ServiceDef returns service definition
-func (ce *ChaincodeEventService) ServiceDef() cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
+func (ce *ChaincodeEventService) ServiceDef() ServiceDef {
+	return ServiceDef{
 		Desc:                        &_ChaincodeEventsService_serviceDesc,
 		Service:                     ce,
 		HandlerFromEndpointRegister: RegisterChaincodeEventsServiceHandlerFromEndpoint,

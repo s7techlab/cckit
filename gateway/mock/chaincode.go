@@ -8,8 +8,8 @@ import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
+	"github.com/s7techlab/cckit/gateway"
 
-	"github.com/s7techlab/cckit/gateway/service"
 	"github.com/s7techlab/cckit/testing"
 )
 
@@ -19,7 +19,7 @@ const (
 
 type (
 	ChaincodeService struct {
-		service.UnimplementedChaincodeServiceServer
+		gateway.ChaincodeService
 		// channel name -> chaincode name
 		Peer    *testing.MockedPeer
 		m       sync.Mutex
@@ -27,7 +27,7 @@ type (
 	}
 
 	// ChaincodeInvoker allows to imitate peer errors or unavailability
-	ChaincodeInvoker func(ctx context.Context, mockStub *testing.MockStub, in *service.ChaincodeExec) *peer.Response
+	ChaincodeInvoker func(ctx context.Context, mockStub *testing.MockStub, in *gateway.ChaincodeExec) *peer.Response
 )
 
 func New(peers ...*testing.MockedPeer) *ChaincodeService {
@@ -44,14 +44,14 @@ func New(peers ...*testing.MockedPeer) *ChaincodeService {
 	}
 }
 
-func DefaultInvoker(ctx context.Context, mockStub *testing.MockStub, in *service.ChaincodeExec) *peer.Response {
+func DefaultInvoker(ctx context.Context, mockStub *testing.MockStub, in *gateway.ChaincodeExec) *peer.Response {
 	var (
 		signer   msp.SigningIdentity
 		response peer.Response
 		err      error
 	)
 
-	if signer, err = service.SignerFromContext(ctx); err != nil {
+	if signer, err = gateway.SignerFromContext(ctx); err != nil {
 		return &peer.Response{
 			Status:  shim.ERROR,
 			Message: `signer is not defined in context`,
@@ -60,21 +60,21 @@ func DefaultInvoker(ctx context.Context, mockStub *testing.MockStub, in *service
 
 	mockStub.From(signer).WithTransient(in.Input.Transient)
 
-	if in.Type == service.InvocationType_QUERY {
+	if in.Type == gateway.InvocationType_QUERY {
 		response = mockStub.QueryBytes(in.Input.Args...)
-	} else if in.Type == service.InvocationType_INVOKE {
+	} else if in.Type == gateway.InvocationType_INVOKE {
 		response = mockStub.InvokeBytes(in.Input.Args...)
 	} else {
 		return &peer.Response{
 			Status:  shim.ERROR,
-			Message: service.ErrUnknownInvocationType.Error(),
+			Message: gateway.ErrUnknownInvocationType.Error(),
 		}
 	}
 
 	return &response
 }
 
-func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec) (*peer.Response, error) {
+func (cs *ChaincodeService) Exec(ctx context.Context, in *gateway.ChaincodeExec) (*peer.Response, error) {
 	var (
 		mockStub *testing.MockStub
 		response *peer.Response
@@ -97,21 +97,21 @@ func (cs *ChaincodeService) Exec(ctx context.Context, in *service.ChaincodeExec)
 	return response, nil
 }
 
-func (cs *ChaincodeService) Query(ctx context.Context, in *service.ChaincodeInput) (*peer.Response, error) {
-	return cs.Exec(ctx, &service.ChaincodeExec{
-		Type:  service.InvocationType_QUERY,
+func (cs *ChaincodeService) Query(ctx context.Context, in *gateway.ChaincodeInput) (*peer.Response, error) {
+	return cs.Exec(ctx, &gateway.ChaincodeExec{
+		Type:  gateway.InvocationType_QUERY,
 		Input: in,
 	})
 }
 
-func (cs *ChaincodeService) Invoke(ctx context.Context, in *service.ChaincodeInput) (proposalResponse *peer.Response, err error) {
-	return cs.Exec(ctx, &service.ChaincodeExec{
-		Type:  service.InvocationType_INVOKE,
+func (cs *ChaincodeService) Invoke(ctx context.Context, in *gateway.ChaincodeInput) (proposalResponse *peer.Response, err error) {
+	return cs.Exec(ctx, &gateway.ChaincodeExec{
+		Type:  gateway.InvocationType_INVOKE,
 		Input: in,
 	})
 }
 
-func (cs *ChaincodeService) Events(in *service.ChaincodeEventsRequest, stream service.ChaincodeService_EventsServer) (err error) {
+func (cs *ChaincodeService) Events(in *gateway.ChaincodeEventsRequest, stream gateway.ChaincodeService_EventsServer) (err error) {
 	var (
 		mockStub *testing.MockStub
 	)
