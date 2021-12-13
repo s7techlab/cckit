@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
-	fmt "fmt"
+	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
+
+	cckit_gateway "github.com/s7techlab/cckit/gateway"
 )
 
 type (
@@ -44,6 +46,15 @@ func NewChaincodeEventService(eventDelivery EventDelivery) *ChaincodeEventServic
 // InstanceService returns ChaincodeInstanceService for current Peer interface and provided channel and chaincode name
 func (cs *ChaincodeService) InstanceService(channel, chaincode string) *ChaincodeInstanceService {
 	return NewChaincodeInstanceService(cs.Peer, channel, chaincode)
+}
+
+// ServiceDef returns service definition
+func (cs *ChaincodeService) ServiceDef() cckit_gateway.ServiceDef {
+	return cckit_gateway.ServiceDef{
+		Desc:                        &_ChaincodeService_serviceDesc,
+		Service:                     cs,
+		HandlerFromEndpointRegister: RegisterChaincodeServiceHandlerFromEndpoint,
+	}
 }
 
 func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.Response, error) {
@@ -98,6 +109,15 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 
 func (cs *ChaincodeService) Events(in *ChaincodeEventsRequest, stream ChaincodeService_EventsServer) error {
 	return cs.EventService.Events(in, stream)
+}
+
+// ServiceDef returns service definition
+func (ce *ChaincodeEventService) ServiceDef() cckit_gateway.ServiceDef {
+	return cckit_gateway.ServiceDef{
+		Desc:                        &_ChaincodeEventsService_serviceDesc,
+		Service:                     ce,
+		HandlerFromEndpointRegister: RegisterChaincodeEventsServiceHandlerFromEndpoint,
+	}
 }
 
 func (ce *ChaincodeEventService) Events(in *ChaincodeEventsRequest, stream ChaincodeService_EventsServer) error {

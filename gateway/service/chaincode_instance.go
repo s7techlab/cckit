@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
+	cckit_gateway "github.com/s7techlab/cckit/gateway"
 )
 
 type (
@@ -42,6 +43,14 @@ func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode
 	}
 }
 
+func (cis *ChaincodeInstanceService) ServiceDef() cckit_gateway.ServiceDef {
+	return cckit_gateway.ServiceDef{
+		Desc:                        &_ChaincodeInstanceService_serviceDesc,
+		Service:                     cis,
+		HandlerFromEndpointRegister: RegisterChaincodeInstanceServiceHandlerFromEndpoint,
+	}
+}
+
 func (cis *ChaincodeInstanceService) Exec(ctx context.Context, exec *ChaincodeInstanceExec) (*peer.Response, error) {
 	return cis.ChaincodeService.Exec(ctx, &ChaincodeExec{
 		Type: exec.Type,
@@ -72,6 +81,14 @@ func (cis *ChaincodeInstanceService) Events(request *ChaincodeInstanceEventsRequ
 		Chaincode: cis.Locator,
 		Block:     request.Block,
 	}, stream)
+}
+
+func (ces *ChaincodeInstanceEventService) ServiceDef() cckit_gateway.ServiceDef {
+	return cckit_gateway.ServiceDef{
+		Desc:                        &_ChaincodeInstanceEventsService_serviceDesc,
+		Service:                     ces,
+		HandlerFromEndpointRegister: RegisterChaincodeInstanceEventsServiceHandlerFromEndpoint,
+	}
 }
 
 func (ces *ChaincodeInstanceEventService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceService_EventsServer) error {
