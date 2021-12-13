@@ -28,6 +28,10 @@ func NewChaincodeInstanceService(peer Peer, channel, chaincode string) *Chaincod
 	}
 }
 
+func (cis *ChaincodeInstanceService) EventService() *ChaincodeInstanceEventService {
+	return NewChaincodeInstanceEventService(cis.ChaincodeService.Peer, cis.Locator.Channel, cis.Locator.Chaincode)
+}
+
 func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode string) *ChaincodeInstanceEventService {
 	return &ChaincodeInstanceEventService{
 		EventService: NewChaincodeEventService(delivery),
@@ -63,14 +67,14 @@ func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, input *Chaincod
 	})
 }
 
-func (cis ChaincodeInstanceService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceService_EventsServer) error {
+func (cis *ChaincodeInstanceService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceService_EventsServer) error {
 	return cis.ChaincodeService.Events(&ChaincodeEventsRequest{
 		Chaincode: cis.Locator,
 		Block:     request.Block,
 	}, stream)
 }
 
-func (ces ChaincodeInstanceEventService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceService_EventsServer) error {
+func (ces *ChaincodeInstanceEventService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceService_EventsServer) error {
 	return ces.EventService.Events(&ChaincodeEventsRequest{
 		Chaincode: ces.Locator,
 		Block:     request.Block,

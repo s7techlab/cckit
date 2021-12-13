@@ -41,8 +41,8 @@ func NewChaincodeEventService(eventDelivery EventDelivery) *ChaincodeEventServic
 	return &ChaincodeEventService{EventDelivery: eventDelivery}
 }
 
-// ChaincodeInstance returns ChaincodeInstanceService for current Peer interface and provided channel and chaincode name
-func (cs *ChaincodeService) ChaincodeInstance(channel, chaincode string) *ChaincodeInstanceService {
+// InstanceService returns ChaincodeInstanceService for current Peer interface and provided channel and chaincode name
+func (cs *ChaincodeService) InstanceService(channel, chaincode string) *ChaincodeInstanceService {
 	return NewChaincodeInstanceService(cs.Peer, channel, chaincode)
 }
 
