@@ -90,7 +90,7 @@ func (ces *ChaincodeInstanceEventService) ServiceDef() ServiceDef {
 	}
 }
 
-func (ces *ChaincodeInstanceEventService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceService_EventsServer) error {
+func (ces *ChaincodeInstanceEventService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceEventsService_EventsServer) error {
 	return ces.EventService.Events(&ChaincodeEventsRequest{
 		Chaincode: ces.Locator,
 		Block:     request.Block,
