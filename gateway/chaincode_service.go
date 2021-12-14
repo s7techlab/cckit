@@ -87,10 +87,6 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 
 func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.Response, error) {
 	signer, _ := SignerFromContext(ctx)
-
-	fmt.Println(`--->`, cs.Peer)
-	fmt.Println(in)
-
 	resp, err := cs.Peer.Query(
 		ctx,
 		in.Chaincode.Channel,

@@ -2,7 +2,6 @@ package gateway_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -43,16 +42,12 @@ var (
 var _ = Describe(`Service`, func() {
 
 	It("Init", func() {
-
 		ccImpl, err := cpaper_asservice.NewCC()
 		Expect(err).NotTo(HaveOccurred())
 
 		// peer imitation
 		ccService = mock.New()
 		ccService.Peer.WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
-
-		fmt.Println(`-->`, ccService.Peer)
-
 		// "sdk" for deal with cpaper chaincode
 		cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
 	})
