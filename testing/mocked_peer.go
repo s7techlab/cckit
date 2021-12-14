@@ -128,14 +128,16 @@ func (mi *MockedPeer) Events(
 		return nil, err
 	}
 
+	events, closer := mockStub.EventSubscription()
+
 	sub := &EventSubscription{
-		events: mockStub.EventSubscription(),
+		events: events,
 		errors: make(chan error),
 	}
 
 	go func() {
 		<-ctx.Done()
-		close(sub.events)
+		closer()
 		close(sub.errors)
 	}()
 

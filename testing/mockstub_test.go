@@ -87,8 +87,8 @@ var _ = Describe(`Testing`, func() {
 		It("Allow to use multiple events subscriptions", func(done Done) {
 			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
 
-			sub1 := cc.EventSubscription()
-			sub2 := cc.EventSubscription()
+			sub1, closer1 := cc.EventSubscription()
+			sub2, closer2 := cc.EventSubscription()
 
 			Expect(len(sub1)).To(Equal(0))
 			Expect(len(sub2)).To(Equal(0))
@@ -123,6 +123,9 @@ var _ = Describe(`Testing`, func() {
 			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
 			Expect(len(sub1)).To(Equal(0))
 			Expect(len(sub2)).To(Equal(0))
+
+			closer1()
+			closer2()
 
 			close(done)
 		}, 0.2)

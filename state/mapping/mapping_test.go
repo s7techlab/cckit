@@ -74,7 +74,7 @@ var _ = Describe(`State mapping in chaincode`, func() {
 		})
 
 		It("Allow to add data to chaincode state", func(done Done) {
-			events := compositeIDCC.EventSubscription()
+			events, closer := compositeIDCC.EventSubscription()
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create1))
 
 			expectcc.EventStringerEqual(<-events,
@@ -83,6 +83,7 @@ var _ = Describe(`State mapping in chaincode`, func() {
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create2))
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create3))
 
+			closer()
 			close(done)
 		})
 

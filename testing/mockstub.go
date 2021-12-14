@@ -126,10 +126,18 @@ func (stub *MockStub) SetEvent(name string, payload []byte) error {
 	return nil
 }
 
-func (stub *MockStub) EventSubscription() chan *peer.ChaincodeEvent {
-	subscription := make(chan *peer.ChaincodeEvent, EventChannelBufferSize)
-	stub.chaincodeEventSubscriptions = append(stub.chaincodeEventSubscriptions, subscription)
-	return subscription
+func (stub *MockStub) EventSubscription() (events chan *peer.ChaincodeEvent, closer func()) {
+	stub.m.Lock()
+	defer stub.m.Unlock()
+
+	events = make(chan *peer.ChaincodeEvent, EventChannelBufferSize)
+	stub.chaincodeEventSubscriptions = append(stub.chaincodeEventSubscriptions, events)
+
+	subPos := len(stub.chaincodeEventSubscriptions) - 1
+	return events, func() {
+		close(stub.chaincodeEventSubscriptions[subPos])
+		stub.chaincodeEventSubscriptions[subPos] = nil
+	}
 }
 
 // ClearEvents clears chaincode events channel
@@ -258,7 +266,10 @@ func (stub *MockStub) DumpStateBuffer() {
 		if stub.ChaincodeEvent != nil {
 			// send only last event
 			for _, sub := range stub.chaincodeEventSubscriptions {
-				sub <- stub.ChaincodeEvent
+				// subscription can be closed
+				if sub != nil {
+					sub <- stub.ChaincodeEvent
+				}
 			}
 			stub.ChaincodeEventsChannel <- stub.ChaincodeEvent
 		}

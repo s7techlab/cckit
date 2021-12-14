@@ -118,11 +118,12 @@ func (cs *ChaincodeService) Events(in *gateway.ChaincodeEventsRequest, stream ga
 	if mockStub, err = cs.Peer.Chaincode(in.Chaincode.Channel, in.Chaincode.Chaincode); err != nil {
 		return
 	}
-	events := mockStub.EventSubscription()
+	events, closer := mockStub.EventSubscription()
 	ctx := stream.Context()
 	for {
 		select {
 		case <-ctx.Done():
+			closer()
 			return ctx.Err()
 		case e, ok := <-events:
 			if !ok {
