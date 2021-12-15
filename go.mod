@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.4.3
 	github.com/grpc-ecosystem/grpc-gateway v1.11.1
 	github.com/hyperledger/fabric v1.4.0-rc1.0.20200930182727-344fda602252

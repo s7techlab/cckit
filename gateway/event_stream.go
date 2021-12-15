@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// ChaincodeEventServerStream implements gRPC server stream interfaces
 type ChaincodeEventServerStream struct {
 	context context.Context
 	events  chan *peer.ChaincodeEvent

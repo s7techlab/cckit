@@ -5,6 +5,7 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
+// ChaincodeClient for querying external chaincode from chaincodes
 type ChaincodeClient interface {
 	Query(stub shim.ChaincodeStubInterface, fn string, args []interface{}, target interface{}) (interface{}, error)
 }
