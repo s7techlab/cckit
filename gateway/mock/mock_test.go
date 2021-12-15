@@ -50,6 +50,11 @@ var _ = Describe(`Service`, func() {
 		cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
 	})
 
+	It("Default invoker", func() {
+		_, err := cPaperGateway.List(ctx, &empty.Empty{})
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	It("Allow to imitate error while access to peer", func() {
 		ccService.Invoker = mock.FailChaincode(ChaincodeName)
 
