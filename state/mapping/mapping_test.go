@@ -11,8 +11,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/hyperledger/fabric-protos-go/peer"
-
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
@@ -76,17 +74,16 @@ var _ = Describe(`State mapping in chaincode`, func() {
 		})
 
 		It("Allow to add data to chaincode state", func(done Done) {
-			events := compositeIDCC.EventSubscription()
+			events, closer := compositeIDCC.EventSubscription()
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create1))
 
-			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `CreateEntityWithCompositeId`,
-				Payload:   testcc.MustProtoMarshal(create1),
-			}))
+			expectcc.EventStringerEqual(<-events,
+				`CreateEntityWithCompositeId`, create1)
 
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create2))
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create3))
 
+			closer()
 			close(done)
 		})
 

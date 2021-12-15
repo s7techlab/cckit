@@ -6,10 +6,9 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/pkg/errors"
-
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -30,7 +29,7 @@ type (
 	}
 )
 
-// NewInvoker implements Invoker interface from hlf-sdk-go
+// NewPeer implements Peer interface
 func NewPeer() *MockedPeer {
 	return &MockedPeer{
 		ChannelCC: make(ChannelsMockStubs),
@@ -60,8 +59,13 @@ func (mi *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *Mocke
 }
 
 func (mi *MockedPeer) Invoke(
-	ctx context.Context, from msp.SigningIdentity, channel string, chaincode string,
-	fn string, args [][]byte, transArgs map[string][]byte) (*peer.Response, string, error) {
+	ctx context.Context,
+	channel string,
+	chaincode string,
+	args [][]byte,
+	identity msp.SigningIdentity,
+	transArgs map[string][]byte,
+	txWaiterType string) (res *peer.Response, chaincodeTx string, err error) {
 
 	mi.m.Lock()
 	defer mi.m.Unlock()
@@ -70,7 +74,7 @@ func (mi *MockedPeer) Invoke(
 		return nil, ``, err
 	}
 
-	response := mockStub.From(from).WithTransient(transArgs).InvokeBytes(append([][]byte{[]byte(fn)}, args...)...)
+	response := mockStub.From(identity).WithTransient(transArgs).InvokeBytes(args...)
 	if response.Status == shim.ERROR {
 		err = errors.New(response.Message)
 	}
@@ -79,8 +83,13 @@ func (mi *MockedPeer) Invoke(
 }
 
 func (mi *MockedPeer) Query(
-	ctx context.Context, from msp.SigningIdentity, channel string, chaincode string,
-	fn string, args [][]byte, transArgs map[string][]byte) (*peer.Response, error) {
+	ctx context.Context,
+	channel string,
+	chaincode string,
+	args [][]byte,
+	identity msp.SigningIdentity,
+	transArgs map[string][]byte) (*peer.Response, error) {
+
 	mi.m.Lock()
 	defer mi.m.Unlock()
 	mockStub, err := mi.Chaincode(channel, chaincode)
@@ -88,32 +97,13 @@ func (mi *MockedPeer) Query(
 		return nil, err
 	}
 
-	response := mockStub.From(from).WithTransient(transArgs).QueryBytes(append([][]byte{[]byte(fn)}, args...)...)
+	response := mockStub.From(identity).WithTransient(transArgs).QueryBytes(args...)
 	if response.Status == shim.ERROR {
 		err = errors.New(response.Message)
 	}
+
 	return &response, err
-}
 
-func (mi *MockedPeer) Subscribe(
-	ctx context.Context, from msp.SigningIdentity, channel, chaincode string) (chan *peer.ChaincodeEvent, error) {
-	mockStub, err := mi.Chaincode(channel, chaincode)
-	if err != nil {
-		return nil, err
-	}
-
-	sub := &EventSubscription{
-		events: mockStub.EventSubscription(),
-		errors: make(chan error),
-	}
-
-	go func() {
-		<-ctx.Done()
-		close(sub.events)
-		close(sub.errors)
-	}()
-
-	return sub.Events(), nil
 }
 
 func (mi *MockedPeer) Chaincode(channel string, chaincode string) (*MockStub, error) {
@@ -123,6 +113,35 @@ func (mi *MockedPeer) Chaincode(channel string, chaincode string) (*MockStub, er
 	}
 
 	return ms, nil
+}
+
+func (mi *MockedPeer) Events(
+	ctx context.Context,
+	channel string,
+	chaincode string,
+	identity msp.SigningIdentity,
+	blockRange ...int64,
+) (chan *peer.ChaincodeEvent, error) {
+
+	mockStub, err := mi.Chaincode(channel, chaincode)
+	if err != nil {
+		return nil, err
+	}
+
+	events, closer := mockStub.EventSubscription()
+
+	sub := &EventSubscription{
+		events: events,
+		errors: make(chan error),
+	}
+
+	go func() {
+		<-ctx.Done()
+		closer()
+		close(sub.errors)
+	}()
+
+	return sub.Events(), nil
 }
 
 func (es *EventSubscription) Events() chan *peer.ChaincodeEvent {

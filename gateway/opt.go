@@ -7,20 +7,19 @@ import (
 	"github.com/hyperledger/fabric/msp"
 
 	"github.com/s7techlab/cckit/extensions/encryption"
-	"github.com/s7techlab/cckit/gateway/service"
 )
 
 type Opt func(*chaincode)
 
 type ContextOpt func(ctx context.Context) context.Context
-type InputOpt func(action Action, input *service.ChaincodeInput) error
+type InputOpt func(action Action, input *ChaincodeInput) error
 type OutputOpt func(action Action, response *peer.Response) error
 type EventOpt func(event *peer.ChaincodeEvent) error
 
 func WithDefaultSigner(defaultSigner msp.SigningIdentity) Opt {
 	return func(c *chaincode) {
 		c.ContextOpts = append(c.ContextOpts, func(ctx context.Context) context.Context {
-			return service.ContextWithDefaultSigner(ctx, defaultSigner)
+			return ContextWithDefaultSigner(ctx, defaultSigner)
 		})
 	}
 }
@@ -44,7 +43,7 @@ func WithEncryption(encKey []byte) Opt {
 
 func WithArgsEncryption(encKey []byte) Opt {
 	return func(c *chaincode) {
-		c.InputOpts = append(c.InputOpts, func(action Action, ccInput *service.ChaincodeInput) (err error) {
+		c.InputOpts = append(c.InputOpts, func(action Action, ccInput *ChaincodeInput) (err error) {
 			ccInput.Args, err = encryption.EncryptArgsBytes(encKey, ccInput.Args)
 			return err
 		})

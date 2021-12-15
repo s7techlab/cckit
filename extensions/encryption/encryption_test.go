@@ -228,7 +228,7 @@ var _ = Describe(`Router`, func() {
 		})
 		//
 		It("Allow to create payment providing key in encryptPaymentCC ", func(done Done) {
-			events := encryptPaymentCCWithEncStateContext.EventSubscription()
+			events, closer := encryptPaymentCCWithEncStateContext.EventSubscription()
 
 			responsePayment := expectcc.PayloadIs(
 				// encCCInvoker encrypts args before passing to cc invoke and pass key in transient map
@@ -242,7 +242,9 @@ var _ = Describe(`Router`, func() {
 
 			//event name and payload is encrypted with key
 			Expect(<-events).To(BeEquivalentTo(encryption.MustEncryptEvent(encKey, &peer.ChaincodeEvent{
-				EventName: `PaymentEvent`,
+				ChaincodeId: encCCInvoker.MockStub.Name,
+				TxId:        encCCInvoker.MockStub.LastTxID,
+				EventName:   `PaymentEvent`,
 				Payload: testcc.MustProtoMarshal(&schema.PaymentEvent{
 					Type:   pType,
 					Id:     pID1,
@@ -250,6 +252,7 @@ var _ = Describe(`Router`, func() {
 				}),
 			})))
 
+			closer()
 			close(done)
 		}, 0.2)
 

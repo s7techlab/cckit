@@ -75,8 +75,10 @@ var _ = Describe(`Testing`, func() {
 			resp := expectcc.ResponseOk(cc.From(Authority).Invoke(`carRegister`, cars.Payloads[1]))
 
 			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				TxId:        cc.LastTxID,
+				ChaincodeId: cc.Name,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			close(done)
@@ -85,8 +87,8 @@ var _ = Describe(`Testing`, func() {
 		It("Allow to use multiple events subscriptions", func(done Done) {
 			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
 
-			sub1 := cc.EventSubscription()
-			sub2 := cc.EventSubscription()
+			sub1, closer1 := cc.EventSubscription()
+			sub2, closer2 := cc.EventSubscription()
 
 			Expect(len(sub1)).To(Equal(0))
 			Expect(len(sub2)).To(Equal(0))
@@ -98,23 +100,32 @@ var _ = Describe(`Testing`, func() {
 			Expect(len(sub2)).To(Equal(1))
 
 			Expect(<-sub1).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				ChaincodeId: cc.Name,
+				TxId:        cc.LastTxID,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			Expect(<-sub2).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				ChaincodeId: cc.Name,
+				TxId:        cc.LastTxID,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			Expect(<-cc.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				ChaincodeId: cc.Name,
+				TxId:        cc.LastTxID,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			Expect(len(cc.ChaincodeEventsChannel)).To(Equal(0))
 			Expect(len(sub1)).To(Equal(0))
 			Expect(len(sub2)).To(Equal(0))
+
+			closer1()
+			closer2()
 
 			close(done)
 		}, 0.2)
@@ -126,13 +137,14 @@ var _ = Describe(`Testing`, func() {
 		It("Allow to invoke mocked chaincode ", func(done Done) {
 			ctx := context.Background()
 
-			events, err := mockedPeer.Subscribe(ctx, Authority, Channel, CarsChaincode)
+			events, err := mockedPeer.Events(ctx, Channel, CarsChaincode, Authority)
 			Expect(err).NotTo(HaveOccurred())
 
-			// double check interface api.Invoker
+			// double check interface Peer
 			resp, _, err := mockedPeer.Invoke(
-				ctx, Authority, Channel, CarsChaincode, `carRegister`,
-				[][]byte{testcc.MustJSONMarshal(cars.Payloads[3])}, nil)
+				ctx, Channel, CarsChaincode,
+				[][]byte{[]byte(`carRegister`), testcc.MustJSONMarshal(cars.Payloads[3])},
+				Authority, nil, ``)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -141,8 +153,10 @@ var _ = Describe(`Testing`, func() {
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
 
 			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: cars.CarRegisteredEvent,
-				Payload:   resp.Payload,
+				ChaincodeId: cc.Name,
+				TxId:        cc.LastTxID,
+				EventName:   cars.CarRegisteredEvent,
+				Payload:     resp.Payload,
 			}))
 
 			close(done)
@@ -151,8 +165,10 @@ var _ = Describe(`Testing`, func() {
 
 		It("Allow to query mocked chaincode ", func() {
 			resp, err := mockedPeer.Query(
-				context.Background(), Authority, Channel, CarsChaincode,
-				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+				context.Background(),
+				Channel, CarsChaincode,
+				[][]byte{[]byte(`carGet`), []byte(cars.Payloads[3].Id)},
+				Authority, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -163,8 +179,10 @@ var _ = Describe(`Testing`, func() {
 
 		It("Allow to query mocked chaincode from chaincode", func() {
 			resp, err := mockedPeer.Query(
-				context.Background(), Authority, Channel, CarsProxyChaincode,
-				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+				context.Background(),
+				Channel, CarsProxyChaincode,
+				[][]byte{[]byte(`carGet`), []byte(cars.Payloads[3].Id)},
+				Authority, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			carFromCC := testcc.MustConvertFromBytes(resp.Payload, &cars.Car{}).(cars.Car)
@@ -175,16 +193,20 @@ var _ = Describe(`Testing`, func() {
 
 		It("Should return error when unknown channel provided", func() {
 			_, err := mockedPeer.Query(
-				context.Background(), Authority, "unknown-channel", CarsProxyChaincode,
-				`carGet`, [][]byte{[]byte(cars.Payloads[3].Id)}, nil)
+				context.Background(),
+				"unknown-channel", CarsProxyChaincode,
+				[][]byte{[]byte(`carGet`), []byte(cars.Payloads[3].Id)},
+				Authority, nil)
 			Expect(err).To(HaveOccurred())
 
 		})
 
 		It("Should return error when unknown carID provided", func() {
 			_, err := mockedPeer.Query(
-				context.Background(), Authority, Channel, CarsProxyChaincode,
-				`carGet`, [][]byte{[]byte("unknown_car_id")}, nil)
+				context.Background(),
+				Channel, CarsProxyChaincode,
+				[][]byte{[]byte(`carGet`), []byte("unknown_car_id")},
+				Authority, nil)
 			Expect(err).To(HaveOccurred())
 		})
 	})

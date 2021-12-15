@@ -1,0 +1,171 @@
+// Gateway to network/chaincode
+// Two types of gateways: 1. Gateway to all chaincodes in Network 2. Gateway to some concrete chaincode instance in some channel
+syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/gateway";
+package cckit.gateway;
+
+import "google/api/annotations.proto";
+import "peer/proposal_response.proto";
+import "peer/chaincode_event.proto";
+
+// Chaincode communication service. Allows to locate channel/chaincode.
+service ChaincodeService {
+    // Exec: Query or Invoke
+    rpc Exec (ChaincodeExec) returns (protos.Response) {
+        option (google.api.http) = {
+            post: "/chaincode/exec"
+            body: "*"
+        };
+    }
+
+    // Query chaincode on home peer. Do NOT send to orderer.
+    rpc Query (ChaincodeInput) returns (protos.Response) {
+        option (google.api.http) = {
+            get: "/chaincode/query"
+        };
+    }
+
+    // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
+    rpc Invoke (ChaincodeInput) returns (protos.Response) {
+        option (google.api.http) = {
+            post: "/chaincode/invoke"
+            body: "*"
+        };
+    }
+
+    // Chaincode events stream
+    rpc Events (ChaincodeEventsRequest) returns (stream protos.ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode/events"
+        };
+    }
+}
+
+// Chaincode events subscription service
+service ChaincodeEventsService {
+    // Chaincode events stream
+    rpc Events (ChaincodeEventsRequest) returns (stream protos.ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode/events"
+        };
+    }
+}
+
+
+
+// Chaincode instance communication service. Channel/chaincode already fixed.
+service ChaincodeInstanceService {
+    // Exec: Query or Invoke
+    rpc Exec (ChaincodeInstanceExec) returns (protos.Response) {
+        option (google.api.http) = {
+            post: "/chaincode-instance/exec"
+            body: "*"
+        };
+    }
+
+    // Query chaincode on home peer. Do NOT send to orderer.
+    rpc Query (ChaincodeInstanceInput) returns (protos.Response) {
+        option (google.api.http) = {
+            get: "/chaincode-instance/query"
+        };
+    }
+    // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
+    rpc Invoke (ChaincodeInstanceInput) returns (protos.Response) {
+        option (google.api.http) = {
+            post: "/chaincode-instance/invoke"
+            body: "*"
+        };
+    }
+    // Chaincode events stream
+    rpc Events (ChaincodeInstanceEventsRequest) returns (stream protos.ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode-instance/events"
+        };
+    }
+}
+
+
+// Chaincode instance events subscription service
+service ChaincodeInstanceEventsService {
+    // Chaincode events stream
+    rpc Events (ChaincodeInstanceEventsRequest) returns (stream protos.ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode-instance/events"
+        };
+    }
+}
+
+// Chaincode locator - channel name and chaincode name
+message ChaincodeLocator {
+    // Chaincode name
+    string chaincode = 1;
+    // Channel name
+    string channel = 2;
+}
+
+// Chaincode invocation input
+message ChaincodeInput {
+    ChaincodeLocator chaincode = 1;
+    // Input contains the arguments for invocation.
+    repeated bytes args = 2;
+
+    // TransientMap contains data (e.g. cryptographic material) that might be used
+    // to implement some form of application-level confidentiality. The contents
+    // of this field are supposed to always be omitted from the transaction and
+    // excluded from the ledger.
+    map<string, bytes> transient = 3;
+}
+
+// Chaincode invocation type
+enum InvocationType {
+    // Simulation
+    QUERY = 0;
+    // Simulation and applying to ledger
+    INVOKE = 1;
+}
+
+// Chaincode execution specification
+message ChaincodeExec {
+    InvocationType type = 1;
+    ChaincodeInput input = 2;
+}
+
+// Block range for event subscription.
+// Values can be negative. If from is negative - subscription starts from x block from channel height
+message BlockRange {
+    // from block
+    int64 from = 3;
+    // to block
+    int64 to = 4;
+}
+
+// Chaincode events request
+message ChaincodeEventsRequest {
+    ChaincodeLocator chaincode = 1;
+    BlockRange block = 2;
+}
+
+
+// Chaincode instance chaincode input spec
+message ChaincodeInstanceInput {
+    // Input contains the arguments for invocation.
+    repeated bytes args = 1;
+
+    // TransientMap contains data (e.g. cryptographic material) that might be used
+    // to implement some form of application-level confidentiality. The contents
+    // of this field are supposed to always be omitted from the transaction and
+    // excluded from the ledger.
+    map<string, bytes> transient = 2;
+}
+
+message ChaincodeInstanceExec {
+    InvocationType type = 1;
+    ChaincodeInstanceInput input = 2;
+}
+
+
+message ChaincodeInstanceEventsRequest {
+    BlockRange block = 1;
+}
+

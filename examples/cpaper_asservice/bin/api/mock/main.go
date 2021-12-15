@@ -12,7 +12,7 @@ import (
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	cpaperservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/gateway"
-	servicemock "github.com/s7techlab/cckit/gateway/service/mock"
+	gwmock "github.com/s7techlab/cckit/gateway/mock"
 	"github.com/s7techlab/cckit/testing"
 	"google.golang.org/grpc"
 )
@@ -42,7 +42,7 @@ func main() {
 	cpaperMock := testing.NewMockStub(chaincodeName, cc)
 
 	// Chaincode invocation service mock. For real network you can use example with hlf-sdk-go
-	cpaperMockService := servicemock.New(testing.NewPeer().WithChannel(channelName, cpaperMock))
+	cpaperMockService := gwmock.New(testing.NewPeer().WithChannel(channelName, cpaperMock))
 
 	// default identity for signing requests to peeer (mocked)
 	apiIdentity, err := testing.IdentityFromFile(`MSP`, `../../../testdata/admin.pem`, ioutil.ReadFile)

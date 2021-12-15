@@ -5,7 +5,6 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/convert"
-	"github.com/s7techlab/cckit/gateway/service"
 )
 
 type Action string
@@ -30,7 +29,7 @@ type ChaincodeEventSub interface {
 }
 
 type chaincode struct {
-	Service   service.ChaincodeServer
+	Service   ChaincodeServiceServer
 	Channel   string
 	Chaincode string
 
@@ -40,7 +39,7 @@ type chaincode struct {
 	EventOpts   []EventOpt
 }
 
-func NewChaincode(service service.ChaincodeServer, channelName, chaincodeName string, opts ...Opt) *chaincode {
+func NewChaincode(service ChaincodeServiceServer, channelName, chaincodeName string, opts ...Opt) *chaincode {
 	c := &chaincode{
 		Service:   service,
 		Channel:   channelName,
@@ -58,10 +57,12 @@ func (g *chaincode) Events(ctx context.Context) (ChaincodeEventSub, error) {
 	stream := NewChaincodeEventServerStream(ctx, g.EventOpts...)
 
 	go func() {
-		err := g.Service.Events(&service.ChaincodeLocator{
-			Channel:   g.Channel,
-			Chaincode: g.Chaincode,
-		}, &service.ChaincodeEventsServer{ServerStream: stream})
+		err := g.Service.Events(&ChaincodeEventsRequest{
+			Chaincode: &ChaincodeLocator{
+				Channel:   g.Channel,
+				Chaincode: g.Chaincode,
+			},
+		}, &ChaincodeEventsServer{ServerStream: stream})
 
 		if err != nil {
 			stream.Close()
@@ -81,7 +82,7 @@ func (g *chaincode) Query(ctx context.Context, fn string, args []interface{}, ta
 	if response, err := g.Service.Query(c, ccInput); err != nil {
 		return nil, err
 	} else {
-		return g.ccOutput(c, Query, response.Response, target)
+		return g.ccOutput(c, Query, response, target)
 	}
 }
 
@@ -95,7 +96,7 @@ func (g *chaincode) Invoke(ctx context.Context, fn string, args []interface{}, t
 	if response, err := g.Service.Invoke(c, ccInput); err != nil {
 		return nil, err
 	} else {
-		return g.ccOutput(c, Invoke, response.Response, target)
+		return g.ccOutput(c, Invoke, response, target)
 	}
 }
 
@@ -106,16 +107,18 @@ func (g *chaincode) context(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (g *chaincode) ccInput(ctx context.Context, action Action, fn string, args []interface{}) (ccInput *service.ChaincodeInput, err error) {
+func (g *chaincode) ccInput(ctx context.Context, action Action, fn string, args []interface{}) (ccInput *ChaincodeInput, err error) {
 	var argsBytes [][]byte
 	if argsBytes, err = convert.ArgsToBytes(args...); err != nil {
 		return nil, err
 	}
 
-	ccInput = &service.ChaincodeInput{
-		Channel:   g.Channel,
-		Chaincode: g.Chaincode,
-		Args:      append([][]byte{[]byte(fn)}, argsBytes...),
+	ccInput = &ChaincodeInput{
+		Chaincode: &ChaincodeLocator{
+			Channel:   g.Channel,
+			Chaincode: g.Chaincode,
+		},
+		Args: append([][]byte{[]byte(fn)}, argsBytes...),
 	}
 
 	if ccInput.Transient, err = TransientFromContext(ctx); err != nil {

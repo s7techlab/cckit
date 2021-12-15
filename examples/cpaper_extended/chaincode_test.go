@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/ptypes"
-	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/examples/cpaper_extended"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/schema"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/testdata"
@@ -60,10 +59,8 @@ var _ = Describe(`CommercialPaper`, func() {
 				paperChaincode.Invoke(`issue`, issueTransactionData))
 
 			// Validate event has been emitted with the transaction data
-			Expect(<-paperChaincode.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `IssueCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(issueTransactionData),
-			}))
+			expectcc.EventStringerEqual(<-paperChaincode.ChaincodeEventsChannel,
+				`IssueCommercialPaper`, issueTransactionData)
 
 			// Clear events channel after a test case that emits an event
 			paperChaincode.ClearEvents()
@@ -133,10 +130,8 @@ var _ = Describe(`CommercialPaper`, func() {
 			Expect(paper.Owner).To(Equal(BuyerName))
 			Expect(paper.State).To(Equal(schema.CommercialPaper_TRADING))
 
-			Expect(<-paperChaincode.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `BuyCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(buyTransactionData),
-			}))
+			expectcc.EventStringerEqual(<-paperChaincode.ChaincodeEventsChannel,
+				`BuyCommercialPaper`, buyTransactionData)
 
 			paperChaincode.ClearEvents()
 		})
@@ -160,10 +155,8 @@ var _ = Describe(`CommercialPaper`, func() {
 			Expect(paper.Owner).To(Equal(IssuerName))
 			Expect(paper.State).To(Equal(schema.CommercialPaper_REDEEMED))
 
-			Expect(<-paperChaincode.ChaincodeEventsChannel).To(BeEquivalentTo(&peer.ChaincodeEvent{
-				EventName: `RedeemCommercialPaper`,
-				Payload:   testcc.MustProtoMarshal(redeemTransactionData),
-			}))
+			expectcc.EventStringerEqual(<-paperChaincode.ChaincodeEventsChannel,
+				`RedeemCommercialPaper`, redeemTransactionData)
 
 			paperChaincode.ClearEvents()
 		})
