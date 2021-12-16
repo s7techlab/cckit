@@ -11,6 +11,10 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
+var (
+	DefaultSerializer = &state.ProtoSerializer{}
+)
+
 type (
 	// StateMappers interface for mappers collection
 	StateMappers interface {
@@ -20,7 +24,7 @@ type (
 		PrimaryKey(schema interface{}) (key state.Key, err error)
 	}
 
-	// StateMapper
+	// StateMapper interface for dealing with mapped state
 	StateMapper interface {
 		Schema() interface{}
 		List() interface{}
@@ -38,11 +42,6 @@ type (
 	InstanceKeyer      func(instance interface{}) (state.Key, error)
 	InstanceMultiKeyer func(instance interface{}) ([]state.Key, error)
 
-	StateMapped interface {
-		state.KeyValue // entry key and value
-		Mapper() StateMapper
-		Keys() ([]state.KeyValue, error)
-	}
 	// StateMapping defines metadata for mapping from schema to state keys/values
 	StateMapping struct {
 		schema         interface{}
@@ -150,7 +149,7 @@ func (smm StateMappings) PrimaryKey(entry interface{}) (pkey state.Key, err erro
 	return m.PrimaryKey(entry)
 }
 
-func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) {
+func (smm StateMappings) Map(entry interface{}) (instance *StateInstance, err error) {
 	mapper, err := smm.Get(entry)
 	if err != nil {
 		return nil, errors.Wrap(err, `mapping`)
@@ -158,7 +157,7 @@ func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) 
 
 	switch entry.(type) {
 	case proto.Message, []string:
-		return NewProtoStateMapped(entry, mapper), nil
+		return NewStateInstance(entry, mapper, DefaultSerializer), nil
 	default:
 		return nil, ErrEntryTypeNotSupported
 	}
@@ -166,7 +165,7 @@ func (smm StateMappings) Map(entry interface{}) (mapped StateMapped, err error) 
 
 //
 func (smm *StateMappings) IdxKey(entity interface{}, idx string, idxVal state.Key) (state.Key, error) {
-	keyMapped := NewKeyRefIDMapped(entity, idx, idxVal)
+	keyMapped := NewKeyRefIDInstance(entity, idx, idxVal)
 	return keyMapped.Key()
 }
 
@@ -202,7 +201,7 @@ func (sm *StateMapping) PrimaryKey(entity interface{}) (state.Key, error) {
 	return append(sm.namespace, key...), nil
 }
 
-// Indexes prepares primary and additional uniq/non-uniq keys for storage
+// Keys prepares primary and additional uniq/non-uniq keys for storage
 func (sm *StateMapping) Keys(entity interface{}) ([]state.KeyValue, error) {
 	if len(sm.indexes) == 0 {
 		return nil, nil
@@ -223,7 +222,7 @@ func (sm *StateMapping) Keys(entity interface{}) ([]state.KeyValue, error) {
 
 		for _, key := range idxKeys {
 			// key will be <`_idx`,{SchemaName},{idxName}, {Key[1]},... {Key[n}}>s
-			stateKeys = append(stateKeys, NewKeyRefMapped(sm.schema, idx.Name, key, pk))
+			stateKeys = append(stateKeys, NewKeyRefInstance(sm.schema, idx.Name, key, pk))
 		}
 	}
 
