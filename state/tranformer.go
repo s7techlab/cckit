@@ -1,9 +1,15 @@
 package state
 
-import "github.com/s7techlab/cckit/convert"
+import (
+	"encoding/json"
+
+	"github.com/golang/protobuf/proto"
+
+	"github.com/s7techlab/cckit/convert"
+)
 
 type (
-	// ToBytesTransformer is used after getState operation for convert value
+	// FromBytesTransformer is used after getState operation for convert value
 	FromBytesTransformer func(bb []byte, config ...interface{}) (interface{}, error)
 
 	// ToBytesTransformer is used before putState operation for convert payload
@@ -12,8 +18,19 @@ type (
 	// KeyTransformer is used before putState operation for convert key
 	KeyTransformer func(Key) (Key, error)
 
-	// NameTransformer is used before setEvent operation for convert name
+	// StringTransformer is used before setEvent operation for convert name
 	StringTransformer func(string) (string, error)
+
+	Serializer interface {
+		ToBytes(interface{}) ([]byte, error)
+		FromBytes(serialized []byte, target interface{}) (interface{}, error)
+	}
+
+	ProtoSerializer struct {
+	}
+
+	JSONSerializer struct {
+	}
 )
 
 func ConvertFromBytes(bb []byte, config ...interface{}) (interface{}, error) {
@@ -28,11 +45,27 @@ func ConvertToBytes(v interface{}, config ...interface{}) ([]byte, error) {
 	return convert.ToBytes(v)
 }
 
-//  ConvertKey returns string parts of composite key
+// KeyAsIs returns string parts of composite key
 func KeyAsIs(key Key) (Key, error) {
 	return key, nil
 }
 
 func NameAsIs(name string) (string, error) {
 	return name, nil
+}
+
+func (ps *ProtoSerializer) ToBytes(entry interface{}) ([]byte, error) {
+	return proto.Marshal(entry.(proto.Message))
+}
+
+func (ps *ProtoSerializer) FromBytes(serialized []byte, target interface{}) (interface{}, error) {
+	return convert.FromBytes(serialized, target)
+}
+
+func (js *JSONSerializer) ToBytes(entry interface{}) ([]byte, error) {
+	return json.Marshal(entry)
+}
+
+func (js *JSONSerializer) FromBytes(serialized []byte, target interface{}) (interface{}, error) {
+	return convert.JSONUnmarshalPtr(serialized, target)
 }

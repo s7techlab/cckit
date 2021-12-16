@@ -42,12 +42,14 @@ func NewKeyRefID(target interface{}, idx string, refKey state.Key) *schema.KeyRe
 	}
 }
 
-func NewKeyRefMapped(target interface{}, idx string, refKey, pKey state.Key) *ProtoStateMapped {
-	return NewProtoStateMapped(NewKeyRef(target, idx, refKey, pKey), KeyRefMapper)
+func NewKeyRefInstance(target interface{}, idx string, refKey, pKey state.Key) *StateInstance {
+	return NewStateInstance(NewKeyRef(target, idx, refKey, pKey), KeyRefMapper, DefaultSerializer)
 }
 
-func NewKeyRefIDMapped(target interface{}, idx string, refKey state.Key) *ProtoStateMapped {
-	return NewProtoStateMapped(
+func NewKeyRefIDInstance(target interface{}, idx string, refKey state.Key) *StateInstance {
+	return NewStateInstance(
 		NewKeyRefID(target, idx, refKey),
-		KeyRefIDMapper)
+		KeyRefIDMapper,
+		DefaultSerializer,
+	)
 }
