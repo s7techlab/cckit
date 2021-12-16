@@ -10,6 +10,10 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
+var (
+	ErrEventNameNotFound = errors.New(`event name not found`)
+)
+
 type (
 	Namer func(entity interface{}) string
 
@@ -77,7 +81,7 @@ func (emm EventMappings) Exists(entry interface{}) bool {
 	return err == nil
 }
 
-func (emm EventMappings) Map(entry interface{}) (mapped EventMapped, err error) {
+func (emm EventMappings) Map(entry interface{}) (instance *EventInstance, err error) {
 	mapping, err := emm.Get(entry)
 	if err != nil {
 		return nil, errors.Wrap(err, `mapping`)
@@ -85,10 +89,20 @@ func (emm EventMappings) Map(entry interface{}) (mapped EventMapped, err error) 
 
 	switch entry.(type) {
 	case proto.Message:
-		return NewProtoEventMapped(entry, mapping)
+		return NewEventInstance(entry, mapping, DefaultSerializer)
 	default:
 		return nil, ErrEntryTypeNotSupported
 	}
+}
+
+func (emm EventMappings) Resolve(eventName string, payload []byte) (event interface{}, err error) {
+	for _, m := range emm {
+		if m.name == eventName {
+			return DefaultSerializer.FromBytes(payload, m.Schema())
+		}
+	}
+
+	return nil, ErrEventNameNotFound
 }
 
 func (em EventMapping) Schema() interface{} {

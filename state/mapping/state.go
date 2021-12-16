@@ -249,7 +249,7 @@ func (s *Impl) GetByKey(
 		return nil, ErrStateMappingNotFound
 	}
 
-	keyRef, err := s.State.Get(NewKeyRefIDMapped(entry, idx, idxVal), &schema.KeyRef{})
+	keyRef, err := s.State.Get(NewKeyRefIDInstance(entry, idx, idxVal), &schema.KeyRef{})
 	if err != nil {
 		return nil, errors.Errorf(`%s: {%s}.%s: %s`, ErrIndexReferenceNotFound, mapKey(entry), idx, err)
 	}
