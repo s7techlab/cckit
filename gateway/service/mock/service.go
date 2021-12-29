@@ -1,11 +1,10 @@
 package mock
 
 import (
-	"github.com/s7techlab/cckit/gateway/mock"
-	"github.com/s7techlab/cckit/testing"
+	"github.com/s7techlab/cckit/gateway"
 )
 
-// Deprecated: use gateway/mock
-func New(peers ...*testing.MockedPeer) *mock.ChaincodeService {
-	return mock.New(peers...)
+// Deprecated: use gateway.NewChaincodeService
+func New(peer gateway.Peer) *gateway.ChaincodeService {
+	return gateway.NewChaincodeService(peer)
 }

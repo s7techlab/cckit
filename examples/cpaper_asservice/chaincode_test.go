@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/hyperledger/fabric/msp"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	s "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
-	"github.com/s7techlab/cckit/extensions/encryption"
+	enctest "github.com/s7techlab/cckit/extensions/encryption/testing"
 	"github.com/s7techlab/cckit/router"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
@@ -39,7 +39,7 @@ var (
 	cc, ccEnc         *testcc.MockStub
 
 	encKey       = make([]byte, 32)
-	ccEncWrapped *encryption.MockStub
+	ccEncWrapped *enctest.MockStub
 
 	issuePayload = &schema.IssueCommercialPaper{
 		Issuer:       IssuerName,
@@ -70,7 +70,7 @@ var _ = Describe(`CommercialPaper`, func() {
 		ccEnc = testcc.NewMockStub(`cpaper_as_service_encrypted`, ccEncImpl)
 
 		// all queries/invokes arguments to cc will be encrypted
-		ccEncWrapped = encryption.NewMockStub(ccEnc, encKey)
+		ccEncWrapped = enctest.NewMockStub(ccEnc, encKey)
 
 		identity, err = testcc.IdentityFromFile(MspName, `./testdata/admin.pem`, ioutil.ReadFile)
 		Expect(err).NotTo(HaveOccurred())

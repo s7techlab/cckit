@@ -12,15 +12,15 @@ import (
 )
 
 type (
-	ChannelMockStubs map[string]*MockStub
-
-	ChannelsMockStubs map[string]ChannelMockStubs
-
 	MockedPeer struct {
 		// channel name -> chaincode name
 		ChannelCC ChannelsMockStubs
 		m         sync.Mutex
 	}
+
+	ChannelMockStubs map[string]*MockStub
+
+	ChannelsMockStubs map[string]ChannelMockStubs
 
 	EventSubscription struct {
 		events chan *peer.ChaincodeEvent
@@ -36,14 +36,14 @@ func NewPeer() *MockedPeer {
 	}
 }
 
-func (mi *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *MockedPeer {
-	if _, ok := mi.ChannelCC[channel]; !ok {
-		mi.ChannelCC[channel] = make(ChannelMockStubs)
+func (mp *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *MockedPeer {
+	if _, ok := mp.ChannelCC[channel]; !ok {
+		mp.ChannelCC[channel] = make(ChannelMockStubs)
 	}
 
 	for _, ms := range mockStubs {
-		mi.ChannelCC[channel][ms.Name] = ms
-		for chName, chnl := range mi.ChannelCC {
+		mp.ChannelCC[channel][ms.Name] = ms
+		for chName, chnl := range mp.ChannelCC {
 			for ccName, cc := range chnl {
 
 				// add visibility of added cc to all other cc
@@ -55,10 +55,10 @@ func (mi *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *Mocke
 		}
 	}
 
-	return mi
+	return mp
 }
 
-func (mi *MockedPeer) Invoke(
+func (mp *MockedPeer) Invoke(
 	ctx context.Context,
 	channel string,
 	chaincode string,
@@ -67,9 +67,9 @@ func (mi *MockedPeer) Invoke(
 	transArgs map[string][]byte,
 	txWaiterType string) (res *peer.Response, chaincodeTx string, err error) {
 
-	mi.m.Lock()
-	defer mi.m.Unlock()
-	mockStub, err := mi.Chaincode(channel, chaincode)
+	mp.m.Lock()
+	defer mp.m.Unlock()
+	mockStub, err := mp.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, ``, err
 	}
@@ -82,7 +82,7 @@ func (mi *MockedPeer) Invoke(
 	return &response, mockStub.TxID, err
 }
 
-func (mi *MockedPeer) Query(
+func (mp *MockedPeer) Query(
 	ctx context.Context,
 	channel string,
 	chaincode string,
@@ -90,9 +90,9 @@ func (mi *MockedPeer) Query(
 	identity msp.SigningIdentity,
 	transArgs map[string][]byte) (*peer.Response, error) {
 
-	mi.m.Lock()
-	defer mi.m.Unlock()
-	mockStub, err := mi.Chaincode(channel, chaincode)
+	mp.m.Lock()
+	defer mp.m.Unlock()
+	mockStub, err := mp.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +106,8 @@ func (mi *MockedPeer) Query(
 
 }
 
-func (mi *MockedPeer) Chaincode(channel string, chaincode string) (*MockStub, error) {
-	ms, exists := mi.ChannelCC[channel][chaincode]
+func (mp *MockedPeer) Chaincode(channel string, chaincode string) (*MockStub, error) {
+	ms, exists := mp.ChannelCC[channel][chaincode]
 	if !exists {
 		return nil, fmt.Errorf(`%s: channell=%s, chaincode=%s`, ErrChaincodeNotExists, channel, chaincode)
 	}
@@ -115,7 +115,7 @@ func (mi *MockedPeer) Chaincode(channel string, chaincode string) (*MockStub, er
 	return ms, nil
 }
 
-func (mi *MockedPeer) Events(
+func (mp *MockedPeer) Events(
 	ctx context.Context,
 	channel string,
 	chaincode string,
@@ -123,7 +123,7 @@ func (mi *MockedPeer) Events(
 	blockRange ...int64,
 ) (chan *peer.ChaincodeEvent, error) {
 
-	mockStub, err := mi.Chaincode(channel, chaincode)
+	mockStub, err := mp.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err
 	}
