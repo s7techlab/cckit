@@ -40,6 +40,19 @@ func (this *ChaincodeExec) Validate() error {
 func (this *BlockRange) Validate() error {
 	return nil
 }
+func (this *ChaincodeEventsStreamRequest) Validate() error {
+	if this.Chaincode != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Chaincode); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
+		}
+	}
+	if this.Block != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+		}
+	}
+	return nil
+}
 func (this *ChaincodeEventsRequest) Validate() error {
 	if this.Chaincode != nil {
 		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Chaincode); err != nil {
@@ -65,10 +78,46 @@ func (this *ChaincodeInstanceExec) Validate() error {
 	}
 	return nil
 }
+func (this *ChaincodeInstanceEventsStreamRequest) Validate() error {
+	if this.Block != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+		}
+	}
+	return nil
+}
 func (this *ChaincodeInstanceEventsRequest) Validate() error {
 	if this.Block != nil {
 		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
 			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+		}
+	}
+	return nil
+}
+func (this *ChaincodeEvents) Validate() error {
+	if this.Chaincode != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Chaincode); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
+		}
+	}
+	if this.Block != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+		}
+	}
+	for _, item := range this.Items {
+		if item != nil {
+			if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(item); err != nil {
+				return github_com_mwitkow_go_proto_validators.FieldError("Items", err)
+			}
+		}
+	}
+	return nil
+}
+func (this *ChaincodeEvent) Validate() error {
+	if this.Event != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Event); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Event", err)
 		}
 	}
 	return nil

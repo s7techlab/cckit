@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
+
 	"github.com/s7techlab/cckit/convert"
 )
 
@@ -57,7 +58,7 @@ func (g *chaincode) Events(ctx context.Context) (ChaincodeEventSub, error) {
 	stream := NewChaincodeEventServerStream(ctx, g.EventOpts...)
 
 	go func() {
-		err := g.Service.Events(&ChaincodeEventsRequest{
+		err := g.Service.EventsStream(&ChaincodeEventsStreamRequest{
 			Chaincode: &ChaincodeLocator{
 				Channel:   g.Channel,
 				Chaincode: g.Chaincode,

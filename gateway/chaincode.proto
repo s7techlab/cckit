@@ -35,7 +35,14 @@ service ChaincodeService {
     }
 
     // Chaincode events stream
-    rpc Events (ChaincodeEventsRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeEventsStreamRequest) returns (stream ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode/events-stream"
+        };
+    }
+
+    // Chaincode events
+    rpc Events (ChaincodeEventsRequest) returns (ChaincodeEvents) {
         option (google.api.http) = {
             get: "/chaincode/events"
         };
@@ -45,14 +52,19 @@ service ChaincodeService {
 // Chaincode events subscription service
 service ChaincodeEventsService {
     // Chaincode events stream
-    rpc Events (ChaincodeEventsRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeEventsStreamRequest) returns (stream ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode/events-stream"
+        };
+    }
+
+    // Chaincode events
+    rpc Events (ChaincodeEventsRequest) returns (ChaincodeEvents) {
         option (google.api.http) = {
             get: "/chaincode/events"
         };
     }
 }
-
-
 
 // Chaincode instance communication service. Channel/chaincode already fixed.
 service ChaincodeInstanceService {
@@ -78,18 +90,31 @@ service ChaincodeInstanceService {
         };
     }
     // Chaincode events stream
-    rpc Events (ChaincodeInstanceEventsRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeInstanceEventsStreamRequest) returns (stream protos.ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode-instance/events-stream"
+        };
+    }
+
+    // Chaincode events
+    rpc Events (ChaincodeInstanceEventsRequest) returns (ChaincodeEvents) {
         option (google.api.http) = {
             get: "/chaincode-instance/events"
         };
     }
 }
 
-
 // Chaincode instance events subscription service
 service ChaincodeInstanceEventsService {
     // Chaincode events stream
-    rpc Events (ChaincodeInstanceEventsRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeInstanceEventsStreamRequest) returns (stream ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode-instance/events-stream"
+        };
+    }
+
+    // Chaincode events s
+    rpc Events (ChaincodeInstanceEventsRequest) returns (ChaincodeEvents) {
         option (google.api.http) = {
             get: "/chaincode-instance/events"
         };
@@ -140,12 +165,20 @@ message BlockRange {
     int64 to = 4;
 }
 
+
+message ChaincodeEventsStreamRequest {
+    ChaincodeLocator chaincode = 1;
+    BlockRange block = 2;
+    repeated string event_name = 3;
+}
+
 // Chaincode events request
 message ChaincodeEventsRequest {
     ChaincodeLocator chaincode = 1;
     BlockRange block = 2;
+    repeated string event_name = 3;
+    uint32 limit = 4;
 }
-
 
 // Chaincode instance chaincode input spec
 message ChaincodeInstanceInput {
@@ -164,8 +197,27 @@ message ChaincodeInstanceExec {
     ChaincodeInstanceInput input = 2;
 }
 
+message ChaincodeInstanceEventsStreamRequest {
+    BlockRange block = 1;
+    repeated string event_name = 2;
+}
 
 message ChaincodeInstanceEventsRequest {
     BlockRange block = 1;
+    repeated string event_name = 2;
+    uint32 limit = 3;
 }
+
+message ChaincodeEvents {
+    ChaincodeLocator chaincode = 1;
+    BlockRange block = 2;
+    repeated ChaincodeEvent items = 3;
+}
+
+message ChaincodeEvent {
+    protos.ChaincodeEvent event = 1;
+    uint64 block = 2;
+    bytes payload = 3;
+}
+
 

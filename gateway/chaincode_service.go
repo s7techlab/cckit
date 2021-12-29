@@ -20,7 +20,7 @@ type (
 
 // ChaincodeEventsServer  gateway/chaincode.go needs access to grpc stream
 type (
-	ChaincodeEventsServer = chaincodeServiceEventsServer
+	ChaincodeEventsServer = chaincodeServiceEventsStreamServer
 )
 
 // Deprecated: use NewChaincodeService instead
@@ -102,8 +102,13 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 	return resp, nil
 }
 
-func (cs *ChaincodeService) Events(in *ChaincodeEventsRequest, stream ChaincodeService_EventsServer) error {
-	return cs.EventService.Events(in, stream)
+func (cs *ChaincodeService) EventsStream(in *ChaincodeEventsStreamRequest, stream ChaincodeService_EventsStreamServer) error {
+	return cs.EventService.EventsStream(&ChaincodeEventsStreamRequest{}, stream)
+
+}
+
+func (cs *ChaincodeService) Events(ctx context.Context, request *ChaincodeEventsRequest) (*ChaincodeEvents, error) {
+	return cs.EventService.Events(ctx, request)
 }
 
 // ServiceDef returns service definition
@@ -115,12 +120,56 @@ func (ce *ChaincodeEventService) ServiceDef() ServiceDef {
 	}
 }
 
-func (ce *ChaincodeEventService) Events(in *ChaincodeEventsRequest, stream ChaincodeService_EventsServer) error {
+func (ce *ChaincodeEventService) Events(ctx context.Context, in *ChaincodeEventsRequest) (*ChaincodeEvents, error) {
+	signer, _ := SignerFromContext(ctx)
+
+	// by default from == 0, so we go stream with seek from oldest blocks
+	// by default to == 0, so we go stream with seek until current channel height
+	blockRange := []int64{0, 0}
+	if in.Block != nil {
+		blockRange = []int64{in.Block.From, in.Block.To} //
+	}
+
+	eventStream, err := ce.EventDelivery.Events(
+		ctx,
+		in.Chaincode.Channel,
+		in.Chaincode.Chaincode,
+		signer,
+		blockRange...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	events := &ChaincodeEvents{
+		Chaincode: in.Chaincode,
+		Block:     in.Block,
+		Items:     []*ChaincodeEvent{},
+	}
+
+	for {
+		event, hasMore := <-eventStream
+		if !hasMore {
+			break
+		}
+
+		events.Items = append(events.Items, &ChaincodeEvent{
+			Event: event,
+		})
+
+	}
+
+	return events, nil
+}
+
+func (ce *ChaincodeEventService) EventsStream(in *ChaincodeEventsStreamRequest, stream ChaincodeEventsService_EventsStreamServer) error {
 	signer, _ := SignerFromContext(stream.Context())
 
 	var blockRange []int64
+
 	if in.Block != nil {
-		blockRange = []int64{in.Block.From, in.Block.To}
+		blockRange = []int64{}
 	}
 
 	events, err := ce.EventDelivery.Events(
@@ -139,7 +188,7 @@ func (ce *ChaincodeEventService) Events(in *ChaincodeEventsRequest, stream Chain
 		if !ok {
 			return nil
 		}
-		if err = stream.Send(e); err != nil {
+		if err = stream.Send(&ChaincodeEvent{Event: e}); err != nil {
 			return err
 		}
 	}
