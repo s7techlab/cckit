@@ -97,3 +97,17 @@ func (ces *ChaincodeInstanceEventService) ServiceDef() ServiceDef {
 		HandlerFromEndpointRegister: RegisterChaincodeInstanceEventsServiceHandlerFromEndpoint,
 	}
 }
+
+func (ces *ChaincodeInstanceEventService) EventsStream(request *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceEventsService_EventsStreamServer) error {
+	return ces.EventService.EventsStream(&ChaincodeEventsStreamRequest{
+		Chaincode: ces.Locator,
+		Block:     request.Block,
+	}, stream)
+}
+
+func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, request *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
+	return ces.EventService.Events(ctx, &ChaincodeEventsRequest{
+		Chaincode: ces.Locator,
+		Block:     request.Block,
+	})
+}

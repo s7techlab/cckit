@@ -29,59 +29,70 @@ const (
 )
 
 var (
-	ccService     *gateway.ChaincodeService
-	cPaperGateway *cpservice.CPaperGateway
-
 	ctx = gateway.ContextWithSigner(
 		context.Background(),
 		idtestdata.Certificates[0].MustIdentity(idtestdata.DefaultMSP),
 	)
 )
 
-var _ = Describe(`Service`, func() {
+var _ = Describe(`Gateway`, func() {
 
-	It("Init", func() {
-		ccImpl, err := cpaper_asservice.NewCC()
-		Expect(err).NotTo(HaveOccurred())
+	Context(`Chaincode service`, func() {
 
-		// peer imitation
-		peer := testcc.NewPeer().WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
-		ccService = gateway.NewChaincodeService(peer)
+		var (
+			ccService     *gateway.ChaincodeService
+			cPaperGateway *cpservice.CPaperGateway
+		)
 
-		// "sdk" for deal with cpaper chaincode
-		cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
+		It("Init", func() {
+			ccImpl, err := cpaper_asservice.NewCC()
+			Expect(err).NotTo(HaveOccurred())
+
+			// peer imitation
+			peer := testcc.NewPeer().WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
+			ccService = gateway.NewChaincodeService(peer)
+
+			// "sdk" for deal with cpaper chaincode
+			cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
+		})
+
+		Context(`Wrap chaincode gateway`, func() {
+
+			It("Allow to get empty commercial paper list", func() {
+				pp, err := cPaperGateway.List(ctx, &empty.Empty{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(pp.Items).To(HaveLen(0))
+			})
+
+			It("Invoke chaincode with 'tx waiter' in context", func() {
+				ctx = gateway.ContextWithTxWaiter(ctx, "all")
+				_, err := cPaperGateway.Issue(ctx, &schema.IssueCommercialPaper{
+					Issuer:       "issuer",
+					PaperNumber:  "1337",
+					ExternalId:   "228",
+					IssueDate:    timestamppb.Now(),
+					MaturityDate: timestamppb.Now(),
+					FaceValue:    2,
+				})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("Invoke chaincode with custom identity in context", func() {
+				signer := idtestdata.Certificates[1].MustIdentity(idtestdata.DefaultMSP)
+				ctx = gateway.ContextWithDefaultSigner(ctx, signer)
+
+				_, err := cPaperGateway.Delete(ctx, &schema.CommercialPaperId{
+					Issuer:      "issuer",
+					PaperNumber: "1337",
+				})
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
 	})
 
-	Context(`Wrap chaincode gateway`, func() {
+	Context(`Chaincode instance service`, func() {
 
-		It("Allow to get empty commercial paper list", func() {
-			pp, err := cPaperGateway.List(ctx, &empty.Empty{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(pp.Items).To(HaveLen(0))
-		})
-
-		It("Invoke chaincode with 'tx waiter' in context", func() {
-			ctx = gateway.ContextWithTxWaiter(ctx, "all")
-			_, err := cPaperGateway.Issue(ctx, &schema.IssueCommercialPaper{
-				Issuer:       "issuer",
-				PaperNumber:  "1337",
-				ExternalId:   "228",
-				IssueDate:    timestamppb.Now(),
-				MaturityDate: timestamppb.Now(),
-				FaceValue:    2,
-			})
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("Invoke chaincode with custom identity in context", func() {
-			signer := idtestdata.Certificates[1].MustIdentity(idtestdata.DefaultMSP)
-			ctx = gateway.ContextWithDefaultSigner(ctx, signer)
-
-			_, err := cPaperGateway.Delete(ctx, &schema.CommercialPaperId{
-				Issuer:      "issuer",
-				PaperNumber: "1337",
-			})
-			Expect(err).NotTo(HaveOccurred())
-		})
 	})
+
 })
