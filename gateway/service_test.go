@@ -56,7 +56,19 @@ var _ = Describe(`Gateway`, func() {
 			cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
 		})
 
-		Context(`Wrap chaincode gateway`, func() {
+		Context(`Direct calls`, func() {
+
+			It("Require  to provide chaincode locator", func() {
+				_, err := ccService.Query(ctx, &gateway.ChaincodeInput{
+					Args: [][]byte{[]byte(`List`), []byte{}},
+				})
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(`invalid field Chaincode: message must exist`))
+			})
+		})
+
+		Context(`Chaincode gateway`, func() {
 
 			It("Allow to get empty commercial paper list", func() {
 				pp, err := cPaperGateway.List(ctx, &empty.Empty{})
@@ -93,6 +105,32 @@ var _ = Describe(`Gateway`, func() {
 
 	Context(`Chaincode instance service`, func() {
 
+		var (
+			ccInstanceService *gateway.ChaincodeInstanceService
+		)
+
+		It("Init", func() {
+			ccImpl, err := cpaper_asservice.NewCC()
+			Expect(err).NotTo(HaveOccurred())
+
+			// peer imitation
+			peer := testcc.NewPeer().WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
+			ccInstanceService = gateway.NewChaincodeInstanceService(peer, Channel, ChaincodeName)
+		})
+
+		Context(`Direct calls`, func() {
+
+			It("Allow to get empty commercial paper list", func() {
+				resp, err := ccInstanceService.Query(ctx, &gateway.ChaincodeInstanceInput{
+					Args: [][]byte{[]byte(`List`), []byte{}},
+				})
+
+				Expect(err).NotTo(HaveOccurred())
+				cPaperList := testcc.MustProtoUnmarshal(resp.Payload, &schema.CommercialPaperList{}).(*schema.CommercialPaperList)
+				Expect(cPaperList.Items).To(HaveLen(0))
+			})
+
+		})
 	})
 
 })

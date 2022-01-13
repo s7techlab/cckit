@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
+
+	"github.com/s7techlab/cckit/router"
 )
 
 type (
@@ -86,7 +88,12 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 }
 
 func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*peer.Response, error) {
+	if err := router.ValidateRequest(in); err != nil {
+		return nil, err
+	}
+
 	signer, _ := SignerFromContext(ctx)
+
 	resp, err := cs.Peer.Query(
 		ctx,
 		in.Chaincode.Channel,
@@ -102,13 +109,20 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 	return resp, nil
 }
 
-func (cs *ChaincodeService) EventsStream(in *ChaincodeEventsStreamRequest, stream ChaincodeService_EventsStreamServer) error {
-	return cs.EventService.EventsStream(&ChaincodeEventsStreamRequest{}, stream)
+func (cs *ChaincodeService) EventsStream(req *ChaincodeEventsStreamRequest, stream ChaincodeService_EventsStreamServer) error {
+	if err := router.ValidateRequest(req); err != nil {
+		return err
+	}
+
+	return cs.EventService.EventsStream(req, stream)
 
 }
 
-func (cs *ChaincodeService) Events(ctx context.Context, request *ChaincodeEventsRequest) (*ChaincodeEvents, error) {
-	return cs.EventService.Events(ctx, request)
+func (cs *ChaincodeService) Events(ctx context.Context, req *ChaincodeEventsRequest) (*ChaincodeEvents, error) {
+	if err := router.ValidateRequest(req); err != nil {
+		return nil, err
+	}
+	return cs.EventService.Events(ctx, req)
 }
 
 // ServiceDef returns service definition
@@ -120,20 +134,24 @@ func (ce *ChaincodeEventService) ServiceDef() ServiceDef {
 	}
 }
 
-func (ce *ChaincodeEventService) Events(ctx context.Context, in *ChaincodeEventsRequest) (*ChaincodeEvents, error) {
+func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEventsRequest) (*ChaincodeEvents, error) {
+	if err := router.ValidateRequest(req); err != nil {
+		return nil, err
+	}
+
 	signer, _ := SignerFromContext(ctx)
 
 	// by default from == 0, so we go stream with seek from oldest blocks
 	// by default to == 0, so we go stream with seek until current channel height
 	blockRange := []int64{0, 0}
-	if in.Block != nil {
-		blockRange = []int64{in.Block.From, in.Block.To} //
+	if req.Block != nil {
+		blockRange = []int64{req.Block.From, req.Block.To} //
 	}
 
 	eventStream, err := ce.EventDelivery.Events(
 		ctx,
-		in.Chaincode.Channel,
-		in.Chaincode.Chaincode,
+		req.Chaincode.Channel,
+		req.Chaincode.Chaincode,
 		signer,
 		blockRange...,
 	)
@@ -143,8 +161,8 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, in *ChaincodeEvents
 	}
 
 	events := &ChaincodeEvents{
-		Chaincode: in.Chaincode,
-		Block:     in.Block,
+		Chaincode: req.Chaincode,
+		Block:     req.Block,
 		Items:     []*ChaincodeEvent{},
 	}
 
@@ -163,19 +181,23 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, in *ChaincodeEvents
 	return events, nil
 }
 
-func (ce *ChaincodeEventService) EventsStream(in *ChaincodeEventsStreamRequest, stream ChaincodeEventsService_EventsStreamServer) error {
+func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest, stream ChaincodeEventsService_EventsStreamServer) error {
+	if err := router.ValidateRequest(req); err != nil {
+		return err
+	}
+
 	signer, _ := SignerFromContext(stream.Context())
 
 	var blockRange []int64
 
-	if in.Block != nil {
+	if req.Block != nil {
 		blockRange = []int64{}
 	}
 
 	events, err := ce.EventDelivery.Events(
 		stream.Context(),
-		in.Chaincode.Channel,
-		in.Chaincode.Chaincode,
+		req.Chaincode.Channel,
+		req.Chaincode.Chaincode,
 		signer,
 		blockRange...,
 	)
