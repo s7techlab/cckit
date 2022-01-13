@@ -9,6 +9,8 @@ import "google/api/annotations.proto";
 import "peer/proposal_response.proto";
 import "peer/chaincode_event.proto";
 
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+
 // Chaincode communication service. Allows to locate channel/chaincode.
 service ChaincodeService {
     // Exec: Query or Invoke
@@ -124,14 +126,14 @@ service ChaincodeInstanceEventsService {
 // Chaincode locator - channel name and chaincode name
 message ChaincodeLocator {
     // Chaincode name
-    string chaincode = 1;
+    string chaincode = 1 [(validator.field) = {string_not_empty : true}];
     // Channel name
-    string channel = 2;
+    string channel = 2 [(validator.field) = {string_not_empty : true}];
 }
 
 // Chaincode invocation input
 message ChaincodeInput {
-    ChaincodeLocator chaincode = 1;
+    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
     // Input contains the arguments for invocation.
     repeated bytes args = 2;
 
@@ -167,14 +169,14 @@ message BlockRange {
 
 
 message ChaincodeEventsStreamRequest {
-    ChaincodeLocator chaincode = 1;
+    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
     BlockRange block = 2;
     repeated string event_name = 3;
 }
 
 // Chaincode events request
 message ChaincodeEventsRequest {
-    ChaincodeLocator chaincode = 1;
+    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];;
     BlockRange block = 2;
     repeated string event_name = 3;
     uint32 limit = 4;

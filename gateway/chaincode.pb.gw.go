@@ -882,7 +882,7 @@ var (
 
 	pattern_ChaincodeService_Invoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "invoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_ChaincodeService_EventsStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "events"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_ChaincodeService_EventsStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "events-stream"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_ChaincodeService_Events_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "events"}, "", runtime.AssumeColonVerbOpt(true)))
 )
