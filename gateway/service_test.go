@@ -133,9 +133,9 @@ var _ = Describe(`Gateway`, func() {
 					Expect(err).NotTo(HaveOccurred())
 				}()
 
-				var event *gateway.ChaincodeEvent
-
-				stream.Recv(event)
+				var e *gateway.ChaincodeEvent
+				err := stream.Recv(e)
+				Expect(err).NotTo(HaveOccurred())
 				cancel()
 				close(done)
 			}, 1)
