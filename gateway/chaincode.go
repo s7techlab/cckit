@@ -19,7 +19,7 @@ const (
 type Chaincode interface {
 	Query(ctx context.Context, fn string, args []interface{}, target interface{}) (interface{}, error)
 	Invoke(ctx context.Context, fn string, args []interface{}, target interface{}) (interface{}, error)
-	Events(ctx context.Context) (ChaincodeEventSub, error)
+	Events(ctx context.Context, r ...*ChaincodeInstanceEventsStreamRequest) (ChaincodeEventSub, error)
 }
 
 type ChaincodeEventSub interface {
@@ -54,16 +54,24 @@ func NewChaincode(service ChaincodeServiceServer, channelName, chaincodeName str
 	return c
 }
 
-func (g *chaincode) Events(ctx context.Context) (ChaincodeEventSub, error) {
+func (g *chaincode) Events(ctx context.Context, r ...*ChaincodeInstanceEventsStreamRequest) (ChaincodeEventSub, error) {
 	stream := NewChaincodeEventServerStream(ctx, g.EventOpts...)
 
+	req := &ChaincodeEventsStreamRequest{
+		Chaincode: &ChaincodeLocator{
+			Channel:   g.Channel,
+			Chaincode: g.Chaincode,
+		},
+	}
+
+	if len(r) == 1 {
+		req.FromBlock = r[0].FromBlock
+		req.ToBlock = r[0].ToBlock
+		req.EventName = r[0].EventName
+	}
+
 	go func() {
-		err := g.Service.EventsStream(&ChaincodeEventsStreamRequest{
-			Chaincode: &ChaincodeLocator{
-				Channel:   g.Channel,
-				Chaincode: g.Chaincode,
-			},
-		}, &ChaincodeEventsServer{ServerStream: stream})
+		err := g.Service.EventsStream(req, &ChaincodeEventsServer{ServerStream: stream})
 
 		if err != nil {
 			stream.Close()
