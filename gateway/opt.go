@@ -14,7 +14,7 @@ type Opt func(*chaincode)
 type ContextOpt func(ctx context.Context) context.Context
 type InputOpt func(action Action, input *ChaincodeInput) error
 type OutputOpt func(action Action, response *peer.Response) error
-type EventOpt func(event *peer.ChaincodeEvent) error
+type EventOpt func(event *ChaincodeEvent) error
 
 func WithDefaultSigner(defaultSigner msp.SigningIdentity) Opt {
 	return func(c *chaincode) {
@@ -64,14 +64,13 @@ func WithInvokePayloadDecryption(encKey []byte) Opt {
 
 func WithEventDecryption(encKey []byte) Opt {
 	return func(c *chaincode) {
-		c.EventOpts = append(c.EventOpts, func(e *peer.ChaincodeEvent) error {
-			de, err := encryption.DecryptEvent(encKey, e)
+		c.EventOpts = append(c.EventOpts, func(e *ChaincodeEvent) error {
+			de, err := encryption.DecryptEvent(encKey, e.Event)
 			if err != nil {
 				return err
 			}
 
-			e.EventName = de.EventName
-			e.Payload = de.Payload
+			e.Event = de
 			return nil
 		})
 	}

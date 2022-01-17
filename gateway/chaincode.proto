@@ -158,28 +158,28 @@ message ChaincodeExec {
     ChaincodeInput input = 2;
 }
 
-// Block range for event subscription.
-// Values can be negative. If from is negative - subscription starts from x block from channel height
-message BlockRange {
-    // from block
-    int64 from = 3;
-    // to block
-    int64 to = 4;
+// Block limit number for event stream subscription or event list
+// Values can be negative
+message BlockLimit {
+    // Block number
+    int64 num = 1;
 }
 
-
+// Chaincode events stream request
 message ChaincodeEventsStreamRequest {
     ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
-    BlockRange block = 2;
-    repeated string event_name = 3;
+    BlockLimit from_block = 2;
+    BlockLimit to_block = 3;
+    repeated string event_name = 4;
 }
 
-// Chaincode events request
+// Chaincode events list request
 message ChaincodeEventsRequest {
-    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];;
-    BlockRange block = 2;
-    repeated string event_name = 3;
-    uint32 limit = 4;
+    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
+    BlockLimit from_block = 2;
+    BlockLimit to_block = 3;
+    repeated string event_name = 4;
+    uint32 limit = 5;
 }
 
 // Chaincode instance chaincode input spec
@@ -200,20 +200,23 @@ message ChaincodeInstanceExec {
 }
 
 message ChaincodeInstanceEventsStreamRequest {
-    BlockRange block = 1;
-    repeated string event_name = 2;
+    BlockLimit from_block = 1;
+    BlockLimit to_block = 2;
+    repeated string event_name = 3;
 }
 
 message ChaincodeInstanceEventsRequest {
-    BlockRange block = 1;
-    repeated string event_name = 2;
-    uint32 limit = 3;
+    BlockLimit from_block = 1;
+    BlockLimit to_block = 2;
+    repeated string event_name = 3;
+    uint32 limit = 4;
 }
 
 message ChaincodeEvents {
     ChaincodeLocator chaincode = 1;
-    BlockRange block = 2;
-    repeated ChaincodeEvent items = 3;
+    BlockLimit from_block = 2;
+    BlockLimit to_block = 3;
+    repeated ChaincodeEvent items = 4;
 }
 
 message ChaincodeEvent {

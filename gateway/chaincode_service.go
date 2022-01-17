@@ -134,6 +134,23 @@ func (ce *ChaincodeEventService) ServiceDef() ServiceDef {
 	}
 }
 
+func BlockRange(from, to *BlockLimit) []int64 {
+	var blockRange []int64
+
+	switch {
+	case from != nil && to != nil:
+		blockRange = []int64{from.Num, to.Num}
+
+	case from != nil:
+		blockRange = []int64{from.Num}
+
+	case to != nil:
+		blockRange = []int64{0, to.Num}
+	}
+
+	return blockRange
+}
+
 func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEventsRequest) (*ChaincodeEvents, error) {
 	if err := router.ValidateRequest(req); err != nil {
 		return nil, err
@@ -141,11 +158,9 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 
 	signer, _ := SignerFromContext(ctx)
 
-	// by default from == 0, so we go stream with seek from oldest blocks
-	// by default to == 0, so we go stream with seek until current channel height
-	blockRange := []int64{0, 0}
-	if req.Block != nil {
-		blockRange = []int64{req.Block.From, req.Block.To} //
+	// for event _list_ default block range is up to current channel height
+	if req.ToBlock == nil {
+		req.ToBlock = &BlockLimit{Num: 0}
 	}
 
 	eventStream, err := ce.EventDelivery.Events(
@@ -153,7 +168,7 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 		req.Chaincode.Channel,
 		req.Chaincode.Chaincode,
 		signer,
-		blockRange...,
+		BlockRange(req.FromBlock, req.ToBlock)...,
 	)
 
 	if err != nil {
@@ -162,7 +177,8 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 
 	events := &ChaincodeEvents{
 		Chaincode: req.Chaincode,
-		Block:     req.Block,
+		FromBlock: req.FromBlock,
+		ToBlock:   req.ToBlock,
 		Items:     []*ChaincodeEvent{},
 	}
 
@@ -175,7 +191,6 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 		events.Items = append(events.Items, &ChaincodeEvent{
 			Event: event,
 		})
-
 	}
 
 	return events, nil
@@ -188,18 +203,12 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 
 	signer, _ := SignerFromContext(stream.Context())
 
-	var blockRange []int64
-
-	if req.Block != nil {
-		blockRange = []int64{}
-	}
-
 	events, err := ce.EventDelivery.Events(
 		stream.Context(),
 		req.Chaincode.Channel,
 		req.Chaincode.Chaincode,
 		signer,
-		blockRange...,
+		BlockRange(req.FromBlock, req.ToBlock)...,
 	)
 	if err != nil {
 		return err

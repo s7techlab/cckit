@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
@@ -122,26 +123,40 @@ func (mp *MockedPeer) Events(
 	identity msp.SigningIdentity,
 	blockRange ...int64,
 ) (chan *peer.ChaincodeEvent, error) {
-
 	mockStub, err := mp.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err
 	}
 
-	events, closer := mockStub.EventSubscription()
+	var (
+		events chan *peer.ChaincodeEvent
+		closer func()
+	)
+	// from oldest block to current channel height
+	if len(blockRange) == 2 && blockRange[0] == 0 && blockRange[1] == 0 {
+		// create copy of mockStub events chan
+		events, closer = mockStub.EventSubscription(0)
 
-	sub := &EventSubscription{
-		events: events,
-		errors: make(chan error),
+		// close events channel if its empty, because we receive events until current channel height
+		go func() {
+			ticker := time.NewTicker(5 * time.Millisecond)
+			for {
+				<-ticker.C
+				if len(events) == 0 {
+					closer()
+				}
+			}
+		}()
+	} else {
+		events, closer = mockStub.EventSubscription()
 	}
 
 	go func() {
 		<-ctx.Done()
 		closer()
-		close(sub.errors)
 	}()
 
-	return sub.Events(), nil
+	return events, nil
 }
 
 func (es *EventSubscription) Events() chan *peer.ChaincodeEvent {

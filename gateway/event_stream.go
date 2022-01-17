@@ -5,14 +5,13 @@ import (
 	"sync"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hyperledger/fabric-protos-go/peer"
 	"google.golang.org/grpc/metadata"
 )
 
 // ChaincodeEventServerStream implements gRPC server stream interfaces
 type ChaincodeEventServerStream struct {
 	context context.Context
-	events  chan *peer.ChaincodeEvent
+	events  chan *ChaincodeEvent
 	ready   bool
 	opts    []EventOpt
 	once    sync.Once
@@ -21,7 +20,7 @@ type ChaincodeEventServerStream struct {
 func NewChaincodeEventServerStream(ctx context.Context, opts ...EventOpt) (stream *ChaincodeEventServerStream) {
 	stream = &ChaincodeEventServerStream{
 		context: ctx,
-		events:  make(chan *peer.ChaincodeEvent),
+		events:  make(chan *ChaincodeEvent),
 		ready:   true,
 		opts:    opts,
 	}
@@ -49,14 +48,13 @@ func (s *ChaincodeEventServerStream) Context() context.Context {
 	return s.context
 }
 
-func (s *ChaincodeEventServerStream) SendMsg(m interface{}) (err error) {
+func (s *ChaincodeEventServerStream) send(e *ChaincodeEvent) error {
 	if !s.ready {
 		return ErrEventChannelClosed
 	}
 
-	e := proto.Clone(m.(*peer.ChaincodeEvent)).(*peer.ChaincodeEvent)
 	for _, o := range s.opts {
-		if err = o(e); err != nil {
+		if err := o(e); err != nil {
 			return err
 		}
 	}
@@ -70,15 +68,19 @@ func (s *ChaincodeEventServerStream) SendMsg(m interface{}) (err error) {
 	return nil
 }
 
-func (s *ChaincodeEventServerStream) Recv(e *peer.ChaincodeEvent) error {
+func (s *ChaincodeEventServerStream) SendMsg(m interface{}) error {
+	return s.send(proto.Clone(m.(*ChaincodeEvent)).(*ChaincodeEvent))
+}
+
+func (s *ChaincodeEventServerStream) Recv(e *ChaincodeEvent) error {
 	return s.recv(e)
 }
 
 func (s *ChaincodeEventServerStream) RecvMsg(m interface{}) error {
-	return s.recv(m.(*peer.ChaincodeEvent))
+	return s.recv(m.(*ChaincodeEvent))
 }
 
-func (s *ChaincodeEventServerStream) recv(ev *peer.ChaincodeEvent) error {
+func (s *ChaincodeEventServerStream) recv(ev *ChaincodeEvent) error {
 	_ = ev
 	if e, ok := <-s.events; ok {
 		ev = e
@@ -88,7 +90,7 @@ func (s *ChaincodeEventServerStream) recv(ev *peer.ChaincodeEvent) error {
 	return ErrEventChannelClosed
 }
 
-func (s *ChaincodeEventServerStream) Events() <-chan *peer.ChaincodeEvent {
+func (s *ChaincodeEventServerStream) Events() <-chan *ChaincodeEvent {
 	return s.events
 }
 

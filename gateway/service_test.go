@@ -1,13 +1,12 @@
 package gateway_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"context"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
@@ -42,15 +41,16 @@ var _ = Describe(`Gateway`, func() {
 		var (
 			ccService     *gateway.ChaincodeService
 			cPaperGateway *cpservice.CPaperGateway
+			mockStub      *testcc.MockStub
 		)
 
 		It("Init", func() {
 			ccImpl, err := cpaper_asservice.NewCC()
 			Expect(err).NotTo(HaveOccurred())
 
-			// peer imitation
-			peer := testcc.NewPeer().WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl))
-			ccService = gateway.NewChaincodeService(peer)
+			mockStub = testcc.NewMockStub(ChaincodeName, ccImpl)
+
+			ccService = gateway.NewChaincodeService(testcc.NewPeer().WithChannel(Channel, mockStub))
 
 			// "sdk" for deal with cpaper chaincode
 			cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
@@ -99,6 +99,46 @@ var _ = Describe(`Gateway`, func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 			})
+
+			It(`allow to get events as LIST  (by default from block 0 to current channel height) `, func(done Done) {
+				events, err := ccService.Events(ctx, &gateway.ChaincodeEventsRequest{
+					Chaincode: &gateway.ChaincodeLocator{
+						Channel:   Channel,
+						Chaincode: ChaincodeName,
+					},
+				})
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(events.Items).To(HaveLen(1)) // 1 event on issue
+
+				close(done)
+			})
+
+			It(`allow to get events from block 0 to current channel height AS STREAM`, func(done Done) {
+				ctxWithCancel, cancel := context.WithCancel(ctx)
+				stream := gateway.NewChaincodeEventServerStream(ctxWithCancel)
+
+				go func() {
+					req := &gateway.ChaincodeEventsStreamRequest{
+						Chaincode: &gateway.ChaincodeLocator{
+							Channel:   Channel,
+							Chaincode: ChaincodeName,
+						},
+						FromBlock: &gateway.BlockLimit{Num: 0},
+						ToBlock:   &gateway.BlockLimit{Num: 0},
+					}
+
+					err := ccService.EventsStream(req, &gateway.ChaincodeEventsServer{ServerStream: stream})
+
+					Expect(err).NotTo(HaveOccurred())
+				}()
+
+				var event *gateway.ChaincodeEvent
+
+				stream.Recv(event)
+				cancel()
+				close(done)
+			}, 1)
 		})
 
 	})

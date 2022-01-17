@@ -78,14 +78,16 @@ func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, input *Chaincod
 func (cis *ChaincodeInstanceService) EventsStream(request *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceEventsService_EventsStreamServer) error {
 	return cis.ChaincodeService.EventsStream(&ChaincodeEventsStreamRequest{
 		Chaincode: cis.Locator,
-		Block:     request.Block,
+		FromBlock: request.FromBlock,
+		ToBlock:   request.ToBlock,
 	}, stream)
 }
 
 func (cis *ChaincodeInstanceService) Events(ctx context.Context, request *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
 	return cis.ChaincodeService.Events(ctx, &ChaincodeEventsRequest{
 		Chaincode: cis.Locator,
-		Block:     request.Block,
+		FromBlock: request.FromBlock,
+		ToBlock:   request.ToBlock,
 		EventName: request.EventName,
 	})
 }
@@ -101,13 +103,15 @@ func (ces *ChaincodeInstanceEventService) ServiceDef() ServiceDef {
 func (ces *ChaincodeInstanceEventService) EventsStream(request *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceEventsService_EventsStreamServer) error {
 	return ces.EventService.EventsStream(&ChaincodeEventsStreamRequest{
 		Chaincode: ces.Locator,
-		Block:     request.Block,
+		FromBlock: request.FromBlock,
+		ToBlock:   request.ToBlock,
 	}, stream)
 }
 
 func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, request *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
 	return ces.EventService.Events(ctx, &ChaincodeEventsRequest{
 		Chaincode: ces.Locator,
-		Block:     request.Block,
+		FromBlock: request.FromBlock,
+		ToBlock:   request.ToBlock,
 	})
 }

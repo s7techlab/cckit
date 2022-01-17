@@ -29,16 +29,16 @@
         },
         "parameters": [
           {
-            "name": "block.from",
-            "description": "from block.",
+            "name": "from_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "block.to",
-            "description": "to block.",
+            "name": "to_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -81,16 +81,16 @@
         },
         "parameters": [
           {
-            "name": "block.from",
-            "description": "from block.",
+            "name": "from_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "block.to",
-            "description": "to block.",
+            "name": "to_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -225,16 +225,16 @@
             "type": "string"
           },
           {
-            "name": "block.from",
-            "description": "from block.",
+            "name": "from_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "block.to",
-            "description": "to block.",
+            "name": "to_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -291,16 +291,16 @@
             "type": "string"
           },
           {
-            "name": "block.from",
-            "description": "from block.",
+            "name": "from_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "block.to",
-            "description": "to block.",
+            "name": "to_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -439,21 +439,16 @@
         }
       }
     },
-    "gatewayBlockRange": {
+    "gatewayBlockLimit": {
       "type": "object",
       "properties": {
-        "from": {
+        "num": {
           "type": "string",
           "format": "int64",
-          "title": "from block"
-        },
-        "to": {
-          "type": "string",
-          "format": "int64",
-          "title": "to block"
+          "title": "Block number"
         }
       },
-      "title": "Block range for event subscription.\nValues can be negative. If from is negative - subscription starts from x block from channel height"
+      "title": "Block limit number for event stream subscription or vent list\nValues can be negative"
     },
     "gatewayChaincodeEvents": {
       "type": "object",
@@ -461,8 +456,11 @@
         "chaincode": {
           "$ref": "#/definitions/gatewayChaincodeLocator"
         },
-        "block": {
-          "$ref": "#/definitions/gatewayBlockRange"
+        "from_block": {
+          "$ref": "#/definitions/gatewayBlockLimit"
+        },
+        "to_block": {
+          "$ref": "#/definitions/gatewayBlockLimit"
         },
         "items": {
           "type": "array",

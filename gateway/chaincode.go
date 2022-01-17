@@ -24,8 +24,8 @@ type Chaincode interface {
 
 type ChaincodeEventSub interface {
 	Context() context.Context
-	Events() <-chan *peer.ChaincodeEvent
-	Recv(*peer.ChaincodeEvent) error
+	Events() <-chan *ChaincodeEvent
+	Recv(*ChaincodeEvent) error
 	Close()
 }
 

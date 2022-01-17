@@ -47,7 +47,7 @@ func (this *ChaincodeExec) Validate() error {
 	}
 	return nil
 }
-func (this *BlockRange) Validate() error {
+func (this *BlockLimit) Validate() error {
 	return nil
 }
 func (this *ChaincodeEventsStreamRequest) Validate() error {
@@ -59,9 +59,14 @@ func (this *ChaincodeEventsStreamRequest) Validate() error {
 			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
 		}
 	}
-	if this.Block != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+	if this.FromBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.FromBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("FromBlock", err)
+		}
+	}
+	if this.ToBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.ToBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("ToBlock", err)
 		}
 	}
 	return nil
@@ -75,9 +80,14 @@ func (this *ChaincodeEventsRequest) Validate() error {
 			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
 		}
 	}
-	if this.Block != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+	if this.FromBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.FromBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("FromBlock", err)
+		}
+	}
+	if this.ToBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.ToBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("ToBlock", err)
 		}
 	}
 	return nil
@@ -95,17 +105,27 @@ func (this *ChaincodeInstanceExec) Validate() error {
 	return nil
 }
 func (this *ChaincodeInstanceEventsStreamRequest) Validate() error {
-	if this.Block != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+	if this.FromBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.FromBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("FromBlock", err)
+		}
+	}
+	if this.ToBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.ToBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("ToBlock", err)
 		}
 	}
 	return nil
 }
 func (this *ChaincodeInstanceEventsRequest) Validate() error {
-	if this.Block != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+	if this.FromBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.FromBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("FromBlock", err)
+		}
+	}
+	if this.ToBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.ToBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("ToBlock", err)
 		}
 	}
 	return nil
@@ -116,9 +136,14 @@ func (this *ChaincodeEvents) Validate() error {
 			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
 		}
 	}
-	if this.Block != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Block); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Block", err)
+	if this.FromBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.FromBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("FromBlock", err)
+		}
+	}
+	if this.ToBlock != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.ToBlock); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("ToBlock", err)
 		}
 	}
 	for _, item := range this.Items {
