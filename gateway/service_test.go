@@ -118,11 +118,14 @@ var _ = Describe(`Gateway`, func() {
 				Expect(events.Items).To(HaveLen(1)) // 1 event on issue
 
 				e := events.Items[0]
-				var eventObj interface{}
+				var (
+					eventObj  interface{}
+					eventJson string
+				)
 				eventObj, err = convert.FromBytes(e.Event.Payload, &schema.IssueCommercialPaper{})
 				Expect(err).NotTo(HaveOccurred())
 
-				eventJson, err := (&jsonpb.Marshaler{EmitDefaults: true, OrigName: true}).
+				eventJson, err = (&jsonpb.Marshaler{EmitDefaults: true, OrigName: true}).
 					MarshalToString(eventObj.(proto.Message))
 				Expect(e.Event.EventName).To(Equal(`IssueCommercialPaper`))
 				Expect(e.Payload).To(Equal([]byte(eventJson)))
