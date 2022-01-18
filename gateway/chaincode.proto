@@ -219,10 +219,14 @@ message ChaincodeEvents {
     repeated ChaincodeEvent items = 4;
 }
 
+message RawJson {
+    bytes value = 1;
+}
+
 message ChaincodeEvent {
     protos.ChaincodeEvent event = 1;
     uint64 block = 2;
-    bytes payload = 3;
+    RawJson payload = 3;
 }
 
 

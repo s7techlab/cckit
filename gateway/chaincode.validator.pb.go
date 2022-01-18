@@ -155,10 +155,18 @@ func (this *ChaincodeEvents) Validate() error {
 	}
 	return nil
 }
+func (this *RawJson) Validate() error {
+	return nil
+}
 func (this *ChaincodeEvent) Validate() error {
 	if this.Event != nil {
 		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Event); err != nil {
 			return github_com_mwitkow_go_proto_validators.FieldError("Event", err)
+		}
+	}
+	if this.Payload != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Payload); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Payload", err)
 		}
 	}
 	return nil

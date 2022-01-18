@@ -29,7 +29,13 @@ func NewChaincodeInstanceService(peer Peer, channel, chaincode string, opts ...O
 }
 
 func (cis *ChaincodeInstanceService) EventService() *ChaincodeInstanceEventService {
-	return NewChaincodeInstanceEventService(cis.ChaincodeService.Peer, cis.Locator.Channel, cis.Locator.Chaincode)
+	return &ChaincodeInstanceEventService{
+		EventService: cis.ChaincodeService.EventService,
+		Locator: &ChaincodeLocator{
+			Channel:   cis.Locator.Channel,
+			Chaincode: cis.Locator.Chaincode,
+		},
+	}
 }
 
 func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode string, opts ...Opt) *ChaincodeInstanceEventService {

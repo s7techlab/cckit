@@ -128,7 +128,7 @@ var _ = Describe(`Gateway`, func() {
 				eventJson, err = (&jsonpb.Marshaler{EmitDefaults: true, OrigName: true}).
 					MarshalToString(eventObj.(proto.Message))
 				Expect(e.Event.EventName).To(Equal(`IssueCommercialPaper`))
-				Expect(e.Payload).To(Equal([]byte(eventJson)))
+				Expect(e.Payload.Value).To(Equal([]byte(eventJson)))
 				close(done)
 			})
 

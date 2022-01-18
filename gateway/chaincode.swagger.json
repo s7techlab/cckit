@@ -434,8 +434,7 @@
           "format": "uint64"
         },
         "payload": {
-          "type": "string",
-          "format": "byte"
+          "$ref": "#/definitions/gatewayRawJson"
         }
       }
     },
@@ -448,7 +447,7 @@
           "title": "Block number"
         }
       },
-      "title": "Block limit number for event stream subscription or vent list\nValues can be negative"
+      "title": "Block limit number for event stream subscription or event list\nValues can be negative"
     },
     "gatewayChaincodeEvents": {
       "type": "object",
@@ -563,6 +562,15 @@
       "default": "QUERY",
       "description": "- QUERY: Simulation\n - INVOKE: Simulation and applying to ledger",
       "title": "Chaincode invocation type"
+    },
+    "gatewayRawJson": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
     },
     "protobufAny": {
       "type": "object",

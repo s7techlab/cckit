@@ -101,7 +101,7 @@ func WithEventResolver(resolver mapping.EventResolver) Opt {
 				return err
 			}
 
-			e.Payload = []byte(bb)
+			e.Payload = &RawJson{Value: []byte(bb)}
 			return nil
 		})
 	}
