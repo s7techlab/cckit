@@ -3,10 +3,11 @@ package gateway
 import (
 	"context"
 
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 
-	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/state/mapping"
 )
@@ -90,18 +91,17 @@ func WithEventDecryption(encKey []byte) Opt {
 func WithEventResolver(resolver mapping.EventResolver) Opt {
 	return func(o *Opts) {
 		o.Event = append(o.Event, func(e *ChaincodeEvent) error {
-
 			eventPayload, err := resolver.Resolve(e.Event.EventName, e.Event.Payload)
 			if err != nil {
 				return err
 			}
 
-			bb, err := convert.ToBytes(eventPayload)
+			bb, err := (&jsonpb.Marshaler{EmitDefaults: true, OrigName: true}).MarshalToString(eventPayload.(proto.Message))
 			if err != nil {
 				return err
 			}
 
-			e.Event.Payload = bb
+			e.Payload = []byte(bb)
 			return nil
 		})
 	}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
@@ -18,26 +19,32 @@ func New() *CPaperImpl {
 	return &CPaperImpl{}
 }
 
-// State with chaincode mappings
-func State(ctx router.Context) m.MappedState {
-	return m.WrapState(ctx.State(), m.StateMappings{}.
+var (
+	StateMappings = m.StateMappings{}.
 		//  Create mapping for Commercial Paper entity
 		Add(&schema.CommercialPaper{},
 			m.PKeySchema(&schema.CommercialPaperId{}), // Key namespace will be <"CommercialPaper", Issuer, PaperNumber>
 			m.List(&schema.CommercialPaperList{}),     // Structure of result for List method
 			m.UniqKey("ExternalId"),                   // External Id is unique
-		))
-}
+		)
 
-// Event with chaincode mappings
-func Event(ctx router.Context) state.Event {
-	return m.WrapEvent(ctx.Event(), m.EventMappings{}.
+	EventMappings = m.EventMappings{}.
 		// Event name will be "IssueCommercialPaper", payload - same as issue payload
 		Add(&schema.IssueCommercialPaper{}).
 		// Event name will be "BuyCommercialPaper"
 		Add(&schema.BuyCommercialPaper{}).
 		// Event name will be "RedeemCommercialPaper"
-		Add(&schema.RedeemCommercialPaper{}))
+		Add(&schema.RedeemCommercialPaper{})
+)
+
+// State with chaincode mappings
+func State(ctx router.Context) m.MappedState {
+	return m.WrapState(ctx.State(), StateMappings)
+}
+
+// Event with chaincode mappings
+func Event(ctx router.Context) state.Event {
+	return m.WrapEvent(ctx.Event(), EventMappings)
 }
 
 func (cc *CPaperImpl) List(ctx router.Context, in *empty.Empty) (*schema.CommercialPaperList, error) {

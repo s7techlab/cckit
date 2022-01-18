@@ -4,11 +4,14 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/empty"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
 	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
@@ -50,7 +53,10 @@ var _ = Describe(`Gateway`, func() {
 
 			mockStub = testcc.NewMockStub(ChaincodeName, ccImpl)
 
-			ccService = gateway.NewChaincodeService(testcc.NewPeer().WithChannel(Channel, mockStub))
+			ccService = gateway.NewChaincodeService(
+				testcc.NewPeer().WithChannel(Channel, mockStub),
+				gateway.WithEventResolver(cpservice.EventMappings),
+			)
 
 			// "sdk" for deal with cpaper chaincode
 			cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
@@ -111,6 +117,14 @@ var _ = Describe(`Gateway`, func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(events.Items).To(HaveLen(1)) // 1 event on issue
 
+				e := events.Items[0]
+				eventObj, err := convert.FromBytes(e.Event.Payload, &schema.IssueCommercialPaper{})
+				Expect(err).NotTo(HaveOccurred())
+
+				eventJson, err := (&jsonpb.Marshaler{EmitDefaults: true, OrigName: true}).
+					MarshalToString(eventObj.(proto.Message))
+				Expect(e.Event.EventName).To(Equal(`IssueCommercialPaper`))
+				Expect(e.Payload).To(Equal([]byte(eventJson)))
 				close(done)
 			})
 
