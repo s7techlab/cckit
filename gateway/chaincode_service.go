@@ -13,10 +13,12 @@ type (
 	ChaincodeService struct {
 		Peer         Peer
 		EventService *ChaincodeEventService
+		Opts         *Opts
 	}
 
 	ChaincodeEventService struct {
 		EventDelivery EventDelivery
+		Opts          *Opts
 	}
 )
 
@@ -26,15 +28,24 @@ type (
 )
 
 // Deprecated: use NewChaincodeService instead
-func New(peer Peer) *ChaincodeService {
-	return NewChaincodeService(peer)
+func New(peer Peer, opts ...Opt) *ChaincodeService {
+	return NewChaincodeService(peer, opts...)
 }
 
-func NewChaincodeService(peer Peer) *ChaincodeService {
-	return &ChaincodeService{
-		Peer:         peer,
-		EventService: NewChaincodeEventService(peer),
+func NewChaincodeService(peer Peer, opts ...Opt) *ChaincodeService {
+
+	ccService := &ChaincodeService{
+		Peer: peer,
+		Opts: &Opts{},
 	}
+
+	for _, o := range opts {
+		o(ccService.Opts)
+	}
+
+	ccService.EventService = NewChaincodeEventService(peer)
+	ccService.EventService.Opts = ccService.Opts
+	return ccService
 }
 
 func NewChaincodeEventService(eventDelivery EventDelivery) *ChaincodeEventService {
@@ -188,9 +199,14 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 			break
 		}
 
-		events.Items = append(events.Items, &ChaincodeEvent{
+		ccEvent := &ChaincodeEvent{
 			Event: event,
-		})
+		}
+		for _, o := range ce.Opts.Event {
+			_ = o(ccEvent)
+		}
+
+		events.Items = append(events.Items, ccEvent)
 	}
 
 	return events, nil
@@ -215,11 +231,19 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 	}
 
 	for {
-		e, ok := <-events
+		event, ok := <-events
 		if !ok {
 			return nil
 		}
-		if err = stream.Send(&ChaincodeEvent{Event: e}); err != nil {
+
+		ccEvent := &ChaincodeEvent{
+			Event: event,
+		}
+		for _, o := range ce.Opts.Event {
+			_ = o(ccEvent)
+		}
+
+		if err = stream.Send(ccEvent); err != nil {
 			return err
 		}
 	}

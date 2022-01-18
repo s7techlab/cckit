@@ -34,10 +34,7 @@ type chaincode struct {
 	Channel   string
 	Chaincode string
 
-	ContextOpts []ContextOpt
-	InputOpts   []InputOpt
-	OutputOpts  []OutputOpt
-	EventOpts   []EventOpt
+	Opts *Opts
 }
 
 func NewChaincode(service ChaincodeServiceServer, channelName, chaincodeName string, opts ...Opt) *chaincode {
@@ -45,17 +42,18 @@ func NewChaincode(service ChaincodeServiceServer, channelName, chaincodeName str
 		Service:   service,
 		Channel:   channelName,
 		Chaincode: chaincodeName,
+		Opts:      &Opts{},
 	}
 
 	for _, opt := range opts {
-		opt(c)
+		opt(c.Opts)
 	}
 
 	return c
 }
 
 func (g *chaincode) Events(ctx context.Context, r ...*ChaincodeInstanceEventsStreamRequest) (ChaincodeEventSub, error) {
-	stream := NewChaincodeEventServerStream(ctx, g.EventOpts...)
+	stream := NewChaincodeEventServerStream(ctx, g.Opts.Event...)
 
 	req := &ChaincodeEventsStreamRequest{
 		Chaincode: &ChaincodeLocator{
@@ -110,7 +108,7 @@ func (g *chaincode) Invoke(ctx context.Context, fn string, args []interface{}, t
 }
 
 func (g *chaincode) context(ctx context.Context) context.Context {
-	for _, c := range g.ContextOpts {
+	for _, c := range g.Opts.Context {
 		ctx = c(ctx)
 	}
 	return ctx
@@ -134,7 +132,7 @@ func (g *chaincode) ccInput(ctx context.Context, action Action, fn string, args 
 		return nil, err
 	}
 
-	for _, i := range g.InputOpts {
+	for _, i := range g.Opts.Input {
 		if err = i(action, ccInput); err != nil {
 			return nil, err
 		}
@@ -144,7 +142,7 @@ func (g *chaincode) ccInput(ctx context.Context, action Action, fn string, args 
 }
 
 func (g *chaincode) ccOutput(ctx context.Context, action Action, response *peer.Response, target interface{}) (res interface{}, err error) {
-	for _, o := range g.OutputOpts {
+	for _, o := range g.Opts.Output {
 		if err = o(action, response); err != nil {
 			return nil, err
 		}
