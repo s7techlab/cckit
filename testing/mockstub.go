@@ -147,8 +147,13 @@ func (stub *MockStub) EventSubscription(from ...int64) (events chan *peer.Chainc
 
 	subPos := len(stub.chaincodeEventSubscriptions) - 1
 	return events, func() {
-		close(stub.chaincodeEventSubscriptions[subPos])
-		stub.chaincodeEventSubscriptions[subPos] = nil
+		stub.m.Lock()
+		defer stub.m.Unlock()
+
+		if stub.chaincodeEventSubscriptions[subPos] != nil {
+			close(stub.chaincodeEventSubscriptions[subPos])
+			stub.chaincodeEventSubscriptions[subPos] = nil
+		}
 	}
 }
 

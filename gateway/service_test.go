@@ -128,6 +128,15 @@ var _ = Describe(`Gateway`, func() {
 				close(done)
 			})
 
+			It(`allow to get events as LIST from chaincode instance service (by default from block 0 to current channel height) `, func(done Done) {
+				events, err := ccService.InstanceService(Channel, ChaincodeName).Events(ctx, &gateway.ChaincodeInstanceEventsRequest{})
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(events.Items).To(HaveLen(1)) // 1 event on issue
+
+				close(done)
+			})
+
 			It(`allow to get events from block 0 to current channel height AS STREAM`, func(done Done) {
 				ctxWithCancel, cancel := context.WithCancel(ctx)
 				stream := gateway.NewChaincodeEventServerStream(ctxWithCancel)

@@ -48,13 +48,28 @@ func NewChaincodeService(peer Peer, opts ...Opt) *ChaincodeService {
 	return ccService
 }
 
-func NewChaincodeEventService(eventDelivery EventDelivery) *ChaincodeEventService {
-	return &ChaincodeEventService{EventDelivery: eventDelivery}
+func NewChaincodeEventService(eventDelivery EventDelivery, opts ...Opt) *ChaincodeEventService {
+	eventService := &ChaincodeEventService{
+		EventDelivery: eventDelivery,
+		Opts:          &Opts{},
+	}
+
+	for _, o := range opts {
+		o(eventService.Opts)
+	}
+
+	return eventService
 }
 
 // InstanceService returns ChaincodeInstanceService for current Peer interface and provided channel and chaincode name
 func (cs *ChaincodeService) InstanceService(channel, chaincode string) *ChaincodeInstanceService {
-	return NewChaincodeInstanceService(cs.Peer, channel, chaincode)
+	return &ChaincodeInstanceService{
+		ChaincodeService: cs,
+		Locator: &ChaincodeLocator{
+			Channel:   channel,
+			Chaincode: chaincode,
+		},
+	}
 }
 
 // ServiceDef returns service definition

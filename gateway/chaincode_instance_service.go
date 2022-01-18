@@ -18,9 +18,9 @@ type (
 	}
 )
 
-func NewChaincodeInstanceService(peer Peer, channel, chaincode string) *ChaincodeInstanceService {
+func NewChaincodeInstanceService(peer Peer, channel, chaincode string, opts ...Opt) *ChaincodeInstanceService {
 	return &ChaincodeInstanceService{
-		ChaincodeService: NewChaincodeService(peer),
+		ChaincodeService: NewChaincodeService(peer, opts...),
 		Locator: &ChaincodeLocator{
 			Channel:   channel,
 			Chaincode: chaincode,
@@ -32,9 +32,9 @@ func (cis *ChaincodeInstanceService) EventService() *ChaincodeInstanceEventServi
 	return NewChaincodeInstanceEventService(cis.ChaincodeService.Peer, cis.Locator.Channel, cis.Locator.Chaincode)
 }
 
-func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode string) *ChaincodeInstanceEventService {
+func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode string, opts ...Opt) *ChaincodeInstanceEventService {
 	return &ChaincodeInstanceEventService{
-		EventService: NewChaincodeEventService(delivery),
+		EventService: NewChaincodeEventService(delivery, opts...),
 		Locator: &ChaincodeLocator{
 			Channel:   channel,
 			Chaincode: chaincode,

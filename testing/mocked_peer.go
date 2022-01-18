@@ -144,6 +144,8 @@ func (mp *MockedPeer) Events(
 				<-ticker.C
 				if len(events) == 0 {
 					closer()
+					ticker.Stop()
+					return
 				}
 			}
 		}()
