@@ -152,7 +152,8 @@ var _ = Describe(`Testing`, func() {
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
 
-			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
+			event := <-events
+			Expect(event.Event()).To(BeEquivalentTo(&peer.ChaincodeEvent{
 				ChaincodeId: cc.Name,
 				TxId:        cc.LastTxID,
 				EventName:   cars.CarRegisteredEvent,
