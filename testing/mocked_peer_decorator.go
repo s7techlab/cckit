@@ -8,7 +8,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 
-	"github.com/s7techlab/cckit/gateway"
+	"github.com/s7techlab/cckit/sdk"
 )
 
 var (
@@ -20,14 +20,14 @@ var (
 
 type (
 	MockedPeerDecorator struct {
-		Peer gateway.Peer
+		SDK sdk.SDK
 
 		InvokeMutator InvokeMutator
 		QueryMutator  QueryMutator
 	}
 
 	InvokeMutator func(
-		peer gateway.Peer,
+		sdk sdk.SDK,
 		ctx context.Context,
 		channel string,
 		chaincode string,
@@ -37,7 +37,7 @@ type (
 		txWaiterType string) (res *peer.Response, chaincodeTx string, err error)
 
 	QueryMutator func(
-		peer gateway.Peer,
+		sdk sdk.SDK,
 		ctx context.Context,
 		channel string,
 		chaincode string,
@@ -46,9 +46,9 @@ type (
 		transArgs map[string][]byte) (*peer.Response, error)
 )
 
-func NewPeerDecorator(peer gateway.Peer) *MockedPeerDecorator {
+func NewPeerDecorator(sdk sdk.SDK) *MockedPeerDecorator {
 	return &MockedPeerDecorator{
-		Peer: peer,
+		SDK: sdk,
 	}
 }
 
@@ -62,10 +62,10 @@ func (mpd *MockedPeerDecorator) Invoke(
 	txWaiterType string) (res *peer.Response, chaincodeTx string, err error) {
 
 	if mpd.InvokeMutator != nil {
-		return mpd.InvokeMutator(mpd.Peer, ctx, channel, chaincode, args, identity, transArgs, txWaiterType)
+		return mpd.InvokeMutator(mpd.SDK, ctx, channel, chaincode, args, identity, transArgs, txWaiterType)
 	}
 
-	return mpd.Peer.Invoke(ctx, channel, chaincode, args, identity, transArgs, txWaiterType)
+	return mpd.SDK.Invoke(ctx, channel, chaincode, args, identity, transArgs, txWaiterType)
 }
 
 func (mpd *MockedPeerDecorator) Query(
@@ -77,10 +77,10 @@ func (mpd *MockedPeerDecorator) Query(
 	transArgs map[string][]byte) (*peer.Response, error) {
 
 	if mpd.QueryMutator != nil {
-		return mpd.QueryMutator(mpd.Peer, ctx, channel, chaincode, args, identity, transArgs)
+		return mpd.QueryMutator(mpd.SDK, ctx, channel, chaincode, args, identity, transArgs)
 	}
 
-	return mpd.Peer.Query(ctx, channel, chaincode, args, identity, transArgs)
+	return mpd.SDK.Query(ctx, channel, chaincode, args, identity, transArgs)
 
 }
 
@@ -90,8 +90,11 @@ func (mpd *MockedPeerDecorator) Events(
 	chaincode string,
 	identity msp.SigningIdentity,
 	blockRange ...int64,
-) (chan *peer.ChaincodeEvent, error) {
-	return mpd.Peer.Events(ctx, channel, chaincode, identity, blockRange...)
+) (chan interface {
+	Event() *peer.ChaincodeEvent
+	Block() uint64
+}, error) {
+	return mpd.SDK.Events(ctx, channel, chaincode, identity, blockRange...)
 }
 
 func (mpd *MockedPeerDecorator) FailChaincode(chaincodes ...string) {
@@ -102,7 +105,7 @@ func (mpd *MockedPeerDecorator) FailChaincode(chaincodes ...string) {
 func (mpd *MockedPeerDecorator) FailInvoke(chaincodes ...string) {
 
 	mpd.InvokeMutator = func(
-		peer gateway.Peer,
+		sdk sdk.SDK,
 		ctx context.Context,
 		channel string,
 		chaincode string,
@@ -117,13 +120,13 @@ func (mpd *MockedPeerDecorator) FailInvoke(chaincodes ...string) {
 			}
 		}
 
-		return peer.Invoke(ctx, channel, chaincode, args, identity, transArgs, txWaiterType)
+		return sdk.Invoke(ctx, channel, chaincode, args, identity, transArgs, txWaiterType)
 	}
 }
 
 func (mpd *MockedPeerDecorator) FailQuery(chaincodes ...string) {
 	mpd.QueryMutator = func(
-		peer gateway.Peer,
+		sdk sdk.SDK,
 		ctx context.Context,
 		channel string,
 		chaincode string,
@@ -137,6 +140,6 @@ func (mpd *MockedPeerDecorator) FailQuery(chaincodes ...string) {
 			}
 		}
 
-		return peer.Query(ctx, channel, chaincode, args, identity, transArgs)
+		return sdk.Query(ctx, channel, chaincode, args, identity, transArgs)
 	}
 }

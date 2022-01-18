@@ -7,17 +7,18 @@ import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 
 	"github.com/s7techlab/cckit/router"
+	"github.com/s7techlab/cckit/sdk"
 )
 
 type (
 	ChaincodeService struct {
-		Peer         Peer
+		SDK          sdk.SDK
 		EventService *ChaincodeEventService
 		Opts         *Opts
 	}
 
 	ChaincodeEventService struct {
-		EventDelivery EventDelivery
+		EventDelivery sdk.EventDelivery
 		Opts          *Opts
 	}
 )
@@ -28,14 +29,14 @@ type (
 )
 
 // Deprecated: use NewChaincodeService instead
-func New(peer Peer, opts ...Opt) *ChaincodeService {
-	return NewChaincodeService(peer, opts...)
+func New(sdk sdk.SDK, opts ...Opt) *ChaincodeService {
+	return NewChaincodeService(sdk, opts...)
 }
 
-func NewChaincodeService(peer Peer, opts ...Opt) *ChaincodeService {
+func NewChaincodeService(sdk sdk.SDK, opts ...Opt) *ChaincodeService {
 
 	ccService := &ChaincodeService{
-		Peer: peer,
+		SDK:  sdk,
 		Opts: &Opts{},
 	}
 
@@ -43,12 +44,12 @@ func NewChaincodeService(peer Peer, opts ...Opt) *ChaincodeService {
 		o(ccService.Opts)
 	}
 
-	ccService.EventService = NewChaincodeEventService(peer)
+	ccService.EventService = NewChaincodeEventService(sdk)
 	ccService.EventService.Opts = ccService.Opts
 	return ccService
 }
 
-func NewChaincodeEventService(eventDelivery EventDelivery, opts ...Opt) *ChaincodeEventService {
+func NewChaincodeEventService(eventDelivery sdk.EventDelivery, opts ...Opt) *ChaincodeEventService {
 	eventService := &ChaincodeEventService{
 		EventDelivery: eventDelivery,
 		Opts:          &Opts{},
@@ -97,7 +98,7 @@ func (cs *ChaincodeService) Invoke(ctx context.Context, in *ChaincodeInput) (*pe
 	// if smth goes wrong we'll see it on the step below
 	signer, _ := SignerFromContext(ctx)
 
-	response, _, err := cs.Peer.Invoke(
+	response, _, err := cs.SDK.Invoke(
 		ctx,
 		in.Chaincode.Channel,
 		in.Chaincode.Chaincode,
@@ -120,7 +121,7 @@ func (cs *ChaincodeService) Query(ctx context.Context, in *ChaincodeInput) (*pee
 
 	signer, _ := SignerFromContext(ctx)
 
-	resp, err := cs.Peer.Query(
+	resp, err := cs.SDK.Query(
 		ctx,
 		in.Chaincode.Channel,
 		in.Chaincode.Chaincode,
@@ -215,7 +216,7 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 		}
 
 		ccEvent := &ChaincodeEvent{
-			Event: event,
+			Event: event.Event(),
 		}
 		for _, o := range ce.Opts.Event {
 			_ = o(ccEvent)
@@ -252,7 +253,7 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 		}
 
 		ccEvent := &ChaincodeEvent{
-			Event: event,
+			Event: event.Event(),
 		}
 		for _, o := range ce.Opts.Event {
 			_ = o(ccEvent)

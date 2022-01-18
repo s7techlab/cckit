@@ -107,6 +107,7 @@ var _ = Describe(`Gateway`, func() {
 			})
 
 			It(`allow to get events as LIST  (by default from block 0 to current channel height) `, func(done Done) {
+
 				events, err := ccService.Events(ctx, &gateway.ChaincodeEventsRequest{
 					Chaincode: &gateway.ChaincodeLocator{
 						Channel:   Channel,

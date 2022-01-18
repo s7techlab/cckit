@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
+
+	"github.com/s7techlab/cckit/sdk"
 )
 
 type (
@@ -18,9 +20,9 @@ type (
 	}
 )
 
-func NewChaincodeInstanceService(peer Peer, channel, chaincode string, opts ...Opt) *ChaincodeInstanceService {
+func NewChaincodeInstanceService(sdk sdk.SDK, channel, chaincode string, opts ...Opt) *ChaincodeInstanceService {
 	return &ChaincodeInstanceService{
-		ChaincodeService: NewChaincodeService(peer, opts...),
+		ChaincodeService: NewChaincodeService(sdk, opts...),
 		Locator: &ChaincodeLocator{
 			Channel:   channel,
 			Chaincode: chaincode,
@@ -38,7 +40,7 @@ func (cis *ChaincodeInstanceService) EventService() *ChaincodeInstanceEventServi
 	}
 }
 
-func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode string, opts ...Opt) *ChaincodeInstanceEventService {
+func NewChaincodeInstanceEventService(delivery sdk.EventDelivery, channel, chaincode string, opts ...Opt) *ChaincodeInstanceEventService {
 	return &ChaincodeInstanceEventService{
 		EventService: NewChaincodeEventService(delivery, opts...),
 		Locator: &ChaincodeLocator{

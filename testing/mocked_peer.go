@@ -28,7 +28,20 @@ type (
 		errors chan error
 		closer sync.Once
 	}
+
+	ChaincodeEventWithBlock struct {
+		event *peer.ChaincodeEvent
+		block uint64
+	}
 )
+
+func (eb *ChaincodeEventWithBlock) Event() *peer.ChaincodeEvent {
+	return eb.event
+}
+
+func (eb *ChaincodeEventWithBlock) Block() uint64 {
+	return eb.block
+}
 
 // NewPeer implements Peer interface
 func NewPeer() *MockedPeer {
@@ -122,7 +135,10 @@ func (mp *MockedPeer) Events(
 	chaincode string,
 	identity msp.SigningIdentity,
 	blockRange ...int64,
-) (chan *peer.ChaincodeEvent, error) {
+) (chan interface {
+	Event() *peer.ChaincodeEvent
+	Block() uint64
+}, error) {
 	mockStub, err := mp.Chaincode(channel, chaincode)
 	if err != nil {
 		return nil, err
@@ -158,7 +174,21 @@ func (mp *MockedPeer) Events(
 		closer()
 	}()
 
-	return events, nil
+	eventsWithBock := make(chan interface {
+		Event() *peer.ChaincodeEvent
+		Block() uint64
+	})
+	go func() {
+		for e := range events {
+			eventsWithBock <- &ChaincodeEventWithBlock{
+				event: e,
+				block: 55,
+			}
+		}
+		close(eventsWithBock)
+	}()
+
+	return eventsWithBock, nil
 }
 
 func (es *EventSubscription) Events() chan *peer.ChaincodeEvent {
