@@ -118,7 +118,8 @@ var _ = Describe(`Gateway`, func() {
 				Expect(events.Items).To(HaveLen(1)) // 1 event on issue
 
 				e := events.Items[0]
-				eventObj, err := convert.FromBytes(e.Event.Payload, &schema.IssueCommercialPaper{})
+				var eventObj interface{}
+				eventObj, err = convert.FromBytes(e.Event.Payload, &schema.IssueCommercialPaper{})
 				Expect(err).NotTo(HaveOccurred())
 
 				eventJson, err := (&jsonpb.Marshaler{EmitDefaults: true, OrigName: true}).
