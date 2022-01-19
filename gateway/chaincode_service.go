@@ -3,12 +3,15 @@ package gateway
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/sdk"
 )
+
+const EventListStreamTimeout = 500 * time.Millisecond
 
 type (
 	ChaincodeService struct {
@@ -210,24 +213,30 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 	}
 
 	for {
-		event, hasMore := <-eventStream
-		if !hasMore {
-			break
-		}
+		// wait for timeout, return values if events are not streamed
+		ticker := time.NewTicker(EventListStreamTimeout)
 
-		ccEvent := &ChaincodeEvent{
-			Event:       event.Event(),
-			Block:       event.Block(),
-			TxTimestamp: event.TxTimestamp(),
-		}
-		for _, o := range ce.Opts.Event {
-			_ = o(ccEvent)
-		}
+		select {
+		case <-ticker.C:
+			return events, nil
+		case event, hasMore := <-eventStream:
+			if !hasMore {
+				return events, nil
+			}
 
-		events.Items = append(events.Items, ccEvent)
+			ccEvent := &ChaincodeEvent{
+				Event:       event.Event(),
+				Block:       event.Block(),
+				TxTimestamp: event.TxTimestamp(),
+			}
+			for _, o := range ce.Opts.Event {
+				_ = o(ccEvent)
+			}
+
+			events.Items = append(events.Items, ccEvent)
+		}
 	}
 
-	return events, nil
 }
 
 func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest, stream ChaincodeEventsService_EventsStreamServer) error {

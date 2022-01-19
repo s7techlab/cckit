@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -142,18 +141,19 @@ func (mp *MockedPeer) Events(
 		// create copy of mockStub events chan
 		events, closer = mockStub.EventSubscription(0)
 
-		// close events channel if its empty, because we receive events until current channel height
-		go func() {
-			ticker := time.NewTicker(5 * time.Millisecond)
-			for {
-				<-ticker.C
-				if len(events) == 0 {
-					closer()
-					ticker.Stop()
-					return
-				}
-			}
-		}()
+		// In real HLF peer stream not closed
+		//// close events channel if its empty, because we receive events until current channel height
+		//go func() {
+		//	ticker := time.NewTicker(5 * time.Millisecond)
+		//	for {
+		//		<-ticker.C
+		//		if len(events) == 0 {
+		//			closer()
+		//			ticker.Stop()
+		//			return
+		//		}
+		//	}
+		//}()
 	} else {
 		events, closer = mockStub.EventSubscription()
 	}
