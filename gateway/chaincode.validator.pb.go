@@ -6,6 +6,7 @@ package gateway
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	_ "github.com/golang/protobuf/ptypes/timestamp"
 	_ "github.com/hyperledger/fabric-protos-go/peer"
 	_ "github.com/mwitkow/go-proto-validators"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
@@ -162,6 +163,11 @@ func (this *ChaincodeEvent) Validate() error {
 	if this.Event != nil {
 		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Event); err != nil {
 			return github_com_mwitkow_go_proto_validators.FieldError("Event", err)
+		}
+	}
+	if this.TxTimestamp != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.TxTimestamp); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("TxTimestamp", err)
 		}
 	}
 	if this.Payload != nil {

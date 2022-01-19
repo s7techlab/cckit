@@ -6,6 +6,7 @@ option go_package = "github.com/s7techlab/cckit/gateway";
 package cckit.gateway;
 
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 import "peer/proposal_response.proto";
 import "peer/chaincode_event.proto";
 
@@ -226,7 +227,8 @@ message RawJson {
 message ChaincodeEvent {
     protos.ChaincodeEvent event = 1;
     uint64 block = 2;
-    RawJson payload = 3;
+    google.protobuf.Timestamp tx_timestamp = 3;
+    RawJson payload = 4;
 }
 
 

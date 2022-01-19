@@ -433,6 +433,10 @@
           "type": "string",
           "format": "uint64"
         },
+        "tx_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
         "payload": {
           "$ref": "#/definitions/gatewayRawJson"
         }

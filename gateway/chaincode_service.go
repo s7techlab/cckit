@@ -216,7 +216,9 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 		}
 
 		ccEvent := &ChaincodeEvent{
-			Event: event.Event(),
+			Event:       event.Event(),
+			Block:       event.Block(),
+			TxTimestamp: event.TxTimestamp(),
 		}
 		for _, o := range ce.Opts.Event {
 			_ = o(ccEvent)
@@ -253,7 +255,9 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 		}
 
 		ccEvent := &ChaincodeEvent{
-			Event: event.Event(),
+			Event:       event.Event(),
+			Block:       event.Block(),
+			TxTimestamp: event.TxTimestamp(),
 		}
 		for _, o := range ce.Opts.Event {
 			_ = o(ccEvent)
