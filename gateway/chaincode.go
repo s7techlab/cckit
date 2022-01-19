@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 
@@ -62,10 +63,14 @@ func (g *chaincode) Events(ctx context.Context, r ...*ChaincodeInstanceEventsStr
 		},
 	}
 
-	if len(r) == 1 {
+	switch {
+	case len(r) == 1:
 		req.FromBlock = r[0].FromBlock
 		req.ToBlock = r[0].ToBlock
 		req.EventName = r[0].EventName
+
+	case len(r) > 1:
+		return nil, errors.New(`zero or one stream request allowed`)
 	}
 
 	go func() {
