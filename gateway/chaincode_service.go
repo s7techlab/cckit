@@ -212,10 +212,11 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 		Items:     []*ChaincodeEvent{},
 	}
 
-	for {
-		// wait for timeout, return values if events are not streamed
-		ticker := time.NewTicker(EventListStreamTimeout)
+	// timeout for receiving events
+	ticker := time.NewTicker(EventListStreamTimeout)
+	defer ticker.Stop()
 
+	for {
 		select {
 
 		case <-ctx.Done():
@@ -224,6 +225,7 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 
 		case <-ticker.C:
 			_ = closer()
+			// return values if events are not streamed
 			return events, nil
 
 		case event, hasMore := <-eventStream:
@@ -246,6 +248,7 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 			}
 
 			events.Items = append(events.Items, ccEvent)
+			ticker.Reset(EventListStreamTimeout)
 		}
 	}
 
