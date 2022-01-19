@@ -232,6 +232,10 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 				return events, nil
 			}
 
+			if !MatchEventName(event.Event().EventName, req.EventName) {
+				continue
+			}
+
 			ccEvent := &ChaincodeEvent{
 				Event:       event.Event(),
 				Block:       event.Block(),
@@ -277,6 +281,10 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 				return nil
 			}
 
+			if !MatchEventName(event.Event().EventName, req.EventName) {
+				continue
+			}
+
 			ccEvent := &ChaincodeEvent{
 				Event:       event.Event(),
 				Block:       event.Block(),
@@ -292,4 +300,18 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 
 		}
 	}
+}
+
+func MatchEventName(eventName string, expectedNames []string) bool {
+	if len(expectedNames) == 0 {
+		return true
+	}
+
+	for _, expectedName := range expectedNames {
+		if eventName == expectedName {
+			return true
+		}
+	}
+
+	return false
 }

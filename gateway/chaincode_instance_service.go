@@ -88,6 +88,7 @@ func (cis *ChaincodeInstanceService) EventsStream(request *ChaincodeInstanceEven
 		Chaincode: cis.Locator,
 		FromBlock: request.FromBlock,
 		ToBlock:   request.ToBlock,
+		EventName: request.EventName,
 	}, stream)
 }
 
@@ -113,6 +114,7 @@ func (ces *ChaincodeInstanceEventService) EventsStream(request *ChaincodeInstanc
 		Chaincode: ces.Locator,
 		FromBlock: request.FromBlock,
 		ToBlock:   request.ToBlock,
+		EventName: request.EventName,
 	}, stream)
 }
 
@@ -121,5 +123,6 @@ func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, request *C
 		Chaincode: ces.Locator,
 		FromBlock: request.FromBlock,
 		ToBlock:   request.ToBlock,
+		EventName: request.EventName,
 	})
 }

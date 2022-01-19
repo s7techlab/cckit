@@ -134,11 +134,13 @@ var _ = Describe(`Gateway`, func() {
 				close(done)
 			})
 
-			It(`allow to get events as LIST from chaincode instance service (by default from block 0 to current channel height) `, func(done Done) {
-				events, err := ccService.InstanceService(Channel, ChaincodeName).Events(ctx, &gateway.ChaincodeInstanceEventsRequest{})
+			It(`allow to get 0 events as LIST from chaincode with incorrect event name filter`, func(done Done) {
+				events, err := ccService.InstanceService(Channel, ChaincodeName).Events(ctx, &gateway.ChaincodeInstanceEventsRequest{
+					EventName: []string{`________IssueCommercialPaper______`},
+				})
 
 				Expect(err).NotTo(HaveOccurred())
-				Expect(events.Items).To(HaveLen(1)) // 1 event on issue
+				Expect(events.Items).To(HaveLen(0)) // 1 event on issue
 
 				close(done)
 			})
@@ -197,6 +199,39 @@ var _ = Describe(`Gateway`, func() {
 				Expect(err).NotTo(HaveOccurred())
 				cPaperList := testcc.MustProtoUnmarshal(resp.Payload, &schema.CommercialPaperList{}).(*schema.CommercialPaperList)
 				Expect(cPaperList.Items).To(HaveLen(0))
+			})
+
+			It("Invoke chaincode", func() {
+
+				_, err := ccInstanceService.Invoke(ctx, &gateway.ChaincodeInstanceInput{
+					Args: [][]byte{
+						[]byte(`Issue`),
+						testcc.MustProtoMarshal(&schema.IssueCommercialPaper{
+							Issuer:       "issuer",
+							PaperNumber:  "1337",
+							ExternalId:   "228",
+							IssueDate:    timestamppb.Now(),
+							MaturityDate: timestamppb.Now(),
+							FaceValue:    2,
+						}),
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+		})
+
+		Context(`Chaincode gateway`, func() {
+
+			It(`allow to get events as LIST from chaincode instance service (by default from block 0 to current channel height) `, func(done Done) {
+				events, err := ccInstanceService.Events(ctx, &gateway.ChaincodeInstanceEventsRequest{
+					EventName: []string{`IssueCommercialPaper`},
+				})
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(events.Items).To(HaveLen(1)) // 1 event on issue
+
+				close(done)
 			})
 
 		})
