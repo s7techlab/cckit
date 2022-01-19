@@ -127,7 +127,7 @@ func (stub *MockStub) SetEvent(name string, payload []byte) error {
 }
 
 // EventSubscription for new or all events
-func (stub *MockStub) EventSubscription(from ...int64) (events chan *peer.ChaincodeEvent, closer func()) {
+func (stub *MockStub) EventSubscription(from ...int64) (events chan *peer.ChaincodeEvent, closer func() error) {
 	stub.m.Lock()
 	defer stub.m.Unlock()
 
@@ -146,7 +146,7 @@ func (stub *MockStub) EventSubscription(from ...int64) (events chan *peer.Chainc
 	stub.chaincodeEventSubscriptions = append(stub.chaincodeEventSubscriptions, events)
 
 	subPos := len(stub.chaincodeEventSubscriptions) - 1
-	return events, func() {
+	return events, func() error {
 		stub.m.Lock()
 		defer stub.m.Unlock()
 
@@ -154,6 +154,8 @@ func (stub *MockStub) EventSubscription(from ...int64) (events chan *peer.Chainc
 			close(stub.chaincodeEventSubscriptions[subPos])
 			stub.chaincodeEventSubscriptions[subPos] = nil
 		}
+
+		return nil
 	}
 }
 

@@ -193,7 +193,7 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 		req.ToBlock = &BlockLimit{Num: 0}
 	}
 
-	eventStream, err := ce.EventDelivery.Events(
+	eventStream, closer, err := ce.EventDelivery.Events(
 		ctx,
 		req.Chaincode.Channel,
 		req.Chaincode.Chaincode,
@@ -217,10 +217,18 @@ func (ce *ChaincodeEventService) Events(ctx context.Context, req *ChaincodeEvent
 		ticker := time.NewTicker(EventListStreamTimeout)
 
 		select {
-		case <-ticker.C:
+
+		case <-ctx.Done():
+			_ = closer()
 			return events, nil
+
+		case <-ticker.C:
+			_ = closer()
+			return events, nil
+
 		case event, hasMore := <-eventStream:
 			if !hasMore {
+				_ = closer()
 				return events, nil
 			}
 
@@ -246,7 +254,7 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 
 	signer, _ := SignerFromContext(stream.Context())
 
-	events, err := ce.EventDelivery.Events(
+	events, closer, err := ce.EventDelivery.Events(
 		stream.Context(),
 		req.Chaincode.Channel,
 		req.Chaincode.Chaincode,
@@ -258,22 +266,30 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 	}
 
 	for {
-		event, ok := <-events
-		if !ok {
+		select {
+
+		case <-stream.Context().Done():
+			_ = closer()
 			return nil
-		}
 
-		ccEvent := &ChaincodeEvent{
-			Event:       event.Event(),
-			Block:       event.Block(),
-			TxTimestamp: event.TxTimestamp(),
-		}
-		for _, o := range ce.Opts.Event {
-			_ = o(ccEvent)
-		}
+		case event, ok := <-events:
+			if !ok {
+				return nil
+			}
 
-		if err = stream.Send(ccEvent); err != nil {
-			return err
+			ccEvent := &ChaincodeEvent{
+				Event:       event.Event(),
+				Block:       event.Block(),
+				TxTimestamp: event.TxTimestamp(),
+			}
+			for _, o := range ce.Opts.Event {
+				_ = o(ccEvent)
+			}
+
+			if err = stream.Send(ccEvent); err != nil {
+				return err
+			}
+
 		}
 	}
 }

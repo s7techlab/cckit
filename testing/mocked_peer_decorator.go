@@ -91,11 +91,11 @@ func (mpd *MockedPeerDecorator) Events(
 	chaincode string,
 	identity msp.SigningIdentity,
 	blockRange ...int64,
-) (chan interface {
+) (events chan interface {
 	Event() *peer.ChaincodeEvent
 	Block() uint64
 	TxTimestamp() *timestamp.Timestamp
-}, error) {
+}, closer func() error, err error) {
 	return mpd.SDK.Events(ctx, channel, chaincode, identity, blockRange...)
 }
 

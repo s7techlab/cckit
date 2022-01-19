@@ -122,24 +122,23 @@ func (mp *MockedPeer) Events(
 	chaincode string,
 	identity msp.SigningIdentity,
 	blockRange ...int64,
-) (chan interface {
+) (events chan interface {
 	Event() *peer.ChaincodeEvent
 	Block() uint64
 	TxTimestamp() *timestamp.Timestamp
-}, error) {
+}, closer func() error, err error) {
 	mockStub, err := mp.Chaincode(channel, chaincode)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var (
-		events chan *peer.ChaincodeEvent
-		closer func()
+		eventsRaw chan *peer.ChaincodeEvent
 	)
 	// from oldest block to current channel height
 	if len(blockRange) == 2 && blockRange[0] == 0 && blockRange[1] == 0 {
 		// create copy of mockStub events chan
-		events, closer = mockStub.EventSubscription(0)
+		eventsRaw, closer = mockStub.EventSubscription(0)
 
 		// In real HLF peer stream not closed
 		//// close events channel if its empty, because we receive events until current channel height
@@ -155,12 +154,12 @@ func (mp *MockedPeer) Events(
 		//	}
 		//}()
 	} else {
-		events, closer = mockStub.EventSubscription()
+		eventsRaw, closer = mockStub.EventSubscription()
 	}
 
 	go func() {
 		<-ctx.Done()
-		closer()
+		_ = closer()
 	}()
 
 	eventsExtended := make(chan interface {
@@ -169,7 +168,7 @@ func (mp *MockedPeer) Events(
 		TxTimestamp() *timestamp.Timestamp
 	})
 	go func() {
-		for e := range events {
+		for e := range eventsRaw {
 			eventsExtended <- &ChaincodeEvent{
 				event: e,
 
@@ -181,7 +180,7 @@ func (mp *MockedPeer) Events(
 		close(eventsExtended)
 	}()
 
-	return eventsExtended, nil
+	return eventsExtended, closer, nil
 }
 
 func (es *EventSubscription) Events() chan *peer.ChaincodeEvent {

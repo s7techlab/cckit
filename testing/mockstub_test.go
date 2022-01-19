@@ -137,7 +137,7 @@ var _ = Describe(`Testing`, func() {
 		It("Allow to invoke mocked chaincode ", func(done Done) {
 			ctx := context.Background()
 
-			events, err := mockedPeer.Events(ctx, Channel, CarsChaincode, Authority)
+			events, closer, err := mockedPeer.Events(ctx, Channel, CarsChaincode, Authority)
 			Expect(err).NotTo(HaveOccurred())
 
 			// double check interface Peer
@@ -160,6 +160,7 @@ var _ = Describe(`Testing`, func() {
 				Payload:     resp.Payload,
 			}))
 
+			_ = closer()
 			close(done)
 
 		}, 0.3)
