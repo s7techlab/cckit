@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
@@ -28,20 +29,7 @@ type (
 		errors chan error
 		closer sync.Once
 	}
-
-	ChaincodeEventWithBlock struct {
-		event *peer.ChaincodeEvent
-		block uint64
-	}
 )
-
-func (eb *ChaincodeEventWithBlock) Event() *peer.ChaincodeEvent {
-	return eb.event
-}
-
-func (eb *ChaincodeEventWithBlock) Block() uint64 {
-	return eb.block
-}
 
 // NewPeer implements Peer interface
 func NewPeer() *MockedPeer {
@@ -138,6 +126,7 @@ func (mp *MockedPeer) Events(
 ) (chan interface {
 	Event() *peer.ChaincodeEvent
 	Block() uint64
+	TxTimestamp() *timestamp.Timestamp
 }, error) {
 	mockStub, err := mp.Chaincode(channel, chaincode)
 	if err != nil {
@@ -174,21 +163,25 @@ func (mp *MockedPeer) Events(
 		closer()
 	}()
 
-	eventsWithBock := make(chan interface {
+	eventsExtended := make(chan interface {
 		Event() *peer.ChaincodeEvent
 		Block() uint64
+		TxTimestamp() *timestamp.Timestamp
 	})
 	go func() {
 		for e := range events {
-			eventsWithBock <- &ChaincodeEventWithBlock{
+			eventsExtended <- &ChaincodeEvent{
 				event: e,
-				block: 55,
+
+				// todo: store information about block and timestamp in MockStub
+				block:       55,
+				txTimestamp: nil,
 			}
 		}
-		close(eventsWithBock)
+		close(eventsExtended)
 	}()
 
-	return eventsWithBock, nil
+	return eventsExtended, nil
 }
 
 func (es *EventSubscription) Events() chan *peer.ChaincodeEvent {

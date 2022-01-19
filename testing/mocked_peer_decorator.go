@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
@@ -93,6 +94,7 @@ func (mpd *MockedPeerDecorator) Events(
 ) (chan interface {
 	Event() *peer.ChaincodeEvent
 	Block() uint64
+	TxTimestamp() *timestamp.Timestamp
 }, error) {
 	return mpd.SDK.Events(ctx, channel, chaincode, identity, blockRange...)
 }

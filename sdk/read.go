@@ -3,17 +3,18 @@ package sdk
 import (
 	"context"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 )
 
 type (
 	Reader interface {
-		ChaincodeQuerier
+		Evaluator
 		EventDelivery
 	}
 
-	ChaincodeQuerier interface {
+	Evaluator interface {
 		Query(
 			ctx context.Context,
 			chanName string,
@@ -45,6 +46,7 @@ type (
 		) (chan interface {
 			Event() *peer.ChaincodeEvent
 			Block() uint64
+			TxTimestamp() *timestamp.Timestamp
 		}, error)
 	}
 )

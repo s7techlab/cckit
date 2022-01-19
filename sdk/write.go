@@ -7,7 +7,7 @@ import (
 	"github.com/hyperledger/fabric/msp"
 )
 
-type ChaincodeInvoker interface {
+type Submitter interface {
 	Invoke(
 		ctx context.Context,
 		chanName string,
