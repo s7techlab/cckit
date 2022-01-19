@@ -124,8 +124,8 @@ var _ = Describe(`Testing`, func() {
 			Expect(len(sub1)).To(Equal(0))
 			Expect(len(sub2)).To(Equal(0))
 
-			closer1()
-			closer2()
+			_ = closer1()
+			_ = closer2()
 
 			close(done)
 		}, 0.2)

@@ -253,7 +253,7 @@ var _ = Describe(`Router`, func() {
 				}),
 			})))
 
-			closer()
+			_ = closer()
 			close(done)
 		}, 0.2)
 
