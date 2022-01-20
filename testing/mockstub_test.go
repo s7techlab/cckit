@@ -124,8 +124,8 @@ var _ = Describe(`Testing`, func() {
 			Expect(len(sub1)).To(Equal(0))
 			Expect(len(sub2)).To(Equal(0))
 
-			closer1()
-			closer2()
+			_ = closer1()
+			_ = closer2()
 
 			close(done)
 		}, 0.2)
@@ -137,7 +137,7 @@ var _ = Describe(`Testing`, func() {
 		It("Allow to invoke mocked chaincode ", func(done Done) {
 			ctx := context.Background()
 
-			events, err := mockedPeer.Events(ctx, Channel, CarsChaincode, Authority)
+			events, closer, err := mockedPeer.Events(ctx, Channel, CarsChaincode, Authority)
 			Expect(err).NotTo(HaveOccurred())
 
 			// double check interface Peer
@@ -152,13 +152,15 @@ var _ = Describe(`Testing`, func() {
 			Expect(carFromCC.Id).To(Equal(cars.Payloads[3].Id))
 			Expect(carFromCC.Title).To(Equal(cars.Payloads[3].Title))
 
-			Expect(<-events).To(BeEquivalentTo(&peer.ChaincodeEvent{
+			event := <-events
+			Expect(event.Event()).To(BeEquivalentTo(&peer.ChaincodeEvent{
 				ChaincodeId: cc.Name,
 				TxId:        cc.LastTxID,
 				EventName:   cars.CarRegisteredEvent,
 				Payload:     resp.Payload,
 			}))
 
+			_ = closer()
 			close(done)
 
 		}, 0.3)

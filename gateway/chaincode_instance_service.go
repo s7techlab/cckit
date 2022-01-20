@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
+
+	"github.com/s7techlab/cckit/sdk"
 )
 
 type (
@@ -18,9 +20,9 @@ type (
 	}
 )
 
-func NewChaincodeInstanceService(peer Peer, channel, chaincode string) *ChaincodeInstanceService {
+func NewChaincodeInstanceService(sdk sdk.SDK, channel, chaincode string, opts ...Opt) *ChaincodeInstanceService {
 	return &ChaincodeInstanceService{
-		ChaincodeService: NewChaincodeService(peer),
+		ChaincodeService: NewChaincodeService(sdk, opts...),
 		Locator: &ChaincodeLocator{
 			Channel:   channel,
 			Chaincode: chaincode,
@@ -29,12 +31,18 @@ func NewChaincodeInstanceService(peer Peer, channel, chaincode string) *Chaincod
 }
 
 func (cis *ChaincodeInstanceService) EventService() *ChaincodeInstanceEventService {
-	return NewChaincodeInstanceEventService(cis.ChaincodeService.Peer, cis.Locator.Channel, cis.Locator.Chaincode)
+	return &ChaincodeInstanceEventService{
+		EventService: cis.ChaincodeService.EventService,
+		Locator: &ChaincodeLocator{
+			Channel:   cis.Locator.Channel,
+			Chaincode: cis.Locator.Chaincode,
+		},
+	}
 }
 
-func NewChaincodeInstanceEventService(delivery EventDelivery, channel, chaincode string) *ChaincodeInstanceEventService {
+func NewChaincodeInstanceEventService(delivery sdk.EventDelivery, channel, chaincode string, opts ...Opt) *ChaincodeInstanceEventService {
 	return &ChaincodeInstanceEventService{
-		EventService: NewChaincodeEventService(delivery),
+		EventService: NewChaincodeEventService(delivery, opts...),
 		Locator: &ChaincodeLocator{
 			Channel:   channel,
 			Chaincode: chaincode,
@@ -75,11 +83,22 @@ func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, input *Chaincod
 	})
 }
 
-func (cis *ChaincodeInstanceService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceService_EventsServer) error {
-	return cis.ChaincodeService.Events(&ChaincodeEventsRequest{
+func (cis *ChaincodeInstanceService) EventsStream(request *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceEventsService_EventsStreamServer) error {
+	return cis.ChaincodeService.EventsStream(&ChaincodeEventsStreamRequest{
 		Chaincode: cis.Locator,
-		Block:     request.Block,
+		FromBlock: request.FromBlock,
+		ToBlock:   request.ToBlock,
+		EventName: request.EventName,
 	}, stream)
+}
+
+func (cis *ChaincodeInstanceService) Events(ctx context.Context, request *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
+	return cis.ChaincodeService.Events(ctx, &ChaincodeEventsRequest{
+		Chaincode: cis.Locator,
+		FromBlock: request.FromBlock,
+		ToBlock:   request.ToBlock,
+		EventName: request.EventName,
+	})
 }
 
 func (ces *ChaincodeInstanceEventService) ServiceDef() ServiceDef {
@@ -90,9 +109,20 @@ func (ces *ChaincodeInstanceEventService) ServiceDef() ServiceDef {
 	}
 }
 
-func (ces *ChaincodeInstanceEventService) Events(request *ChaincodeInstanceEventsRequest, stream ChaincodeInstanceEventsService_EventsServer) error {
-	return ces.EventService.Events(&ChaincodeEventsRequest{
+func (ces *ChaincodeInstanceEventService) EventsStream(request *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceEventsService_EventsStreamServer) error {
+	return ces.EventService.EventsStream(&ChaincodeEventsStreamRequest{
 		Chaincode: ces.Locator,
-		Block:     request.Block,
+		FromBlock: request.FromBlock,
+		ToBlock:   request.ToBlock,
+		EventName: request.EventName,
 	}, stream)
+}
+
+func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, request *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
+	return ces.EventService.Events(ctx, &ChaincodeEventsRequest{
+		Chaincode: ces.Locator,
+		FromBlock: request.FromBlock,
+		ToBlock:   request.ToBlock,
+		EventName: request.EventName,
+	})
 }

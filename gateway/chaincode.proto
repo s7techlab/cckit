@@ -6,8 +6,11 @@ option go_package = "github.com/s7techlab/cckit/gateway";
 package cckit.gateway;
 
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 import "peer/proposal_response.proto";
 import "peer/chaincode_event.proto";
+
+import "github.com/mwitkow/go-proto-validators/validator.proto";
 
 // Chaincode communication service. Allows to locate channel/chaincode.
 service ChaincodeService {
@@ -35,7 +38,14 @@ service ChaincodeService {
     }
 
     // Chaincode events stream
-    rpc Events (ChaincodeEventsRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeEventsStreamRequest) returns (stream ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode/events-stream"
+        };
+    }
+
+    // Chaincode events
+    rpc Events (ChaincodeEventsRequest) returns (ChaincodeEvents) {
         option (google.api.http) = {
             get: "/chaincode/events"
         };
@@ -45,14 +55,19 @@ service ChaincodeService {
 // Chaincode events subscription service
 service ChaincodeEventsService {
     // Chaincode events stream
-    rpc Events (ChaincodeEventsRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeEventsStreamRequest) returns (stream ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode/events-stream"
+        };
+    }
+
+    // Chaincode events
+    rpc Events (ChaincodeEventsRequest) returns (ChaincodeEvents) {
         option (google.api.http) = {
             get: "/chaincode/events"
         };
     }
 }
-
-
 
 // Chaincode instance communication service. Channel/chaincode already fixed.
 service ChaincodeInstanceService {
@@ -78,18 +93,31 @@ service ChaincodeInstanceService {
         };
     }
     // Chaincode events stream
-    rpc Events (ChaincodeInstanceEventsRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeInstanceEventsStreamRequest) returns (stream protos.ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode-instance/events-stream"
+        };
+    }
+
+    // Chaincode events
+    rpc Events (ChaincodeInstanceEventsRequest) returns (ChaincodeEvents) {
         option (google.api.http) = {
             get: "/chaincode-instance/events"
         };
     }
 }
 
-
 // Chaincode instance events subscription service
 service ChaincodeInstanceEventsService {
     // Chaincode events stream
-    rpc Events (ChaincodeInstanceEventsRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeInstanceEventsStreamRequest) returns (stream ChaincodeEvent) {
+        option (google.api.http) = {
+            get: "/chaincode-instance/events-stream"
+        };
+    }
+
+    // Chaincode events s
+    rpc Events (ChaincodeInstanceEventsRequest) returns (ChaincodeEvents) {
         option (google.api.http) = {
             get: "/chaincode-instance/events"
         };
@@ -99,14 +127,14 @@ service ChaincodeInstanceEventsService {
 // Chaincode locator - channel name and chaincode name
 message ChaincodeLocator {
     // Chaincode name
-    string chaincode = 1;
+    string chaincode = 1 [(validator.field) = {string_not_empty : true}];
     // Channel name
-    string channel = 2;
+    string channel = 2 [(validator.field) = {string_not_empty : true}];
 }
 
 // Chaincode invocation input
 message ChaincodeInput {
-    ChaincodeLocator chaincode = 1;
+    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
     // Input contains the arguments for invocation.
     repeated bytes args = 2;
 
@@ -131,21 +159,29 @@ message ChaincodeExec {
     ChaincodeInput input = 2;
 }
 
-// Block range for event subscription.
-// Values can be negative. If from is negative - subscription starts from x block from channel height
-message BlockRange {
-    // from block
-    int64 from = 3;
-    // to block
-    int64 to = 4;
+// Block limit number for event stream subscription or event list
+// Values can be negative
+message BlockLimit {
+    // Block number
+    int64 num = 1;
 }
 
-// Chaincode events request
+// Chaincode events stream request
+message ChaincodeEventsStreamRequest {
+    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
+    BlockLimit from_block = 2;
+    BlockLimit to_block = 3;
+    repeated string event_name = 4;
+}
+
+// Chaincode events list request
 message ChaincodeEventsRequest {
-    ChaincodeLocator chaincode = 1;
-    BlockRange block = 2;
+    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
+    BlockLimit from_block = 2;
+    BlockLimit to_block = 3;
+    repeated string event_name = 4;
+    uint32 limit = 5;
 }
-
 
 // Chaincode instance chaincode input spec
 message ChaincodeInstanceInput {
@@ -164,8 +200,35 @@ message ChaincodeInstanceExec {
     ChaincodeInstanceInput input = 2;
 }
 
+message ChaincodeInstanceEventsStreamRequest {
+    BlockLimit from_block = 1;
+    BlockLimit to_block = 2;
+    repeated string event_name = 3;
+}
 
 message ChaincodeInstanceEventsRequest {
-    BlockRange block = 1;
+    BlockLimit from_block = 1;
+    BlockLimit to_block = 2;
+    repeated string event_name = 3;
+    uint32 limit = 4;
 }
+
+message ChaincodeEvents {
+    ChaincodeLocator chaincode = 1;
+    BlockLimit from_block = 2;
+    BlockLimit to_block = 3;
+    repeated ChaincodeEvent items = 4;
+}
+
+message RawJson {
+    bytes value = 1;
+}
+
+message ChaincodeEvent {
+    protos.ChaincodeEvent event = 1;
+    uint64 block = 2;
+    google.protobuf.Timestamp tx_timestamp = 3;
+    RawJson payload = 4;
+}
+
 

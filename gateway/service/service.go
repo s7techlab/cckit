@@ -1,3 +1,4 @@
+// Deprecated: use github.com/s7techlab/cckit/gateway package
 package service
 
 import (

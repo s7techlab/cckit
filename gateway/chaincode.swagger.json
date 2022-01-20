@@ -17,32 +17,94 @@
   "paths": {
     "/chaincode-instance/events": {
       "get": {
-        "summary": "Exec: Query or Invoke",
+        "summary": "Query chaincode on home peer. Do NOT send to orderer.",
         "operationId": "Events",
         "responses": {
           "200": {
-            "description": "A successful response.(streaming responses)",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/x-stream-definitions/protosChaincodeEvent"
+              "$ref": "#/definitions/gatewayChaincodeEvents"
             }
           }
         },
         "parameters": [
           {
-            "name": "block.from",
-            "description": "from block.",
+            "name": "from_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "block.to",
-            "description": "to block.",
+            "name": "to_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "event_name",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ChaincodeInstanceEventsService"
+        ]
+      }
+    },
+    "/chaincode-instance/events-stream": {
+      "get": {
+        "summary": "Exec: Query or Invoke",
+        "operationId": "EventsStream",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "$ref": "#/x-stream-definitions/cckitgatewayChaincodeEvent"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "from_block.num",
+            "description": "Block number.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "to_block.num",
+            "description": "Block number.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "event_name",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "tags": [
@@ -137,13 +199,13 @@
     },
     "/chaincode/events": {
       "get": {
-        "summary": "Exec: Query or Invoke",
+        "summary": "Query chaincode on home peer. Do NOT send to orderer.",
         "operationId": "Events",
         "responses": {
           "200": {
-            "description": "A successful response.(streaming responses)",
+            "description": "A successful response.",
             "schema": {
-              "$ref": "#/x-stream-definitions/protosChaincodeEvent"
+              "$ref": "#/definitions/gatewayChaincodeEvents"
             }
           }
         },
@@ -163,20 +225,96 @@
             "type": "string"
           },
           {
-            "name": "block.from",
-            "description": "from block.",
+            "name": "from_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "block.to",
-            "description": "to block.",
+            "name": "to_block.num",
+            "description": "Block number.",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "event_name",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ChaincodeEventsService"
+        ]
+      }
+    },
+    "/chaincode/events-stream": {
+      "get": {
+        "summary": "Exec: Query or Invoke",
+        "operationId": "EventsStream",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "$ref": "#/x-stream-definitions/cckitgatewayChaincodeEvent"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "chaincode.chaincode",
+            "description": "Chaincode name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "chaincode.channel",
+            "description": "Channel name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "from_block.num",
+            "description": "Block number.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "to_block.num",
+            "description": "Block number.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "event_name",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "tags": [
@@ -285,21 +423,55 @@
     }
   },
   "definitions": {
-    "gatewayBlockRange": {
+    "cckitgatewayChaincodeEvent": {
       "type": "object",
       "properties": {
-        "from": {
-          "type": "string",
-          "format": "int64",
-          "title": "from block"
+        "event": {
+          "$ref": "#/definitions/protosChaincodeEvent"
         },
-        "to": {
+        "block": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "tx_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "$ref": "#/definitions/gatewayRawJson"
+        }
+      }
+    },
+    "gatewayBlockLimit": {
+      "type": "object",
+      "properties": {
+        "num": {
           "type": "string",
           "format": "int64",
-          "title": "to block"
+          "title": "Block number"
         }
       },
-      "title": "Block range for event subscription.\nValues can be negative. If from is negative - subscription starts from x block from channel height"
+      "title": "Block limit number for event stream subscription or event list\nValues can be negative"
+    },
+    "gatewayChaincodeEvents": {
+      "type": "object",
+      "properties": {
+        "chaincode": {
+          "$ref": "#/definitions/gatewayChaincodeLocator"
+        },
+        "from_block": {
+          "$ref": "#/definitions/gatewayBlockLimit"
+        },
+        "to_block": {
+          "$ref": "#/definitions/gatewayBlockLimit"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cckitgatewayChaincodeEvent"
+          }
+        }
+      }
     },
     "gatewayChaincodeExec": {
       "type": "object",
@@ -395,6 +567,15 @@
       "description": "- QUERY: Simulation\n - INVOKE: Simulation and applying to ledger",
       "title": "Chaincode invocation type"
     },
+    "gatewayRawJson": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -473,6 +654,18 @@
     }
   },
   "x-stream-definitions": {
+    "cckitgatewayChaincodeEvent": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/cckitgatewayChaincodeEvent"
+        },
+        "error": {
+          "$ref": "#/definitions/runtimeStreamError"
+        }
+      },
+      "title": "Stream result of cckitgatewayChaincodeEvent"
+    },
     "protosChaincodeEvent": {
       "type": "object",
       "properties": {

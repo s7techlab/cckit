@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"google.golang.org/grpc"
+
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	cpaperservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/gateway"
-	gwmock "github.com/s7techlab/cckit/gateway/mock"
 	"github.com/s7techlab/cckit/testing"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -42,7 +42,7 @@ func main() {
 	cpaperMock := testing.NewMockStub(chaincodeName, cc)
 
 	// Chaincode invocation service mock. For real network you can use example with hlf-sdk-go
-	cpaperMockService := gwmock.New(testing.NewPeer().WithChannel(channelName, cpaperMock))
+	cpaperMockService := gateway.NewChaincodeService(testing.NewPeer().WithChannel(channelName, cpaperMock))
 
 	// default identity for signing requests to peeer (mocked)
 	apiIdentity, err := testing.IdentityFromFile(`MSP`, `../../../testdata/admin.pem`, ioutil.ReadFile)

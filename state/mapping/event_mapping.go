@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -45,6 +46,10 @@ type (
 	}
 
 	EventMappingOpt func(*EventMapping)
+
+	EventResolver interface {
+		Resolve(eventName string, payload []byte) (event interface{}, err error)
+	}
 )
 
 func (emm EventMappings) Add(schema interface{}, opts ...EventMappingOpt) EventMappings {

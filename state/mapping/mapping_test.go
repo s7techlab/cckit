@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
@@ -83,7 +84,7 @@ var _ = Describe(`State mapping in chaincode`, func() {
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create2))
 			expectcc.ResponseOk(compositeIDCC.Invoke(`create`, create3))
 
-			closer()
+			_ = closer()
 			close(done)
 		})
 

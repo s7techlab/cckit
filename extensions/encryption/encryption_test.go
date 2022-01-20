@@ -5,14 +5,15 @@ import (
 	"encoding/base64"
 	"testing"
 
+	"github.com/hyperledger/fabric-protos-go/peer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/s7techlab/cckit/examples/payment"
 	"github.com/s7techlab/cckit/examples/payment/schema"
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/extensions/encryption/testdata"
+	enctest "github.com/s7techlab/cckit/extensions/encryption/testing"
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
@@ -35,7 +36,7 @@ var (
 	encryptPaymentCCWithEncStateContext *testcc.MockStub
 	externalCC                          *testcc.MockStub
 
-	encCCInvoker *encryption.MockStub
+	encCCInvoker *enctest.MockStub
 
 	pType  = `SALE`
 	encKey []byte
@@ -80,7 +81,7 @@ var _ = Describe(`Router`, func() {
 			`paymentsEncWithContext`,
 			payment.NewEncryptedPaymentCCWithEncStateContext())
 
-		encCCInvoker = encryption.NewMockStub(encryptPaymentCCWithEncStateContext, encKey)
+		encCCInvoker = enctest.NewMockStub(encryptPaymentCCWithEncStateContext, encKey)
 		encCCInvoker.DecryptInvokeResponse = true
 
 		externalCC = testcc.NewMockStub(`external`,
@@ -180,7 +181,7 @@ var _ = Describe(`Router`, func() {
 		It("Allow to get encrypted payments by type as unencrypted values", func() {
 			// MockInvoke sets key in transient map and encrypt input arguments
 			payments := expectcc.PayloadIs(
-				encryption.MockInvoke(encryptOnDemandPaymentCC, encKey, `paymentList`, pType),
+				enctest.MockInvoke(encryptOnDemandPaymentCC, encKey, `paymentList`, pType),
 				&schema.PaymentList{}).(*schema.PaymentList)
 
 			Expect(payments.Items).To(HaveLen(1))
@@ -218,7 +219,7 @@ var _ = Describe(`Router`, func() {
 
 		It("Allow to create payment providing key in encryptPaymentCC ", func() {
 			// encode all arguments
-			expectcc.ResponseOk(encryption.MockInvoke(encryptPaymentCC, encKey, `paymentCreate`, pType, pID3, pAmount3))
+			expectcc.ResponseOk(enctest.MockInvoke(encryptPaymentCC, encKey, `paymentCreate`, pType, pID3, pAmount3))
 		})
 	})
 
@@ -252,7 +253,7 @@ var _ = Describe(`Router`, func() {
 				}),
 			})))
 
-			closer()
+			_ = closer()
 			close(done)
 		}, 0.2)
 

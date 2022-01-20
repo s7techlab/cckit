@@ -3,47 +3,59 @@ package gateway
 import (
 	"context"
 
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 
 	"github.com/s7techlab/cckit/extensions/encryption"
+	"github.com/s7techlab/cckit/state/mapping"
 )
 
-type Opt func(*chaincode)
+type (
+	Opts struct {
+		Context []ContextOpt
+		Input   []InputOpt
+		Output  []OutputOpt
+		Event   []EventOpt
+	}
 
-type ContextOpt func(ctx context.Context) context.Context
-type InputOpt func(action Action, input *ChaincodeInput) error
-type OutputOpt func(action Action, response *peer.Response) error
-type EventOpt func(event *peer.ChaincodeEvent) error
+	Opt func(*Opts)
+
+	ContextOpt func(ctx context.Context) context.Context
+	InputOpt   func(action Action, input *ChaincodeInput) error
+	OutputOpt  func(action Action, response *peer.Response) error
+	EventOpt   func(event *ChaincodeEvent) error
+)
 
 func WithDefaultSigner(defaultSigner msp.SigningIdentity) Opt {
-	return func(c *chaincode) {
-		c.ContextOpts = append(c.ContextOpts, func(ctx context.Context) context.Context {
+	return func(opts *Opts) {
+		opts.Context = append(opts.Context, func(ctx context.Context) context.Context {
 			return ContextWithDefaultSigner(ctx, defaultSigner)
 		})
 	}
 }
 
 func WithTransientValue(key string, value []byte) Opt {
-	return func(c *chaincode) {
-		c.ContextOpts = append(c.ContextOpts, func(ctx context.Context) context.Context {
+	return func(o *Opts) {
+		o.Context = append(o.Context, func(ctx context.Context) context.Context {
 			return ContextWithTransientValue(ctx, key, value)
 		})
 	}
 }
 
 func WithEncryption(encKey []byte) Opt {
-	return func(c *chaincode) {
-		WithTransientValue(encryption.TransientMapKey, encKey)(c)
-		WithArgsEncryption(encKey)(c)
-		WithInvokePayloadDecryption(encKey)(c)
-		WithEventDecryption(encKey)(c)
+	return func(o *Opts) {
+		WithTransientValue(encryption.TransientMapKey, encKey)(o)
+		WithArgsEncryption(encKey)(o)
+		WithInvokePayloadDecryption(encKey)(o)
+		WithEventDecryption(encKey)(o)
 	}
 }
 
 func WithArgsEncryption(encKey []byte) Opt {
-	return func(c *chaincode) {
-		c.InputOpts = append(c.InputOpts, func(action Action, ccInput *ChaincodeInput) (err error) {
+	return func(o *Opts) {
+		o.Input = append(o.Input, func(action Action, ccInput *ChaincodeInput) (err error) {
 			ccInput.Args, err = encryption.EncryptArgsBytes(encKey, ccInput.Args)
 			return err
 		})
@@ -51,8 +63,8 @@ func WithArgsEncryption(encKey []byte) Opt {
 }
 
 func WithInvokePayloadDecryption(encKey []byte) Opt {
-	return func(c *chaincode) {
-		c.OutputOpts = append(c.OutputOpts, func(action Action, r *peer.Response) (err error) {
+	return func(o *Opts) {
+		o.Output = append(o.Output, func(action Action, r *peer.Response) (err error) {
 			if action != Invoke {
 				return nil
 			}
@@ -63,15 +75,33 @@ func WithInvokePayloadDecryption(encKey []byte) Opt {
 }
 
 func WithEventDecryption(encKey []byte) Opt {
-	return func(c *chaincode) {
-		c.EventOpts = append(c.EventOpts, func(e *peer.ChaincodeEvent) error {
-			de, err := encryption.DecryptEvent(encKey, e)
+	return func(o *Opts) {
+		o.Event = append(o.Event, func(e *ChaincodeEvent) error {
+			de, err := encryption.DecryptEvent(encKey, e.Event)
 			if err != nil {
 				return err
 			}
 
-			e.EventName = de.EventName
-			e.Payload = de.Payload
+			e.Event = de
+			return nil
+		})
+	}
+}
+
+func WithEventResolver(resolver mapping.EventResolver) Opt {
+	return func(o *Opts) {
+		o.Event = append(o.Event, func(e *ChaincodeEvent) error {
+			eventPayload, err := resolver.Resolve(e.Event.EventName, e.Event.Payload)
+			if err != nil {
+				return err
+			}
+
+			bb, err := (&jsonpb.Marshaler{EmitDefaults: true, OrigName: true}).MarshalToString(eventPayload.(proto.Message))
+			if err != nil {
+				return err
+			}
+
+			e.Payload = &RawJson{Value: []byte(bb)}
 			return nil
 		})
 	}

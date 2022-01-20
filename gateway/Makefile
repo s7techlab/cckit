@@ -1,7 +1,7 @@
 .: generate
 
 generate:
-	@echo "chaincode invoke service"
+	@echo "chaincode gateway service"
 	@protoc -I=. \
 	 -I=../../  \
 	 -I=../vendor \

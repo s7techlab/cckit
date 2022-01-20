@@ -126,18 +126,54 @@ func (stub *MockStub) SetEvent(name string, payload []byte) error {
 	return nil
 }
 
-func (stub *MockStub) EventSubscription() (events chan *peer.ChaincodeEvent, closer func()) {
+// EventSubscription for new or all events
+func (stub *MockStub) EventSubscription(from ...int64) (events chan *peer.ChaincodeEvent, closer func() error) {
 	stub.m.Lock()
 	defer stub.m.Unlock()
 
 	events = make(chan *peer.ChaincodeEvent, EventChannelBufferSize)
+
+	if len(from) > 0 && from[0] == 0 {
+		curLen := len(stub.ChaincodeEventsChannel)
+
+		for i := 0; i < curLen; i++ {
+			e := <-stub.ChaincodeEventsChannel
+			events <- e
+			stub.ChaincodeEventsChannel <- e
+		}
+	}
+
 	stub.chaincodeEventSubscriptions = append(stub.chaincodeEventSubscriptions, events)
 
 	subPos := len(stub.chaincodeEventSubscriptions) - 1
-	return events, func() {
-		close(stub.chaincodeEventSubscriptions[subPos])
-		stub.chaincodeEventSubscriptions[subPos] = nil
+	return events, func() error {
+		stub.m.Lock()
+		defer stub.m.Unlock()
+
+		if stub.chaincodeEventSubscriptions[subPos] != nil {
+			close(stub.chaincodeEventSubscriptions[subPos])
+			stub.chaincodeEventSubscriptions[subPos] = nil
+		}
+
+		return nil
 	}
+}
+
+func (stub *MockStub) EventsList() []*peer.ChaincodeEvent {
+	stub.m.Lock()
+	defer stub.m.Unlock()
+
+	var eventsList []*peer.ChaincodeEvent
+
+	curLen := len(stub.ChaincodeEventsChannel)
+
+	for i := 0; i < curLen; i++ {
+		e := <-stub.ChaincodeEventsChannel
+		eventsList = append(eventsList, e)
+		stub.ChaincodeEventsChannel <- e
+	}
+
+	return eventsList
 }
 
 // ClearEvents clears chaincode events channel

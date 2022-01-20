@@ -130,10 +130,38 @@ func local_request_ChaincodeService_Invoke_0(ctx context.Context, marshaler runt
 }
 
 var (
+	filter_ChaincodeService_EventsStream_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_ChaincodeService_EventsStream_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeServiceClient, req *http.Request, pathParams map[string]string) (ChaincodeService_EventsStreamClient, runtime.ServerMetadata, error) {
+	var protoReq ChaincodeEventsStreamRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ChaincodeService_EventsStream_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	stream, err := client.EventsStream(ctx, &protoReq)
+	if err != nil {
+		return nil, metadata, err
+	}
+	header, err := stream.Header()
+	if err != nil {
+		return nil, metadata, err
+	}
+	metadata.HeaderMD = header
+	return stream, metadata, nil
+
+}
+
+var (
 	filter_ChaincodeService_Events_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_ChaincodeService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeServiceClient, req *http.Request, pathParams map[string]string) (ChaincodeService_EventsClient, runtime.ServerMetadata, error) {
+func request_ChaincodeService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ChaincodeEventsRequest
 	var metadata runtime.ServerMetadata
 
@@ -144,7 +172,40 @@ func request_ChaincodeService_Events_0(ctx context.Context, marshaler runtime.Ma
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	stream, err := client.Events(ctx, &protoReq)
+	msg, err := client.Events(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ChaincodeService_Events_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ChaincodeEventsRequest
+	var metadata runtime.ServerMetadata
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_ChaincodeService_Events_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.Events(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+var (
+	filter_ChaincodeEventsService_EventsStream_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_ChaincodeEventsService_EventsStream_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeEventsServiceClient, req *http.Request, pathParams map[string]string) (ChaincodeEventsService_EventsStreamClient, runtime.ServerMetadata, error) {
+	var protoReq ChaincodeEventsStreamRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ChaincodeEventsService_EventsStream_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	stream, err := client.EventsStream(ctx, &protoReq)
 	if err != nil {
 		return nil, metadata, err
 	}
@@ -161,7 +222,7 @@ var (
 	filter_ChaincodeEventsService_Events_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_ChaincodeEventsService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeEventsServiceClient, req *http.Request, pathParams map[string]string) (ChaincodeEventsService_EventsClient, runtime.ServerMetadata, error) {
+func request_ChaincodeEventsService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeEventsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ChaincodeEventsRequest
 	var metadata runtime.ServerMetadata
 
@@ -172,16 +233,21 @@ func request_ChaincodeEventsService_Events_0(ctx context.Context, marshaler runt
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	stream, err := client.Events(ctx, &protoReq)
-	if err != nil {
-		return nil, metadata, err
+	msg, err := client.Events(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ChaincodeEventsService_Events_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeEventsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ChaincodeEventsRequest
+	var metadata runtime.ServerMetadata
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_ChaincodeEventsService_Events_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	header, err := stream.Header()
-	if err != nil {
-		return nil, metadata, err
-	}
-	metadata.HeaderMD = header
-	return stream, metadata, nil
+
+	msg, err := server.Events(ctx, &protoReq)
+	return msg, metadata, err
 
 }
 
@@ -287,10 +353,38 @@ func local_request_ChaincodeInstanceService_Invoke_0(ctx context.Context, marsha
 }
 
 var (
+	filter_ChaincodeInstanceService_EventsStream_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_ChaincodeInstanceService_EventsStream_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceServiceClient, req *http.Request, pathParams map[string]string) (ChaincodeInstanceService_EventsStreamClient, runtime.ServerMetadata, error) {
+	var protoReq ChaincodeInstanceEventsStreamRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ChaincodeInstanceService_EventsStream_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	stream, err := client.EventsStream(ctx, &protoReq)
+	if err != nil {
+		return nil, metadata, err
+	}
+	header, err := stream.Header()
+	if err != nil {
+		return nil, metadata, err
+	}
+	metadata.HeaderMD = header
+	return stream, metadata, nil
+
+}
+
+var (
 	filter_ChaincodeInstanceService_Events_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_ChaincodeInstanceService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceServiceClient, req *http.Request, pathParams map[string]string) (ChaincodeInstanceService_EventsClient, runtime.ServerMetadata, error) {
+func request_ChaincodeInstanceService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ChaincodeInstanceEventsRequest
 	var metadata runtime.ServerMetadata
 
@@ -301,7 +395,40 @@ func request_ChaincodeInstanceService_Events_0(ctx context.Context, marshaler ru
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	stream, err := client.Events(ctx, &protoReq)
+	msg, err := client.Events(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ChaincodeInstanceService_Events_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeInstanceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ChaincodeInstanceEventsRequest
+	var metadata runtime.ServerMetadata
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_ChaincodeInstanceService_Events_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.Events(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+var (
+	filter_ChaincodeInstanceEventsService_EventsStream_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_ChaincodeInstanceEventsService_EventsStream_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceEventsServiceClient, req *http.Request, pathParams map[string]string) (ChaincodeInstanceEventsService_EventsStreamClient, runtime.ServerMetadata, error) {
+	var protoReq ChaincodeInstanceEventsStreamRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ChaincodeInstanceEventsService_EventsStream_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	stream, err := client.EventsStream(ctx, &protoReq)
 	if err != nil {
 		return nil, metadata, err
 	}
@@ -318,7 +445,7 @@ var (
 	filter_ChaincodeInstanceEventsService_Events_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_ChaincodeInstanceEventsService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceEventsServiceClient, req *http.Request, pathParams map[string]string) (ChaincodeInstanceEventsService_EventsClient, runtime.ServerMetadata, error) {
+func request_ChaincodeInstanceEventsService_Events_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceEventsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ChaincodeInstanceEventsRequest
 	var metadata runtime.ServerMetadata
 
@@ -329,16 +456,21 @@ func request_ChaincodeInstanceEventsService_Events_0(ctx context.Context, marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	stream, err := client.Events(ctx, &protoReq)
-	if err != nil {
-		return nil, metadata, err
+	msg, err := client.Events(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ChaincodeInstanceEventsService_Events_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeInstanceEventsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ChaincodeInstanceEventsRequest
+	var metadata runtime.ServerMetadata
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_ChaincodeInstanceEventsService_Events_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	header, err := stream.Header()
-	if err != nil {
-		return nil, metadata, err
-	}
-	metadata.HeaderMD = header
-	return stream, metadata, nil
+
+	msg, err := server.Events(ctx, &protoReq)
+	return msg, metadata, err
 
 }
 
@@ -407,11 +539,31 @@ func RegisterChaincodeServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 
 	})
 
-	mux.Handle("GET", pattern_ChaincodeService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ChaincodeService_EventsStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
 		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 		return
+	})
+
+	mux.Handle("GET", pattern_ChaincodeService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ChaincodeService_Events_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeService_Events_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	return nil
@@ -422,11 +574,31 @@ func RegisterChaincodeServiceHandlerServer(ctx context.Context, mux *runtime.Ser
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 func RegisterChaincodeEventsServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ChaincodeEventsServiceServer) error {
 
-	mux.Handle("GET", pattern_ChaincodeEventsService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ChaincodeEventsService_EventsStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
 		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 		return
+	})
+
+	mux.Handle("GET", pattern_ChaincodeEventsService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ChaincodeEventsService_Events_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeEventsService_Events_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	return nil
@@ -497,11 +669,31 @@ func RegisterChaincodeInstanceServiceHandlerServer(ctx context.Context, mux *run
 
 	})
 
-	mux.Handle("GET", pattern_ChaincodeInstanceService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ChaincodeInstanceService_EventsStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
 		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 		return
+	})
+
+	mux.Handle("GET", pattern_ChaincodeInstanceService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ChaincodeInstanceService_Events_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeInstanceService_Events_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	return nil
@@ -512,11 +704,31 @@ func RegisterChaincodeInstanceServiceHandlerServer(ctx context.Context, mux *run
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 func RegisterChaincodeInstanceEventsServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ChaincodeInstanceEventsServiceServer) error {
 
-	mux.Handle("GET", pattern_ChaincodeInstanceEventsService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_ChaincodeInstanceEventsService_EventsStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
 		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 		return
+	})
+
+	mux.Handle("GET", pattern_ChaincodeInstanceEventsService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ChaincodeInstanceEventsService_Events_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeInstanceEventsService_Events_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	return nil
@@ -620,6 +832,26 @@ func RegisterChaincodeServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 
 	})
 
+	mux.Handle("GET", pattern_ChaincodeService_EventsStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ChaincodeService_EventsStream_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeService_EventsStream_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ChaincodeService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -636,7 +868,7 @@ func RegisterChaincodeServiceHandlerClient(ctx context.Context, mux *runtime.Ser
 			return
 		}
 
-		forward_ChaincodeService_Events_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+		forward_ChaincodeService_Events_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -650,6 +882,8 @@ var (
 
 	pattern_ChaincodeService_Invoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "invoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
+	pattern_ChaincodeService_EventsStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "events-stream"}, "", runtime.AssumeColonVerbOpt(true)))
+
 	pattern_ChaincodeService_Events_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "events"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
@@ -660,7 +894,9 @@ var (
 
 	forward_ChaincodeService_Invoke_0 = runtime.ForwardResponseMessage
 
-	forward_ChaincodeService_Events_0 = runtime.ForwardResponseStream
+	forward_ChaincodeService_EventsStream_0 = runtime.ForwardResponseStream
+
+	forward_ChaincodeService_Events_0 = runtime.ForwardResponseMessage
 )
 
 // RegisterChaincodeEventsServiceHandlerFromEndpoint is same as RegisterChaincodeEventsServiceHandler but
@@ -701,6 +937,26 @@ func RegisterChaincodeEventsServiceHandler(ctx context.Context, mux *runtime.Ser
 // "ChaincodeEventsServiceClient" to call the correct interceptors.
 func RegisterChaincodeEventsServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ChaincodeEventsServiceClient) error {
 
+	mux.Handle("GET", pattern_ChaincodeEventsService_EventsStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ChaincodeEventsService_EventsStream_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeEventsService_EventsStream_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ChaincodeEventsService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -717,7 +973,7 @@ func RegisterChaincodeEventsServiceHandlerClient(ctx context.Context, mux *runti
 			return
 		}
 
-		forward_ChaincodeEventsService_Events_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+		forward_ChaincodeEventsService_Events_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -725,11 +981,15 @@ func RegisterChaincodeEventsServiceHandlerClient(ctx context.Context, mux *runti
 }
 
 var (
+	pattern_ChaincodeEventsService_EventsStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "events-stream"}, "", runtime.AssumeColonVerbOpt(true)))
+
 	pattern_ChaincodeEventsService_Events_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode", "events"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
-	forward_ChaincodeEventsService_Events_0 = runtime.ForwardResponseStream
+	forward_ChaincodeEventsService_EventsStream_0 = runtime.ForwardResponseStream
+
+	forward_ChaincodeEventsService_Events_0 = runtime.ForwardResponseMessage
 )
 
 // RegisterChaincodeInstanceServiceHandlerFromEndpoint is same as RegisterChaincodeInstanceServiceHandler but
@@ -830,6 +1090,26 @@ func RegisterChaincodeInstanceServiceHandlerClient(ctx context.Context, mux *run
 
 	})
 
+	mux.Handle("GET", pattern_ChaincodeInstanceService_EventsStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ChaincodeInstanceService_EventsStream_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeInstanceService_EventsStream_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ChaincodeInstanceService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -846,7 +1126,7 @@ func RegisterChaincodeInstanceServiceHandlerClient(ctx context.Context, mux *run
 			return
 		}
 
-		forward_ChaincodeInstanceService_Events_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+		forward_ChaincodeInstanceService_Events_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -860,6 +1140,8 @@ var (
 
 	pattern_ChaincodeInstanceService_Invoke_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode-instance", "invoke"}, "", runtime.AssumeColonVerbOpt(true)))
 
+	pattern_ChaincodeInstanceService_EventsStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode-instance", "events-stream"}, "", runtime.AssumeColonVerbOpt(true)))
+
 	pattern_ChaincodeInstanceService_Events_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode-instance", "events"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
@@ -870,7 +1152,9 @@ var (
 
 	forward_ChaincodeInstanceService_Invoke_0 = runtime.ForwardResponseMessage
 
-	forward_ChaincodeInstanceService_Events_0 = runtime.ForwardResponseStream
+	forward_ChaincodeInstanceService_EventsStream_0 = runtime.ForwardResponseStream
+
+	forward_ChaincodeInstanceService_Events_0 = runtime.ForwardResponseMessage
 )
 
 // RegisterChaincodeInstanceEventsServiceHandlerFromEndpoint is same as RegisterChaincodeInstanceEventsServiceHandler but
@@ -911,6 +1195,26 @@ func RegisterChaincodeInstanceEventsServiceHandler(ctx context.Context, mux *run
 // "ChaincodeInstanceEventsServiceClient" to call the correct interceptors.
 func RegisterChaincodeInstanceEventsServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ChaincodeInstanceEventsServiceClient) error {
 
+	mux.Handle("GET", pattern_ChaincodeInstanceEventsService_EventsStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ChaincodeInstanceEventsService_EventsStream_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ChaincodeInstanceEventsService_EventsStream_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ChaincodeInstanceEventsService_Events_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -927,7 +1231,7 @@ func RegisterChaincodeInstanceEventsServiceHandlerClient(ctx context.Context, mu
 			return
 		}
 
-		forward_ChaincodeInstanceEventsService_Events_0(ctx, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+		forward_ChaincodeInstanceEventsService_Events_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -935,9 +1239,13 @@ func RegisterChaincodeInstanceEventsServiceHandlerClient(ctx context.Context, mu
 }
 
 var (
+	pattern_ChaincodeInstanceEventsService_EventsStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode-instance", "events-stream"}, "", runtime.AssumeColonVerbOpt(true)))
+
 	pattern_ChaincodeInstanceEventsService_Events_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"chaincode-instance", "events"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
-	forward_ChaincodeInstanceEventsService_Events_0 = runtime.ForwardResponseStream
+	forward_ChaincodeInstanceEventsService_EventsStream_0 = runtime.ForwardResponseStream
+
+	forward_ChaincodeInstanceEventsService_Events_0 = runtime.ForwardResponseMessage
 )
