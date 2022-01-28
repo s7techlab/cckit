@@ -1,0 +1,280 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "owner/chaincode_owner.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/chaincode/owners": {
+      "get": {
+        "summary": "Get owners list",
+        "operationId": "ListOwners",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwners"
+            }
+          }
+        },
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      },
+      "post": {
+        "summary": "Register new chaincode owner, method can be call by current owner or if no owner exists\nIf chaincode owner with same MspID, certificate subject and issuer exists - throws error",
+        "operationId": "CreateOwner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ownerCreateOwnerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      },
+      "put": {
+        "summary": "Update chaincode owner. Msp id and certificate subject must be equal to current owner certificate",
+        "operationId": "UpdateOwner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ownerUpdateOwnerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      }
+    },
+    "/chaincode/owners/txcreator": {
+      "post": {
+        "summary": "Register tx creator as chaincode owner",
+        "operationId": "CreateOwnerTxCreator",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      }
+    },
+    "/chaincode/owners/whoami": {
+      "get": {
+        "summary": "Checks tx creator is owner",
+        "operationId": "GetOwnerByTxCreator",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          }
+        },
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      }
+    },
+    "/chaincode/owners/{msp_id}/{subject}": {
+      "get": {
+        "summary": "Get owner by msp_id and certificate subject",
+        "operationId": "GetOwner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "msp_id",
+            "description": "Msp Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "description": "Certificate subject",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete owner",
+        "operationId": "DeleteOwner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "msp_id",
+            "description": "Msp Id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "description": "Certificate subject",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ChaincodeOwnerService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ownerChaincodeOwner": {
+      "type": "object",
+      "properties": {
+        "msp_id": {
+          "type": "string",
+          "title": "Msp Id"
+        },
+        "subject": {
+          "type": "string",
+          "title": "certificate subject"
+        },
+        "issuer": {
+          "type": "string",
+          "title": "certificate issuer"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "cert valid not after"
+        },
+        "cert": {
+          "type": "string",
+          "format": "byte",
+          "title": "Certificate"
+        },
+        "updated_by_msp_id": {
+          "type": "string",
+          "title": "Creator identity info"
+        },
+        "updated_by_cert": {
+          "type": "string",
+          "format": "byte",
+          "title": "Certificate"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Updated at"
+        }
+      },
+      "title": "State: information stored in chaincode state about chaincode owner"
+    },
+    "ownerChaincodeOwners": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ownerChaincodeOwner"
+          }
+        }
+      },
+      "title": "List: Chaincode owners"
+    },
+    "ownerCreateOwnerRequest": {
+      "type": "object",
+      "properties": {
+        "msp_id": {
+          "type": "string",
+          "title": "Msp Id"
+        },
+        "cert": {
+          "type": "string",
+          "format": "byte",
+          "title": "Certificate"
+        }
+      },
+      "title": "Request: register owner"
+    },
+    "ownerUpdateOwnerRequest": {
+      "type": "object",
+      "properties": {
+        "msp_id": {
+          "type": "string",
+          "title": "Msp Id"
+        },
+        "cert": {
+          "type": "string",
+          "format": "byte",
+          "title": "Current certificate"
+        }
+      },
+      "title": "Request: update owner certificate"
+    }
+  }
+}
