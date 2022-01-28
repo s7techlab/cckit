@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option go_package = "github.com/s7techlab/cckit/examples/cpaper_extended/schema";
-package cpaper_extended.schema;
+package examples.cpaper_extended.schema;
 
 import "google/protobuf/timestamp.proto";
 
@@ -9,9 +9,9 @@ import "google/protobuf/timestamp.proto";
 message CommercialPaper {
 
     enum State {
-        ISSUED = 0;
-        TRADING = 1;
-        REDEEMED = 2;
+        STATE_ISSUED = 0;
+        STATE_TRADING = 1;
+        STATE_REDEEMED = 2;
     }
 
     // Issuer and Paper number comprises composite primary key of Commercial paper entry

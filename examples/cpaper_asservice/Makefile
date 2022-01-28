@@ -1,17 +1,18 @@
 .: generate
 
 generate:
-	@protoc --version
-	@echo "commercial paper schema proto generation"
-	@protoc -I=./schema/ \
-	-I=../../vendor \
-	--go_out=./schema/    \
-	--govalidators_out=./schema/ \
-    --doc_out=./schema/ --doc_opt=markdown,schema.md \
-	./schema/schema.proto
+#	@protoc --version
+#	@echo "commercial paper schema proto generation"
+#	@protoc -I=./schema/ \
+#	-I=../../vendor \
+#	--go_out=./schema/    \
+#	--govalidators_out=./schema/ \
+#    --doc_out=./schema/ --doc_opt=markdown,schema.md \
+#	./schema/schema.proto
 
 	@echo "commercial paper service proto generation"
 	@protoc -I=./service/ \
+	-I=./schema/ \
 	-I=../../../../../ \
 	-I=../../vendor \
 	-I=../../third_party/googleapis \

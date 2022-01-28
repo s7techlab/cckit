@@ -1,10 +1,9 @@
 syntax = "proto3";
 // Commercial paper service
 option go_package = "github.com/s7techlab/cckit/extensions/debug";
-package cckit.extension.debug;
+package extensions.debug;
 
 import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
 
 // State key prefix
 message Prefix {
@@ -40,41 +39,41 @@ message Value {
 
 // Debug state service
 // allows to directly manage chaincode state
-service DebugState {
+service DebugStateService {
     // Clear all state or, if prefixes are defined, only prefix matched
-    rpc StateClean (Prefixes) returns (PrefixesMatchCount) {
+    rpc Clean (Prefixes) returns (PrefixesMatchCount) {
         option (google.api.http) = {
-            put: "/state/clear"
+            put: "/debug/state/clean"
             body: "*"
         };
     }
 
     // Get keys list, returns all keys or, if prefixes are defined, only prefix matched
-    rpc StateKeys (Prefix) returns (CompositeKeys) {
+    rpc ListKeys (Prefix) returns (CompositeKeys) {
         option (google.api.http) = {
-            get: "/state/keys/{key}"
+            get: "/debug/state/keys/{key}"
         };
     }
 
     // Get state value by key
-    rpc StateGet (CompositeKey) returns (Value) {
+    rpc GetState (CompositeKey) returns (Value) {
         option (google.api.http) = {
-            get: "/state/{key}"
+            get: "/debug/state/{key}"
         };
     }
 
     // Put state value
-    rpc StatePut (Value) returns (Value) {
+    rpc PutState (Value) returns (Value) {
         option (google.api.http) = {
-            put : "/state"
+            put : "/debug/state"
             body: "*"
         };
     }
 
     // Delete state value
-    rpc StateDelete (CompositeKey) returns (Value) {
+    rpc DeleteState (CompositeKey) returns (Value) {
         option (google.api.http) = {
-            delete: "/state/{key}"
+            delete: "/debug/state/{key}"
         };
     }
 }

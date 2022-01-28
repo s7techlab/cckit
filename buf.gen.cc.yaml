@@ -1,9 +1,37 @@
-# The version of the generation template.
-# Required.
-# The only currently-valid value is v1beta1.
-version: v1beta1
+version: v1
 
-# The plugins to run.
 plugins:
+
+  - name: go
+    out: .
+    opt:
+      - plugins=grpc
+      - paths=source_relative
+
+  - name: govalidators
+    out: .
+    opt:
+      - paths=source_relative
+
+  - name: grpc-gateway
+    out: .
+    opt:
+      - logtostderr=true
+      - paths=source_relative
+
+  - name: swagger
+    out: .
+    opt:
+      - logtostderr=true
+
   - name: cc-gateway
     out: .
+    opt:
+      - logtostderr=true
+      - paths=source_relative
+
+  - name: doc
+    out: .
+    opt:
+      - markdown,doc.pb.md,source_relative
+

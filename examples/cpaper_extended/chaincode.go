@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/examples/cpaper_extended/schema"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
@@ -106,7 +107,7 @@ func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 		IssueDate:    issueData.IssueDate,
 		MaturityDate: issueData.MaturityDate,
 		FaceValue:    issueData.FaceValue,
-		State:        schema.CommercialPaper_ISSUED, // Initial state
+		State:        schema.CommercialPaper_STATE_ISSUED, // Initial state
 		ExternalId:   issueData.ExternalId,
 	}
 
@@ -144,12 +145,12 @@ func invokeCPaperBuy(c router.Context) (interface{}, error) {
 	}
 
 	// First buyData moves state from ISSUED to TRADING
-	if cpaper.State == schema.CommercialPaper_ISSUED {
-		cpaper.State = schema.CommercialPaper_TRADING
+	if cpaper.State == schema.CommercialPaper_STATE_ISSUED {
+		cpaper.State = schema.CommercialPaper_STATE_TRADING
 	}
 
 	// Check paper is not already REDEEMED
-	if cpaper.State == schema.CommercialPaper_TRADING {
+	if cpaper.State == schema.CommercialPaper_STATE_TRADING {
 		cpaper.Owner = buyData.NewOwner
 	} else {
 		return nil, fmt.Errorf(
@@ -185,7 +186,7 @@ func invokeCPaperRedeem(c router.Context) (interface{}, error) {
 	commercialPaper = cp.(*schema.CommercialPaper)
 
 	// Check paper is not REDEEMED
-	if commercialPaper.State == schema.CommercialPaper_REDEEMED {
+	if commercialPaper.State == schema.CommercialPaper_STATE_REDEEMED {
 		return nil, fmt.Errorf(
 			"paper %s %s is already redeemed",
 			commercialPaper.Issuer, commercialPaper.PaperNumber)
@@ -194,7 +195,7 @@ func invokeCPaperRedeem(c router.Context) (interface{}, error) {
 	// Verify that the redeemer owns the commercial paper before redeeming it
 	if commercialPaper.Owner == redeemData.RedeemingOwner {
 		commercialPaper.Owner = redeemData.Issuer
-		commercialPaper.State = schema.CommercialPaper_REDEEMED
+		commercialPaper.State = schema.CommercialPaper_STATE_REDEEMED
 	} else {
 		return nil, fmt.Errorf(
 			"redeeming owner does not own paper %s %s",

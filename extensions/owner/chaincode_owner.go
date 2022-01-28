@@ -116,14 +116,14 @@ func (c *ChaincodeOwnerService) OwnerRegisterTxCreator(ctx router.Context, _ *em
 		return nil, err
 	}
 
-	return c.OwnerRegister(ctx, &OwnerRegisterRequest{
+	return c.OwnerRegister(ctx, &CreateOwnerRequest{
 		MspId: txCreator.GetMSPIdentifier(),
 		Cert:  txCreator.GetPEM(),
 	})
 }
 
-func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, registerRequest *OwnerRegisterRequest) (*ChaincodeOwner, error) {
-	if err := router.ValidateRequest(registerRequest); err != nil {
+func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, create *CreateOwnerRequest) (*ChaincodeOwner, error) {
+	if err := router.ValidateRequest(create); err != nil {
 		return nil, err
 	}
 
@@ -132,7 +132,7 @@ func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, registerReques
 		return nil, err
 	}
 
-	id, err := identity.New(registerRequest.MspId, registerRequest.Cert)
+	id, err := identity.New(create.MspId, create.Cert)
 	if err != nil {
 		return nil, fmt.Errorf(`parse certificate: %w`, err)
 	}
@@ -144,7 +144,7 @@ func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, registerReques
 
 		Issuer:         id.GetIssuer(),
 		ExpiresAt:      timestamppb.New(id.ExpiresAt()),
-		Cert:           registerRequest.Cert,
+		Cert:           create.Cert,
 		UpdatedByMspId: txCreator.GetMSPIdentifier(),
 		UpdatedByCert:  txCreator.GetPEM(),
 		UpdatedAt:      txTimestamp,
@@ -154,7 +154,7 @@ func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, registerReques
 		return nil, err
 	}
 
-	if err = Event(ctx).Set(&ChaincodeOwnerRegistered{
+	if err = Event(ctx).Set(&ChaincodeOwnerCreated{
 		MspId:     chaincodeOwner.MspId,
 		Subject:   chaincodeOwner.Subject,
 		Issuer:    chaincodeOwner.Issuer,
@@ -166,7 +166,7 @@ func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, registerReques
 	return chaincodeOwner, nil
 }
 
-func (c ChaincodeOwnerService) OwnerUpdate(ctx router.Context, updateRequest *OwnerUpdateRequest) (*ChaincodeOwner, error) {
+func (c ChaincodeOwnerService) OwnerUpdate(ctx router.Context, updateRequest *UpdateOwnerRequest) (*ChaincodeOwner, error) {
 	if err := router.ValidateRequest(updateRequest); err != nil {
 		return nil, err
 	}

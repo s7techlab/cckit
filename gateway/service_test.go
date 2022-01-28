@@ -12,9 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/s7techlab/cckit/convert"
-	"github.com/s7techlab/cckit/examples/cpaper_asservice"
-	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
-	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
+	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/gateway"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -43,12 +41,12 @@ var _ = Describe(`Gateway`, func() {
 
 		var (
 			ccService     *gateway.ChaincodeService
-			cPaperGateway *cpservice.CPaperGateway
+			cPaperGateway *cpservice.CPaperServiceGateway
 			mockStub      *testcc.MockStub
 		)
 
 		It("Init", func() {
-			ccImpl, err := cpaper_asservice.NewCC()
+			ccImpl, err := cpservice.NewCC()
 			Expect(err).NotTo(HaveOccurred())
 
 			mockStub = testcc.NewMockStub(ChaincodeName, ccImpl)
@@ -59,7 +57,7 @@ var _ = Describe(`Gateway`, func() {
 			)
 
 			// "sdk" for deal with cpaper chaincode
-			cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
+			cPaperGateway = cpservice.NewCPaperServiceGateway(ccService, Channel, ChaincodeName)
 		})
 
 		Context(`Direct calls`, func() {
@@ -84,7 +82,7 @@ var _ = Describe(`Gateway`, func() {
 
 			It("Invoke chaincode with 'tx waiter' in context", func() {
 				ctx = gateway.ContextWithTxWaiter(ctx, "all")
-				_, err := cPaperGateway.Issue(ctx, &schema.IssueCommercialPaper{
+				_, err := cPaperGateway.Issue(ctx, &cpservice.IssueCommercialPaper{
 					Issuer:       "issuer",
 					PaperNumber:  "1337",
 					ExternalId:   "228",
@@ -99,7 +97,7 @@ var _ = Describe(`Gateway`, func() {
 				signer := idtestdata.Certificates[1].MustIdentity(idtestdata.DefaultMSP)
 				ctx = gateway.ContextWithDefaultSigner(ctx, signer)
 
-				_, err := cPaperGateway.Delete(ctx, &schema.CommercialPaperId{
+				_, err := cPaperGateway.Delete(ctx, &cpservice.CommercialPaperId{
 					Issuer:      "issuer",
 					PaperNumber: "1337",
 				})
@@ -123,7 +121,7 @@ var _ = Describe(`Gateway`, func() {
 					eventObj  interface{}
 					eventJson string
 				)
-				eventObj, err = convert.FromBytes(e.Event.Payload, &schema.IssueCommercialPaper{})
+				eventObj, err = convert.FromBytes(e.Event.Payload, &cpservice.IssueCommercialPaper{})
 				Expect(err).NotTo(HaveOccurred())
 
 				eventJson, err = (&jsonpb.Marshaler{EmitDefaults: true, OrigName: true}).
@@ -181,7 +179,7 @@ var _ = Describe(`Gateway`, func() {
 		)
 
 		It("Init", func() {
-			ccImpl, err := cpaper_asservice.NewCC()
+			ccImpl, err := cpservice.NewCC()
 			Expect(err).NotTo(HaveOccurred())
 
 			// peer imitation
@@ -197,7 +195,7 @@ var _ = Describe(`Gateway`, func() {
 				})
 
 				Expect(err).NotTo(HaveOccurred())
-				cPaperList := testcc.MustProtoUnmarshal(resp.Payload, &schema.CommercialPaperList{}).(*schema.CommercialPaperList)
+				cPaperList := testcc.MustProtoUnmarshal(resp.Payload, &cpservice.CommercialPaperList{}).(*cpservice.CommercialPaperList)
 				Expect(cPaperList.Items).To(HaveLen(0))
 			})
 
@@ -206,7 +204,7 @@ var _ = Describe(`Gateway`, func() {
 				_, err := ccInstanceService.Invoke(ctx, &gateway.ChaincodeInstanceInput{
 					Args: [][]byte{
 						[]byte(`Issue`),
-						testcc.MustProtoMarshal(&schema.IssueCommercialPaper{
+						testcc.MustProtoMarshal(&cpservice.IssueCommercialPaper{
 							Issuer:       "issuer",
 							PaperNumber:  "1337",
 							ExternalId:   "228",

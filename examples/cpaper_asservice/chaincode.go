@@ -1,9 +1,6 @@
 package cpaper_asservice
 
-//go:generate make
-
 import (
-	"github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
@@ -14,7 +11,7 @@ func CCRouter(name string) (*router.Group, error) {
 	// Store on the ledger the information about chaincode instantiation
 	r.Init(owner.InvokeSetFromCreator)
 
-	if err := service.RegisterCPaperChaincode(r, &service.CPaperImpl{}); err != nil {
+	if err := RegisterCPaperServiceChaincode(r, &CPaperService{}); err != nil {
 		return nil, err
 	}
 

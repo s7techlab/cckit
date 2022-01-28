@@ -17,7 +17,7 @@
   "paths": {
     "/chaincode-instance/events": {
       "get": {
-        "summary": "Query chaincode on home peer. Do NOT send to orderer.",
+        "summary": "Chaincode events s",
         "operationId": "Events",
         "responses": {
           "200": {
@@ -69,7 +69,7 @@
     },
     "/chaincode-instance/events-stream": {
       "get": {
-        "summary": "Exec: Query or Invoke",
+        "summary": "Chaincode events stream",
         "operationId": "EventsStream",
         "responses": {
           "200": {
@@ -199,7 +199,7 @@
     },
     "/chaincode/events": {
       "get": {
-        "summary": "Query chaincode on home peer. Do NOT send to orderer.",
+        "summary": "Chaincode events",
         "operationId": "Events",
         "responses": {
           "200": {
@@ -265,7 +265,7 @@
     },
     "/chaincode/events-stream": {
       "get": {
-        "summary": "Exec: Query or Invoke",
+        "summary": "Chaincode events stream",
         "operationId": "EventsStream",
         "responses": {
           "200": {
@@ -560,11 +560,11 @@
     "gatewayInvocationType": {
       "type": "string",
       "enum": [
-        "QUERY",
-        "INVOKE"
+        "INVOCATION_TYPE_QUERY",
+        "INVOCATION_TYPE_INVOKE"
       ],
-      "default": "QUERY",
-      "description": "- QUERY: Simulation\n - INVOKE: Simulation and applying to ledger",
+      "default": "INVOCATION_TYPE_QUERY",
+      "description": "- INVOCATION_TYPE_QUERY: Simulation\n - INVOCATION_TYPE_INVOKE: Simulation and applying to ledger",
       "title": "Chaincode invocation type"
     },
     "gatewayRawJson": {

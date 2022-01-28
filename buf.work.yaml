@@ -1,0 +1,7 @@
+version: v1
+directories:
+  - examples
+  - extensions
+  - gateway
+  - state
+  - third_party

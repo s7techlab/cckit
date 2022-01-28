@@ -71,14 +71,14 @@ func (cis *ChaincodeInstanceService) Exec(ctx context.Context, exec *ChaincodeIn
 
 func (cis *ChaincodeInstanceService) Query(ctx context.Context, input *ChaincodeInstanceInput) (*peer.Response, error) {
 	return cis.Exec(ctx, &ChaincodeInstanceExec{
-		Type:  InvocationType_QUERY,
+		Type:  InvocationType_INVOCATION_TYPE_QUERY,
 		Input: input,
 	})
 }
 
 func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, input *ChaincodeInstanceInput) (*peer.Response, error) {
 	return cis.Exec(ctx, &ChaincodeInstanceExec{
-		Type:  InvocationType_INVOKE,
+		Type:  InvocationType_INVOCATION_TYPE_INVOKE,
 		Input: input,
 	})
 }

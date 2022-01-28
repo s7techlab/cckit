@@ -1,23 +1,22 @@
-package service_test
+package cpaper_asservice_test
 
 import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	. "github.com/s7techlab/cckit/testing/gomega"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/s7techlab/cckit/examples/cpaper_asservice/schema"
-	"github.com/s7techlab/cckit/examples/cpaper_asservice/service"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
+	"github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/extensions/owner"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
+	. "github.com/s7techlab/cckit/testing/gomega"
 )
 
 func TestCommercialPaperService(t *testing.T) {
@@ -26,7 +25,7 @@ func TestCommercialPaperService(t *testing.T) {
 }
 
 var (
-	CPaper = service.New()
+	CPaper = cpaper_asservice.NewService()
 
 	// service testing util
 	cc, ctx = testcc.NewTxHandler(`Commercial paper`)
@@ -37,12 +36,12 @@ var (
 	Buyer  = ids[1]
 
 	// payloads
-	id = &schema.CommercialPaperId{
+	id = &cpaper_asservice.CommercialPaperId{
 		Issuer:      "SomeIssuer",
 		PaperNumber: "0001",
 	}
 
-	issue = &schema.IssueCommercialPaper{
+	issue = &cpaper_asservice.IssueCommercialPaper{
 		Issuer:       id.Issuer,
 		PaperNumber:  id.PaperNumber,
 		IssueDate:    ptypes.TimestampNow(),
@@ -51,7 +50,7 @@ var (
 		ExternalId:   "EXT0001",
 	}
 
-	buy = &schema.BuyCommercialPaper{
+	buy = &cpaper_asservice.BuyCommercialPaper{
 		Issuer:       id.Issuer,
 		PaperNumber:  id.PaperNumber,
 		CurrentOwner: id.Issuer,
@@ -60,17 +59,17 @@ var (
 		PurchaseDate: ptypes.TimestampNow(),
 	}
 
-	redeem = &schema.RedeemCommercialPaper{
+	redeem = &cpaper_asservice.RedeemCommercialPaper{
 		Issuer:         id.Issuer,
 		PaperNumber:    id.PaperNumber,
 		RedeemingOwner: buy.NewOwner,
 		RedeemDate:     ptypes.TimestampNow(),
 	}
 
-	cpaperInState = &schema.CommercialPaper{
+	cpaperInState = &cpaper_asservice.CommercialPaper{
 		Issuer:       id.Issuer,
 		Owner:        id.Issuer,
-		State:        schema.CommercialPaper_ISSUED,
+		State:        cpaper_asservice.CommercialPaper_STATE_ISSUED,
 		PaperNumber:  id.PaperNumber,
 		FaceValue:    issue.FaceValue,
 		IssueDate:    issue.IssueDate,
@@ -110,7 +109,7 @@ var _ = Describe(`Commercial paper service`, func() {
 	It("Allow issuer to get commercial paper by unique key", func() {
 		cc.Tx(func() {
 			// without helpers
-			res, err := CPaper.GetByExternalId(ctx, &schema.ExternalId{
+			res, err := CPaper.GetByExternalId(ctx, &cpaper_asservice.ExternalId{
 				Id: issue.ExternalId,
 			})
 
@@ -137,9 +136,9 @@ var _ = Describe(`Commercial paper service`, func() {
 				ProduceEvent(`BuyCommercialPaper`, buy)
 		})
 
-		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
+		newState := proto.Clone(cpaperInState).(*cpaper_asservice.CommercialPaper)
 		newState.Owner = buy.NewOwner
-		newState.State = schema.CommercialPaper_TRADING
+		newState.State = cpaper_asservice.CommercialPaper_STATE_TRADING
 
 		cc.Tx(func() {
 			cc.Expect(CPaper.Get(ctx, id)).Is(newState)
@@ -152,8 +151,8 @@ var _ = Describe(`Commercial paper service`, func() {
 			return CPaper.Redeem(c, redeem)
 		}).Expect().ProduceEvent(`RedeemCommercialPaper`, redeem)
 
-		newState := proto.Clone(cpaperInState).(*schema.CommercialPaper)
-		newState.State = schema.CommercialPaper_REDEEMED
+		newState := proto.Clone(cpaperInState).(*cpaper_asservice.CommercialPaper)
+		newState.State = cpaper_asservice.CommercialPaper_STATE_REDEEMED
 
 		cc.Invoke(func(c router.Context) (interface{}, error) {
 			return CPaper.Get(c, id)

@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
-	cpaperservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
 	"github.com/s7techlab/cckit/gateway"
 	"github.com/s7techlab/cckit/testing"
 )
@@ -50,7 +49,7 @@ func main() {
 		log.Fatalln(err)
 	}
 	// Generated gateway for access to chaincode from external application
-	cpaperGateway := cpaperservice.NewCPaperGateway(
+	cpaperGateway := cpaper_asservice.NewCPaperServiceGateway(
 		cpaperMockService, // gateway use mocked chaincode access service
 		channelName,
 		chaincodeName,
@@ -63,7 +62,7 @@ func main() {
 
 	// Create gRPC server
 	s := grpc.NewServer()
-	cpaperservice.RegisterCPaperServer(s, cpaperGateway)
+	cpaper_asservice.RegisterCPaperServiceServer(s, cpaperGateway)
 
 	// Runs gRPC server in goroutine
 	go func() {
@@ -79,7 +78,7 @@ func main() {
 	// Register gRPC server endpoint
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err = cpaperservice.RegisterCPaperHandlerFromEndpoint(ctx, mux, grpcAddress, opts)
+	err = cpaper_asservice.RegisterCPaperServiceHandlerFromEndpoint(ctx, mux, grpcAddress, opts)
 	if err != nil {
 		log.Fatalf("failed to register handler from endpoint %v", err)
 	}

@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/golang/protobuf/ptypes"
+
 	"github.com/s7techlab/cckit/examples/cpaper_extended"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/schema"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/testdata"
@@ -78,7 +79,7 @@ var _ = Describe(`CommercialPaper`, func() {
 
 			Expect(paper.Issuer).To(Equal(IssuerName))
 			Expect(paper.Owner).To(Equal(IssuerName))
-			Expect(paper.State).To(Equal(schema.CommercialPaper_ISSUED))
+			Expect(paper.State).To(Equal(schema.CommercialPaper_STATE_ISSUED))
 			Expect(paper.PaperNumber).To(Equal("0001"))
 			Expect(paper.FaceValue).To(BeNumerically("==", 100000))
 		})
@@ -90,7 +91,7 @@ var _ = Describe(`CommercialPaper`, func() {
 
 			Expect(paper.Issuer).To(Equal(IssuerName))
 			Expect(paper.Owner).To(Equal(IssuerName))
-			Expect(paper.State).To(Equal(schema.CommercialPaper_ISSUED))
+			Expect(paper.State).To(Equal(schema.CommercialPaper_STATE_ISSUED))
 			Expect(paper.PaperNumber).To(Equal("0001"))
 			Expect(paper.FaceValue).To(BeNumerically("==", 100000))
 		})
@@ -103,7 +104,7 @@ var _ = Describe(`CommercialPaper`, func() {
 			Expect(len(papers.Items)).To(BeNumerically("==", 1))
 			Expect(papers.Items[0].Issuer).To(Equal(IssuerName))
 			Expect(papers.Items[0].Owner).To(Equal(IssuerName))
-			Expect(papers.Items[0].State).To(Equal(schema.CommercialPaper_ISSUED))
+			Expect(papers.Items[0].State).To(Equal(schema.CommercialPaper_STATE_ISSUED))
 			Expect(papers.Items[0].PaperNumber).To(Equal("0001"))
 			Expect(papers.Items[0].FaceValue).To(BeNumerically("==", 100000))
 		})
@@ -128,7 +129,7 @@ var _ = Describe(`CommercialPaper`, func() {
 			paper := expectcc.PayloadIs(queryResponse, &schema.CommercialPaper{}).(*schema.CommercialPaper)
 
 			Expect(paper.Owner).To(Equal(BuyerName))
-			Expect(paper.State).To(Equal(schema.CommercialPaper_TRADING))
+			Expect(paper.State).To(Equal(schema.CommercialPaper_STATE_TRADING))
 
 			expectcc.EventStringerEqual(<-paperChaincode.ChaincodeEventsChannel,
 				`BuyCommercialPaper`, buyTransactionData)
@@ -153,7 +154,7 @@ var _ = Describe(`CommercialPaper`, func() {
 
 			paper := expectcc.PayloadIs(queryResponse, &schema.CommercialPaper{}).(*schema.CommercialPaper)
 			Expect(paper.Owner).To(Equal(IssuerName))
-			Expect(paper.State).To(Equal(schema.CommercialPaper_REDEEMED))
+			Expect(paper.State).To(Equal(schema.CommercialPaper_STATE_REDEEMED))
 
 			expectcc.EventStringerEqual(<-paperChaincode.ChaincodeEventsChannel,
 				`RedeemCommercialPaper`, redeemTransactionData)
