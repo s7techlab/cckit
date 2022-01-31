@@ -3,19 +3,19 @@
 
 /*
 Package debug contains
-  *   chaincode interface definition
-  *   chaincode gateway definition
+  *   chaincode methods names {service_name}Chaincode_{method_name}
+  *   chaincode interface definition {service_name}Chaincode
+  *   chaincode gateway definition {service_name}}Gateway
   *   chaincode service to cckit router registration func
 */
 package debug
 
 import (
 	context "context"
+	_ "embed"
 
 	cckit_gateway "github.com/s7techlab/cckit/gateway"
-	cckit_ccservice "github.com/s7techlab/cckit/gateway/service"
 	cckit_router "github.com/s7techlab/cckit/router"
-	cckit_param "github.com/s7techlab/cckit/router/param"
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
 )
 
@@ -55,55 +55,30 @@ func RegisterDebugStateServiceChaincode(r *cckit_router.Group, cc DebugStateServ
 
 	r.Invoke(DebugStateServiceChaincode_Clean,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.Clean(ctx, ctx.Param().(*Prefixes))
 		},
 		cckit_defparam.Proto(&Prefixes{}))
 
 	r.Query(DebugStateServiceChaincode_ListKeys,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.ListKeys(ctx, ctx.Param().(*Prefix))
 		},
 		cckit_defparam.Proto(&Prefix{}))
 
 	r.Query(DebugStateServiceChaincode_GetState,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.GetState(ctx, ctx.Param().(*CompositeKey))
 		},
 		cckit_defparam.Proto(&CompositeKey{}))
 
 	r.Invoke(DebugStateServiceChaincode_PutState,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.PutState(ctx, ctx.Param().(*Value))
 		},
 		cckit_defparam.Proto(&Value{}))
 
 	r.Invoke(DebugStateServiceChaincode_DeleteState,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.DeleteState(ctx, ctx.Param().(*CompositeKey))
 		},
 		cckit_defparam.Proto(&CompositeKey{}))
@@ -111,8 +86,11 @@ func RegisterDebugStateServiceChaincode(r *cckit_router.Group, cc DebugStateServ
 	return nil
 }
 
+//go:embed debug_state.swagger.json
+var DebugStateServiceSwagger []byte
+
 // NewDebugStateServiceGateway creates gateway to access chaincode method via chaincode service
-func NewDebugStateServiceGateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *DebugStateServiceGateway {
+func NewDebugStateServiceGateway(ccService cckit_gateway.ChaincodeServiceServer, channel, chaincode string, opts ...cckit_gateway.Opt) *DebugStateServiceGateway {
 	return &DebugStateServiceGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
 }
 

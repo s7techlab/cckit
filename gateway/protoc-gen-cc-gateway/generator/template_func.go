@@ -36,7 +36,13 @@ func hasGetBinding(method *descriptor.Method) bool {
 }
 
 func removeExtension(fileName string) string {
-	return fileName[0:strings.LastIndex(fileName, `.`)]
+	startPos := 0
+	slashPos := strings.LastIndex(fileName, `/`)
+
+	if slashPos != -1 {
+		startPos = slashPos + 1
+	}
+	return fileName[startPos:strings.LastIndex(fileName, `.`)]
 }
 
 func goTypeName(s string) string {

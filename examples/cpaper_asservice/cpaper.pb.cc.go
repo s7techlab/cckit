@@ -3,19 +3,19 @@
 
 /*
 Package cpaper_asservice contains
-  *   chaincode interface definition
-  *   chaincode gateway definition
+  *   chaincode methods names {service_name}Chaincode_{method_name}
+  *   chaincode interface definition {service_name}Chaincode
+  *   chaincode gateway definition {service_name}}Gateway
   *   chaincode service to cckit router registration func
 */
 package cpaper_asservice
 
 import (
 	context "context"
+	_ "embed"
 
 	cckit_gateway "github.com/s7techlab/cckit/gateway"
-	cckit_ccservice "github.com/s7techlab/cckit/gateway/service"
 	cckit_router "github.com/s7techlab/cckit/router"
-	cckit_param "github.com/s7techlab/cckit/router/param"
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -64,77 +64,42 @@ func RegisterCPaperServiceChaincode(r *cckit_router.Group, cc CPaperServiceChain
 
 	r.Query(CPaperServiceChaincode_List,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.List(ctx, ctx.Param().(*emptypb.Empty))
 		},
 		cckit_defparam.Proto(&emptypb.Empty{}))
 
 	r.Query(CPaperServiceChaincode_Get,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.Get(ctx, ctx.Param().(*CommercialPaperId))
 		},
 		cckit_defparam.Proto(&CommercialPaperId{}))
 
 	r.Query(CPaperServiceChaincode_GetByExternalId,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.GetByExternalId(ctx, ctx.Param().(*ExternalId))
 		},
 		cckit_defparam.Proto(&ExternalId{}))
 
 	r.Invoke(CPaperServiceChaincode_Issue,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.Issue(ctx, ctx.Param().(*IssueCommercialPaper))
 		},
 		cckit_defparam.Proto(&IssueCommercialPaper{}))
 
 	r.Invoke(CPaperServiceChaincode_Buy,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.Buy(ctx, ctx.Param().(*BuyCommercialPaper))
 		},
 		cckit_defparam.Proto(&BuyCommercialPaper{}))
 
 	r.Invoke(CPaperServiceChaincode_Redeem,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.Redeem(ctx, ctx.Param().(*RedeemCommercialPaper))
 		},
 		cckit_defparam.Proto(&RedeemCommercialPaper{}))
 
 	r.Invoke(CPaperServiceChaincode_Delete,
 		func(ctx cckit_router.Context) (interface{}, error) {
-			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
-				if err := v.Validate(); err != nil {
-					return nil, cckit_param.PayloadValidationError(err)
-				}
-			}
 			return cc.Delete(ctx, ctx.Param().(*CommercialPaperId))
 		},
 		cckit_defparam.Proto(&CommercialPaperId{}))
@@ -142,8 +107,11 @@ func RegisterCPaperServiceChaincode(r *cckit_router.Group, cc CPaperServiceChain
 	return nil
 }
 
+//go:embed cpaper.swagger.json
+var CPaperServiceSwagger []byte
+
 // NewCPaperServiceGateway creates gateway to access chaincode method via chaincode service
-func NewCPaperServiceGateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperServiceGateway {
+func NewCPaperServiceGateway(ccService cckit_gateway.ChaincodeServiceServer, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperServiceGateway {
 	return &CPaperServiceGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
 }
 

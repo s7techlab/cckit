@@ -29,6 +29,7 @@ plugins:
     opt:
       - logtostderr=true
       - paths=source_relative
+      - embed_swagger
 
   - name: doc
     out: .

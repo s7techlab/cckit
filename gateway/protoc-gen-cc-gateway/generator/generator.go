@@ -13,6 +13,10 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 )
 
+var (
+	pkg = make(map[string]string)
+)
+
 type Generator struct {
 	reg     *descriptor.Registry
 	imports []descriptor.GoPackage // common imports
@@ -121,7 +125,11 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 		}
 	}
 
-	p := param{File: f, Imports: imports}
+	p := TemplateParams{
+		File:         f,
+		Imports:      imports,
+		EmbedSwagger: g.EmbedSwagger,
+	}
 	return applyTemplate(p)
 }
 
@@ -154,7 +162,7 @@ func (g *Generator) newGoPackage(pkgPath string, aalias ...string) descriptor.Go
 	return gopkg
 }
 
-func applyTemplate(p param) (string, error) {
+func applyTemplate(p TemplateParams) (string, error) {
 	w := bytes.NewBuffer(nil)
 	if err := headerTemplate.Execute(w, p); err != nil {
 		return "", err
