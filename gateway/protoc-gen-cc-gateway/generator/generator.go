@@ -178,11 +178,3 @@ func applyTemplate(p TemplateParams) (string, error) {
 
 	return w.String(), nil
 }
-
-func annotateString(str string) string {
-	strs := strings.Split(str, "\n")
-	for pos := range strs {
-		strs[pos] = fmt.Sprintf("%v: %v", pos, strs[pos])
-	}
-	return strings.Join(strs, "\n")
-}
