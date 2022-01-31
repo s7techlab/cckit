@@ -4,10 +4,9 @@
     "title": "debug/debug_state.proto",
     "version": "version not set"
   },
-  "tags": [
-    {
-      "name": "DebugState"
-    }
+  "schemes": [
+    "http",
+    "https"
   ],
   "consumes": [
     "application/json"
@@ -16,21 +15,15 @@
     "application/json"
   ],
   "paths": {
-    "/state": {
+    "/debug/state": {
       "put": {
         "summary": "Put state value",
-        "operationId": "DebugState_StatePut",
+        "operationId": "PutState",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugValue"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -45,25 +38,19 @@
           }
         ],
         "tags": [
-          "DebugState"
+          "DebugStateService"
         ]
       }
     },
-    "/state/clear": {
+    "/debug/state/clean": {
       "put": {
         "summary": "Clear all state or, if prefixes are defined, only prefix matched",
-        "operationId": "DebugState_StateClean",
+        "operationId": "Clean",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugPrefixesMatchCount"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -78,25 +65,19 @@
           }
         ],
         "tags": [
-          "DebugState"
+          "DebugStateService"
         ]
       }
     },
-    "/state/keys/{key}": {
+    "/debug/state/keys/{key}": {
       "get": {
         "summary": "Get keys list, returns all keys or, if prefixes are defined, only prefix matched",
-        "operationId": "DebugState_StateKeys",
+        "operationId": "ListKeys",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugCompositeKeys"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -115,25 +96,19 @@
           }
         ],
         "tags": [
-          "DebugState"
+          "DebugStateService"
         ]
       }
     },
-    "/state/{key}": {
+    "/debug/state/{key}": {
       "get": {
         "summary": "Get state value by key",
-        "operationId": "DebugState_StateGet",
+        "operationId": "GetState",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugValue"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -151,23 +126,17 @@
           }
         ],
         "tags": [
-          "DebugState"
+          "DebugStateService"
         ]
       },
       "delete": {
         "summary": "Delete state value",
-        "operationId": "DebugState_StateDelete",
+        "operationId": "DeleteState",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugValue"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -185,7 +154,7 @@
           }
         ],
         "tags": [
-          "DebugState"
+          "DebugStateService"
         ]
       }
     }
@@ -270,36 +239,6 @@
         }
       },
       "title": "State value"
-    },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "typeUrl": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "rpcStatus": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
     }
   }
 }

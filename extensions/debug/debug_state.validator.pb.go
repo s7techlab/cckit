@@ -6,7 +6,6 @@ package debug
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	_ "github.com/golang/protobuf/ptypes/empty"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	math "math"

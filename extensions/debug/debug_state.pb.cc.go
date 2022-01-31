@@ -19,129 +19,129 @@ import (
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
 )
 
-// DebugStateChaincode  method names
+// DebugStateServiceChaincode  method names
 const (
-	DebugStateChaincode_StateClean = "StateClean"
+	DebugStateServiceChaincode_Clean = "Clean"
 
-	DebugStateChaincode_StateKeys = "StateKeys"
+	DebugStateServiceChaincode_ListKeys = "ListKeys"
 
-	DebugStateChaincode_StateGet = "StateGet"
+	DebugStateServiceChaincode_GetState = "GetState"
 
-	DebugStateChaincode_StatePut = "StatePut"
+	DebugStateServiceChaincode_PutState = "PutState"
 
-	DebugStateChaincode_StateDelete = "StateDelete"
+	DebugStateServiceChaincode_DeleteState = "DeleteState"
 )
 
-// DebugStateChaincodeResolver interface for service resolver
-type DebugStateChaincodeResolver interface {
-	DebugStateChaincode(ctx cckit_router.Context) (DebugStateChaincode, error)
+// DebugStateServiceChaincodeResolver interface for service resolver
+type DebugStateServiceChaincodeResolver interface {
+	DebugStateServiceChaincode(ctx cckit_router.Context) (DebugStateServiceChaincode, error)
 }
 
-// DebugStateChaincode chaincode methods interface
-type DebugStateChaincode interface {
-	StateClean(cckit_router.Context, *Prefixes) (*PrefixesMatchCount, error)
+// DebugStateServiceChaincode chaincode methods interface
+type DebugStateServiceChaincode interface {
+	Clean(cckit_router.Context, *Prefixes) (*PrefixesMatchCount, error)
 
-	StateKeys(cckit_router.Context, *Prefix) (*CompositeKeys, error)
+	ListKeys(cckit_router.Context, *Prefix) (*CompositeKeys, error)
 
-	StateGet(cckit_router.Context, *CompositeKey) (*Value, error)
+	GetState(cckit_router.Context, *CompositeKey) (*Value, error)
 
-	StatePut(cckit_router.Context, *Value) (*Value, error)
+	PutState(cckit_router.Context, *Value) (*Value, error)
 
-	StateDelete(cckit_router.Context, *CompositeKey) (*Value, error)
+	DeleteState(cckit_router.Context, *CompositeKey) (*Value, error)
 }
 
-// RegisterDebugStateChaincode registers service methods as chaincode router handlers
-func RegisterDebugStateChaincode(r *cckit_router.Group, cc DebugStateChaincode) error {
+// RegisterDebugStateServiceChaincode registers service methods as chaincode router handlers
+func RegisterDebugStateServiceChaincode(r *cckit_router.Group, cc DebugStateServiceChaincode) error {
 
-	r.Invoke(DebugStateChaincode_StateClean,
+	r.Invoke(DebugStateServiceChaincode_Clean,
 		func(ctx cckit_router.Context) (interface{}, error) {
 			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
 			}
-			return cc.StateClean(ctx, ctx.Param().(*Prefixes))
+			return cc.Clean(ctx, ctx.Param().(*Prefixes))
 		},
 		cckit_defparam.Proto(&Prefixes{}))
 
-	r.Query(DebugStateChaincode_StateKeys,
+	r.Query(DebugStateServiceChaincode_ListKeys,
 		func(ctx cckit_router.Context) (interface{}, error) {
 			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
 			}
-			return cc.StateKeys(ctx, ctx.Param().(*Prefix))
+			return cc.ListKeys(ctx, ctx.Param().(*Prefix))
 		},
 		cckit_defparam.Proto(&Prefix{}))
 
-	r.Query(DebugStateChaincode_StateGet,
+	r.Query(DebugStateServiceChaincode_GetState,
 		func(ctx cckit_router.Context) (interface{}, error) {
 			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
 			}
-			return cc.StateGet(ctx, ctx.Param().(*CompositeKey))
+			return cc.GetState(ctx, ctx.Param().(*CompositeKey))
 		},
 		cckit_defparam.Proto(&CompositeKey{}))
 
-	r.Invoke(DebugStateChaincode_StatePut,
+	r.Invoke(DebugStateServiceChaincode_PutState,
 		func(ctx cckit_router.Context) (interface{}, error) {
 			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
 			}
-			return cc.StatePut(ctx, ctx.Param().(*Value))
+			return cc.PutState(ctx, ctx.Param().(*Value))
 		},
 		cckit_defparam.Proto(&Value{}))
 
-	r.Invoke(DebugStateChaincode_StateDelete,
+	r.Invoke(DebugStateServiceChaincode_DeleteState,
 		func(ctx cckit_router.Context) (interface{}, error) {
 			if v, ok := ctx.Param().(interface{ Validate() error }); ok {
 				if err := v.Validate(); err != nil {
 					return nil, cckit_param.PayloadValidationError(err)
 				}
 			}
-			return cc.StateDelete(ctx, ctx.Param().(*CompositeKey))
+			return cc.DeleteState(ctx, ctx.Param().(*CompositeKey))
 		},
 		cckit_defparam.Proto(&CompositeKey{}))
 
 	return nil
 }
 
-// NewDebugStateGateway creates gateway to access chaincode method via chaincode service
-func NewDebugStateGateway(ccService cckit_ccservice.ChaincodeServer, channel, chaincode string, opts ...cckit_gateway.Opt) *DebugStateGateway {
-	return &DebugStateGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
+// NewDebugStateServiceGateway creates gateway to access chaincode method via chaincode service
+func NewDebugStateServiceGateway(ccService cckit_ccservice.Chaincode, channel, chaincode string, opts ...cckit_gateway.Opt) *DebugStateServiceGateway {
+	return &DebugStateServiceGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
 }
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
-type DebugStateGateway struct {
+type DebugStateServiceGateway struct {
 	Gateway cckit_gateway.Chaincode
 }
 
 // ServiceDef returns service definition
-func (c *DebugStateGateway) ServiceDef() cckit_gateway.ServiceDef {
+func (c *DebugStateServiceGateway) ServiceDef() cckit_gateway.ServiceDef {
 	return cckit_gateway.ServiceDef{
-		Desc:                        &_DebugState_serviceDesc,
+		Desc:                        &_DebugStateService_serviceDesc,
 		Service:                     c,
-		HandlerFromEndpointRegister: RegisterDebugStateHandlerFromEndpoint,
+		HandlerFromEndpointRegister: RegisterDebugStateServiceHandlerFromEndpoint,
 	}
 }
 
 // ApiDef deprecated, use ServiceDef
-func (c *DebugStateGateway) ApiDef() cckit_gateway.ServiceDef {
+func (c *DebugStateServiceGateway) ApiDef() cckit_gateway.ServiceDef {
 	return c.ServiceDef()
 }
 
 // Events returns events subscription
-func (c *DebugStateGateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
+func (c *DebugStateServiceGateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
 	return c.Gateway.Events(ctx)
 }
 
-func (c *DebugStateGateway) StateClean(ctx context.Context, in *Prefixes) (*PrefixesMatchCount, error) {
+func (c *DebugStateServiceGateway) Clean(ctx context.Context, in *Prefixes) (*PrefixesMatchCount, error) {
 	var inMsg interface{} = in
 	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -149,14 +149,14 @@ func (c *DebugStateGateway) StateClean(ctx context.Context, in *Prefixes) (*Pref
 		}
 	}
 
-	if res, err := c.Gateway.Invoke(ctx, DebugStateChaincode_StateClean, []interface{}{in}, &PrefixesMatchCount{}); err != nil {
+	if res, err := c.Gateway.Invoke(ctx, DebugStateServiceChaincode_Clean, []interface{}{in}, &PrefixesMatchCount{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*PrefixesMatchCount), nil
 	}
 }
 
-func (c *DebugStateGateway) StateKeys(ctx context.Context, in *Prefix) (*CompositeKeys, error) {
+func (c *DebugStateServiceGateway) ListKeys(ctx context.Context, in *Prefix) (*CompositeKeys, error) {
 	var inMsg interface{} = in
 	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -164,14 +164,14 @@ func (c *DebugStateGateway) StateKeys(ctx context.Context, in *Prefix) (*Composi
 		}
 	}
 
-	if res, err := c.Gateway.Query(ctx, DebugStateChaincode_StateKeys, []interface{}{in}, &CompositeKeys{}); err != nil {
+	if res, err := c.Gateway.Query(ctx, DebugStateServiceChaincode_ListKeys, []interface{}{in}, &CompositeKeys{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CompositeKeys), nil
 	}
 }
 
-func (c *DebugStateGateway) StateGet(ctx context.Context, in *CompositeKey) (*Value, error) {
+func (c *DebugStateServiceGateway) GetState(ctx context.Context, in *CompositeKey) (*Value, error) {
 	var inMsg interface{} = in
 	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -179,14 +179,14 @@ func (c *DebugStateGateway) StateGet(ctx context.Context, in *CompositeKey) (*Va
 		}
 	}
 
-	if res, err := c.Gateway.Query(ctx, DebugStateChaincode_StateGet, []interface{}{in}, &Value{}); err != nil {
+	if res, err := c.Gateway.Query(ctx, DebugStateServiceChaincode_GetState, []interface{}{in}, &Value{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*Value), nil
 	}
 }
 
-func (c *DebugStateGateway) StatePut(ctx context.Context, in *Value) (*Value, error) {
+func (c *DebugStateServiceGateway) PutState(ctx context.Context, in *Value) (*Value, error) {
 	var inMsg interface{} = in
 	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -194,14 +194,14 @@ func (c *DebugStateGateway) StatePut(ctx context.Context, in *Value) (*Value, er
 		}
 	}
 
-	if res, err := c.Gateway.Invoke(ctx, DebugStateChaincode_StatePut, []interface{}{in}, &Value{}); err != nil {
+	if res, err := c.Gateway.Invoke(ctx, DebugStateServiceChaincode_PutState, []interface{}{in}, &Value{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*Value), nil
 	}
 }
 
-func (c *DebugStateGateway) StateDelete(ctx context.Context, in *CompositeKey) (*Value, error) {
+func (c *DebugStateServiceGateway) DeleteState(ctx context.Context, in *CompositeKey) (*Value, error) {
 	var inMsg interface{} = in
 	if v, ok := inMsg.(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -209,7 +209,7 @@ func (c *DebugStateGateway) StateDelete(ctx context.Context, in *CompositeKey) (
 		}
 	}
 
-	if res, err := c.Gateway.Invoke(ctx, DebugStateChaincode_StateDelete, []interface{}{in}, &Value{}); err != nil {
+	if res, err := c.Gateway.Invoke(ctx, DebugStateServiceChaincode_DeleteState, []interface{}{in}, &Value{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*Value), nil

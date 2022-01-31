@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package schema;
+option go_package = "github.com/s7techlab/cckit/state/mapping/testdata/schema";
+
+message Config {
+    string field1 = 1;
+    string field2 = 2;
+}
+

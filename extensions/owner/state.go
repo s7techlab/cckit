@@ -18,7 +18,7 @@ var (
 			m.List(&ChaincodeOwners{}))
 
 	EventMappings = m.EventMappings{}.
-			Add(&ChaincodeOwnerRegistered{}).
+			Add(&ChaincodeOwnerCreated{}).
 			Add(&ChaincodeOwnerUpdated{}).
 			Add(&ChaincodeOwnerDeleted{})
 )

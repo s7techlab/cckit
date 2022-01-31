@@ -28,7 +28,7 @@ var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
-func request_DebugState_StateClean_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_DebugStateService_Clean_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Prefixes
 	var metadata runtime.ServerMetadata
 
@@ -40,12 +40,12 @@ func request_DebugState_StateClean_0(ctx context.Context, marshaler runtime.Mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.StateClean(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.Clean(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_DebugState_StateClean_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_DebugStateService_Clean_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Prefixes
 	var metadata runtime.ServerMetadata
 
@@ -57,12 +57,12 @@ func local_request_DebugState_StateClean_0(ctx context.Context, marshaler runtim
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.StateClean(ctx, &protoReq)
+	msg, err := server.Clean(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_DebugState_StateKeys_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_DebugStateService_ListKeys_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Prefix
 	var metadata runtime.ServerMetadata
 
@@ -84,12 +84,12 @@ func request_DebugState_StateKeys_0(ctx context.Context, marshaler runtime.Marsh
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 
-	msg, err := client.StateKeys(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ListKeys(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_DebugState_StateKeys_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_DebugStateService_ListKeys_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Prefix
 	var metadata runtime.ServerMetadata
 
@@ -111,12 +111,12 @@ func local_request_DebugState_StateKeys_0(ctx context.Context, marshaler runtime
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 
-	msg, err := server.StateKeys(ctx, &protoReq)
+	msg, err := server.ListKeys(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_DebugState_StateGet_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_DebugStateService_GetState_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CompositeKey
 	var metadata runtime.ServerMetadata
 
@@ -138,12 +138,12 @@ func request_DebugState_StateGet_0(ctx context.Context, marshaler runtime.Marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 
-	msg, err := client.StateGet(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetState(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_DebugState_StateGet_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_DebugStateService_GetState_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CompositeKey
 	var metadata runtime.ServerMetadata
 
@@ -165,12 +165,12 @@ func local_request_DebugState_StateGet_0(ctx context.Context, marshaler runtime.
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 
-	msg, err := server.StateGet(ctx, &protoReq)
+	msg, err := server.GetState(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_DebugState_StatePut_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_DebugStateService_PutState_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Value
 	var metadata runtime.ServerMetadata
 
@@ -182,12 +182,12 @@ func request_DebugState_StatePut_0(ctx context.Context, marshaler runtime.Marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.StatePut(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.PutState(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_DebugState_StatePut_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_DebugStateService_PutState_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Value
 	var metadata runtime.ServerMetadata
 
@@ -199,12 +199,12 @@ func local_request_DebugState_StatePut_0(ctx context.Context, marshaler runtime.
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.StatePut(ctx, &protoReq)
+	msg, err := server.PutState(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_DebugState_StateDelete_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_DebugStateService_DeleteState_0(ctx context.Context, marshaler runtime.Marshaler, client DebugStateServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CompositeKey
 	var metadata runtime.ServerMetadata
 
@@ -226,12 +226,12 @@ func request_DebugState_StateDelete_0(ctx context.Context, marshaler runtime.Mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 
-	msg, err := client.StateDelete(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.DeleteState(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_DebugState_StateDelete_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_DebugStateService_DeleteState_0(ctx context.Context, marshaler runtime.Marshaler, server DebugStateServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CompositeKey
 	var metadata runtime.ServerMetadata
 
@@ -253,17 +253,17 @@ func local_request_DebugState_StateDelete_0(ctx context.Context, marshaler runti
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 
-	msg, err := server.StateDelete(ctx, &protoReq)
+	msg, err := server.DeleteState(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-// RegisterDebugStateHandlerServer registers the http handlers for service DebugState to "mux".
-// UnaryRPC     :call DebugStateServer directly.
+// RegisterDebugStateServiceHandlerServer registers the http handlers for service DebugStateService to "mux".
+// UnaryRPC     :call DebugStateServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-func RegisterDebugStateHandlerServer(ctx context.Context, mux *runtime.ServeMux, server DebugStateServer) error {
+func RegisterDebugStateServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server DebugStateServiceServer) error {
 
-	mux.Handle("PUT", pattern_DebugState_StateClean_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_DebugStateService_Clean_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -272,18 +272,18 @@ func RegisterDebugStateHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_DebugState_StateClean_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_DebugStateService_Clean_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StateClean_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_Clean_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_DebugState_StateKeys_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_DebugStateService_ListKeys_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -292,18 +292,18 @@ func RegisterDebugStateHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_DebugState_StateKeys_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_DebugStateService_ListKeys_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StateKeys_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_ListKeys_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_DebugState_StateGet_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_DebugStateService_GetState_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -312,18 +312,18 @@ func RegisterDebugStateHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_DebugState_StateGet_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_DebugStateService_GetState_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StateGet_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_GetState_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PUT", pattern_DebugState_StatePut_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_DebugStateService_PutState_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -332,18 +332,18 @@ func RegisterDebugStateHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_DebugState_StatePut_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_DebugStateService_PutState_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StatePut_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_PutState_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_DebugState_StateDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_DebugStateService_DeleteState_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -352,23 +352,23 @@ func RegisterDebugStateHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_DebugState_StateDelete_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_DebugStateService_DeleteState_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StateDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_DeleteState_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterDebugStateHandlerFromEndpoint is same as RegisterDebugStateHandler but
+// RegisterDebugStateServiceHandlerFromEndpoint is same as RegisterDebugStateServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterDebugStateHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterDebugStateServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.Dial(endpoint, opts...)
 	if err != nil {
 		return err
@@ -388,23 +388,23 @@ func RegisterDebugStateHandlerFromEndpoint(ctx context.Context, mux *runtime.Ser
 		}()
 	}()
 
-	return RegisterDebugStateHandler(ctx, mux, conn)
+	return RegisterDebugStateServiceHandler(ctx, mux, conn)
 }
 
-// RegisterDebugStateHandler registers the http handlers for service DebugState to "mux".
+// RegisterDebugStateServiceHandler registers the http handlers for service DebugStateService to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterDebugStateHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterDebugStateHandlerClient(ctx, mux, NewDebugStateClient(conn))
+func RegisterDebugStateServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterDebugStateServiceHandlerClient(ctx, mux, NewDebugStateServiceClient(conn))
 }
 
-// RegisterDebugStateHandlerClient registers the http handlers for service DebugState
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "DebugStateClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DebugStateClient"
+// RegisterDebugStateServiceHandlerClient registers the http handlers for service DebugStateService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "DebugStateServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "DebugStateServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "DebugStateClient" to call the correct interceptors.
-func RegisterDebugStateHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DebugStateClient) error {
+// "DebugStateServiceClient" to call the correct interceptors.
+func RegisterDebugStateServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DebugStateServiceClient) error {
 
-	mux.Handle("PUT", pattern_DebugState_StateClean_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_DebugStateService_Clean_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -413,18 +413,18 @@ func RegisterDebugStateHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DebugState_StateClean_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DebugStateService_Clean_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StateClean_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_Clean_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_DebugState_StateKeys_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_DebugStateService_ListKeys_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -433,18 +433,18 @@ func RegisterDebugStateHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DebugState_StateKeys_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DebugStateService_ListKeys_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StateKeys_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_ListKeys_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_DebugState_StateGet_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_DebugStateService_GetState_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -453,18 +453,18 @@ func RegisterDebugStateHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DebugState_StateGet_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DebugStateService_GetState_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StateGet_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_GetState_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PUT", pattern_DebugState_StatePut_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_DebugStateService_PutState_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -473,18 +473,18 @@ func RegisterDebugStateHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DebugState_StatePut_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DebugStateService_PutState_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StatePut_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_PutState_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_DebugState_StateDelete_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_DebugStateService_DeleteState_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -493,14 +493,14 @@ func RegisterDebugStateHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DebugState_StateDelete_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DebugStateService_DeleteState_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DebugState_StateDelete_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DebugStateService_DeleteState_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -508,25 +508,25 @@ func RegisterDebugStateHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 }
 
 var (
-	pattern_DebugState_StateClean_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"state", "clear"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_DebugStateService_Clean_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"debug", "state", "clean"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_DebugState_StateKeys_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"state", "keys", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_DebugStateService_ListKeys_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"debug", "state", "keys", "key"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_DebugState_StateGet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"state", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_DebugStateService_GetState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"debug", "state", "key"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_DebugState_StatePut_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"state"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_DebugStateService_PutState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"debug", "state"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_DebugState_StateDelete_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"state", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_DebugStateService_DeleteState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"debug", "state", "key"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
-	forward_DebugState_StateClean_0 = runtime.ForwardResponseMessage
+	forward_DebugStateService_Clean_0 = runtime.ForwardResponseMessage
 
-	forward_DebugState_StateKeys_0 = runtime.ForwardResponseMessage
+	forward_DebugStateService_ListKeys_0 = runtime.ForwardResponseMessage
 
-	forward_DebugState_StateGet_0 = runtime.ForwardResponseMessage
+	forward_DebugStateService_GetState_0 = runtime.ForwardResponseMessage
 
-	forward_DebugState_StatePut_0 = runtime.ForwardResponseMessage
+	forward_DebugStateService_PutState_0 = runtime.ForwardResponseMessage
 
-	forward_DebugState_StateDelete_0 = runtime.ForwardResponseMessage
+	forward_DebugStateService_DeleteState_0 = runtime.ForwardResponseMessage
 )

@@ -1,10 +1,7 @@
-# The version of the generation template.
-# Required.
-# The only currently-valid value is v1beta1.
-version: v1beta1
+version: v1
 
-# The plugins to run.
 plugins:
+
   - name: go
     out: .
     opt:
@@ -15,3 +12,8 @@ plugins:
     out: .
     opt:
       - paths=source_relative
+
+  - name: doc
+    out: .
+    opt:
+      - markdown,doc.pb.md:.

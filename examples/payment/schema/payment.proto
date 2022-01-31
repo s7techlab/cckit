@@ -10,7 +10,7 @@ message Payment {
 }
 
 message PaymentList {
-    repeated Payment Items = 1;
+    repeated Payment items = 1;
 }
 
 message PaymentEvent {

@@ -1,7 +1,0 @@
-syntax = "proto3";
-package schema;
-
-message Config {
-    string field1 = 1;
-    string field2 = 2;
-}

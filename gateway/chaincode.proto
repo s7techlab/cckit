@@ -7,10 +7,10 @@ package cckit.gateway;
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
-import "peer/proposal_response.proto";
-import "peer/chaincode_event.proto";
+import "hyperledger/fabric/peer/proposal_response.proto";
+import "hyperledger/fabric/peer/chaincode_event.proto";
 
-import "github.com/mwitkow/go-proto-validators/validator.proto";
+import "mwitkow/go-proto-validators/validator.proto";
 
 // Chaincode communication service. Allows to locate channel/chaincode.
 service ChaincodeService {
@@ -148,9 +148,9 @@ message ChaincodeInput {
 // Chaincode invocation type
 enum InvocationType {
     // Simulation
-    QUERY = 0;
+    INVOCATION_TYPE_QUERY = 0;
     // Simulation and applying to ledger
-    INVOKE = 1;
+    INVOCATION_TYPE_INVOKE = 1;
 }
 
 // Chaincode execution specification

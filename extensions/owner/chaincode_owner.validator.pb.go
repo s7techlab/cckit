@@ -6,11 +6,11 @@ package owner
 import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	_ "github.com/golang/protobuf/ptypes/empty"
-	_ "github.com/golang/protobuf/ptypes/timestamp"
 	_ "github.com/mwitkow/go-proto-validators"
 	github_com_mwitkow_go_proto_validators "github.com/mwitkow/go-proto-validators"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
+	_ "google.golang.org/protobuf/types/known/emptypb"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	math "math"
 )
 
@@ -42,7 +42,7 @@ func (this *ChaincodeOwner) Validate() error {
 	}
 	return nil
 }
-func (this *OwnerRegisterRequest) Validate() error {
+func (this *CreateOwnerRequest) Validate() error {
 	if this.MspId == "" {
 		return github_com_mwitkow_go_proto_validators.FieldError("MspId", fmt.Errorf(`value '%v' must not be an empty string`, this.MspId))
 	}
@@ -51,7 +51,7 @@ func (this *OwnerRegisterRequest) Validate() error {
 	}
 	return nil
 }
-func (this *OwnerUpdateRequest) Validate() error {
+func (this *UpdateOwnerRequest) Validate() error {
 	if this.MspId == "" {
 		return github_com_mwitkow_go_proto_validators.FieldError("MspId", fmt.Errorf(`value '%v' must not be an empty string`, this.MspId))
 	}
@@ -69,7 +69,7 @@ func (this *OwnerId) Validate() error {
 	}
 	return nil
 }
-func (this *ChaincodeOwnerRegistered) Validate() error {
+func (this *ChaincodeOwnerCreated) Validate() error {
 	if this.ExpiresAt != nil {
 		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.ExpiresAt); err != nil {
 			return github_com_mwitkow_go_proto_validators.FieldError("ExpiresAt", err)

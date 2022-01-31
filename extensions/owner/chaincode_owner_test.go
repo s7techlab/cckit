@@ -43,7 +43,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow to register same owner once more", func() {
 			cc.From(ownerIdentity1).Tx(func() {
-				cc.Expect(ownerSvc.OwnerRegister(ctx, &owner.OwnerRegisterRequest{
+				cc.Expect(ownerSvc.OwnerRegister(ctx, &owner.CreateOwnerRequest{
 					MspId: ownerIdentity1.GetMSPIdentifier(),
 					Cert:  ownerIdentity1.GetPEM(),
 				})).HasError(`state key already exists: ChaincodeOwner`)
@@ -52,7 +52,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow to register new owner from non registered identity", func() {
 			cc.From(ownerIdentity2).Tx(func() {
-				cc.Expect(ownerSvc.OwnerRegister(ctx, &owner.OwnerRegisterRequest{
+				cc.Expect(ownerSvc.OwnerRegister(ctx, &owner.CreateOwnerRequest{
 					MspId: ownerIdentity2.GetMSPIdentifier(),
 					Cert:  ownerIdentity2.GetPEM(),
 				})).HasError(`tx invoker is not owner`)
@@ -61,7 +61,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Allow to register new owner by current owner", func() {
 			cc.From(ownerIdentity1).Tx(func() {
-				owner, err := ownerSvc.OwnerRegister(ctx, &owner.OwnerRegisterRequest{
+				owner, err := ownerSvc.OwnerRegister(ctx, &owner.CreateOwnerRequest{
 					MspId: ownerIdentity2.GetMSPIdentifier(),
 					Cert:  ownerIdentity2.GetPEM(),
 				})
@@ -106,7 +106,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow non owner to update owner", func() {
 			cc.From(nonOwnerIdentity).Tx(func() {
-				cc.Expect(ownerSvc.OwnerUpdate(ctx, &owner.OwnerUpdateRequest{
+				cc.Expect(ownerSvc.OwnerUpdate(ctx, &owner.UpdateOwnerRequest{
 					MspId: ownerIdentity2.GetMSPIdentifier(),
 					Cert:  ownerIdentity2.GetPEM(),
 				})).HasError(`tx invoker is not owner`)
@@ -115,7 +115,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow to update owner with same cert", func() {
 			cc.From(ownerIdentity2).Tx(func() {
-				cc.Expect(ownerSvc.OwnerUpdate(ctx, &owner.OwnerUpdateRequest{
+				cc.Expect(ownerSvc.OwnerUpdate(ctx, &owner.UpdateOwnerRequest{
 					MspId: ownerIdentity2.GetMSPIdentifier(),
 					Cert:  ownerIdentity2.GetPEM(),
 				})).HasError(`new cert same as old cert`)

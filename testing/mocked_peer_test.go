@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/s7techlab/cckit/examples/cpaper_asservice"
-	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice/service"
+	cpservice "github.com/s7techlab/cckit/examples/cpaper_asservice"
 	"github.com/s7techlab/cckit/gateway"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -23,7 +23,7 @@ var _ = Describe(`Service`, func() {
 	var (
 		peer          *testcc.MockedPeerDecorator
 		ccService     *gateway.ChaincodeService
-		cPaperGateway *cpservice.CPaperGateway
+		cPaperGateway *cpservice.CPaperServiceGateway
 
 		ctx = gateway.ContextWithSigner(
 			context.Background(),
@@ -40,7 +40,7 @@ var _ = Describe(`Service`, func() {
 		ccService = gateway.NewChaincodeService(peer)
 
 		// "sdk" for deal with cpaper chaincode
-		cPaperGateway = cpservice.NewCPaperGateway(ccService, Channel, ChaincodeName)
+		cPaperGateway = cpservice.NewCPaperServiceGateway(ccService, Channel, ChaincodeName)
 	})
 
 	It("Default invoker", func() {

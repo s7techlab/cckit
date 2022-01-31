@@ -87,9 +87,9 @@ func (cs *ChaincodeService) ServiceDef() ServiceDef {
 
 func (cs *ChaincodeService) Exec(ctx context.Context, in *ChaincodeExec) (*peer.Response, error) {
 	switch in.Type {
-	case InvocationType_QUERY:
+	case InvocationType_INVOCATION_TYPE_QUERY:
 		return cs.Query(ctx, in.Input)
-	case InvocationType_INVOKE:
+	case InvocationType_INVOCATION_TYPE_INVOKE:
 		return cs.Invoke(ctx, in.Input)
 	default:
 		return nil, ErrUnknownInvocationType

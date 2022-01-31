@@ -1,16 +1,18 @@
 syntax = "proto3";
+
 package schema;
+option go_package = "github.com/s7techlab/cckit/state/mapping/testdata/schema";
 
 import "google/protobuf/timestamp.proto";
 
 message EntityWithComplexId {
-    EntityComplexId Id = 1;
+    EntityComplexId id = 1;
     google.protobuf.Timestamp some_date = 2;
 }
 
 // EntityComplexId
 message EntityComplexId {
-    repeated string idPart1 = 1;
-    string idPart2 = 2;
-    google.protobuf.Timestamp idPart3 = 3;
+    repeated string id_part1 = 1;
+    string id_part2 = 2;
+    google.protobuf.Timestamp id_part3 = 3;
 }

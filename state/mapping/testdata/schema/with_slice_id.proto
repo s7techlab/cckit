@@ -1,9 +1,11 @@
 syntax = "proto3";
+
 package schema;
+option go_package = "github.com/s7techlab/cckit/state/mapping/testdata/schema";
 
 import "google/protobuf/timestamp.proto";
 
 message EntityWithSliceId {
-    repeated string Id = 1;
+    repeated string id = 1;
     google.protobuf.Timestamp some_date = 2;
 }

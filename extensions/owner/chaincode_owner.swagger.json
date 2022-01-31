@@ -4,10 +4,9 @@
     "title": "owner/chaincode_owner.proto",
     "version": "version not set"
   },
-  "tags": [
-    {
-      "name": "ChaincodeOwnerService"
-    }
+  "schemes": [
+    "http",
+    "https"
   ],
   "consumes": [
     "application/json"
@@ -19,18 +18,12 @@
     "/chaincode/owners": {
       "get": {
         "summary": "Get owners list",
-        "operationId": "ChaincodeOwnerService_OwnersList",
+        "operationId": "ListOwners",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwners"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -40,18 +33,12 @@
       },
       "post": {
         "summary": "Register new chaincode owner, method can be call by current owner or if no owner exists\nIf chaincode owner with same MspID, certificate subject and issuer exists - throws error",
-        "operationId": "ChaincodeOwnerService_OwnerRegister",
+        "operationId": "CreateOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -61,7 +48,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/ownerOwnerRegisterRequest"
+              "$ref": "#/definitions/ownerCreateOwnerRequest"
             }
           }
         ],
@@ -71,18 +58,12 @@
       },
       "put": {
         "summary": "Update chaincode owner. Msp id and certificate subject must be equal to current owner certificate",
-        "operationId": "ChaincodeOwnerService_OwnerUpdate",
+        "operationId": "UpdateOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -92,7 +73,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/ownerOwnerUpdateRequest"
+              "$ref": "#/definitions/ownerUpdateOwnerRequest"
             }
           }
         ],
@@ -104,18 +85,12 @@
     "/chaincode/owners/txcreator": {
       "post": {
         "summary": "Register tx creator as chaincode owner",
-        "operationId": "ChaincodeOwnerService_OwnerRegisterTxCreator",
+        "operationId": "CreateOwnerTxCreator",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -137,18 +112,12 @@
     "/chaincode/owners/whoami": {
       "get": {
         "summary": "Checks tx creator is owner",
-        "operationId": "ChaincodeOwnerService_TxCreatorIsOwner",
+        "operationId": "GetOwnerByTxCreator",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -157,27 +126,21 @@
         ]
       }
     },
-    "/chaincode/owners/{mspId}/{subject}": {
+    "/chaincode/owners/{msp_id}/{subject}": {
       "get": {
         "summary": "Get owner by msp_id and certificate subject",
-        "operationId": "ChaincodeOwnerService_OwnerGet",
+        "operationId": "GetOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
             }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
           }
         },
         "parameters": [
           {
-            "name": "mspId",
+            "name": "msp_id",
             "description": "Msp Id",
             "in": "path",
             "required": true,
@@ -197,24 +160,18 @@
       },
       "delete": {
         "summary": "Delete owner",
-        "operationId": "ChaincodeOwnerService_OwnerDelete",
+        "operationId": "DeleteOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
             }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
           }
         },
         "parameters": [
           {
-            "name": "mspId",
+            "name": "msp_id",
             "description": "Msp Id",
             "in": "path",
             "required": true,
@@ -238,7 +195,7 @@
     "ownerChaincodeOwner": {
       "type": "object",
       "properties": {
-        "mspId": {
+        "msp_id": {
           "type": "string",
           "title": "Msp Id"
         },
@@ -250,7 +207,7 @@
           "type": "string",
           "title": "certificate issuer"
         },
-        "expiresAt": {
+        "expires_at": {
           "type": "string",
           "format": "date-time",
           "title": "cert valid not after"
@@ -260,16 +217,16 @@
           "format": "byte",
           "title": "Certificate"
         },
-        "updatedByMspId": {
+        "updated_by_msp_id": {
           "type": "string",
           "title": "Creator identity info"
         },
-        "updatedByCert": {
+        "updated_by_cert": {
           "type": "string",
           "format": "byte",
           "title": "Certificate"
         },
-        "updatedAt": {
+        "updated_at": {
           "type": "string",
           "format": "date-time",
           "title": "Updated at"
@@ -289,10 +246,10 @@
       },
       "title": "List: Chaincode owners"
     },
-    "ownerOwnerRegisterRequest": {
+    "ownerCreateOwnerRequest": {
       "type": "object",
       "properties": {
-        "mspId": {
+        "msp_id": {
           "type": "string",
           "title": "Msp Id"
         },
@@ -304,10 +261,10 @@
       },
       "title": "Request: register owner"
     },
-    "ownerOwnerUpdateRequest": {
+    "ownerUpdateOwnerRequest": {
       "type": "object",
       "properties": {
-        "mspId": {
+        "msp_id": {
           "type": "string",
           "title": "Msp Id"
         },
@@ -318,36 +275,6 @@
         }
       },
       "title": "Request: update owner certificate"
-    },
-    "protobufAny": {
-      "type": "object",
-      "properties": {
-        "typeUrl": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "rpcStatus": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
     }
   }
 }

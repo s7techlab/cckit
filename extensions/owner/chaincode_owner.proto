@@ -4,32 +4,32 @@ syntax = "proto3";
 
 option go_package = "github.com/s7techlab/cckit/extensions/owner";
 
-package cckit.extension.owner;
+package extensions.owner;
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
-import "github.com/mwitkow/go-proto-validators/validator.proto";
+import "mwitkow/go-proto-validators/validator.proto";
 
 // ChaincodeOwnerService allows to store information about chaincode "owners" in chaincode state
 service ChaincodeOwnerService {
 
     // Checks tx creator is owner
-    rpc TxCreatorIsOwner (google.protobuf.Empty) returns (ChaincodeOwner) {
+    rpc GetOwnerByTxCreator (google.protobuf.Empty) returns (ChaincodeOwner) {
         option (google.api.http) = {
             get: "/chaincode/owners/whoami"
         };
     }
 
     // Get owners list
-    rpc OwnersList (google.protobuf.Empty) returns (ChaincodeOwners) {
+    rpc ListOwners (google.protobuf.Empty) returns (ChaincodeOwners) {
         option (google.api.http) = {
             get: "/chaincode/owners"
         };
     }
 
     // Get owner by msp_id and certificate subject
-    rpc OwnerGet (OwnerId) returns (ChaincodeOwner) {
+    rpc GetOwner (OwnerId) returns (ChaincodeOwner) {
         option (google.api.http) = {
             get: "/chaincode/owners/{msp_id}/{subject}"
         };
@@ -37,7 +37,7 @@ service ChaincodeOwnerService {
 
     // Register new chaincode owner, method can be call by current owner or if no owner exists
     // If chaincode owner with same MspID, certificate subject and issuer exists - throws error
-    rpc OwnerRegister (OwnerRegisterRequest) returns (ChaincodeOwner) {
+    rpc CreateOwner (CreateOwnerRequest) returns (ChaincodeOwner) {
         option (google.api.http) = {
             post: "/chaincode/owners"
             body: "*"
@@ -45,7 +45,7 @@ service ChaincodeOwnerService {
     }
 
     // Register tx creator as chaincode owner
-    rpc OwnerRegisterTxCreator (google.protobuf.Empty) returns (ChaincodeOwner) {
+    rpc CreateOwnerTxCreator (google.protobuf.Empty) returns (ChaincodeOwner) {
         option (google.api.http) = {
             post: "/chaincode/owners/txcreator"
             body: "*"
@@ -53,7 +53,7 @@ service ChaincodeOwnerService {
     }
 
     //  Update chaincode owner. Msp id and certificate subject must be equal to current owner certificate
-    rpc OwnerUpdate (OwnerUpdateRequest) returns (ChaincodeOwner) {
+    rpc UpdateOwner (UpdateOwnerRequest) returns (ChaincodeOwner) {
         option (google.api.http) = {
             put: "/chaincode/owners"
             body: "*"
@@ -61,7 +61,7 @@ service ChaincodeOwnerService {
     }
 
     // Delete owner
-    rpc OwnerDelete (OwnerId) returns (ChaincodeOwner) {
+    rpc DeleteOwner (OwnerId) returns (ChaincodeOwner) {
         option (google.api.http) = {
             delete: "/chaincode/owners/{msp_id}/{subject}"
         };
@@ -94,7 +94,7 @@ message ChaincodeOwner {
 }
 
 // Request: register owner
-message OwnerRegisterRequest {
+message CreateOwnerRequest {
     // Msp Id
     string msp_id = 1 [(validator.field) = {string_not_empty: true}];
     // Certificate
@@ -102,7 +102,7 @@ message OwnerRegisterRequest {
 }
 
 // Request: update owner certificate
-message OwnerUpdateRequest {
+message UpdateOwnerRequest {
     // Msp Id
     string msp_id = 1 [(validator.field) = {string_not_empty: true}];
     // Current certificate
@@ -118,7 +118,7 @@ message OwnerId {
 }
 
 // Event: new chaincode owner registered
-message ChaincodeOwnerRegistered {
+message ChaincodeOwnerCreated {
     // Msp Id
     string msp_id = 1;
     // certificate subject
