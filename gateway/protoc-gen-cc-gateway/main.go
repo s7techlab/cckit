@@ -15,6 +15,12 @@ import (
 	"github.com/s7techlab/cckit/gateway/protoc-gen-cc-gateway/generator"
 )
 
+const (
+	ParamPaths               = `paths`
+	ParamPathsSourceRelative = `source_relative`
+	ParamEmbedSwagger        = `embed_swagger`
+)
+
 var (
 	file = flag.String("file", "-", "where to load data from")
 )
@@ -52,10 +58,15 @@ func main() {
 			param = param[0:i]
 		}
 		switch param {
-		case "paths":
+		case ParamPaths:
 			switch value {
-			case "source_relative":
+			case ParamPathsSourceRelative:
 				g.PathsSourceRelative = true
+			}
+
+		case ParamEmbedSwagger:
+			if value != `0` && value != `false` {
+				g.EmbedSwagger = true
 			}
 		}
 	}
