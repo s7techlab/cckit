@@ -20,21 +20,25 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// ChaincodeOwnerServiceChaincode  method names
+// ChaincodeOwnerServiceChaincode method names
 const (
-	ChaincodeOwnerServiceChaincode_GetOwnerByTxCreator = "GetOwnerByTxCreator"
 
-	ChaincodeOwnerServiceChaincode_ListOwners = "ListOwners"
+	// ChaincodeOwnerServiceChaincodeMethodPrefix allows to use multiple services with same method names in one chaincode
+	ChaincodeOwnerServiceChaincodeMethodPrefix = "ChaincodeOwnerService."
 
-	ChaincodeOwnerServiceChaincode_GetOwner = "GetOwner"
+	ChaincodeOwnerServiceChaincode_GetOwnerByTxCreator = ChaincodeOwnerServiceChaincodeMethodPrefix + "GetOwnerByTxCreator"
 
-	ChaincodeOwnerServiceChaincode_CreateOwner = "CreateOwner"
+	ChaincodeOwnerServiceChaincode_ListOwners = ChaincodeOwnerServiceChaincodeMethodPrefix + "ListOwners"
 
-	ChaincodeOwnerServiceChaincode_CreateOwnerTxCreator = "CreateOwnerTxCreator"
+	ChaincodeOwnerServiceChaincode_GetOwner = ChaincodeOwnerServiceChaincodeMethodPrefix + "GetOwner"
 
-	ChaincodeOwnerServiceChaincode_UpdateOwner = "UpdateOwner"
+	ChaincodeOwnerServiceChaincode_CreateOwner = ChaincodeOwnerServiceChaincodeMethodPrefix + "CreateOwner"
 
-	ChaincodeOwnerServiceChaincode_DeleteOwner = "DeleteOwner"
+	ChaincodeOwnerServiceChaincode_CreateOwnerTxCreator = ChaincodeOwnerServiceChaincodeMethodPrefix + "CreateOwnerTxCreator"
+
+	ChaincodeOwnerServiceChaincode_UpdateOwner = ChaincodeOwnerServiceChaincodeMethodPrefix + "UpdateOwner"
+
+	ChaincodeOwnerServiceChaincode_DeleteOwner = ChaincodeOwnerServiceChaincodeMethodPrefix + "DeleteOwner"
 )
 
 // ChaincodeOwnerServiceChaincodeResolver interface for service resolver
