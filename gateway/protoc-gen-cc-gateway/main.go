@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
@@ -13,12 +12,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 
 	"github.com/s7techlab/cckit/gateway/protoc-gen-cc-gateway/generator"
-)
-
-const (
-	ParamPaths               = `paths`
-	ParamPathsSourceRelative = `source_relative`
-	ParamEmbedSwagger        = `embed_swagger`
 )
 
 var (
@@ -50,26 +43,7 @@ func main() {
 	}
 
 	g := generator.New(reg)
-
-	for _, param := range strings.Split(req.GetParameter(), ",") {
-		var value string
-		if i := strings.Index(param, "="); i >= 0 {
-			value = param[i+1:]
-			param = param[0:i]
-		}
-		switch param {
-		case ParamPaths:
-			switch value {
-			case ParamPathsSourceRelative:
-				g.PathsSourceRelative = true
-			}
-
-		case ParamEmbedSwagger:
-			if value != `0` && value != `false` {
-				g.EmbedSwagger = true
-			}
-		}
-	}
+	g.Opts = generator.OptsFromParams(req.GetParameter())
 
 	var (
 		targets []*descriptor.File

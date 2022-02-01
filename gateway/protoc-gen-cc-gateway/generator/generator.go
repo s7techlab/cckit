@@ -20,15 +20,14 @@ var (
 type Generator struct {
 	reg     *descriptor.Registry
 	imports []descriptor.GoPackage // common imports
-
-	PathsSourceRelative bool
-	EmbedSwagger        bool
+	Opts    Opts
 }
 
 // New returns a new generator which generates handler wrappers.
 func New(reg *descriptor.Registry) *Generator {
 	return &Generator{
-		reg: reg,
+		reg:  reg,
+		Opts: Opts{},
 	}
 }
 
@@ -65,7 +64,7 @@ func (g *Generator) generateCC(file *descriptor.File) (*plugin.CodeGeneratorResp
 	base := strings.TrimSuffix(name, ext)
 
 	basePath := file.GoPkg.Name
-	if !g.PathsSourceRelative {
+	if !g.Opts.PathsSourceRelative {
 		basePath = file.GoPkg.Path
 	}
 
@@ -93,7 +92,7 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 		{"github.com/s7techlab/cckit/router/param/defparam", "cckit_defparam"},
 	}
 
-	if g.EmbedSwagger {
+	if g.Opts.EmbedSwagger {
 		pkgs = append(pkgs, []string{"embed", "_"})
 	}
 
@@ -126,9 +125,9 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 	}
 
 	p := TemplateParams{
-		File:         f,
-		Imports:      imports,
-		EmbedSwagger: g.EmbedSwagger,
+		File:    f,
+		Imports: imports,
+		Opts:    g.Opts,
 	}
 	return applyTemplate(p)
 }

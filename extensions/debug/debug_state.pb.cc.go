@@ -19,17 +19,21 @@ import (
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
 )
 
-// DebugStateServiceChaincode  method names
+// DebugStateServiceChaincode method names
 const (
-	DebugStateServiceChaincode_ListKeys = "ListKeys"
 
-	DebugStateServiceChaincode_GetState = "GetState"
+	// DebugStateServiceChaincodeMethodPrefix allows to use multiple services with same method names in one chaincode
+	DebugStateServiceChaincodeMethodPrefix = "DebugStateService."
 
-	DebugStateServiceChaincode_PutState = "PutState"
+	DebugStateServiceChaincode_ListKeys = DebugStateServiceChaincodeMethodPrefix + "ListKeys"
 
-	DebugStateServiceChaincode_DeleteState = "DeleteState"
+	DebugStateServiceChaincode_GetState = DebugStateServiceChaincodeMethodPrefix + "GetState"
 
-	DebugStateServiceChaincode_DeleteStates = "DeleteStates"
+	DebugStateServiceChaincode_PutState = DebugStateServiceChaincodeMethodPrefix + "PutState"
+
+	DebugStateServiceChaincode_DeleteState = DebugStateServiceChaincodeMethodPrefix + "DeleteState"
+
+	DebugStateServiceChaincode_DeleteStates = DebugStateServiceChaincodeMethodPrefix + "DeleteStates"
 )
 
 // DebugStateServiceChaincodeResolver interface for service resolver
@@ -52,7 +56,6 @@ type DebugStateServiceChaincode interface {
 
 // RegisterDebugStateServiceChaincode registers service methods as chaincode router handlers
 func RegisterDebugStateServiceChaincode(r *cckit_router.Group, cc DebugStateServiceChaincode) error {
-
 
 	r.Query(DebugStateServiceChaincode_ListKeys,
 		func(ctx cckit_router.Context) (interface{}, error) {

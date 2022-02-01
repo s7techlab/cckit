@@ -8,8 +8,8 @@ import (
 
 type TemplateParams struct {
 	*descriptor.File
-	Imports      []descriptor.GoPackage
-	EmbedSwagger bool
+	Imports []descriptor.GoPackage
+	Opts    Opts
 }
 
 var (
@@ -34,12 +34,25 @@ import (
 )
 
 var ccTemplate = template.Must(template.New("chaincode").Funcs(funcMap).Option().Parse(`
+
+{{ $chaincodeMethodServicePrefix := .Opts.ChaincodeMethodServicePrefix }}
+
 {{ range $svc := .Services }}
  
-// {{ $svc.GetName }}Chaincode  method names
+// {{ $svc.GetName }}Chaincode method names
 const (
+
+{{ $methodPrefix := "" }}
+
+{{ if $chaincodeMethodServicePrefix  }}
+ {{ $methodPrefix = printf "%s." $svc.GetName  }}
+{{ end }}
+
+// {{ $svc.GetName }}ChaincodeMethodPrefix allows to use multiple services with same method names in one chaincode
+{{ $svc.GetName }}ChaincodeMethodPrefix = "{{ $methodPrefix }}"
+
 {{ range $m := $svc.Methods }}
- {{ $svc.GetName }}Chaincode_{{ $m.GetName }} = "{{ $m.GetName }}"
+ {{ $svc.GetName }}Chaincode_{{ $m.GetName }} = {{ $svc.GetName }}ChaincodeMethodPrefix + "{{ $m.GetName }}"
 {{ end }}
 )
 
@@ -55,7 +68,6 @@ type {{ $svc.GetName }}Chaincode interface {
 {{ end }}
 }
 
-
 // Register{{ $svc.GetName }}Chaincode registers service methods as chaincode router handlers
 func Register{{ $svc.GetName }}Chaincode(r *cckit_router.Group, cc {{ $svc.GetName }}Chaincode) error {
 
@@ -63,7 +75,7 @@ func Register{{ $svc.GetName }}Chaincode(r *cckit_router.Group, cc {{ $svc.GetNa
     {{ $method := "Invoke"}}
     {{ if $m | hasGetBinding }}{{ $method = "Query"}}{{ end }}
 
- r.{{ $method }}( {{ $svc.GetName }}Chaincode_{{ $m.GetName }}, 
+ r.{{ $method }}({{ $svc.GetName }}Chaincode_{{ $m.GetName }}, 
 		func(ctx cckit_router.Context) (interface{}, error) {
 			return cc.{{ $m.GetName }}(ctx, ctx.Param().(*{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }}))
 		},
@@ -80,7 +92,7 @@ func Register{{ $svc.GetName }}Chaincode(r *cckit_router.Group, cc {{ $svc.GetNa
 var gatewayTemplate = template.Must(template.New("gateway").Funcs(funcMap).Option().Parse(`
 
 {{ $source :=.Name }}
-{{ $embedSwagger :=.EmbedSwagger }}
+{{ $embedSwagger :=.Opts.EmbedSwagger }}
 
 {{ range $svc := .Services }}
 
