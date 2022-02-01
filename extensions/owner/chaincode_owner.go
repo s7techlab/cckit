@@ -26,26 +26,28 @@ func NewService() *ChaincodeOwnerService {
 	return &ChaincodeOwnerService{}
 }
 
+var _ ChaincodeOwnerServiceChaincode = &ChaincodeOwnerService{}
+
 type ChaincodeOwnerService struct {
 }
 
 // IsTxCreator - wrapper for TxCreatorIsOwner for local calls
 func (c *ChaincodeOwnerService) IsTxCreator(ctx router.Context) (*ChaincodeOwner, error) {
-	return c.TxCreatorIsOwner(ctx, &empty.Empty{})
+	return c.GetOwnerByTxCreator(ctx, &empty.Empty{})
 }
 
 // RegisterTxCreator Wrapper for OwnerRegisterTxCreator
 func (c *ChaincodeOwnerService) RegisterTxCreator(ctx router.Context) (*ChaincodeOwner, error) {
-	return c.OwnerRegisterTxCreator(ctx, &empty.Empty{})
+	return c.CreateOwnerTxCreator(ctx, &empty.Empty{})
 }
 
-func (c *ChaincodeOwnerService) TxCreatorIsOwner(ctx router.Context, _ *empty.Empty) (*ChaincodeOwner, error) {
+func (c *ChaincodeOwnerService) GetOwnerByTxCreator(ctx router.Context, _ *empty.Empty) (*ChaincodeOwner, error) {
 	txCreator, err := identity.FromStub(ctx.Stub())
 	if err != nil {
 		return nil, err
 	}
 
-	owner, err := c.OwnerGet(ctx, &OwnerId{
+	owner, err := c.GetOwner(ctx, &OwnerId{
 		MspId:   txCreator.GetMSPIdentifier(),
 		Subject: txCreator.GetSubject(),
 	})
@@ -61,7 +63,7 @@ func (c *ChaincodeOwnerService) TxCreatorIsOwner(ctx router.Context, _ *empty.Em
 	return owner, nil
 }
 
-func (c *ChaincodeOwnerService) OwnersList(ctx router.Context, _ *empty.Empty) (*ChaincodeOwners, error) {
+func (c *ChaincodeOwnerService) ListOwners(ctx router.Context, _ *empty.Empty) (*ChaincodeOwners, error) {
 	if res, err := State(ctx).List(&ChaincodeOwner{}); err != nil {
 		return nil, err
 	} else {
@@ -69,7 +71,7 @@ func (c *ChaincodeOwnerService) OwnersList(ctx router.Context, _ *empty.Empty) (
 	}
 }
 
-func (c *ChaincodeOwnerService) OwnerGet(ctx router.Context, id *OwnerId) (*ChaincodeOwner, error) {
+func (c *ChaincodeOwnerService) GetOwner(ctx router.Context, id *OwnerId) (*ChaincodeOwner, error) {
 	if err := router.ValidateRequest(id); err != nil {
 		return nil, err
 	}
@@ -82,7 +84,7 @@ func (c *ChaincodeOwnerService) OwnerGet(ctx router.Context, id *OwnerId) (*Chai
 }
 
 func (c *ChaincodeOwnerService) allowToModifyBy(ctx router.Context, invoker identity.Identity) error {
-	currentOwners, err := c.OwnersList(ctx, &empty.Empty{})
+	currentOwners, err := c.ListOwners(ctx, &empty.Empty{})
 	if err != nil {
 		return err
 	}
@@ -110,19 +112,19 @@ func (c *ChaincodeOwnerService) txCreatorAllowedToModify(ctx router.Context) (id
 	return txCreator, c.allowToModifyBy(ctx, txCreator)
 }
 
-func (c *ChaincodeOwnerService) OwnerRegisterTxCreator(ctx router.Context, _ *empty.Empty) (*ChaincodeOwner, error) {
+func (c *ChaincodeOwnerService) CreateOwnerTxCreator(ctx router.Context, _ *empty.Empty) (*ChaincodeOwner, error) {
 	txCreator, err := identity.FromStub(ctx.Stub())
 	if err != nil {
 		return nil, err
 	}
 
-	return c.OwnerRegister(ctx, &CreateOwnerRequest{
+	return c.CreateOwner(ctx, &CreateOwnerRequest{
 		MspId: txCreator.GetMSPIdentifier(),
 		Cert:  txCreator.GetPEM(),
 	})
 }
 
-func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, create *CreateOwnerRequest) (*ChaincodeOwner, error) {
+func (c *ChaincodeOwnerService) CreateOwner(ctx router.Context, create *CreateOwnerRequest) (*ChaincodeOwner, error) {
 	if err := router.ValidateRequest(create); err != nil {
 		return nil, err
 	}
@@ -166,7 +168,7 @@ func (c *ChaincodeOwnerService) OwnerRegister(ctx router.Context, create *Create
 	return chaincodeOwner, nil
 }
 
-func (c ChaincodeOwnerService) OwnerUpdate(ctx router.Context, updateRequest *UpdateOwnerRequest) (*ChaincodeOwner, error) {
+func (c ChaincodeOwnerService) UpdateOwner(ctx router.Context, updateRequest *UpdateOwnerRequest) (*ChaincodeOwner, error) {
 	if err := router.ValidateRequest(updateRequest); err != nil {
 		return nil, err
 	}
@@ -181,7 +183,7 @@ func (c ChaincodeOwnerService) OwnerUpdate(ctx router.Context, updateRequest *Up
 		return nil, fmt.Errorf(`parse certificate: %w`, err)
 	}
 
-	curOwner, err := c.OwnerGet(ctx, &OwnerId{
+	curOwner, err := c.GetOwner(ctx, &OwnerId{
 		MspId:   id.GetMSPIdentifier(),
 		Subject: id.GetSubject(),
 	})
@@ -226,7 +228,7 @@ func (c ChaincodeOwnerService) OwnerUpdate(ctx router.Context, updateRequest *Up
 	return chaincodeOwner, nil
 }
 
-func (c ChaincodeOwnerService) OwnerDelete(ctx router.Context, id *OwnerId) (*ChaincodeOwner, error) {
+func (c ChaincodeOwnerService) DeleteOwner(ctx router.Context, id *OwnerId) (*ChaincodeOwner, error) {
 	if err := router.ValidateRequest(id); err != nil {
 		return nil, err
 	}
@@ -235,12 +237,12 @@ func (c ChaincodeOwnerService) OwnerDelete(ctx router.Context, id *OwnerId) (*Ch
 		return nil, err
 	}
 
-	deletedOwner, err := c.OwnerGet(ctx, id)
+	deletedOwner, err := c.GetOwner(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	currentOwners, err := c.OwnersList(ctx, &empty.Empty{})
+	currentOwners, err := c.ListOwners(ctx, &empty.Empty{})
 	if err != nil {
 		return nil, err
 	}

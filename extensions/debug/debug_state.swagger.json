@@ -43,9 +43,9 @@
       }
     },
     "/debug/state/clean": {
-      "put": {
-        "summary": "Clear all state or, if prefixes are defined, only prefix matched",
-        "operationId": "Clean",
+      "post": {
+        "summary": "Delete all states or, if prefixes are defined, only prefix matched",
+        "operationId": "DeleteStates",
         "responses": {
           "200": {
             "description": "A successful response.",
