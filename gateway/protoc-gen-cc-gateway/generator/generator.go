@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"log"
 	"path"
 	"path/filepath"
 	"strings"
@@ -14,10 +13,16 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
 )
 
+var (
+	pkg = make(map[string]string)
+)
+
 type Generator struct {
-	reg                 *descriptor.Registry
-	imports             []descriptor.GoPackage // common imports
+	reg     *descriptor.Registry
+	imports []descriptor.GoPackage // common imports
+
 	PathsSourceRelative bool
+	EmbedSwagger        bool
 }
 
 // New returns a new generator which generates handler wrappers.
@@ -52,7 +57,6 @@ func (g *Generator) generateCC(file *descriptor.File) (*plugin.CodeGeneratorResp
 
 	formatted, err := format.Source([]byte(code))
 	if err != nil {
-		log.Printf("%v: %s", err, annotateString(code))
 		return nil, err
 	}
 
@@ -85,10 +89,12 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 	pkgs := [][]string{
 		{"context", "context"},
 		{"github.com/s7techlab/cckit/gateway", "cckit_gateway"},
-		{"github.com/s7techlab/cckit/gateway/service", "cckit_ccservice"},
 		{"github.com/s7techlab/cckit/router", "cckit_router"},
 		{"github.com/s7techlab/cckit/router/param/defparam", "cckit_defparam"},
-		{"github.com/s7techlab/cckit/router/param", "cckit_param"},
+	}
+
+	if g.EmbedSwagger {
+		pkgs = append(pkgs, []string{"embed", "_"})
 	}
 
 	for _, pkg := range pkgs {
@@ -119,7 +125,11 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 		}
 	}
 
-	p := param{File: f, Imports: imports}
+	p := TemplateParams{
+		File:         f,
+		Imports:      imports,
+		EmbedSwagger: g.EmbedSwagger,
+	}
 	return applyTemplate(p)
 }
 
@@ -152,7 +162,7 @@ func (g *Generator) newGoPackage(pkgPath string, aalias ...string) descriptor.Go
 	return gopkg
 }
 
-func applyTemplate(p param) (string, error) {
+func applyTemplate(p TemplateParams) (string, error) {
 	w := bytes.NewBuffer(nil)
 	if err := headerTemplate.Execute(w, p); err != nil {
 		return "", err
@@ -167,12 +177,4 @@ func applyTemplate(p param) (string, error) {
 	}
 
 	return w.String(), nil
-}
-
-func annotateString(str string) string {
-	strs := strings.Split(str, "\n")
-	for pos := range strs {
-		strs[pos] = fmt.Sprintf("%v: %v", pos, strs[pos])
-	}
-	return strings.Join(strs, "\n")
 }

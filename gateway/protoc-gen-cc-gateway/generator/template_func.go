@@ -2,9 +2,19 @@ package generator
 
 import (
 	"strings"
+	"text/template"
 
 	"github.com/golang/protobuf/protoc-gen-go/generator"
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway/descriptor"
+)
+
+var (
+	funcMap = template.FuncMap{
+		"goTypeName":      goTypeName,
+		"hasBindings":     hasBindings,
+		"hasGetBinding":   hasGetBinding,
+		"removeExtension": removeExtension,
+	}
 )
 
 func hasBindings(service *descriptor.Service) bool {
@@ -23,6 +33,16 @@ func hasGetBinding(method *descriptor.Method) bool {
 		}
 	}
 	return false
+}
+
+func removeExtension(fileName string) string {
+	startPos := 0
+	slashPos := strings.LastIndex(fileName, `/`)
+
+	if slashPos != -1 {
+		startPos = slashPos + 1
+	}
+	return fileName[startPos:strings.LastIndex(fileName, `.`)]
 }
 
 func goTypeName(s string) string {
