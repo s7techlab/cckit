@@ -147,11 +147,11 @@ allows to directly manage chaincode state
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Clean | [Prefixes](#extensions.debug.Prefixes) | [PrefixesMatchCount](#extensions.debug.PrefixesMatchCount) | Clear all state or, if prefixes are defined, only prefix matched |
 | ListKeys | [Prefix](#extensions.debug.Prefix) | [CompositeKeys](#extensions.debug.CompositeKeys) | Get keys list, returns all keys or, if prefixes are defined, only prefix matched |
 | GetState | [CompositeKey](#extensions.debug.CompositeKey) | [Value](#extensions.debug.Value) | Get state value by key |
 | PutState | [Value](#extensions.debug.Value) | [Value](#extensions.debug.Value) | Put state value |
 | DeleteState | [CompositeKey](#extensions.debug.CompositeKey) | [Value](#extensions.debug.Value) | Delete state value |
+| DeleteStates | [Prefixes](#extensions.debug.Prefixes) | [PrefixesMatchCount](#extensions.debug.PrefixesMatchCount) | Delete all states or, if prefixes are defined, only prefix matched |
 
  
 

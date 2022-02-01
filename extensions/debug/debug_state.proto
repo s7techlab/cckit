@@ -40,14 +40,6 @@ message Value {
 // Debug state service
 // allows to directly manage chaincode state
 service DebugStateService {
-    // Clear all state or, if prefixes are defined, only prefix matched
-    rpc Clean (Prefixes) returns (PrefixesMatchCount) {
-        option (google.api.http) = {
-            put: "/debug/state/clean"
-            body: "*"
-        };
-    }
-
     // Get keys list, returns all keys or, if prefixes are defined, only prefix matched
     rpc ListKeys (Prefix) returns (CompositeKeys) {
         option (google.api.http) = {
@@ -76,4 +68,13 @@ service DebugStateService {
             delete: "/debug/state/{key}"
         };
     }
+
+    // Delete all states or, if prefixes are defined, only prefix matched
+    rpc DeleteStates (Prefixes) returns (PrefixesMatchCount) {
+        option (google.api.http) = {
+            post: "/debug/state/clean"
+            body: "*"
+        };
+    }
+
 }

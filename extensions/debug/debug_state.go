@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/golang/protobuf/proto"
+
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
@@ -18,6 +19,8 @@ type (
 	StateFn func(router.Context) state.State
 )
 
+var _ DebugStateServiceChaincode = &StateService{}
+
 func StateAsIs(ctx router.Context) state.State {
 	return ctx.State()
 }
@@ -28,31 +31,7 @@ func NewStateService() *StateService {
 	}
 }
 
-func (s *StateService) StateClean(ctx router.Context, prefixes *Prefixes) (*PrefixesMatchCount, error) {
-	var (
-		keys []string
-		key  string
-		err  error
-	)
-	for _, p := range prefixes.Prefixes {
-		if len(p.Key) > 0 {
-			key, err = state.KeyToString(ctx.Stub(), p.Key)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		keys = append(keys, key)
-	}
-	matches, err := DeleteStateByPrefixes(s.State(ctx), keys)
-	if err != nil {
-		return nil, err
-	}
-
-	return &PrefixesMatchCount{Matches: matches}, nil
-}
-
-func (s *StateService) StateKeys(ctx router.Context, prefix *Prefix) (*CompositeKeys, error) {
+func (s *StateService) ListKeys(ctx router.Context, prefix *Prefix) (*CompositeKeys, error) {
 	keys, err := s.State(ctx).Keys(prefix.GetKey())
 	if err != nil {
 		return nil, err
@@ -70,7 +49,7 @@ func (s *StateService) StateKeys(ctx router.Context, prefix *Prefix) (*Composite
 	return cKeys, nil
 }
 
-func (s *StateService) StateGet(ctx router.Context, key *CompositeKey) (*Value, error) {
+func (s *StateService) GetState(ctx router.Context, key *CompositeKey) (*Value, error) {
 	val, err := s.State(ctx).Get(key.Key)
 	if err != nil {
 		return nil, err
@@ -94,15 +73,15 @@ func (s *StateService) StateGet(ctx router.Context, key *CompositeKey) (*Value, 
 	}, nil
 }
 
-func (s *StateService) StatePut(ctx router.Context, val *Value) (*Value, error) {
+func (s *StateService) PutState(ctx router.Context, val *Value) (*Value, error) {
 	if err := s.State(ctx).Put(val.Key, val.Value); err != nil {
 		return nil, err
 	}
 	return val, nil
 }
 
-func (s *StateService) StateDelete(ctx router.Context, key *CompositeKey) (*Value, error) {
-	val, err := s.StateGet(ctx, key)
+func (s *StateService) DeleteState(ctx router.Context, key *CompositeKey) (*Value, error) {
+	val, err := s.GetState(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -112,4 +91,28 @@ func (s *StateService) StateDelete(ctx router.Context, key *CompositeKey) (*Valu
 	}
 
 	return val, nil
+}
+
+func (s *StateService) DeleteStates(ctx router.Context, prefixes *Prefixes) (*PrefixesMatchCount, error) {
+	var (
+		keys []string
+		key  string
+		err  error
+	)
+	for _, p := range prefixes.Prefixes {
+		if len(p.Key) > 0 {
+			key, err = state.KeyToString(ctx.Stub(), p.Key)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		keys = append(keys, key)
+	}
+	matches, err := DeleteStateByPrefixes(s.State(ctx), keys)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PrefixesMatchCount{Matches: matches}, nil
 }

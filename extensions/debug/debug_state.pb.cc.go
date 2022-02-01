@@ -21,8 +21,6 @@ import (
 
 // DebugStateServiceChaincode  method names
 const (
-	DebugStateServiceChaincode_Clean = "Clean"
-
 	DebugStateServiceChaincode_ListKeys = "ListKeys"
 
 	DebugStateServiceChaincode_GetState = "GetState"
@@ -30,6 +28,8 @@ const (
 	DebugStateServiceChaincode_PutState = "PutState"
 
 	DebugStateServiceChaincode_DeleteState = "DeleteState"
+
+	DebugStateServiceChaincode_DeleteStates = "DeleteStates"
 )
 
 // DebugStateServiceChaincodeResolver interface for service resolver
@@ -39,8 +39,6 @@ type DebugStateServiceChaincodeResolver interface {
 
 // DebugStateServiceChaincode chaincode methods interface
 type DebugStateServiceChaincode interface {
-	Clean(cckit_router.Context, *Prefixes) (*PrefixesMatchCount, error)
-
 	ListKeys(cckit_router.Context, *Prefix) (*CompositeKeys, error)
 
 	GetState(cckit_router.Context, *CompositeKey) (*Value, error)
@@ -48,16 +46,12 @@ type DebugStateServiceChaincode interface {
 	PutState(cckit_router.Context, *Value) (*Value, error)
 
 	DeleteState(cckit_router.Context, *CompositeKey) (*Value, error)
+
+	DeleteStates(cckit_router.Context, *Prefixes) (*PrefixesMatchCount, error)
 }
 
 // RegisterDebugStateServiceChaincode registers service methods as chaincode router handlers
 func RegisterDebugStateServiceChaincode(r *cckit_router.Group, cc DebugStateServiceChaincode) error {
-
-	r.Invoke(DebugStateServiceChaincode_Clean,
-		func(ctx cckit_router.Context) (interface{}, error) {
-			return cc.Clean(ctx, ctx.Param().(*Prefixes))
-		},
-		cckit_defparam.Proto(&Prefixes{}))
 
 	r.Query(DebugStateServiceChaincode_ListKeys,
 		func(ctx cckit_router.Context) (interface{}, error) {
@@ -82,6 +76,12 @@ func RegisterDebugStateServiceChaincode(r *cckit_router.Group, cc DebugStateServ
 			return cc.DeleteState(ctx, ctx.Param().(*CompositeKey))
 		},
 		cckit_defparam.Proto(&CompositeKey{}))
+
+	r.Invoke(DebugStateServiceChaincode_DeleteStates,
+		func(ctx cckit_router.Context) (interface{}, error) {
+			return cc.DeleteStates(ctx, ctx.Param().(*Prefixes))
+		},
+		cckit_defparam.Proto(&Prefixes{}))
 
 	return nil
 }
@@ -117,21 +117,6 @@ func (c *DebugStateServiceGateway) ApiDef() cckit_gateway.ServiceDef {
 // Events returns events subscription
 func (c *DebugStateServiceGateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
 	return c.Gateway.Events(ctx)
-}
-
-func (c *DebugStateServiceGateway) Clean(ctx context.Context, in *Prefixes) (*PrefixesMatchCount, error) {
-	var inMsg interface{} = in
-	if v, ok := inMsg.(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return nil, err
-		}
-	}
-
-	if res, err := c.Gateway.Invoke(ctx, DebugStateServiceChaincode_Clean, []interface{}{in}, &PrefixesMatchCount{}); err != nil {
-		return nil, err
-	} else {
-		return res.(*PrefixesMatchCount), nil
-	}
 }
 
 func (c *DebugStateServiceGateway) ListKeys(ctx context.Context, in *Prefix) (*CompositeKeys, error) {
@@ -191,5 +176,20 @@ func (c *DebugStateServiceGateway) DeleteState(ctx context.Context, in *Composit
 		return nil, err
 	} else {
 		return res.(*Value), nil
+	}
+}
+
+func (c *DebugStateServiceGateway) DeleteStates(ctx context.Context, in *Prefixes) (*PrefixesMatchCount, error) {
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Gateway.Invoke(ctx, DebugStateServiceChaincode_DeleteStates, []interface{}{in}, &PrefixesMatchCount{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*PrefixesMatchCount), nil
 	}
 }

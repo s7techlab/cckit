@@ -27,7 +27,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Allow to register self as owner on empty state", func() {
 			cc.From(ownerIdentity1).Tx(func() {
-				owner, err := ownerSvc.OwnerRegisterTxCreator(ctx, &emptypb.Empty{})
+				owner, err := ownerSvc.CreateOwnerTxCreator(ctx, &emptypb.Empty{})
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(owner.MspId).To(Equal(ownerIdentity1.GetMSPIdentifier()))
@@ -43,7 +43,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow to register same owner once more", func() {
 			cc.From(ownerIdentity1).Tx(func() {
-				cc.Expect(ownerSvc.OwnerRegister(ctx, &owner.CreateOwnerRequest{
+				cc.Expect(ownerSvc.CreateOwner(ctx, &owner.CreateOwnerRequest{
 					MspId: ownerIdentity1.GetMSPIdentifier(),
 					Cert:  ownerIdentity1.GetPEM(),
 				})).HasError(`state key already exists: ChaincodeOwner`)
@@ -52,7 +52,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow to register new owner from non registered identity", func() {
 			cc.From(ownerIdentity2).Tx(func() {
-				cc.Expect(ownerSvc.OwnerRegister(ctx, &owner.CreateOwnerRequest{
+				cc.Expect(ownerSvc.CreateOwner(ctx, &owner.CreateOwnerRequest{
 					MspId: ownerIdentity2.GetMSPIdentifier(),
 					Cert:  ownerIdentity2.GetPEM(),
 				})).HasError(`tx invoker is not owner`)
@@ -61,7 +61,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Allow to register new owner by current owner", func() {
 			cc.From(ownerIdentity1).Tx(func() {
-				owner, err := ownerSvc.OwnerRegister(ctx, &owner.CreateOwnerRequest{
+				owner, err := ownerSvc.CreateOwner(ctx, &owner.CreateOwnerRequest{
 					MspId: ownerIdentity2.GetMSPIdentifier(),
 					Cert:  ownerIdentity2.GetPEM(),
 				})
@@ -74,7 +74,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Allow to get owner list", func() {
 			cc.From(nonOwnerIdentity).Tx(func() {
-				owners, err := ownerSvc.OwnersList(ctx, &emptypb.Empty{})
+				owners, err := ownerSvc.ListOwners(ctx, &emptypb.Empty{})
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(owners.Items).To(HaveLen(2))
@@ -86,14 +86,14 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Non owner receives error", func() {
 			cc.From(nonOwnerIdentity).Tx(func() {
-				cc.Expect(ownerSvc.TxCreatorIsOwner(ctx, &emptypb.Empty{})).
+				cc.Expect(ownerSvc.GetOwnerByTxCreator(ctx, &emptypb.Empty{})).
 					HasError(`find owner by tx creator's msp_id and cert subject: state entry not found: ChaincodeOwner`)
 			})
 		})
 
 		It("Owner receives owner info", func() {
 			cc.From(ownerIdentity1).Tx(func() {
-				owner, err := ownerSvc.TxCreatorIsOwner(ctx, &emptypb.Empty{})
+				owner, err := ownerSvc.GetOwnerByTxCreator(ctx, &emptypb.Empty{})
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(owner.MspId).To(Equal(ownerIdentity1.GetMSPIdentifier()))
@@ -106,7 +106,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow non owner to update owner", func() {
 			cc.From(nonOwnerIdentity).Tx(func() {
-				cc.Expect(ownerSvc.OwnerUpdate(ctx, &owner.UpdateOwnerRequest{
+				cc.Expect(ownerSvc.UpdateOwner(ctx, &owner.UpdateOwnerRequest{
 					MspId: ownerIdentity2.GetMSPIdentifier(),
 					Cert:  ownerIdentity2.GetPEM(),
 				})).HasError(`tx invoker is not owner`)
@@ -115,7 +115,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow to update owner with same cert", func() {
 			cc.From(ownerIdentity2).Tx(func() {
-				cc.Expect(ownerSvc.OwnerUpdate(ctx, &owner.UpdateOwnerRequest{
+				cc.Expect(ownerSvc.UpdateOwner(ctx, &owner.UpdateOwnerRequest{
 					MspId: ownerIdentity2.GetMSPIdentifier(),
 					Cert:  ownerIdentity2.GetPEM(),
 				})).HasError(`new cert same as old cert`)
@@ -127,7 +127,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Disallow non owner to delete owner", func() {
 			cc.From(nonOwnerIdentity).Tx(func() {
-				cc.Expect(ownerSvc.OwnerDelete(ctx, &owner.OwnerId{
+				cc.Expect(ownerSvc.DeleteOwner(ctx, &owner.OwnerId{
 					MspId:   ownerIdentity2.GetMSPIdentifier(),
 					Subject: ownerIdentity2.GetSubject(),
 				})).HasError(`tx invoker is not owner`)
@@ -136,7 +136,7 @@ var _ = Describe(`Chaincode owner`, func() {
 
 		It("Allow owner to delete owner, including self", func() {
 			cc.From(ownerIdentity1).Tx(func() {
-				deletedOwner, err := ownerSvc.OwnerDelete(ctx, &owner.OwnerId{
+				deletedOwner, err := ownerSvc.DeleteOwner(ctx, &owner.OwnerId{
 					MspId:   ownerIdentity1.GetMSPIdentifier(),
 					Subject: ownerIdentity1.GetSubject(),
 				})
@@ -146,7 +146,7 @@ var _ = Describe(`Chaincode owner`, func() {
 			})
 
 			cc.From(nonOwnerIdentity).Tx(func() {
-				owners, err := ownerSvc.OwnersList(ctx, &emptypb.Empty{})
+				owners, err := ownerSvc.ListOwners(ctx, &emptypb.Empty{})
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(owners.Items).To(HaveLen(1))
@@ -156,7 +156,7 @@ var _ = Describe(`Chaincode owner`, func() {
 		It("Disallow to delete last owner", func() {
 
 			cc.From(ownerIdentity2).Tx(func() {
-				cc.Expect(ownerSvc.OwnerDelete(ctx, &owner.OwnerId{
+				cc.Expect(ownerSvc.DeleteOwner(ctx, &owner.OwnerId{
 					MspId:   ownerIdentity2.GetMSPIdentifier(),
 					Subject: ownerIdentity2.GetSubject(),
 				})).HasError(`delete last owner is not allowed`)
