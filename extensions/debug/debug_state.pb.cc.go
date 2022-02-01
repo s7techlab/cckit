@@ -53,6 +53,7 @@ type DebugStateServiceChaincode interface {
 // RegisterDebugStateServiceChaincode registers service methods as chaincode router handlers
 func RegisterDebugStateServiceChaincode(r *cckit_router.Group, cc DebugStateServiceChaincode) error {
 
+
 	r.Query(DebugStateServiceChaincode_ListKeys,
 		func(ctx cckit_router.Context) (interface{}, error) {
 			return cc.ListKeys(ctx, ctx.Param().(*Prefix))
