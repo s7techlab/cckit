@@ -178,7 +178,7 @@ func New{{ $svc.GetName }}ChaincodeLocalResolver (service {{ $svc.GetName }}Chai
 
 func (r *{{ $svc.GetName }}ChaincodeLocalResolver) Resolve(ctx cckit_router.Context) ({{ $svc.GetName }}Chaincode, error) {
 	if r.service == nil {
-		return nil, cckit_croscc.ErrServiceNotForLocalChaincodeResolver 
+		return nil, errors.New ("service not set for local chaincode resolver")
     }
 
     return r.service, nil

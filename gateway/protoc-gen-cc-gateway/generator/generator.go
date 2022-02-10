@@ -98,7 +98,7 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 	}
 
 	if g.Opts.ServiceChaincodeResolver {
-		pkgs = append(pkgs, []string{"github.com/s7techlab/cckit/extensions/crosscc", "cckit_croscc"})
+		pkgs = append(pkgs, []string{"errors", "errors"})
 	}
 
 	for _, pkg := range pkgs {

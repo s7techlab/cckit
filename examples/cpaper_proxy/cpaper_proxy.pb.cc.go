@@ -13,8 +13,8 @@ package cpaper_proxy
 import (
 	context "context"
 	_ "embed"
+	errors "errors"
 
-	cckit_croscc "github.com/s7techlab/cckit/extensions/crosscc"
 	cckit_gateway "github.com/s7techlab/cckit/gateway"
 	cckit_router "github.com/s7techlab/cckit/router"
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
@@ -118,7 +118,7 @@ func NewCPaperProxyServiceChaincodeLocalResolver(service CPaperProxyServiceChain
 
 func (r *CPaperProxyServiceChaincodeLocalResolver) Resolve(ctx cckit_router.Context) (CPaperProxyServiceChaincode, error) {
 	if r.service == nil {
-		return nil, cckit_croscc.ErrServiceNotForLocalChaincodeResolver
+		return nil, errors.New("service not set for local chaincode resolver")
 	}
 
 	return r.service, nil
