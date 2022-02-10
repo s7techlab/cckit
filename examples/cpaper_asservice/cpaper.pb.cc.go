@@ -14,6 +14,7 @@ import (
 	context "context"
 	_ "embed"
 
+	cckit_croscc "github.com/s7techlab/cckit/extensions/crosscc"
 	cckit_gateway "github.com/s7techlab/cckit/gateway"
 	cckit_router "github.com/s7techlab/cckit/router"
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
@@ -41,11 +42,6 @@ const (
 
 	CPaperServiceChaincode_Delete = CPaperServiceChaincodeMethodPrefix + "Delete"
 )
-
-// CPaperServiceChaincodeResolver interface for service resolver
-type CPaperServiceChaincodeResolver interface {
-	CPaperServiceChaincode(ctx cckit_router.Context) (CPaperServiceChaincode, error)
-}
 
 // CPaperServiceChaincode chaincode methods interface
 type CPaperServiceChaincode interface {
@@ -130,16 +126,18 @@ func NewCPaperServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type CPaperServiceGateway struct {
-	Invoker cckit_gateway.ChaincodeInvoker
+	Invoker cckit_gateway.ChaincodeInstanceInvoker
 }
 
 // ServiceDef returns service definition
 func (c *CPaperServiceGateway) ServiceDef() cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
-		Desc:                        &_CPaperService_serviceDesc,
-		Service:                     c,
-		HandlerFromEndpointRegister: RegisterCPaperServiceHandlerFromEndpoint,
-	}
+	return cckit_gateway.NewServiceDef(
+		_CPaperService_serviceDesc.ServiceName,
+		CPaperServiceSwagger,
+		&_CPaperService_serviceDesc,
+		c,
+		RegisterCPaperServiceHandlerFromEndpoint,
+	)
 }
 
 func (c *CPaperServiceGateway) List(ctx context.Context, in *emptypb.Empty) (*CommercialPaperList, error) {
@@ -245,4 +243,139 @@ func (c *CPaperServiceGateway) Delete(ctx context.Context, in *CommercialPaperId
 	} else {
 		return res.(*CommercialPaper), nil
 	}
+}
+
+// CPaperServiceChaincodeResolver interface for service resolver
+type (
+	CPaperServiceChaincodeResolver interface {
+		Resolve(ctx cckit_router.Context) (CPaperServiceChaincode, error)
+	}
+
+	CPaperServiceChaincodeLocalResolver struct {
+		service CPaperServiceChaincode
+	}
+
+	CPaperServiceChaincodeLocatorResolver struct {
+		locatorResolver cckit_gateway.ChaincodeLocatorResolver
+		service         CPaperServiceChaincode
+	}
+)
+
+func NewCPaperServiceChaincodeLocalResolver(service CPaperServiceChaincode) *CPaperServiceChaincodeLocalResolver {
+	return &CPaperServiceChaincodeLocalResolver{
+		service: service,
+	}
+}
+
+func (r *CPaperServiceChaincodeLocalResolver) Resolve(ctx cckit_router.Context) (CPaperServiceChaincode, error) {
+	if r.service == nil {
+		return nil, cckit_croscc.ErrServiceNotForLocalChaincodeResolver
+	}
+
+	return r.service, nil
+}
+
+func NewCPaperServiceChaincodeResolver(locatorResolver cckit_gateway.ChaincodeLocatorResolver) *CPaperServiceChaincodeLocatorResolver {
+	return &CPaperServiceChaincodeLocatorResolver{
+		locatorResolver: locatorResolver,
+	}
+}
+
+func (r *CPaperServiceChaincodeLocatorResolver) Resolve(ctx cckit_router.Context) (CPaperServiceChaincode, error) {
+	if r.service != nil {
+		return r.service, nil
+	}
+
+	locator, err := r.locatorResolver(ctx, _CPaperService_serviceDesc.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+
+	r.service = NewCPaperServiceChaincodeStubInvoker(locator)
+	return r.service, nil
+}
+
+type CPaperServiceChaincodeStubInvoker struct {
+	Invoker cckit_gateway.ChaincodeStubInvoker
+}
+
+func NewCPaperServiceChaincodeStubInvoker(locator *cckit_gateway.ChaincodeLocator) *CPaperServiceChaincodeStubInvoker {
+	return &CPaperServiceChaincodeStubInvoker{
+		Invoker: &cckit_gateway.LocatorChaincodeStubInvoker{Locator: locator},
+	}
+}
+
+func (c *CPaperServiceChaincodeStubInvoker) List(ctx cckit_router.Context, in *emptypb.Empty) (*CommercialPaperList, error) {
+
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Invoker.Query(ctx.Stub(), CPaperServiceChaincode_List, []interface{}{in}, &CommercialPaperList{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*CommercialPaperList), nil
+	}
+
+}
+
+func (c *CPaperServiceChaincodeStubInvoker) Get(ctx cckit_router.Context, in *CommercialPaperId) (*CommercialPaper, error) {
+
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Invoker.Query(ctx.Stub(), CPaperServiceChaincode_Get, []interface{}{in}, &CommercialPaper{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*CommercialPaper), nil
+	}
+
+}
+
+func (c *CPaperServiceChaincodeStubInvoker) GetByExternalId(ctx cckit_router.Context, in *ExternalId) (*CommercialPaper, error) {
+
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Invoker.Query(ctx.Stub(), CPaperServiceChaincode_GetByExternalId, []interface{}{in}, &CommercialPaper{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*CommercialPaper), nil
+	}
+
+}
+
+func (c *CPaperServiceChaincodeStubInvoker) Issue(ctx cckit_router.Context, in *IssueCommercialPaper) (*CommercialPaper, error) {
+
+	return nil, cckit_gateway.ErrInvokeMethodNotAllowed
+
+}
+
+func (c *CPaperServiceChaincodeStubInvoker) Buy(ctx cckit_router.Context, in *BuyCommercialPaper) (*CommercialPaper, error) {
+
+	return nil, cckit_gateway.ErrInvokeMethodNotAllowed
+
+}
+
+func (c *CPaperServiceChaincodeStubInvoker) Redeem(ctx cckit_router.Context, in *RedeemCommercialPaper) (*CommercialPaper, error) {
+
+	return nil, cckit_gateway.ErrInvokeMethodNotAllowed
+
+}
+
+func (c *CPaperServiceChaincodeStubInvoker) Delete(ctx cckit_router.Context, in *CommercialPaperId) (*CommercialPaper, error) {
+
+	return nil, cckit_gateway.ErrInvokeMethodNotAllowed
+
 }

@@ -1,0 +1,66 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "cpaper_proxy/cpaper_proxy.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/cpaper/{issuer}/{paper_number}": {
+      "get": {
+        "summary": "List method returns all registered commercial papers",
+        "operationId": "GetFromCPaper",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cpaper_proxyInfoFromCPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issuer",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "paper_number",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CPaperProxyService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "cpaper_proxyInfoFromCPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/extensions/crosscc";
+package crosscc;
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service SettingService {
+
+    rpc ServiceLocatorSet (ServiceLocatorSetRequest) returns (ServiceLocator) {
+        option (google.api.http) = {
+            post: "/croscc/services"
+            body: "*"
+        };
+    }
+
+    rpc ServiceLocatorGet (ServiceLocatorId) returns (ServiceLocator) {
+        option (google.api.http) = {
+            get: "/croscc/{service}"
+        };
+    }
+
+    rpc ListServiceLocators (google.protobuf.Empty) returns (ServiceLocators) {
+        option (google.api.http) = {
+            get: "/croscc/services"
+        };
+    }
+
+    // Try to query chaincodes from service chaincode settings
+    rpc PingService (ServiceLocatorId) returns (PingServiceResponse) {
+        option (google.api.http) = {
+            get: "/croscc/ping/{service}"
+        };
+    }
+
+    rpc PingServices (google.protobuf.Empty) returns (PingServiceResponses) {
+        option (google.api.http) = {
+            get: "/croscc/ping"
+        };
+
+    }
+
+}
+
+// Request: set service resolving setting
+message ServiceLocatorSetRequest {
+    string service = 1; // service identifier
+    string channel = 2; // channel id
+    string chaincode = 3; // chaincode name
+}
+
+// State: ervice resolving setting
+message ServiceLocator {
+    string service = 1; // service identifier
+    string channel = 2; // channel id
+    string chaincode = 3; // chaincode name
+}
+
+// Id: service resolving setting identifier
+message ServiceLocatorId {
+    string service = 1; // service identifier
+}
+
+// List: service resolving settings
+message ServiceLocators {
+    repeated ServiceLocator items = 1;
+}
+
+// Event: service resolving settings was set
+message ServiceLocatorSet {
+    string service = 1; // service identifier
+    string channel = 2; // channel id
+    string chaincode = 3; // chaincode name
+}
+
+
+message PingServiceResponse {
+    ServiceLocator locator = 1;
+    string error = 2;
+}
+
+message PingServiceResponses {
+    repeated PingServiceResponse responses = 1;
+}
+

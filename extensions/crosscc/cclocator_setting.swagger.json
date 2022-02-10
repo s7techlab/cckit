@@ -1,0 +1,190 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "crosscc/cclocator_setting.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/croscc/ping": {
+      "get": {
+        "operationId": "PingServices",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/crossccPingServiceResponses"
+            }
+          }
+        },
+        "tags": [
+          "SettingService"
+        ]
+      }
+    },
+    "/croscc/ping/{service}": {
+      "get": {
+        "summary": "Try to query chaincodes from service chaincode settings",
+        "operationId": "PingService",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/crossccPingServiceResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SettingService"
+        ]
+      }
+    },
+    "/croscc/services": {
+      "get": {
+        "operationId": "ListServiceLocators",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/crossccServiceLocators"
+            }
+          }
+        },
+        "tags": [
+          "SettingService"
+        ]
+      },
+      "post": {
+        "operationId": "ServiceLocatorSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/crossccServiceLocator"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/crossccServiceLocatorSetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SettingService"
+        ]
+      }
+    },
+    "/croscc/{service}": {
+      "get": {
+        "operationId": "ServiceLocatorGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/crossccServiceLocator"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SettingService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "crossccPingServiceResponse": {
+      "type": "object",
+      "properties": {
+        "locator": {
+          "$ref": "#/definitions/crossccServiceLocator"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "crossccPingServiceResponses": {
+      "type": "object",
+      "properties": {
+        "responses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/crossccPingServiceResponse"
+          }
+        }
+      }
+    },
+    "crossccServiceLocator": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        },
+        "chaincode": {
+          "type": "string"
+        }
+      },
+      "title": "State: ervice resolving setting"
+    },
+    "crossccServiceLocatorSetRequest": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        },
+        "chaincode": {
+          "type": "string"
+        }
+      },
+      "title": "Request: set service resolving setting"
+    },
+    "crossccServiceLocators": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/crossccServiceLocator"
+          }
+        }
+      },
+      "title": "List: service resolving settings"
+    }
+  }
+}

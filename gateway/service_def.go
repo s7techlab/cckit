@@ -11,13 +11,15 @@ type (
 	RegisterHandlerFromEndpoint func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error)
 
 	ServiceDef struct {
-		SwaggerJSON                 []byte
+		name                        string
+		swagger                     []byte
 		Desc                        *grpc.ServiceDesc
 		Service                     interface{}
 		HandlerFromEndpointRegister RegisterHandlerFromEndpoint
 	}
 
 	Service interface {
+		Name() string
 		Swagger() []byte
 		GRPCDesc() *grpc.ServiceDesc
 		Impl() interface{}
@@ -25,8 +27,22 @@ type (
 	}
 )
 
+func NewServiceDef(name string, swagger []byte, desc *grpc.ServiceDesc, service interface{}, registerHandler RegisterHandlerFromEndpoint) ServiceDef {
+	return ServiceDef{
+		name:                        name,
+		swagger:                     swagger,
+		Desc:                        desc,
+		Service:                     service,
+		HandlerFromEndpointRegister: registerHandler,
+	}
+}
+
+func (s ServiceDef) Name() string {
+	return s.name
+}
+
 func (s ServiceDef) Swagger() []byte {
-	return s.SwaggerJSON
+	return s.swagger
 }
 
 func (s ServiceDef) GRPCDesc() *grpc.ServiceDesc {

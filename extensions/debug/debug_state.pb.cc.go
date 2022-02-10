@@ -37,11 +37,6 @@ const (
 	DebugStateServiceChaincode_DeleteStates = DebugStateServiceChaincodeMethodPrefix + "DeleteStates"
 )
 
-// DebugStateServiceChaincodeResolver interface for service resolver
-type DebugStateServiceChaincodeResolver interface {
-	DebugStateServiceChaincode(ctx cckit_router.Context) (DebugStateServiceChaincode, error)
-}
-
 // DebugStateServiceChaincode chaincode methods interface
 type DebugStateServiceChaincode interface {
 	ListKeys(cckit_router.Context, *Prefix) (*CompositeKeys, error)
@@ -109,16 +104,18 @@ func NewDebugStateServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, o
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type DebugStateServiceGateway struct {
-	Invoker cckit_gateway.ChaincodeInvoker
+	Invoker cckit_gateway.ChaincodeInstanceInvoker
 }
 
 // ServiceDef returns service definition
 func (c *DebugStateServiceGateway) ServiceDef() cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
-		Desc:                        &_DebugStateService_serviceDesc,
-		Service:                     c,
-		HandlerFromEndpointRegister: RegisterDebugStateServiceHandlerFromEndpoint,
-	}
+	return cckit_gateway.NewServiceDef(
+		_DebugStateService_serviceDesc.ServiceName,
+		DebugStateServiceSwagger,
+		&_DebugStateService_serviceDesc,
+		c,
+		RegisterDebugStateServiceHandlerFromEndpoint,
+	)
 }
 
 func (c *DebugStateServiceGateway) ListKeys(ctx context.Context, in *Prefix) (*CompositeKeys, error) {

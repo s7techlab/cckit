@@ -97,6 +97,10 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 		pkgs = append(pkgs, []string{"embed", "_"})
 	}
 
+	if g.Opts.ServiceChaincodeResolver {
+		pkgs = append(pkgs, []string{"github.com/s7techlab/cckit/extensions/crosscc", "cckit_croscc"})
+	}
+
 	for _, pkg := range pkgs {
 		pkgSeen[pkg[0]] = true
 		imports = append(imports, g.newGoPackage(pkg[0], pkg[1]))
@@ -174,6 +178,12 @@ func applyTemplate(p TemplateParams) (string, error) {
 
 	if err := gatewayTemplate.Execute(w, p); err != nil {
 		return "", err
+	}
+
+	if p.Opts.ServiceChaincodeResolver {
+		if err := resolverTemplate.Execute(w, p); err != nil {
+			return "", err
+		}
 	}
 
 	return w.String(), nil

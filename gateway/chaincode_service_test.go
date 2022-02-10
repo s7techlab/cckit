@@ -54,7 +54,6 @@ var _ = Describe(`Gateway`, func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			mockStub = testcc.NewMockStub(ChaincodeName, ccImpl)
-
 			peer := testcc.NewPeer().WithChannel(Channel, mockStub)
 
 			ccService = gateway.NewChaincodeService(peer)

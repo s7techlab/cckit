@@ -42,11 +42,6 @@ const (
 	ChaincodeOwnerServiceChaincode_DeleteOwner = ChaincodeOwnerServiceChaincodeMethodPrefix + "DeleteOwner"
 )
 
-// ChaincodeOwnerServiceChaincodeResolver interface for service resolver
-type ChaincodeOwnerServiceChaincodeResolver interface {
-	ChaincodeOwnerServiceChaincode(ctx cckit_router.Context) (ChaincodeOwnerServiceChaincode, error)
-}
-
 // ChaincodeOwnerServiceChaincode chaincode methods interface
 type ChaincodeOwnerServiceChaincode interface {
 	GetOwnerByTxCreator(cckit_router.Context, *emptypb.Empty) (*ChaincodeOwner, error)
@@ -130,16 +125,18 @@ func NewChaincodeOwnerServiceGateway(sdk cckit_sdk.SDK, channel, chaincode strin
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type ChaincodeOwnerServiceGateway struct {
-	Invoker cckit_gateway.ChaincodeInvoker
+	Invoker cckit_gateway.ChaincodeInstanceInvoker
 }
 
 // ServiceDef returns service definition
 func (c *ChaincodeOwnerServiceGateway) ServiceDef() cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
-		Desc:                        &_ChaincodeOwnerService_serviceDesc,
-		Service:                     c,
-		HandlerFromEndpointRegister: RegisterChaincodeOwnerServiceHandlerFromEndpoint,
-	}
+	return cckit_gateway.NewServiceDef(
+		_ChaincodeOwnerService_serviceDesc.ServiceName,
+		ChaincodeOwnerServiceSwagger,
+		&_ChaincodeOwnerService_serviceDesc,
+		c,
+		RegisterChaincodeOwnerServiceHandlerFromEndpoint,
+	)
 }
 
 func (c *ChaincodeOwnerServiceGateway) GetOwnerByTxCreator(ctx context.Context, in *emptypb.Empty) (*ChaincodeOwner, error) {
