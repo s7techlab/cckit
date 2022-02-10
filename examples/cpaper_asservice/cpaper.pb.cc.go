@@ -21,21 +21,25 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// CPaperServiceChaincode  method names
+// CPaperServiceChaincode method names
 const (
-	CPaperServiceChaincode_List = "List"
 
-	CPaperServiceChaincode_Get = "Get"
+	// CPaperServiceChaincodeMethodPrefix allows to use multiple services with same method names in one chaincode
+	CPaperServiceChaincodeMethodPrefix = ""
 
-	CPaperServiceChaincode_GetByExternalId = "GetByExternalId"
+	CPaperServiceChaincode_List = CPaperServiceChaincodeMethodPrefix + "List"
 
-	CPaperServiceChaincode_Issue = "Issue"
+	CPaperServiceChaincode_Get = CPaperServiceChaincodeMethodPrefix + "Get"
 
-	CPaperServiceChaincode_Buy = "Buy"
+	CPaperServiceChaincode_GetByExternalId = CPaperServiceChaincodeMethodPrefix + "GetByExternalId"
 
-	CPaperServiceChaincode_Redeem = "Redeem"
+	CPaperServiceChaincode_Issue = CPaperServiceChaincodeMethodPrefix + "Issue"
 
-	CPaperServiceChaincode_Delete = "Delete"
+	CPaperServiceChaincode_Buy = CPaperServiceChaincodeMethodPrefix + "Buy"
+
+	CPaperServiceChaincode_Redeem = CPaperServiceChaincodeMethodPrefix + "Redeem"
+
+	CPaperServiceChaincode_Delete = CPaperServiceChaincodeMethodPrefix + "Delete"
 )
 
 // CPaperServiceChaincodeResolver interface for service resolver
