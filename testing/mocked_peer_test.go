@@ -22,7 +22,6 @@ var _ = Describe(`Service`, func() {
 
 	var (
 		peer          *testcc.MockedPeerDecorator
-		ccService     *gateway.ChaincodeService
 		cPaperGateway *cpservice.CPaperServiceGateway
 
 		ctx = gateway.ContextWithSigner(
@@ -37,10 +36,9 @@ var _ = Describe(`Service`, func() {
 
 		// peer imitation
 		peer = testcc.NewPeerDecorator(testcc.NewPeer().WithChannel(Channel, testcc.NewMockStub(ChaincodeName, ccImpl)))
-		ccService = gateway.NewChaincodeService(peer)
 
 		// "sdk" for deal with cpaper chaincode
-		cPaperGateway = cpservice.NewCPaperServiceGateway(ccService, Channel, ChaincodeName)
+		cPaperGateway = cpservice.NewCPaperServiceGateway(peer, Channel, ChaincodeName)
 	})
 
 	It("Default invoker", func() {
