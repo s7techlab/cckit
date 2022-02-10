@@ -1,0 +1,333 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "cpaper.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/cpaper": {
+      "get": {
+        "summary": "List method returns all registered commercial papers",
+        "operationId": "List",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cpaperCommercialPaperList"
+            }
+          }
+        },
+        "tags": [
+          "CPaperService"
+        ]
+      }
+    },
+    "/cpaper/buy": {
+      "post": {
+        "summary": "Buy commercial paper",
+        "operationId": "Buy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cpaperCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cpaperBuyCommercialPaper"
+            }
+          }
+        ],
+        "tags": [
+          "CPaperService"
+        ]
+      }
+    },
+    "/cpaper/extid/{id}": {
+      "get": {
+        "summary": "GetByExternalId",
+        "operationId": "GetByExternalId",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cpaperCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CPaperService"
+        ]
+      }
+    },
+    "/cpaper/issue": {
+      "post": {
+        "summary": "Issue commercial paper",
+        "operationId": "Issue",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cpaperCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cpaperIssueCommercialPaper"
+            }
+          }
+        ],
+        "tags": [
+          "CPaperService"
+        ]
+      }
+    },
+    "/cpaper/redeem": {
+      "post": {
+        "summary": "Redeem commercial paper",
+        "operationId": "Redeem",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cpaperCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cpaperRedeemCommercialPaper"
+            }
+          }
+        ],
+        "tags": [
+          "CPaperService"
+        ]
+      }
+    },
+    "/cpaper/{issuer}/{paper_number}": {
+      "get": {
+        "summary": "Get method returns commercial paper data by id",
+        "operationId": "Get",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cpaperCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issuer",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "paper_number",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CPaperService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete commercial paper",
+        "operationId": "Delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cpaperCommercialPaper"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issuer",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "paper_number",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CPaperService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "CommercialPaperState": {
+      "type": "string",
+      "enum": [
+        "STATE_ISSUED",
+        "STATE_TRADING",
+        "STATE_REDEEMED"
+      ],
+      "default": "STATE_ISSUED"
+    },
+    "cpaperBuyCommercialPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "current_owner": {
+          "type": "string"
+        },
+        "new_owner": {
+          "type": "string"
+        },
+        "price": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "purchase_date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "BuyCommercialPaper event"
+    },
+    "cpaperCommercialPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "title": "Issuer and Paper number comprises composite primary key of Commercial paper entry"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "issue_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "maturity_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "face_value": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "state": {
+          "$ref": "#/definitions/CommercialPaperState"
+        },
+        "external_id": {
+          "type": "string",
+          "title": "Additional unique field for entry"
+        }
+      },
+      "title": "Commercial Paper state entry"
+    },
+    "cpaperCommercialPaperList": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cpaperCommercialPaper"
+          }
+        }
+      },
+      "title": "Container for returning multiple entities"
+    },
+    "cpaperIssueCommercialPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "issue_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "maturity_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "face_value": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "external_id": {
+          "type": "string",
+          "title": "external_id  - once more uniq id of state entry"
+        }
+      },
+      "title": "IssueCommercialPaper event"
+    },
+    "cpaperRedeemCommercialPaper": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "string"
+        },
+        "paper_number": {
+          "type": "string"
+        },
+        "redeeming_owner": {
+          "type": "string"
+        },
+        "redeem_date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "RedeemCommercialPaper event"
+    }
+  }
+}
