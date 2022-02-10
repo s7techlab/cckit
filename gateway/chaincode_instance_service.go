@@ -2,51 +2,44 @@ package gateway
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 
+	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/sdk"
 )
 
-type (
-	ChaincodeInstanceService struct {
-		ChaincodeService *ChaincodeService
-		Locator          *ChaincodeLocator
+type ChaincodeInstanceService struct {
+	SDK     sdk.SDK
+	Locator *ChaincodeLocator
+	Opts    *Opts
+}
+
+var _ ChaincodeInstanceServiceServer = &ChaincodeInstanceService{}
+
+func NewChaincodeInstanceService(sdk sdk.SDK, locator *ChaincodeLocator, opts ...OptFunc) *ChaincodeInstanceService {
+	ccInstanceService := &ChaincodeInstanceService{
+		SDK:     sdk,
+		Locator: locator,
+		Opts:    &Opts{},
 	}
 
-	ChaincodeInstanceEventService struct {
-		EventService *ChaincodeEventService
-		Locator      *ChaincodeLocator
+	for _, o := range opts {
+		o(ccInstanceService.Opts)
 	}
-)
 
-func NewChaincodeInstanceService(sdk sdk.SDK, channel, chaincode string, opts ...Opt) *ChaincodeInstanceService {
-	return &ChaincodeInstanceService{
-		ChaincodeService: NewChaincodeService(sdk, opts...),
-		Locator: &ChaincodeLocator{
-			Channel:   channel,
-			Chaincode: chaincode,
-		},
-	}
+	return ccInstanceService
 }
 
 func (cis *ChaincodeInstanceService) EventService() *ChaincodeInstanceEventService {
 	return &ChaincodeInstanceEventService{
-		EventService: cis.ChaincodeService.EventService,
+		EventDelivery: cis.SDK,
 		Locator: &ChaincodeLocator{
 			Channel:   cis.Locator.Channel,
 			Chaincode: cis.Locator.Chaincode,
 		},
-	}
-}
-
-func NewChaincodeInstanceEventService(delivery sdk.EventDelivery, channel, chaincode string, opts ...Opt) *ChaincodeInstanceEventService {
-	return &ChaincodeInstanceEventService{
-		EventService: NewChaincodeEventService(delivery, opts...),
-		Locator: &ChaincodeLocator{
-			Channel:   channel,
-			Chaincode: chaincode,
-		},
+		Opts: cis.Opts,
 	}
 }
 
@@ -58,71 +51,92 @@ func (cis *ChaincodeInstanceService) ServiceDef() ServiceDef {
 	}
 }
 
-func (cis *ChaincodeInstanceService) Exec(ctx context.Context, exec *ChaincodeInstanceExec) (*peer.Response, error) {
-	return cis.ChaincodeService.Exec(ctx, &ChaincodeExec{
-		Type: exec.Type,
-		Input: &ChaincodeInput{
-			Chaincode: cis.Locator,
-			Args:      exec.Input.Args,
-			Transient: exec.Input.Transient,
-		},
-	})
-}
-
-func (cis *ChaincodeInstanceService) Query(ctx context.Context, input *ChaincodeInstanceInput) (*peer.Response, error) {
-	return cis.Exec(ctx, &ChaincodeInstanceExec{
-		Type:  InvocationType_INVOCATION_TYPE_QUERY,
-		Input: input,
-	})
-}
-
-func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, input *ChaincodeInstanceInput) (*peer.Response, error) {
-	return cis.Exec(ctx, &ChaincodeInstanceExec{
-		Type:  InvocationType_INVOCATION_TYPE_INVOKE,
-		Input: input,
-	})
-}
-
-func (cis *ChaincodeInstanceService) EventsStream(request *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceEventsService_EventsStreamServer) error {
-	return cis.ChaincodeService.EventsStream(&ChaincodeEventsStreamRequest{
-		Chaincode: cis.Locator,
-		FromBlock: request.FromBlock,
-		ToBlock:   request.ToBlock,
-		EventName: request.EventName,
-	}, stream)
-}
-
-func (cis *ChaincodeInstanceService) Events(ctx context.Context, request *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
-	return cis.ChaincodeService.Events(ctx, &ChaincodeEventsRequest{
-		Chaincode: cis.Locator,
-		FromBlock: request.FromBlock,
-		ToBlock:   request.ToBlock,
-		EventName: request.EventName,
-	})
-}
-
-func (ces *ChaincodeInstanceEventService) ServiceDef() ServiceDef {
-	return ServiceDef{
-		Desc:                        &_ChaincodeInstanceEventsService_serviceDesc,
-		Service:                     ces,
-		HandlerFromEndpointRegister: RegisterChaincodeInstanceEventsServiceHandlerFromEndpoint,
+func (cis *ChaincodeInstanceService) Exec(ctx context.Context, req *ChaincodeInstanceExecRequest) (*peer.Response, error) {
+	switch req.Type {
+	case InvocationType_INVOCATION_TYPE_QUERY:
+		return cis.Query(ctx, &ChaincodeInstanceQueryRequest{Input: req.Input})
+	case InvocationType_INVOCATION_TYPE_INVOKE:
+		return cis.Invoke(ctx, &ChaincodeInstanceInvokeRequest{Input: req.Input})
+	default:
+		return nil, ErrUnknownInvocationType
 	}
 }
 
-func (ces *ChaincodeInstanceEventService) EventsStream(request *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceEventsService_EventsStreamServer) error {
-	return ces.EventService.EventsStream(&ChaincodeEventsStreamRequest{
-		Chaincode: ces.Locator,
-		FromBlock: request.FromBlock,
-		ToBlock:   request.ToBlock,
-		EventName: request.EventName,
-	}, stream)
+func (cis *ChaincodeInstanceService) Query(ctx context.Context, req *ChaincodeInstanceQueryRequest) (*peer.Response, error) {
+	if err := router.ValidateRequest(req); err != nil {
+		return nil, err
+	}
+
+	signer, _ := SignerFromContext(ctx)
+
+	for _, i := range cis.Opts.Input {
+		if err := i(req.Input); err != nil {
+			return nil, err
+		}
+	}
+
+	response, err := cis.SDK.Query(
+		ctx,
+		cis.Locator.Channel,
+		cis.Locator.Chaincode,
+		req.Input.Args,
+		signer,
+		req.Input.Transient,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query chaincode: %w", err)
+	}
+	for _, o := range cis.Opts.Output {
+		if err = o(InvocationType_INVOCATION_TYPE_QUERY, response); err != nil {
+			return nil, fmt.Errorf(`output opt: %w`, err)
+		}
+	}
+
+	return response, nil
+
 }
 
-func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, request *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
-	return ces.EventService.Events(ctx, &ChaincodeEventsRequest{
-		Chaincode: ces.Locator,
-		FromBlock: request.FromBlock,
-		ToBlock:   request.ToBlock,
-		EventName: request.EventName,
-	})
+func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, req *ChaincodeInstanceInvokeRequest) (*peer.Response, error) {
+	// underlying hlf-sdk(or your implementation must handle it) should handle 'nil' identity cases
+	// and set default if identity wasn't provided here
+	// if smth goes wrong we'll see it on the step below
+	signer, _ := SignerFromContext(ctx)
+
+	for _, i := range cis.Opts.Input {
+		if err := i(req.Input); err != nil {
+			return nil, err
+		}
+	}
+
+	response, _, err := cis.SDK.Invoke(
+		ctx,
+		cis.Locator.Channel,
+		cis.Locator.Chaincode,
+		req.Input.Args,
+		signer,
+		req.Input.Transient,
+		TxWaiterFromContext(ctx),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("invoke chaincode: %w", err)
+	}
+
+	for _, o := range cis.Opts.Output {
+		if err = o(InvocationType_INVOCATION_TYPE_INVOKE, response); err != nil {
+			return nil, fmt.Errorf(`output opt: %w`, err)
+		}
+	}
+
+	return response, nil
+}
+
+func (cis *ChaincodeInstanceService) EventsStream(
+	req *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceService_EventsStreamServer) error {
+	// Chaincode events
+	return cis.EventService().EventsStream(req, stream)
+}
+
+func (cis *ChaincodeInstanceService) Events(
+	ctx context.Context, req *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
+	return cis.EventService().Events(ctx, req)
 }

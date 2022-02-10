@@ -15,7 +15,7 @@ import "mwitkow/go-proto-validators/validator.proto";
 // Chaincode communication service. Allows to locate channel/chaincode.
 service ChaincodeService {
     // Exec: Query or Invoke
-    rpc Exec (ChaincodeExec) returns (protos.Response) {
+    rpc Exec (ChaincodeExecRequest) returns (protos.Response) {
         option (google.api.http) = {
             post: "/chaincode/exec"
             body: "*"
@@ -23,14 +23,14 @@ service ChaincodeService {
     }
 
     // Query chaincode on home peer. Do NOT send to orderer.
-    rpc Query (ChaincodeInput) returns (protos.Response) {
+    rpc Query (ChaincodeQueryRequest) returns (protos.Response) {
         option (google.api.http) = {
             get: "/chaincode/query"
         };
     }
 
     // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
-    rpc Invoke (ChaincodeInput) returns (protos.Response) {
+    rpc Invoke (ChaincodeInvokeRequest) returns (protos.Response) {
         option (google.api.http) = {
             post: "/chaincode/invoke"
             body: "*"
@@ -72,7 +72,7 @@ service ChaincodeEventsService {
 // Chaincode instance communication service. Channel/chaincode already fixed.
 service ChaincodeInstanceService {
     // Exec: Query or Invoke
-    rpc Exec (ChaincodeInstanceExec) returns (protos.Response) {
+    rpc Exec (ChaincodeInstanceExecRequest) returns (protos.Response) {
         option (google.api.http) = {
             post: "/chaincode-instance/exec"
             body: "*"
@@ -80,20 +80,20 @@ service ChaincodeInstanceService {
     }
 
     // Query chaincode on home peer. Do NOT send to orderer.
-    rpc Query (ChaincodeInstanceInput) returns (protos.Response) {
+    rpc Query (ChaincodeInstanceQueryRequest) returns (protos.Response) {
         option (google.api.http) = {
             get: "/chaincode-instance/query"
         };
     }
     // Invoke chaincode on peers, according to endorsement policy and the SEND to orderer
-    rpc Invoke (ChaincodeInstanceInput) returns (protos.Response) {
+    rpc Invoke (ChaincodeInstanceInvokeRequest) returns (protos.Response) {
         option (google.api.http) = {
             post: "/chaincode-instance/invoke"
             body: "*"
         };
     }
     // Chaincode events stream
-    rpc EventsStream (ChaincodeInstanceEventsStreamRequest) returns (stream protos.ChaincodeEvent) {
+    rpc EventsStream (ChaincodeInstanceEventsStreamRequest) returns (stream ChaincodeEvent) {
         option (google.api.http) = {
             get: "/chaincode-instance/events-stream"
         };
@@ -134,57 +134,6 @@ message ChaincodeLocator {
 
 // Chaincode invocation input
 message ChaincodeInput {
-    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
-    // Input contains the arguments for invocation.
-    repeated bytes args = 2;
-
-    // TransientMap contains data (e.g. cryptographic material) that might be used
-    // to implement some form of application-level confidentiality. The contents
-    // of this field are supposed to always be omitted from the transaction and
-    // excluded from the ledger.
-    map<string, bytes> transient = 3;
-}
-
-// Chaincode invocation type
-enum InvocationType {
-    // Simulation
-    INVOCATION_TYPE_QUERY = 0;
-    // Simulation and applying to ledger
-    INVOCATION_TYPE_INVOKE = 1;
-}
-
-// Chaincode execution specification
-message ChaincodeExec {
-    InvocationType type = 1;
-    ChaincodeInput input = 2;
-}
-
-// Block limit number for event stream subscription or event list
-// Values can be negative
-message BlockLimit {
-    // Block number
-    int64 num = 1;
-}
-
-// Chaincode events stream request
-message ChaincodeEventsStreamRequest {
-    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
-    BlockLimit from_block = 2;
-    BlockLimit to_block = 3;
-    repeated string event_name = 4;
-}
-
-// Chaincode events list request
-message ChaincodeEventsRequest {
-    ChaincodeLocator chaincode = 1 [(validator.field) = {msg_exists : true}];
-    BlockLimit from_block = 2;
-    BlockLimit to_block = 3;
-    repeated string event_name = 4;
-    uint32 limit = 5;
-}
-
-// Chaincode instance chaincode input spec
-message ChaincodeInstanceInput {
     // Input contains the arguments for invocation.
     repeated bytes args = 1;
 
@@ -195,9 +144,68 @@ message ChaincodeInstanceInput {
     map<string, bytes> transient = 2;
 }
 
-message ChaincodeInstanceExec {
+
+// Chaincode invocation type
+enum InvocationType {
+    // Simulation
+    INVOCATION_TYPE_QUERY = 0;
+    // Simulation and applying to ledger
+    INVOCATION_TYPE_INVOKE = 1;
+}
+
+// Chaincode execution specification
+message ChaincodeExecRequest {
+    ChaincodeLocator locator = 1 [(validator.field) = {msg_exists : true}];
+    InvocationType type = 2;
+    ChaincodeInput input = 3;
+}
+
+message ChaincodeQueryRequest {
+    ChaincodeLocator locator = 1 [(validator.field) = {msg_exists : true}];
+    ChaincodeInput input = 3;
+}
+
+message ChaincodeInvokeRequest {
+    ChaincodeLocator locator = 1 [(validator.field) = {msg_exists : true}];
+    ChaincodeInput input = 3;
+}
+
+
+// Block limit number for event stream subscription or event list
+// Values can be negative
+message BlockLimit {
+    // Block number
+    int64 num = 1;
+}
+
+// Chaincode events stream request
+message ChaincodeEventsStreamRequest {
+    ChaincodeLocator locator = 1 [(validator.field) = {msg_exists : true}];
+    BlockLimit from_block = 2;
+    BlockLimit to_block = 3;
+    repeated string event_name = 4;
+}
+
+// Chaincode events list request
+message ChaincodeEventsRequest {
+    ChaincodeLocator locator = 1 [(validator.field) = {msg_exists : true}];
+    BlockLimit from_block = 2;
+    BlockLimit to_block = 3;
+    repeated string event_name = 4;
+    uint32 limit = 5;
+}
+
+message ChaincodeInstanceExecRequest {
     InvocationType type = 1;
-    ChaincodeInstanceInput input = 2;
+    ChaincodeInput input = 2;
+}
+
+message ChaincodeInstanceQueryRequest {
+    ChaincodeInput input = 1;
+}
+
+message ChaincodeInstanceInvokeRequest {
+    ChaincodeInput input = 1;
 }
 
 message ChaincodeInstanceEventsStreamRequest {
@@ -214,7 +222,7 @@ message ChaincodeInstanceEventsRequest {
 }
 
 message ChaincodeEvents {
-    ChaincodeLocator chaincode = 1;
+    ChaincodeLocator locator = 1 [(validator.field) = {msg_exists : true}];
     BlockLimit from_block = 2;
     BlockLimit to_block = 3;
     repeated ChaincodeEvent items = 4;

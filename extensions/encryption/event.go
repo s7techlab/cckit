@@ -5,6 +5,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
 )

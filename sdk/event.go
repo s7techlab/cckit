@@ -9,22 +9,6 @@ import (
 )
 
 type (
-	Reader interface {
-		Evaluator
-		EventDelivery
-	}
-
-	Evaluator interface {
-		Query(
-			ctx context.Context,
-			chanName string,
-			ccName string,
-			args [][]byte,
-			identity msp.SigningIdentity,
-			transient map[string][]byte,
-		) (*peer.Response, error)
-	}
-
 	EventDelivery interface {
 
 		// Events returns peer chaincode events stream

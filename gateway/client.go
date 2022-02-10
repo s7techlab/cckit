@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
+
 	"github.com/s7techlab/cckit/state"
 )
 
@@ -17,7 +18,7 @@ type chaincodeClient struct {
 	Chaincode string
 }
 
-func NewChaincodeClient(channelName, chaincodeName string, opts ...Opt) *chaincodeClient {
+func NewChaincodeClient(channelName, chaincodeName string, opts ...OptFunc) *chaincodeClient {
 	c := &chaincodeClient{
 		Channel:   channelName,
 		Chaincode: chaincodeName,

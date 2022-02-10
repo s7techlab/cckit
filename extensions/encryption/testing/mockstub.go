@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"crypto/rand"
 	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
@@ -9,24 +10,6 @@ import (
 	"github.com/s7techlab/cckit/response"
 	testcc "github.com/s7techlab/cckit/testing"
 )
-
-// MockInvoke helper for invoking MockStub with transient key and encrypted args
-func MockInvoke(cc *testcc.MockStub, encKey []byte, args ...interface{}) peer.Response {
-	encArgs, err := encryption.EncryptArgs(encKey, args...)
-	if err != nil {
-		return response.Error(`unable to encrypt input args`)
-	}
-	return cc.AddTransient(encryption.TransientMapWithKey(encKey)).InvokeBytes(encArgs...)
-}
-
-// MockQuery helper for querying MockStub with transient key and encrypted args
-func MockQuery(cc *testcc.MockStub, encKey []byte, args ...interface{}) peer.Response {
-	encArgs, err := encryption.EncryptArgs(encKey, args...)
-	if err != nil {
-		return response.Error(`unable to encrypt input args`)
-	}
-	return cc.AddTransient(encryption.TransientMapWithKey(encKey)).QueryBytes(encArgs...)
-}
 
 // MockStub wrapper for querying and invoking encrypted chaincode
 type MockStub struct {
@@ -38,9 +21,22 @@ type MockStub struct {
 	DecryptInvokeResponse bool
 }
 
+func RandKey() []byte {
+	encKey := make([]byte, 32)
+	_, _ = rand.Read(encKey)
+	return encKey
+}
+
 // NewMockStub creates wrapper for querying and invoking encrypted chaincode
-func NewMockStub(mockStub *testcc.MockStub, encKey []byte) *MockStub {
-	return &MockStub{MockStub: mockStub, EncKey: encKey}
+func NewMockStub(mockStub *testcc.MockStub, encKeys ...[]byte) *MockStub {
+	encKey := RandKey()
+	if len(encKeys) == 1 {
+		encKey = encKeys[0]
+	}
+
+	return &MockStub{
+		MockStub: mockStub,
+		EncKey:   encKey}
 }
 
 func (s *MockStub) Invoke(args ...interface{}) (response peer.Response) {

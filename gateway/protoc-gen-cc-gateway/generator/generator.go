@@ -91,6 +91,7 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 		{"github.com/s7techlab/cckit/gateway", "cckit_gateway"},
 		{"github.com/s7techlab/cckit/router", "cckit_router"},
 		{"github.com/s7techlab/cckit/router/param/defparam", "cckit_defparam"},
+		{"github.com/s7techlab/cckit/sdk", "cckit_sdk"},
 	}
 
 	if g.EmbedSwagger {

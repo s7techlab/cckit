@@ -90,15 +90,22 @@ var gatewayTemplate = template.Must(template.New("gateway").Funcs(funcMap).Optio
 {{ end }}
 
 // New{{ $svc.GetName }}Gateway creates gateway to access chaincode method via chaincode service
-func New{{ $svc.GetName }}Gateway(ccService cckit_gateway.ChaincodeServiceServer, channel, chaincode string, opts ...cckit_gateway.Opt) *{{ $svc.GetName }}Gateway {
-	return &{{ $svc.GetName }}Gateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
+func New{{ $svc.GetName }}Gateway(sdk cckit_sdk.SDK , channel, chaincode string, opts ...cckit_gateway.OptFunc) *{{ $svc.GetName }}Gateway {
+	return &{{ $svc.GetName }}Gateway{
+       Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
+              ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService (
+                sdk, 
+                &cckit_gateway.ChaincodeLocator { Channel : channel, Chaincode: chaincode },
+                opts...),
+       },
+    }
 }
 
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type {{ $svc.GetName }}Gateway struct {
-	Gateway cckit_gateway.Chaincode
+	Invoker cckit_gateway.ChaincodeInvoker
 }
 
 // ServiceDef returns service definition
@@ -109,15 +116,7 @@ func (c *{{ $svc.GetName }}Gateway) ServiceDef() cckit_gateway.ServiceDef {
 		HandlerFromEndpointRegister: Register{{ $svc.GetName }}HandlerFromEndpoint,
 	}
 }
-// ApiDef deprecated, use ServiceDef
-func (c *{{ $svc.GetName }}Gateway) ApiDef() cckit_gateway.ServiceDef {
-   return c.ServiceDef()
-}
 
-// Events returns events subscription
-func (c *{{ $svc.GetName }}Gateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
-   return c.Gateway.Events(ctx)
-}
 
  {{ range $m := $svc.Methods }}
  {{ $method := "Invoke"}}
@@ -131,7 +130,7 @@ func (c *{{ $svc.GetName }}Gateway) Events(ctx context.Context) (cckit_gateway.C
 	   } 
      }
 
-    if res, err := c.Gateway.{{ $method }}(ctx, {{ $svc.GetName }}Chaincode_{{ $m.GetName }} , []interface{}{in}, &{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}); err != nil {
+    if res, err := c.Invoker.{{ $method }}(ctx, {{ $svc.GetName }}Chaincode_{{ $m.GetName }} , []interface{}{in}, &{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}), nil

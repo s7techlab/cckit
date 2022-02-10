@@ -130,7 +130,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/gatewayChaincodeInstanceExec"
+              "$ref": "#/definitions/gatewayChaincodeInstanceExecRequest"
             }
           }
         ],
@@ -157,7 +157,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/gatewayChaincodeInstanceInput"
+              "$ref": "#/definitions/gatewayChaincodeInstanceInvokeRequest"
             }
           }
         ],
@@ -180,7 +180,7 @@
         },
         "parameters": [
           {
-            "name": "args",
+            "name": "input.args",
             "description": "Input contains the arguments for invocation.",
             "in": "query",
             "required": false,
@@ -211,14 +211,14 @@
         },
         "parameters": [
           {
-            "name": "chaincode.chaincode",
+            "name": "locator.chaincode",
             "description": "Chaincode name.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "chaincode.channel",
+            "name": "locator.channel",
             "description": "Channel name.",
             "in": "query",
             "required": false,
@@ -277,14 +277,14 @@
         },
         "parameters": [
           {
-            "name": "chaincode.chaincode",
+            "name": "locator.chaincode",
             "description": "Chaincode name.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "chaincode.channel",
+            "name": "locator.channel",
             "description": "Channel name.",
             "in": "query",
             "required": false,
@@ -340,7 +340,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/gatewayChaincodeExec"
+              "$ref": "#/definitions/gatewayChaincodeExecRequest"
             }
           }
         ],
@@ -367,7 +367,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/gatewayChaincodeInput"
+              "$ref": "#/definitions/gatewayChaincodeInvokeRequest"
             }
           }
         ],
@@ -390,21 +390,21 @@
         },
         "parameters": [
           {
-            "name": "chaincode.chaincode",
+            "name": "locator.chaincode",
             "description": "Chaincode name.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "chaincode.channel",
+            "name": "locator.channel",
             "description": "Channel name.",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "args",
+            "name": "input.args",
             "description": "Input contains the arguments for invocation.",
             "in": "query",
             "required": false,
@@ -456,7 +456,7 @@
     "gatewayChaincodeEvents": {
       "type": "object",
       "properties": {
-        "chaincode": {
+        "locator": {
           "$ref": "#/definitions/gatewayChaincodeLocator"
         },
         "from_block": {
@@ -473,9 +473,12 @@
         }
       }
     },
-    "gatewayChaincodeExec": {
+    "gatewayChaincodeExecRequest": {
       "type": "object",
       "properties": {
+        "locator": {
+          "$ref": "#/definitions/gatewayChaincodeLocator"
+        },
         "type": {
           "$ref": "#/definitions/gatewayInvocationType"
         },
@@ -488,9 +491,6 @@
     "gatewayChaincodeInput": {
       "type": "object",
       "properties": {
-        "chaincode": {
-          "$ref": "#/definitions/gatewayChaincodeLocator"
-        },
         "args": {
           "type": "array",
           "items": {
@@ -510,38 +510,35 @@
       },
       "title": "Chaincode invocation input"
     },
-    "gatewayChaincodeInstanceExec": {
+    "gatewayChaincodeInstanceExecRequest": {
       "type": "object",
       "properties": {
         "type": {
           "$ref": "#/definitions/gatewayInvocationType"
         },
         "input": {
-          "$ref": "#/definitions/gatewayChaincodeInstanceInput"
+          "$ref": "#/definitions/gatewayChaincodeInput"
         }
       }
     },
-    "gatewayChaincodeInstanceInput": {
+    "gatewayChaincodeInstanceInvokeRequest": {
       "type": "object",
       "properties": {
-        "args": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "byte"
-          },
-          "description": "Input contains the arguments for invocation."
-        },
-        "transient": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string",
-            "format": "byte"
-          },
-          "description": "TransientMap contains data (e.g. cryptographic material) that might be used\nto implement some form of application-level confidentiality. The contents\nof this field are supposed to always be omitted from the transaction and\nexcluded from the ledger."
+        "input": {
+          "$ref": "#/definitions/gatewayChaincodeInput"
         }
-      },
-      "title": "Chaincode instance chaincode input spec"
+      }
+    },
+    "gatewayChaincodeInvokeRequest": {
+      "type": "object",
+      "properties": {
+        "locator": {
+          "$ref": "#/definitions/gatewayChaincodeLocator"
+        },
+        "input": {
+          "$ref": "#/definitions/gatewayChaincodeInput"
+        }
+      }
     },
     "gatewayChaincodeLocator": {
       "type": "object",
@@ -665,18 +662,6 @@
         }
       },
       "title": "Stream result of cckitgatewayChaincodeEvent"
-    },
-    "protosChaincodeEvent": {
-      "type": "object",
-      "properties": {
-        "result": {
-          "$ref": "#/definitions/protosChaincodeEvent"
-        },
-        "error": {
-          "$ref": "#/definitions/runtimeStreamError"
-        }
-      },
-      "title": "Stream result of protosChaincodeEvent"
     }
   }
 }
