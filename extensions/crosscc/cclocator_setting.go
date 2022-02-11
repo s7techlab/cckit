@@ -28,6 +28,10 @@ func LocatorResolver(c SettingServiceChaincode) gateway.ChaincodeLocatorResolver
 	}
 }
 
+func (c *SettingService) LocatorResolver() gateway.ChaincodeLocatorResolver {
+	return LocatorResolver(c)
+}
+
 func (c *SettingService) ServiceLocatorSet(ctx router.Context, locatorSet *ServiceLocatorSetRequest) (*ServiceLocator, error) {
 	if err := router.ValidateRequest(locatorSet); err != nil {
 		return nil, err
