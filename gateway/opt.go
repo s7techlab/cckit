@@ -27,6 +27,8 @@ type (
 	}
 
 	OptFunc func(*Opts)
+	// Deprecated: use OptFunc
+	Opt = OptFunc
 
 	ContextOpt func(ctx context.Context) context.Context
 	InputOpt   func(input *ChaincodeInput) error
