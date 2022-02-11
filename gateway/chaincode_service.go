@@ -42,7 +42,7 @@ func NewChaincodeEventService(eventDelivery sdk.EventDelivery) *ChaincodeEventSe
 }
 
 // InstanceService returns ChaincodeInstanceService for current Peer interface and provided channel and chaincode name
-func (cs *ChaincodeService) InstanceService(locator *ChaincodeLocator, opts ...OptFunc) *ChaincodeInstanceService {
+func (cs *ChaincodeService) InstanceService(locator *ChaincodeLocator, opts ...Opt) *ChaincodeInstanceService {
 	return NewChaincodeInstanceService(cs.SDK, locator, opts...)
 }
 
@@ -93,4 +93,13 @@ func (cs *ChaincodeService) Events(ctx context.Context, req *ChaincodeEventsRequ
 		return nil, err
 	}
 	return cs.EventService.Events(ctx, req)
+}
+
+func (cs *ChaincodeService) EventsChan(
+	ctx context.Context, req *ChaincodeEventsStreamRequest) (_ chan *ChaincodeEvent, closer func() error, _ error) {
+	if err := router.ValidateRequest(req); err != nil {
+		return nil, nil, err
+	}
+
+	return cs.EventService.EventsChan(ctx, req)
 }

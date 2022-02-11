@@ -26,9 +26,7 @@ type (
 		Opts    Opts
 	}
 
-	OptFunc func(*Opts)
-	// Deprecated: use OptFunc
-	Opt = OptFunc
+	Opt func(*Opts)
 
 	ContextOpt func(ctx context.Context) context.Context
 	InputOpt   func(input *ChaincodeInput) error
@@ -36,7 +34,7 @@ type (
 	EventOpt   func(event *ChaincodeEvent) error
 )
 
-func WithDefaultSigner(defaultSigner msp.SigningIdentity) OptFunc {
+func WithDefaultSigner(defaultSigner msp.SigningIdentity) Opt {
 	return func(opts *Opts) {
 		opts.Context = append(opts.Context, func(ctx context.Context) context.Context {
 			return ContextWithDefaultSigner(ctx, defaultSigner)
@@ -44,7 +42,7 @@ func WithDefaultSigner(defaultSigner msp.SigningIdentity) OptFunc {
 	}
 }
 
-func WithDefaultTransientMapValue(key string, value []byte) OptFunc {
+func WithDefaultTransientMapValue(key string, value []byte) Opt {
 	return func(o *Opts) {
 		o.Input = append(o.Input, func(input *ChaincodeInput) error {
 			if input.Transient == nil {
@@ -58,7 +56,7 @@ func WithDefaultTransientMapValue(key string, value []byte) OptFunc {
 	}
 }
 
-func WithEncryption(encKey []byte) OptFunc {
+func WithEncryption(encKey []byte) Opt {
 	return func(o *Opts) {
 		WithDefaultTransientMapValue(encryption.TransientMapKey, encKey)(o)
 		WithArgsEncryption(encKey)(o)
@@ -67,7 +65,7 @@ func WithEncryption(encKey []byte) OptFunc {
 	}
 }
 
-func WithArgsEncryption(encKey []byte) OptFunc {
+func WithArgsEncryption(encKey []byte) Opt {
 	return func(o *Opts) {
 		o.Input = append(o.Input, func(ccInput *ChaincodeInput) (err error) {
 			ccInput.Args, err = encryption.EncryptArgsBytes(encKey, ccInput.Args)
@@ -76,7 +74,7 @@ func WithArgsEncryption(encKey []byte) OptFunc {
 	}
 }
 
-func WithInvokePayloadDecryption(encKey []byte) OptFunc {
+func WithInvokePayloadDecryption(encKey []byte) Opt {
 	return func(o *Opts) {
 		o.Output = append(o.Output, func(action InvocationType, r *peer.Response) (err error) {
 			if action != InvocationType_INVOCATION_TYPE_INVOKE {
@@ -91,7 +89,7 @@ func WithInvokePayloadDecryption(encKey []byte) OptFunc {
 	}
 }
 
-func WithEventDecryption(encKey []byte) OptFunc {
+func WithEventDecryption(encKey []byte) Opt {
 	return func(o *Opts) {
 		o.Event = append(o.Event, func(e *ChaincodeEvent) error {
 			de, err := encryption.DecryptEvent(encKey, e.Event)
@@ -105,7 +103,7 @@ func WithEventDecryption(encKey []byte) OptFunc {
 	}
 }
 
-func WithEventResolver(resolver mapping.EventResolver) OptFunc {
+func WithEventResolver(resolver mapping.EventResolver) Opt {
 	return func(o *Opts) {
 		o.Event = append(o.Event, func(e *ChaincodeEvent) error {
 			eventPayload, err := resolver.Resolve(e.Event.EventName, e.Event.Payload)

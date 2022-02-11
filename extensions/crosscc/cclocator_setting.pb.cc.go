@@ -91,7 +91,7 @@ func RegisterSettingServiceChaincode(r *cckit_router.Group, cc SettingServiceCha
 var SettingServiceSwagger []byte
 
 // NewSettingServiceGateway creates gateway to access chaincode method via chaincode service
-func NewSettingServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.OptFunc) *SettingServiceGateway {
+func NewSettingServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.Opt) *SettingServiceGateway {
 	return &SettingServiceGateway{
 		Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
 			ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService(

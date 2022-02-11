@@ -44,3 +44,13 @@ func (ce *ChaincodeEventService) EventsStream(req *ChaincodeEventsStreamRequest,
 			EventName: req.EventName,
 		}, stream)
 }
+
+func (ce *ChaincodeEventService) EventsChan(
+	ctx context.Context, req *ChaincodeEventsStreamRequest) (_ chan *ChaincodeEvent, closer func() error, _ error) {
+	return NewChaincodeInstanceEventService(ce.EventDelivery, req.Locator.Channel, req.Locator.Chaincode).
+		EventsChan(ctx, &ChaincodeInstanceEventsStreamRequest{
+			FromBlock: req.FromBlock,
+			ToBlock:   req.ToBlock,
+			EventName: req.EventName,
+		})
+}

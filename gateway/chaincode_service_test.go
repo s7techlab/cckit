@@ -178,7 +178,7 @@ var _ = Describe(`Gateway`, func() {
 
 			encMockStub *enctest.MockStub
 
-			encryptOpts []gateway.OptFunc
+			encryptOpts []gateway.Opt
 		)
 
 		It("Init", func() {
@@ -187,7 +187,7 @@ var _ = Describe(`Gateway`, func() {
 
 			encMockStub = enctest.NewMockStub(testcc.NewMockStub(ChaincodeName, ccImpl))
 
-			encryptOpts = []gateway.OptFunc{
+			encryptOpts = []gateway.Opt{
 				gateway.WithEncryption(encMockStub.EncKey),
 				// Event resolver should be AFTER encryption / decryption middleware
 				gateway.WithEventResolver(cpservice.EventMappings),
@@ -331,24 +331,34 @@ var _ = Describe(`Gateway`, func() {
 
 		})
 
-		Context(`Chaincode gateway`, func() {
+		Context(`Events delivery`, func() {
 
-			It(`allow to get events as LIST from chaincode instance service (by default from block 0 to current channel height) `, func(done Done) {
-				events, err := ccInstanceService.Events(ctx, &gateway.ChaincodeInstanceEventsRequest{
+			//It(`allow to get events as LIST from chaincode instance service (by default from block 0 to current channel height) `, func(done Done) {
+			//	events, err := ccInstanceService.Events(ctx, &gateway.ChaincodeInstanceEventsRequest{
+			//		EventName: []string{`IssueCommercialPaper`},
+			//	})
+			//
+			//	Expect(err).NotTo(HaveOccurred())
+			//	Expect(events.Items).To(HaveLen(1)) // 1 event on issue
+			//
+			//	close(done)
+			//})
+
+			It(`allow to get events as chan from chaincode instance service (by default from block 0 to current channel height) `, func(done Done) {
+				events, closer, err := ccInstanceService.EventsChan(ctx, &gateway.ChaincodeInstanceEventsStreamRequest{
 					EventName: []string{`IssueCommercialPaper`},
+					FromBlock: &gateway.BlockLimit{Num: 0},
 				})
 
 				Expect(err).NotTo(HaveOccurred())
-				Expect(events.Items).To(HaveLen(1)) // 1 event on issue
 
+				event := <-events
+				Expect(event.Event.EventName).To(Equal(`IssueCommercialPaper`))
+
+				_ = closer()
 				close(done)
 			})
-
 		})
-	})
-
-	Context(`Cross chaincode invoker`, func() {
-
 	})
 
 })

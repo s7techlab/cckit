@@ -90,7 +90,7 @@ func RegisterDebugStateServiceChaincode(r *cckit_router.Group, cc DebugStateServ
 var DebugStateServiceSwagger []byte
 
 // NewDebugStateServiceGateway creates gateway to access chaincode method via chaincode service
-func NewDebugStateServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.OptFunc) *DebugStateServiceGateway {
+func NewDebugStateServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.Opt) *DebugStateServiceGateway {
 	return &DebugStateServiceGateway{
 		Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
 			ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService(

@@ -18,7 +18,7 @@ type ChaincodeInstanceService struct {
 
 var _ ChaincodeInstanceServiceServer = &ChaincodeInstanceService{}
 
-func NewChaincodeInstanceService(sdk sdk.SDK, locator *ChaincodeLocator, opts ...OptFunc) *ChaincodeInstanceService {
+func NewChaincodeInstanceService(sdk sdk.SDK, locator *ChaincodeLocator, opts ...Opt) *ChaincodeInstanceService {
 	ccInstanceService := &ChaincodeInstanceService{
 		SDK:     sdk,
 		Locator: locator,
@@ -132,11 +132,15 @@ func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, req *ChaincodeI
 
 func (cis *ChaincodeInstanceService) EventsStream(
 	req *ChaincodeInstanceEventsStreamRequest, stream ChaincodeInstanceService_EventsStreamServer) error {
-	// Chaincode events
 	return cis.EventService().EventsStream(req, stream)
 }
 
 func (cis *ChaincodeInstanceService) Events(
 	ctx context.Context, req *ChaincodeInstanceEventsRequest) (*ChaincodeEvents, error) {
 	return cis.EventService().Events(ctx, req)
+}
+
+func (cis *ChaincodeInstanceService) EventsChan(
+	ctx context.Context, req *ChaincodeInstanceEventsStreamRequest) (_ chan *ChaincodeEvent, closer func() error, _ error) {
+	return cis.EventService().EventsChan(ctx, req)
 }

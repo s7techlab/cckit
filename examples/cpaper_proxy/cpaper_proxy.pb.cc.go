@@ -51,7 +51,7 @@ func RegisterCPaperProxyServiceChaincode(r *cckit_router.Group, cc CPaperProxySe
 var CPaperProxyServiceSwagger []byte
 
 // NewCPaperProxyServiceGateway creates gateway to access chaincode method via chaincode service
-func NewCPaperProxyServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.OptFunc) *CPaperProxyServiceGateway {
+func NewCPaperProxyServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperProxyServiceGateway {
 	return &CPaperProxyServiceGateway{
 		Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
 			ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService(

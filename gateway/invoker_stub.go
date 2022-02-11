@@ -32,6 +32,10 @@ func (c *LocatorChaincodeStubInvoker) Query(
 		return nil, err
 	}
 
+	// if target chaincode is encrypted we can only access to target chaincode via dummy `StateGet`,
+	// without method name and arg decryption on target chaincode side
+	// because transient data cannot be passed via stub.InvokeChaincode call
+
 	response := stub.InvokeChaincode(c.Locator.Chaincode, argsBytes, c.Locator.Channel)
 	if response.Status != shim.OK {
 		return nil, fmt.Errorf(`cross chaincode=%s, channel=%s invoke: %w`,

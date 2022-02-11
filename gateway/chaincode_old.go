@@ -32,13 +32,13 @@ type ChaincodeEventSub interface {
 }
 
 type chaincode struct {
-	Service   ChaincodeServiceServer
+	Service   *ChaincodeService
 	Channel   string
 	Chaincode string
 }
 
 // Deprecated: use NewChaincodeInvoker
-func NewChaincode(service ChaincodeServiceServer, channelName, chaincodeName string, opts ...OptFunc) *chaincode {
+func NewChaincode(service *ChaincodeService, channelName, chaincodeName string, opts ...Opt) *chaincode {
 	c := &chaincode{
 		Service:   service,
 		Channel:   channelName,
@@ -48,17 +48,28 @@ func NewChaincode(service ChaincodeServiceServer, channelName, chaincodeName str
 	return c
 }
 
-// Deprecated: use ChaincodeInstanceEventDelivery
-func (c *chaincode) Events(ctx context.Context, r ...*ChaincodeInstanceEventsStreamRequest) (ChaincodeEventSub, error) {
-	panic(`use ChaincodeInstanceEventDelivery`)
-}
-
 func (c *chaincode) Locator() *ChaincodeLocator {
 	return &ChaincodeLocator{
 		Channel:   c.Channel,
 		Chaincode: c.Chaincode,
 	}
 }
+
+// Deprecated: use ChaincodeInstanceEventDelivery
+// ChaincodeInstance for converting to new model
+func (c *chaincode) ChaincodeInstance() *ChaincodeInstanceService {
+	return c.Service.InstanceService(c.Locator())
+}
+
+// Deprecated: use ChaincodeInstanceEventDelivery
+func (c *chaincode) Events(ctx context.Context, r ...*ChaincodeInstanceEventsStreamRequest) (_ chan<- *ChaincodeEvent, closer func() error, _ error) {
+	req := &ChaincodeInstanceEventsStreamRequest{}
+	if len(r) == 1 {
+		req = r[0]
+	}
+	return c.ChaincodeInstance().EventsChan(ctx, req)
+}
+
 func (c *chaincode) Query(ctx context.Context, fn string, args []interface{}, target interface{}) (interface{}, error) {
 	ccInput, err := ccInput(ctx, fn, args)
 	if err != nil {

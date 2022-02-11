@@ -4,6 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/hyperledger/fabric-protos-go/peer"
+	"go.uber.org/zap"
+
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/sdk"
 )
@@ -12,18 +16,20 @@ type ChaincodeInstanceEventService struct {
 	EventDelivery sdk.EventDelivery
 	Locator       *ChaincodeLocator
 	Opts          *Opts
+	Logger        *zap.Logger
 }
 
 var _ ChaincodeInstanceEventsServiceServer = &ChaincodeInstanceEventService{}
 
-func NewChaincodeInstanceEventService(delivery sdk.EventDelivery, channel, chaincode string, opts ...OptFunc) *ChaincodeInstanceEventService {
+func NewChaincodeInstanceEventService(delivery sdk.EventDelivery, channel, chaincode string, opts ...Opt) *ChaincodeInstanceEventService {
 	cis := &ChaincodeInstanceEventService{
 		EventDelivery: delivery,
 		Locator: &ChaincodeLocator{
 			Channel:   channel,
 			Chaincode: chaincode,
 		},
-		Opts: &Opts{},
+		Opts:   &Opts{},
+		Logger: zap.NewNop(),
 	}
 
 	for _, o := range opts {
@@ -48,7 +54,6 @@ func (ces *ChaincodeInstanceEventService) EventsStream(
 	}
 
 	signer, _ := SignerFromContext(stream.Context())
-
 	events, closer, err := ces.EventDelivery.Events(
 		stream.Context(),
 		ces.Locator.Channel,
@@ -66,28 +71,21 @@ func (ces *ChaincodeInstanceEventService) EventsStream(
 		case <-stream.Context().Done():
 			return closer()
 
-		case event, ok := <-events:
+		case e, ok := <-events:
 			if !ok {
 				return nil
 			}
 
-			ccEvent := &ChaincodeEvent{
-				Event:       event.Event(),
-				Block:       event.Block(),
-				TxTimestamp: event.TxTimestamp(),
-			}
-			for _, o := range ces.Opts.Event {
-				_ = o(ccEvent)
+			processedEvent, err := ProcessEvent(e, ces.Opts.Event, req.EventName)
+			if err != nil {
+				ces.Logger.Warn(`event processing`, zap.Error(err))
 			}
 
-			if !MatchEventName(event.Event().EventName, req.EventName) {
-				continue
+			if processedEvent != nil {
+				if err = stream.Send(processedEvent); err != nil {
+					return err
+				}
 			}
-
-			if err = stream.Send(ccEvent); err != nil {
-				return err
-			}
-
 		}
 	}
 }
@@ -97,13 +95,12 @@ func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, req *Chain
 		return nil, err
 	}
 
-	signer, _ := SignerFromContext(ctx)
-
 	// for event _list_ default block range is up to current channel height
 	if req.ToBlock == nil {
 		req.ToBlock = &BlockLimit{Num: 0}
 	}
 
+	signer, _ := SignerFromContext(ctx)
 	eventStream, closer, err := ces.EventDelivery.Events(
 		ctx,
 		ces.Locator.Channel,
@@ -139,31 +136,90 @@ func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, req *Chain
 			// return values if events are not streamed
 			return events, nil
 
-		case event, hasMore := <-eventStream:
+		case e, hasMore := <-eventStream:
 			if !hasMore {
 				_ = closer()
 				return events, nil
 			}
 
-			ccEvent := &ChaincodeEvent{
-				Event:       event.Event(),
-				Block:       event.Block(),
-				TxTimestamp: event.TxTimestamp(),
+			processedEvent, err := ProcessEvent(e, ces.Opts.Event, req.EventName)
+			if err != nil {
+				ces.Logger.Warn(`event processing`, zap.Error(err))
 			}
 
-			for _, o := range ces.Opts.Event {
-				_ = o(ccEvent)
+			if processedEvent != nil {
+				events.Items = append(events.Items, processedEvent)
 			}
 
-			if !MatchEventName(ccEvent.Event.EventName, req.EventName) {
-				continue
-			}
-
-			events.Items = append(events.Items, ccEvent)
 			ticker.Reset(EventListStreamTimeout)
 		}
 	}
+}
 
+// EventsChan not from ChaincodeInstanceEventService interface, for calls as component
+func (ces *ChaincodeInstanceEventService) EventsChan(ctx context.Context, req *ChaincodeInstanceEventsStreamRequest) (_ chan *ChaincodeEvent, closer func() error, _ error) {
+	if err := router.ValidateRequest(req); err != nil {
+		return nil, nil, err
+	}
+
+	signer, _ := SignerFromContext(ctx)
+	events, deliveryCloser, err := ces.EventDelivery.Events(
+		ctx,
+		ces.Locator.Channel,
+		ces.Locator.Chaincode,
+		signer,
+		BlockRange(req.FromBlock, req.ToBlock)...,
+	)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	eventsProcessed := make(chan *ChaincodeEvent)
+
+	closer = func() error {
+		return deliveryCloser()
+	}
+
+	go func() {
+		for e := range events {
+			eventProcessed, err := ProcessEvent(e, ces.Opts.Event, req.EventName)
+
+			if err != nil {
+				ces.Logger.Warn(`event processing`, zap.Error(err))
+			}
+			if eventProcessed != nil {
+				eventsProcessed <- eventProcessed
+			}
+		}
+		close(eventsProcessed)
+	}()
+
+	return eventsProcessed, closer, nil
+}
+
+func ProcessEvent(event interface {
+	Event() *peer.ChaincodeEvent
+	Block() uint64
+	TxTimestamp() *timestamp.Timestamp
+}, opts []EventOpt, matchName []string) (*ChaincodeEvent, error) {
+
+	processedEvent := &ChaincodeEvent{
+		Event:       event.Event(),
+		Block:       event.Block(),
+		TxTimestamp: event.TxTimestamp(),
+	}
+	for _, o := range opts {
+		if err := o(processedEvent); err != nil {
+			return processedEvent, err
+		}
+	}
+
+	if !MatchEventName(event.Event().EventName, matchName) {
+		return nil, nil
+	}
+
+	return processedEvent, nil
 }
 
 func BlockRange(from, to *BlockLimit) []int64 {

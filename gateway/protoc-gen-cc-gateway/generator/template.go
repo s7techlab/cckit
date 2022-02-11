@@ -97,7 +97,7 @@ var gatewayTemplate = template.Must(template.New("gateway").Funcs(funcMap).Optio
 
 
 // New{{ $svc.GetName }}Gateway creates gateway to access chaincode method via chaincode service
-func New{{ $svc.GetName }}Gateway(sdk cckit_sdk.SDK , channel, chaincode string, opts ...cckit_gateway.OptFunc) *{{ $svc.GetName }}Gateway {
+func New{{ $svc.GetName }}Gateway(sdk cckit_sdk.SDK , channel, chaincode string, opts ...cckit_gateway.Opt) *{{ $svc.GetName }}Gateway {
 	return &{{ $svc.GetName }}Gateway{
        Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
               ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService (
