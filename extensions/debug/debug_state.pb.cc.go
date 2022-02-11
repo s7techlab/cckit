@@ -91,13 +91,17 @@ var DebugStateServiceSwagger []byte
 
 // NewDebugStateServiceGateway creates gateway to access chaincode method via chaincode service
 func NewDebugStateServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.Opt) *DebugStateServiceGateway {
+	return NewDebugStateServiceGatewayFromInstance(
+		cckit_gateway.NewChaincodeInstanceService(
+			sdk,
+			&cckit_gateway.ChaincodeLocator{Channel: channel, Chaincode: chaincode},
+			opts...,
+		))
+}
+
+func NewDebugStateServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *DebugStateServiceGateway {
 	return &DebugStateServiceGateway{
-		Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
-			ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService(
-				sdk,
-				&cckit_gateway.ChaincodeLocator{Channel: channel, Chaincode: chaincode},
-				opts...),
-		},
+		Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
 	}
 }
 

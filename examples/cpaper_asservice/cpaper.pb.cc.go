@@ -113,13 +113,17 @@ var CPaperServiceSwagger []byte
 
 // NewCPaperServiceGateway creates gateway to access chaincode method via chaincode service
 func NewCPaperServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.Opt) *CPaperServiceGateway {
+	return NewCPaperServiceGatewayFromInstance(
+		cckit_gateway.NewChaincodeInstanceService(
+			sdk,
+			&cckit_gateway.ChaincodeLocator{Channel: channel, Chaincode: chaincode},
+			opts...,
+		))
+}
+
+func NewCPaperServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *CPaperServiceGateway {
 	return &CPaperServiceGateway{
-		Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
-			ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService(
-				sdk,
-				&cckit_gateway.ChaincodeLocator{Channel: channel, Chaincode: chaincode},
-				opts...),
-		},
+		Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
 	}
 }
 

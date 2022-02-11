@@ -98,16 +98,19 @@ var gatewayTemplate = template.Must(template.New("gateway").Funcs(funcMap).Optio
 
 // New{{ $svc.GetName }}Gateway creates gateway to access chaincode method via chaincode service
 func New{{ $svc.GetName }}Gateway(sdk cckit_sdk.SDK , channel, chaincode string, opts ...cckit_gateway.Opt) *{{ $svc.GetName }}Gateway {
-	return &{{ $svc.GetName }}Gateway{
-       Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
-              ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService (
+	return New{{ $svc.GetName }}GatewayFromInstance(
+          cckit_gateway.NewChaincodeInstanceService ( 
                 sdk, 
                 &cckit_gateway.ChaincodeLocator { Channel : channel, Chaincode: chaincode },
-                opts...),
-       },
-    }
+                opts...,
+    ))
 }
 
+func New{{ $svc.GetName }}GatewayFromInstance (chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *{{ $svc.GetName }}Gateway {
+  return &{{ $svc.GetName }}Gateway{
+       Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
+    }
+}
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )

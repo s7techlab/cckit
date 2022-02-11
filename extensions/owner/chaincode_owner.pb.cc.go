@@ -112,13 +112,17 @@ var ChaincodeOwnerServiceSwagger []byte
 
 // NewChaincodeOwnerServiceGateway creates gateway to access chaincode method via chaincode service
 func NewChaincodeOwnerServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.Opt) *ChaincodeOwnerServiceGateway {
+	return NewChaincodeOwnerServiceGatewayFromInstance(
+		cckit_gateway.NewChaincodeInstanceService(
+			sdk,
+			&cckit_gateway.ChaincodeLocator{Channel: channel, Chaincode: chaincode},
+			opts...,
+		))
+}
+
+func NewChaincodeOwnerServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *ChaincodeOwnerServiceGateway {
 	return &ChaincodeOwnerServiceGateway{
-		Invoker: &cckit_gateway.ChaincodeInstanceServiceInvoker{
-			ChaincodeInstance: cckit_gateway.NewChaincodeInstanceService(
-				sdk,
-				&cckit_gateway.ChaincodeLocator{Channel: channel, Chaincode: chaincode},
-				opts...),
-		},
+		Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
 	}
 }
 
