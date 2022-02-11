@@ -67,6 +67,10 @@ func (cis *ChaincodeInstanceService) Query(ctx context.Context, req *ChaincodeIn
 		return nil, err
 	}
 
+	for _, c := range cis.Opts.Context {
+		ctx = c(ctx)
+	}
+
 	signer, _ := SignerFromContext(ctx)
 
 	for _, i := range cis.Opts.Input {
@@ -97,6 +101,14 @@ func (cis *ChaincodeInstanceService) Query(ctx context.Context, req *ChaincodeIn
 }
 
 func (cis *ChaincodeInstanceService) Invoke(ctx context.Context, req *ChaincodeInstanceInvokeRequest) (*peer.Response, error) {
+	if err := router.ValidateRequest(req); err != nil {
+		return nil, err
+	}
+
+	for _, c := range cis.Opts.Context {
+		ctx = c(ctx)
+	}
+
 	// underlying hlf-sdk(or your implementation must handle it) should handle 'nil' identity cases
 	// and set default if identity wasn't provided here
 	// if smth goes wrong we'll see it on the step below

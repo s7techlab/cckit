@@ -53,6 +53,11 @@ func (ces *ChaincodeInstanceEventService) EventsStream(
 		return err
 	}
 
+	ctx := stream.Context()
+	for _, c := range ces.Opts.Context {
+		ctx = c(ctx)
+	}
+
 	signer, _ := SignerFromContext(stream.Context())
 	events, closer, err := ces.EventDelivery.Events(
 		stream.Context(),
@@ -100,6 +105,9 @@ func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, req *Chain
 		req.ToBlock = &BlockLimit{Num: 0}
 	}
 
+	for _, c := range ces.Opts.Context {
+		ctx = c(ctx)
+	}
 	signer, _ := SignerFromContext(ctx)
 	eventStream, closer, err := ces.EventDelivery.Events(
 		ctx,
@@ -162,6 +170,9 @@ func (ces *ChaincodeInstanceEventService) EventsChan(ctx context.Context, req *C
 		return nil, nil, err
 	}
 
+	for _, c := range ces.Opts.Context {
+		ctx = c(ctx)
+	}
 	signer, _ := SignerFromContext(ctx)
 	events, deliveryCloser, err := ces.EventDelivery.Events(
 		ctx,
