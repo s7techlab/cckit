@@ -60,7 +60,7 @@ func NewCPaperProxyServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, 
 		))
 }
 
-func NewCPaperProxyServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *CPaperProxyServiceGateway {
+func NewCPaperProxyServiceGatewayFromInstance(chaincodeInstance cckit_gateway.ChaincodeInstance) *CPaperProxyServiceGateway {
 	return &CPaperProxyServiceGateway{
 		ChaincodeInstance: chaincodeInstance,
 	}
@@ -69,7 +69,7 @@ func NewCPaperProxyServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.C
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type CPaperProxyServiceGateway struct {
-	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+	ChaincodeInstance cckit_gateway.ChaincodeInstance
 }
 
 func (c *CPaperProxyServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {

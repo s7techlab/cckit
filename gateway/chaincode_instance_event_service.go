@@ -12,12 +12,21 @@ import (
 	"github.com/s7techlab/cckit/sdk"
 )
 
-type ChaincodeInstanceEventService struct {
-	EventDelivery sdk.EventDelivery
-	Locator       *ChaincodeLocator
-	Opts          *Opts
-	Logger        *zap.Logger
-}
+type (
+	ChaincodeInstanceEventService struct {
+		EventDelivery sdk.EventDelivery
+		Locator       *ChaincodeLocator
+		Opts          *Opts
+		Logger        *zap.Logger
+	}
+
+	ChaincodeInstanceEvents interface {
+		ChaincodeInstanceEventsServiceServer
+
+		EventsChan(ctx context.Context, rr ...*ChaincodeInstanceEventsStreamRequest) (
+			_ chan *ChaincodeEvent, closer func() error, _ error)
+	}
+)
 
 var _ ChaincodeInstanceEventsServiceServer = &ChaincodeInstanceEventService{}
 

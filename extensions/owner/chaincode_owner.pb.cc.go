@@ -120,7 +120,7 @@ func NewChaincodeOwnerServiceGateway(sdk cckit_sdk.SDK, channel, chaincode strin
 		))
 }
 
-func NewChaincodeOwnerServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *ChaincodeOwnerServiceGateway {
+func NewChaincodeOwnerServiceGatewayFromInstance(chaincodeInstance cckit_gateway.ChaincodeInstance) *ChaincodeOwnerServiceGateway {
 	return &ChaincodeOwnerServiceGateway{
 		ChaincodeInstance: chaincodeInstance,
 	}
@@ -129,7 +129,7 @@ func NewChaincodeOwnerServiceGatewayFromInstance(chaincodeInstance *cckit_gatewa
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type ChaincodeOwnerServiceGateway struct {
-	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+	ChaincodeInstance cckit_gateway.ChaincodeInstance
 }
 
 func (c *ChaincodeOwnerServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {

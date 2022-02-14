@@ -99,7 +99,7 @@ func NewDebugStateServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, o
 		))
 }
 
-func NewDebugStateServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *DebugStateServiceGateway {
+func NewDebugStateServiceGatewayFromInstance(chaincodeInstance cckit_gateway.ChaincodeInstance) *DebugStateServiceGateway {
 	return &DebugStateServiceGateway{
 		ChaincodeInstance: chaincodeInstance,
 	}
@@ -108,7 +108,7 @@ func NewDebugStateServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.Ch
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type DebugStateServiceGateway struct {
-	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+	ChaincodeInstance cckit_gateway.ChaincodeInstance
 }
 
 func (c *DebugStateServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {

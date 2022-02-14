@@ -106,19 +106,16 @@ func New{{ $svc.GetName }}Gateway(sdk cckit_sdk.SDK , channel, chaincode string,
     ))
 }
 
-func New{{ $svc.GetName }}GatewayFromInstance (chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *{{ $svc.GetName }}Gateway {
+func New{{ $svc.GetName }}GatewayFromInstance (chaincodeInstance cckit_gateway.ChaincodeInstance) *{{ $svc.GetName }}Gateway {
   return &{{ $svc.GetName }}Gateway{
        ChaincodeInstance: chaincodeInstance,
     }
 }
 
-
-
-
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type {{ $svc.GetName }}Gateway struct {
-	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+	ChaincodeInstance cckit_gateway.ChaincodeInstance
 }
 
 

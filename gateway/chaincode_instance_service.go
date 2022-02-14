@@ -10,13 +10,24 @@ import (
 	"github.com/s7techlab/cckit/sdk"
 )
 
-type ChaincodeInstanceService struct {
-	SDK     sdk.SDK
-	Locator *ChaincodeLocator
-	Opts    *Opts
-}
+type (
+	ChaincodeInstanceService struct {
+		SDK     sdk.SDK
+		Locator *ChaincodeLocator
+		Opts    *Opts
+	}
 
-var _ ChaincodeInstanceServiceServer = &ChaincodeInstanceService{}
+	// ChaincodeInstance base implementation ChaincodeInstanceService  - via SDK
+	// but also possible another implementation (via REST, another SDK etc)
+	ChaincodeInstance interface {
+		ChaincodeInstanceServiceServer
+
+		EventsChan(ctx context.Context, rr ...*ChaincodeInstanceEventsStreamRequest) (
+			_ chan *ChaincodeEvent, closer func() error, _ error)
+	}
+)
+
+var _ ChaincodeInstance = &ChaincodeInstanceService{}
 
 func NewChaincodeInstanceService(sdk sdk.SDK, locator *ChaincodeLocator, opts ...Opt) *ChaincodeInstanceService {
 	ccInstanceService := &ChaincodeInstanceService{

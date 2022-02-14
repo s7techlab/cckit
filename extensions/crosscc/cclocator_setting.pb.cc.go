@@ -100,7 +100,7 @@ func NewSettingServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts
 		))
 }
 
-func NewSettingServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *SettingServiceGateway {
+func NewSettingServiceGatewayFromInstance(chaincodeInstance cckit_gateway.ChaincodeInstance) *SettingServiceGateway {
 	return &SettingServiceGateway{
 		ChaincodeInstance: chaincodeInstance,
 	}
@@ -109,7 +109,7 @@ func NewSettingServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.Chain
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type SettingServiceGateway struct {
-	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+	ChaincodeInstance cckit_gateway.ChaincodeInstance
 }
 
 func (c *SettingServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {
