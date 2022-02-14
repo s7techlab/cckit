@@ -153,6 +153,6 @@ func (cis *ChaincodeInstanceService) Events(
 }
 
 func (cis *ChaincodeInstanceService) EventsChan(
-	ctx context.Context, req *ChaincodeInstanceEventsStreamRequest) (_ chan *ChaincodeEvent, closer func() error, _ error) {
-	return cis.EventService().EventsChan(ctx, req)
+	ctx context.Context, rr ...*ChaincodeInstanceEventsStreamRequest) (_ chan *ChaincodeEvent, closer func() error, _ error) {
+	return cis.EventService().EventsChan(ctx, rr...)
 }
