@@ -101,14 +101,18 @@ func NewDebugStateServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, o
 
 func NewDebugStateServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *DebugStateServiceGateway {
 	return &DebugStateServiceGateway{
-		Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
+		ChaincodeInstance: chaincodeInstance,
 	}
 }
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type DebugStateServiceGateway struct {
-	Invoker cckit_gateway.ChaincodeInstanceInvoker
+	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+}
+
+func (c *DebugStateServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {
+	return cckit_gateway.NewChaincodeInstanceServiceInvoker(c.ChaincodeInstance)
 }
 
 // ServiceDef returns service definition
@@ -130,7 +134,7 @@ func (c *DebugStateServiceGateway) ListKeys(ctx context.Context, in *Prefix) (*C
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, DebugStateServiceChaincode_ListKeys, []interface{}{in}, &CompositeKeys{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, DebugStateServiceChaincode_ListKeys, []interface{}{in}, &CompositeKeys{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CompositeKeys), nil
@@ -145,7 +149,7 @@ func (c *DebugStateServiceGateway) GetState(ctx context.Context, in *CompositeKe
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, DebugStateServiceChaincode_GetState, []interface{}{in}, &Value{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, DebugStateServiceChaincode_GetState, []interface{}{in}, &Value{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*Value), nil
@@ -160,7 +164,7 @@ func (c *DebugStateServiceGateway) PutState(ctx context.Context, in *Value) (*Va
 		}
 	}
 
-	if res, err := c.Invoker.Invoke(ctx, DebugStateServiceChaincode_PutState, []interface{}{in}, &Value{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, DebugStateServiceChaincode_PutState, []interface{}{in}, &Value{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*Value), nil
@@ -175,7 +179,7 @@ func (c *DebugStateServiceGateway) DeleteState(ctx context.Context, in *Composit
 		}
 	}
 
-	if res, err := c.Invoker.Invoke(ctx, DebugStateServiceChaincode_DeleteState, []interface{}{in}, &Value{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, DebugStateServiceChaincode_DeleteState, []interface{}{in}, &Value{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*Value), nil
@@ -190,7 +194,7 @@ func (c *DebugStateServiceGateway) DeleteStates(ctx context.Context, in *Prefixe
 		}
 	}
 
-	if res, err := c.Invoker.Invoke(ctx, DebugStateServiceChaincode_DeleteStates, []interface{}{in}, &PrefixesMatchCount{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, DebugStateServiceChaincode_DeleteStates, []interface{}{in}, &PrefixesMatchCount{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*PrefixesMatchCount), nil

@@ -102,14 +102,18 @@ func NewSettingServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts
 
 func NewSettingServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *SettingServiceGateway {
 	return &SettingServiceGateway{
-		Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
+		ChaincodeInstance: chaincodeInstance,
 	}
 }
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type SettingServiceGateway struct {
-	Invoker cckit_gateway.ChaincodeInstanceInvoker
+	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+}
+
+func (c *SettingServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {
+	return cckit_gateway.NewChaincodeInstanceServiceInvoker(c.ChaincodeInstance)
 }
 
 // ServiceDef returns service definition
@@ -131,7 +135,7 @@ func (c *SettingServiceGateway) ServiceLocatorSet(ctx context.Context, in *Servi
 		}
 	}
 
-	if res, err := c.Invoker.Invoke(ctx, SettingServiceChaincode_ServiceLocatorSet, []interface{}{in}, &ServiceLocator{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, SettingServiceChaincode_ServiceLocatorSet, []interface{}{in}, &ServiceLocator{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ServiceLocator), nil
@@ -146,7 +150,7 @@ func (c *SettingServiceGateway) ServiceLocatorGet(ctx context.Context, in *Servi
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, SettingServiceChaincode_ServiceLocatorGet, []interface{}{in}, &ServiceLocator{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, SettingServiceChaincode_ServiceLocatorGet, []interface{}{in}, &ServiceLocator{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ServiceLocator), nil
@@ -161,7 +165,7 @@ func (c *SettingServiceGateway) ListServiceLocators(ctx context.Context, in *emp
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, SettingServiceChaincode_ListServiceLocators, []interface{}{in}, &ServiceLocators{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, SettingServiceChaincode_ListServiceLocators, []interface{}{in}, &ServiceLocators{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ServiceLocators), nil
@@ -176,7 +180,7 @@ func (c *SettingServiceGateway) PingService(ctx context.Context, in *ServiceLoca
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, SettingServiceChaincode_PingService, []interface{}{in}, &PingServiceResponse{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, SettingServiceChaincode_PingService, []interface{}{in}, &PingServiceResponse{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*PingServiceResponse), nil
@@ -191,7 +195,7 @@ func (c *SettingServiceGateway) PingServices(ctx context.Context, in *emptypb.Em
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, SettingServiceChaincode_PingServices, []interface{}{in}, &PingServiceResponses{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, SettingServiceChaincode_PingServices, []interface{}{in}, &PingServiceResponses{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*PingServiceResponses), nil

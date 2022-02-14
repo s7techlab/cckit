@@ -123,14 +123,18 @@ func NewCPaperServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts 
 
 func NewCPaperServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *CPaperServiceGateway {
 	return &CPaperServiceGateway{
-		Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
+		ChaincodeInstance: chaincodeInstance,
 	}
 }
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type CPaperServiceGateway struct {
-	Invoker cckit_gateway.ChaincodeInstanceInvoker
+	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+}
+
+func (c *CPaperServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {
+	return cckit_gateway.NewChaincodeInstanceServiceInvoker(c.ChaincodeInstance)
 }
 
 // ServiceDef returns service definition
@@ -152,7 +156,7 @@ func (c *CPaperServiceGateway) List(ctx context.Context, in *emptypb.Empty) (*Co
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, CPaperServiceChaincode_List, []interface{}{in}, &CommercialPaperList{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, CPaperServiceChaincode_List, []interface{}{in}, &CommercialPaperList{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CommercialPaperList), nil
@@ -167,7 +171,7 @@ func (c *CPaperServiceGateway) Get(ctx context.Context, in *CommercialPaperId) (
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, CPaperServiceChaincode_Get, []interface{}{in}, &CommercialPaper{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, CPaperServiceChaincode_Get, []interface{}{in}, &CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CommercialPaper), nil
@@ -182,7 +186,7 @@ func (c *CPaperServiceGateway) GetByExternalId(ctx context.Context, in *External
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, CPaperServiceChaincode_GetByExternalId, []interface{}{in}, &CommercialPaper{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, CPaperServiceChaincode_GetByExternalId, []interface{}{in}, &CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CommercialPaper), nil
@@ -197,7 +201,7 @@ func (c *CPaperServiceGateway) Issue(ctx context.Context, in *IssueCommercialPap
 		}
 	}
 
-	if res, err := c.Invoker.Invoke(ctx, CPaperServiceChaincode_Issue, []interface{}{in}, &CommercialPaper{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, CPaperServiceChaincode_Issue, []interface{}{in}, &CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CommercialPaper), nil
@@ -212,7 +216,7 @@ func (c *CPaperServiceGateway) Buy(ctx context.Context, in *BuyCommercialPaper) 
 		}
 	}
 
-	if res, err := c.Invoker.Invoke(ctx, CPaperServiceChaincode_Buy, []interface{}{in}, &CommercialPaper{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, CPaperServiceChaincode_Buy, []interface{}{in}, &CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CommercialPaper), nil
@@ -227,7 +231,7 @@ func (c *CPaperServiceGateway) Redeem(ctx context.Context, in *RedeemCommercialP
 		}
 	}
 
-	if res, err := c.Invoker.Invoke(ctx, CPaperServiceChaincode_Redeem, []interface{}{in}, &CommercialPaper{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, CPaperServiceChaincode_Redeem, []interface{}{in}, &CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CommercialPaper), nil
@@ -242,7 +246,7 @@ func (c *CPaperServiceGateway) Delete(ctx context.Context, in *CommercialPaperId
 		}
 	}
 
-	if res, err := c.Invoker.Invoke(ctx, CPaperServiceChaincode_Delete, []interface{}{in}, &CommercialPaper{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, CPaperServiceChaincode_Delete, []interface{}{in}, &CommercialPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*CommercialPaper), nil

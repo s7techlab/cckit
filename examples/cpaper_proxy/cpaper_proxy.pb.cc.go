@@ -62,14 +62,18 @@ func NewCPaperProxyServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, 
 
 func NewCPaperProxyServiceGatewayFromInstance(chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *CPaperProxyServiceGateway {
 	return &CPaperProxyServiceGateway{
-		Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
+		ChaincodeInstance: chaincodeInstance,
 	}
 }
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type CPaperProxyServiceGateway struct {
-	Invoker cckit_gateway.ChaincodeInstanceInvoker
+	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
+}
+
+func (c *CPaperProxyServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {
+	return cckit_gateway.NewChaincodeInstanceServiceInvoker(c.ChaincodeInstance)
 }
 
 // ServiceDef returns service definition
@@ -91,7 +95,7 @@ func (c *CPaperProxyServiceGateway) GetFromCPaper(ctx context.Context, in *Id) (
 		}
 	}
 
-	if res, err := c.Invoker.Query(ctx, CPaperProxyServiceChaincode_GetFromCPaper, []interface{}{in}, &InfoFromCPaper{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, CPaperProxyServiceChaincode_GetFromCPaper, []interface{}{in}, &InfoFromCPaper{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*InfoFromCPaper), nil

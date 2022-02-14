@@ -108,15 +108,24 @@ func New{{ $svc.GetName }}Gateway(sdk cckit_sdk.SDK , channel, chaincode string,
 
 func New{{ $svc.GetName }}GatewayFromInstance (chaincodeInstance *cckit_gateway.ChaincodeInstanceService) *{{ $svc.GetName }}Gateway {
   return &{{ $svc.GetName }}Gateway{
-       Invoker: cckit_gateway.NewChaincodeInstanceServiceInvoker(chaincodeInstance),
+       ChaincodeInstance: chaincodeInstance,
     }
 }
+
+
+
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type {{ $svc.GetName }}Gateway struct {
-	Invoker cckit_gateway.ChaincodeInstanceInvoker
+	ChaincodeInstance *cckit_gateway.ChaincodeInstanceService
 }
+
+
+func (c *{{ $svc.GetName }}Gateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {
+   return cckit_gateway.NewChaincodeInstanceServiceInvoker(c.ChaincodeInstance)
+}
+
 
 // ServiceDef returns service definition
 func (c *{{ $svc.GetName }}Gateway) ServiceDef() cckit_gateway.ServiceDef {
@@ -142,7 +151,7 @@ func (c *{{ $svc.GetName }}Gateway) ServiceDef() cckit_gateway.ServiceDef {
 	   } 
      }
 
-    if res, err := c.Invoker.{{ $method }}(ctx, {{ $svc.GetName }}Chaincode_{{ $m.GetName }} , []interface{}{in}, &{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}); err != nil {
+    if res, err := c.Invoker().{{ $method }}(ctx, {{ $svc.GetName }}Chaincode_{{ $m.GetName }} , []interface{}{in}, &{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}), nil
