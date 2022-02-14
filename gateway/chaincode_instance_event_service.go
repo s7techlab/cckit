@@ -164,10 +164,14 @@ func (ces *ChaincodeInstanceEventService) Events(ctx context.Context, req *Chain
 	}
 }
 
-// EventsChan not from ChaincodeInstanceEventService interface, for calls as component
-func (ces *ChaincodeInstanceEventService) EventsChan(ctx context.Context, req *ChaincodeInstanceEventsStreamRequest) (_ chan *ChaincodeEvent, closer func() error, _ error) {
-	if err := router.ValidateRequest(req); err != nil {
-		return nil, nil, err
+// EventsChan is not part of ChaincodeInstanceEventService interface, for calls as component
+func (ces *ChaincodeInstanceEventService) EventsChan(ctx context.Context, rr ...*ChaincodeInstanceEventsStreamRequest) (_ chan *ChaincodeEvent, closer func() error, _ error) {
+	req := &ChaincodeInstanceEventsStreamRequest{}
+	if len(rr) == 1 {
+		req = rr[0]
+		if err := router.ValidateRequest(req); err != nil {
+			return nil, nil, err
+		}
 	}
 
 	for _, c := range ces.Opts.Context {
