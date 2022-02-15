@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
@@ -20,11 +21,16 @@ type (
 		Event   []EventOpt
 	}
 
+	InstanceOpts struct {
+		Locator *ChaincodeLocator
+		Opts    Opts
+	}
+
 	Opt func(*Opts)
 
 	ContextOpt func(ctx context.Context) context.Context
-	InputOpt   func(action Action, input *ChaincodeInput) error
-	OutputOpt  func(action Action, response *peer.Response) error
+	InputOpt   func(input *ChaincodeInput) error
+	OutputOpt  func(action InvocationType, response *peer.Response) error
 	EventOpt   func(event *ChaincodeEvent) error
 )
 
@@ -36,17 +42,23 @@ func WithDefaultSigner(defaultSigner msp.SigningIdentity) Opt {
 	}
 }
 
-func WithTransientValue(key string, value []byte) Opt {
+func WithDefaultTransientMapValue(key string, value []byte) Opt {
 	return func(o *Opts) {
-		o.Context = append(o.Context, func(ctx context.Context) context.Context {
-			return ContextWithTransientValue(ctx, key, value)
+		o.Input = append(o.Input, func(input *ChaincodeInput) error {
+			if input.Transient == nil {
+				input.Transient = make(map[string][]byte)
+			}
+			if _, exists := input.Transient[key]; !exists {
+				input.Transient[key] = value
+			}
+			return nil
 		})
 	}
 }
 
 func WithEncryption(encKey []byte) Opt {
 	return func(o *Opts) {
-		WithTransientValue(encryption.TransientMapKey, encKey)(o)
+		WithDefaultTransientMapValue(encryption.TransientMapKey, encKey)(o)
 		WithArgsEncryption(encKey)(o)
 		WithInvokePayloadDecryption(encKey)(o)
 		WithEventDecryption(encKey)(o)
@@ -55,7 +67,7 @@ func WithEncryption(encKey []byte) Opt {
 
 func WithArgsEncryption(encKey []byte) Opt {
 	return func(o *Opts) {
-		o.Input = append(o.Input, func(action Action, ccInput *ChaincodeInput) (err error) {
+		o.Input = append(o.Input, func(ccInput *ChaincodeInput) (err error) {
 			ccInput.Args, err = encryption.EncryptArgsBytes(encKey, ccInput.Args)
 			return err
 		})
@@ -64,12 +76,15 @@ func WithArgsEncryption(encKey []byte) Opt {
 
 func WithInvokePayloadDecryption(encKey []byte) Opt {
 	return func(o *Opts) {
-		o.Output = append(o.Output, func(action Action, r *peer.Response) (err error) {
-			if action != Invoke {
+		o.Output = append(o.Output, func(action InvocationType, r *peer.Response) (err error) {
+			if action != InvocationType_INVOCATION_TYPE_INVOKE {
 				return nil
 			}
 			r.Payload, err = encryption.Decrypt(encKey, r.Payload)
-			return err
+			if err != nil {
+				return fmt.Errorf(`decrypt invoke payload: %w`, err)
+			}
+			return nil
 		})
 	}
 }

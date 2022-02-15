@@ -1,5 +1,5 @@
 syntax = "proto3";
-// Commercial paper service
+
 option go_package = "github.com/s7techlab/cckit/extensions/debug";
 package extensions.debug;
 

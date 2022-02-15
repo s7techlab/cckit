@@ -40,9 +40,6 @@ func main() {
 	// Mockstub for commercial paper
 	cpaperMock := testing.NewMockStub(chaincodeName, cc)
 
-	// Chaincode invocation service mock. For real network you can use example with hlf-sdk-go
-	cpaperMockService := gateway.NewChaincodeService(testing.NewPeer().WithChannel(channelName, cpaperMock))
-
 	// default identity for signing requests to peeer (mocked)
 	apiIdentity, err := testing.IdentityFromFile(`MSP`, `../../../testdata/admin.pem`, ioutil.ReadFile)
 	if err != nil {
@@ -50,7 +47,8 @@ func main() {
 	}
 	// Generated gateway for access to chaincode from external application
 	cpaperGateway := cpaper_asservice.NewCPaperServiceGateway(
-		cpaperMockService, // gateway use mocked chaincode access service
+		// Chaincode invocation service mock. For real network you can use example with hlf-sdk-go
+		testing.NewPeer().WithChannel(channelName, cpaperMock),
 		channelName,
 		chaincodeName,
 		gateway.WithDefaultSigner(apiIdentity))

@@ -1,0 +1,29 @@
+syntax = "proto3";
+// Commercial paper service
+option go_package = "github.com/s7techlab/cckit/examples/cpaper_proxy";
+package examples.cpaper_proxy;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service CPaperProxyService {
+    // List method returns all registered commercial papers
+    rpc GetFromCPaper (Id) returns (InfoFromCPaper) {
+        option (google.api.http) = {
+            get: "/cpaper/{issuer}/{paper_number}"
+        };
+    }
+}
+
+message Id {
+    string issuer = 1;
+    string paper_number = 2;
+}
+
+
+message InfoFromCPaper {
+    string issuer = 1;
+    string paper_number = 2;
+    string owner = 3;
+}

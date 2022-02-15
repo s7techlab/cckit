@@ -17,6 +17,7 @@ import (
 	cckit_gateway "github.com/s7techlab/cckit/gateway"
 	cckit_router "github.com/s7techlab/cckit/router"
 	cckit_defparam "github.com/s7techlab/cckit/router/param/defparam"
+	cckit_sdk "github.com/s7techlab/cckit/sdk"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -40,11 +41,6 @@ const (
 
 	ChaincodeOwnerServiceChaincode_DeleteOwner = ChaincodeOwnerServiceChaincodeMethodPrefix + "DeleteOwner"
 )
-
-// ChaincodeOwnerServiceChaincodeResolver interface for service resolver
-type ChaincodeOwnerServiceChaincodeResolver interface {
-	ChaincodeOwnerServiceChaincode(ctx cckit_router.Context) (ChaincodeOwnerServiceChaincode, error)
-}
 
 // ChaincodeOwnerServiceChaincode chaincode methods interface
 type ChaincodeOwnerServiceChaincode interface {
@@ -115,33 +111,40 @@ func RegisterChaincodeOwnerServiceChaincode(r *cckit_router.Group, cc ChaincodeO
 var ChaincodeOwnerServiceSwagger []byte
 
 // NewChaincodeOwnerServiceGateway creates gateway to access chaincode method via chaincode service
-func NewChaincodeOwnerServiceGateway(ccService cckit_gateway.ChaincodeServiceServer, channel, chaincode string, opts ...cckit_gateway.Opt) *ChaincodeOwnerServiceGateway {
-	return &ChaincodeOwnerServiceGateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
+func NewChaincodeOwnerServiceGateway(sdk cckit_sdk.SDK, channel, chaincode string, opts ...cckit_gateway.Opt) *ChaincodeOwnerServiceGateway {
+	return NewChaincodeOwnerServiceGatewayFromInstance(
+		cckit_gateway.NewChaincodeInstanceService(
+			sdk,
+			&cckit_gateway.ChaincodeLocator{Channel: channel, Chaincode: chaincode},
+			opts...,
+		))
+}
+
+func NewChaincodeOwnerServiceGatewayFromInstance(chaincodeInstance cckit_gateway.ChaincodeInstance) *ChaincodeOwnerServiceGateway {
+	return &ChaincodeOwnerServiceGateway{
+		ChaincodeInstance: chaincodeInstance,
+	}
 }
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type ChaincodeOwnerServiceGateway struct {
-	Gateway cckit_gateway.Chaincode
+	ChaincodeInstance cckit_gateway.ChaincodeInstance
+}
+
+func (c *ChaincodeOwnerServiceGateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {
+	return cckit_gateway.NewChaincodeInstanceServiceInvoker(c.ChaincodeInstance)
 }
 
 // ServiceDef returns service definition
 func (c *ChaincodeOwnerServiceGateway) ServiceDef() cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
-		Desc:                        &_ChaincodeOwnerService_serviceDesc,
-		Service:                     c,
-		HandlerFromEndpointRegister: RegisterChaincodeOwnerServiceHandlerFromEndpoint,
-	}
-}
-
-// ApiDef deprecated, use ServiceDef
-func (c *ChaincodeOwnerServiceGateway) ApiDef() cckit_gateway.ServiceDef {
-	return c.ServiceDef()
-}
-
-// Events returns events subscription
-func (c *ChaincodeOwnerServiceGateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
-	return c.Gateway.Events(ctx)
+	return cckit_gateway.NewServiceDef(
+		_ChaincodeOwnerService_serviceDesc.ServiceName,
+		ChaincodeOwnerServiceSwagger,
+		&_ChaincodeOwnerService_serviceDesc,
+		c,
+		RegisterChaincodeOwnerServiceHandlerFromEndpoint,
+	)
 }
 
 func (c *ChaincodeOwnerServiceGateway) GetOwnerByTxCreator(ctx context.Context, in *emptypb.Empty) (*ChaincodeOwner, error) {
@@ -152,7 +155,7 @@ func (c *ChaincodeOwnerServiceGateway) GetOwnerByTxCreator(ctx context.Context, 
 		}
 	}
 
-	if res, err := c.Gateway.Query(ctx, ChaincodeOwnerServiceChaincode_GetOwnerByTxCreator, []interface{}{in}, &ChaincodeOwner{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, ChaincodeOwnerServiceChaincode_GetOwnerByTxCreator, []interface{}{in}, &ChaincodeOwner{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ChaincodeOwner), nil
@@ -167,7 +170,7 @@ func (c *ChaincodeOwnerServiceGateway) ListOwners(ctx context.Context, in *empty
 		}
 	}
 
-	if res, err := c.Gateway.Query(ctx, ChaincodeOwnerServiceChaincode_ListOwners, []interface{}{in}, &ChaincodeOwners{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, ChaincodeOwnerServiceChaincode_ListOwners, []interface{}{in}, &ChaincodeOwners{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ChaincodeOwners), nil
@@ -182,7 +185,7 @@ func (c *ChaincodeOwnerServiceGateway) GetOwner(ctx context.Context, in *OwnerId
 		}
 	}
 
-	if res, err := c.Gateway.Query(ctx, ChaincodeOwnerServiceChaincode_GetOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
+	if res, err := c.Invoker().Query(ctx, ChaincodeOwnerServiceChaincode_GetOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ChaincodeOwner), nil
@@ -197,7 +200,7 @@ func (c *ChaincodeOwnerServiceGateway) CreateOwner(ctx context.Context, in *Crea
 		}
 	}
 
-	if res, err := c.Gateway.Invoke(ctx, ChaincodeOwnerServiceChaincode_CreateOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, ChaincodeOwnerServiceChaincode_CreateOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ChaincodeOwner), nil
@@ -212,7 +215,7 @@ func (c *ChaincodeOwnerServiceGateway) CreateOwnerTxCreator(ctx context.Context,
 		}
 	}
 
-	if res, err := c.Gateway.Invoke(ctx, ChaincodeOwnerServiceChaincode_CreateOwnerTxCreator, []interface{}{in}, &ChaincodeOwner{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, ChaincodeOwnerServiceChaincode_CreateOwnerTxCreator, []interface{}{in}, &ChaincodeOwner{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ChaincodeOwner), nil
@@ -227,7 +230,7 @@ func (c *ChaincodeOwnerServiceGateway) UpdateOwner(ctx context.Context, in *Upda
 		}
 	}
 
-	if res, err := c.Gateway.Invoke(ctx, ChaincodeOwnerServiceChaincode_UpdateOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, ChaincodeOwnerServiceChaincode_UpdateOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ChaincodeOwner), nil
@@ -242,7 +245,7 @@ func (c *ChaincodeOwnerServiceGateway) DeleteOwner(ctx context.Context, in *Owne
 		}
 	}
 
-	if res, err := c.Gateway.Invoke(ctx, ChaincodeOwnerServiceChaincode_DeleteOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
+	if res, err := c.Invoker().Invoke(ctx, ChaincodeOwnerServiceChaincode_DeleteOwner, []interface{}{in}, &ChaincodeOwner{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*ChaincodeOwner), nil

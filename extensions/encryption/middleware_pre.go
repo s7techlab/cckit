@@ -1,12 +1,14 @@
 package encryption
 
 import (
+	"fmt"
+
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/pkg/errors"
+	"go.uber.org/zap"
+
 	"github.com/s7techlab/cckit/response"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
-	"go.uber.org/zap"
 )
 
 // ArgsDecryptIfKeyProvided  - pre middleware, decrypts chaincode method arguments if key provided in transient map
@@ -29,7 +31,7 @@ func ArgsDecryptExcept(exceptMethod ...string) router.ContextMiddlewareFunc {
 func decryptReplaceArgs(key []byte, c router.Context) error {
 	args, err := DecryptArgs(key, c.GetArgs())
 	if err != nil {
-		return errors.Wrap(err, `args`)
+		return fmt.Errorf(`decrypt chaincode invocation args: %w`, err)
 	}
 	c.ReplaceArgs(args)
 	return nil

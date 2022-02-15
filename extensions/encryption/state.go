@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
@@ -103,7 +104,7 @@ func KeyDecryptor(encryptKey []byte) state.KeyTransformer {
 	}
 }
 
-// DecryptTransformer returns state.FromBytesTransformer - used for decrypting data after reading from state
+// FromBytesDecryptor returns state.FromBytesTransformer - used for decrypting data after reading from state
 func FromBytesDecryptor(key []byte) state.FromBytesTransformer {
 	return func(bb []byte, config ...interface{}) (interface{}, error) {
 		decrypted, err := Decrypt(key, bb)
@@ -117,7 +118,7 @@ func FromBytesDecryptor(key []byte) state.FromBytesTransformer {
 	}
 }
 
-// EncryptTransformer returns state.ToBytesTransformer - used for encrypting data for state
+// ToBytesEncryptor returns state.ToBytesTransformer - used for encrypting data for state
 func ToBytesEncryptor(key []byte) state.ToBytesTransformer {
 	return func(v interface{}, config ...interface{}) ([]byte, error) {
 		bb, err := convert.ToBytes(v)

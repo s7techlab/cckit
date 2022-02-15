@@ -136,7 +136,7 @@ func (mp *MockedPeer) Events(
 		eventsRaw chan *peer.ChaincodeEvent
 	)
 	// from oldest block to current channel height
-	if len(blockRange) == 2 && blockRange[0] == 0 && blockRange[1] == 0 {
+	if len(blockRange) > 0 && blockRange[0] == 0 {
 		// create copy of mockStub events chan
 		eventsRaw, closer = mockStub.EventSubscription(0)
 

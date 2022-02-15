@@ -9,15 +9,17 @@
     - [ChaincodeEvents](#cckit.gateway.ChaincodeEvents)
     - [ChaincodeEventsRequest](#cckit.gateway.ChaincodeEventsRequest)
     - [ChaincodeEventsStreamRequest](#cckit.gateway.ChaincodeEventsStreamRequest)
-    - [ChaincodeExec](#cckit.gateway.ChaincodeExec)
+    - [ChaincodeExecRequest](#cckit.gateway.ChaincodeExecRequest)
     - [ChaincodeInput](#cckit.gateway.ChaincodeInput)
     - [ChaincodeInput.TransientEntry](#cckit.gateway.ChaincodeInput.TransientEntry)
     - [ChaincodeInstanceEventsRequest](#cckit.gateway.ChaincodeInstanceEventsRequest)
     - [ChaincodeInstanceEventsStreamRequest](#cckit.gateway.ChaincodeInstanceEventsStreamRequest)
-    - [ChaincodeInstanceExec](#cckit.gateway.ChaincodeInstanceExec)
-    - [ChaincodeInstanceInput](#cckit.gateway.ChaincodeInstanceInput)
-    - [ChaincodeInstanceInput.TransientEntry](#cckit.gateway.ChaincodeInstanceInput.TransientEntry)
+    - [ChaincodeInstanceExecRequest](#cckit.gateway.ChaincodeInstanceExecRequest)
+    - [ChaincodeInstanceInvokeRequest](#cckit.gateway.ChaincodeInstanceInvokeRequest)
+    - [ChaincodeInstanceQueryRequest](#cckit.gateway.ChaincodeInstanceQueryRequest)
+    - [ChaincodeInvokeRequest](#cckit.gateway.ChaincodeInvokeRequest)
     - [ChaincodeLocator](#cckit.gateway.ChaincodeLocator)
+    - [ChaincodeQueryRequest](#cckit.gateway.ChaincodeQueryRequest)
     - [RawJson](#cckit.gateway.RawJson)
   
     - [InvocationType](#cckit.gateway.InvocationType)
@@ -81,7 +83,7 @@ Values can be negative
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| chaincode | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
+| locator | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
 | from_block | [BlockLimit](#cckit.gateway.BlockLimit) |  |  |
 | to_block | [BlockLimit](#cckit.gateway.BlockLimit) |  |  |
 | items | [ChaincodeEvent](#cckit.gateway.ChaincodeEvent) | repeated |  |
@@ -99,7 +101,7 @@ Chaincode events list request
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| chaincode | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
+| locator | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
 | from_block | [BlockLimit](#cckit.gateway.BlockLimit) |  |  |
 | to_block | [BlockLimit](#cckit.gateway.BlockLimit) |  |  |
 | event_name | [string](#string) | repeated |  |
@@ -118,7 +120,7 @@ Chaincode events stream request
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| chaincode | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
+| locator | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
 | from_block | [BlockLimit](#cckit.gateway.BlockLimit) |  |  |
 | to_block | [BlockLimit](#cckit.gateway.BlockLimit) |  |  |
 | event_name | [string](#string) | repeated |  |
@@ -128,14 +130,15 @@ Chaincode events stream request
 
 
 
-<a name="cckit.gateway.ChaincodeExec"></a>
+<a name="cckit.gateway.ChaincodeExecRequest"></a>
 
-### ChaincodeExec
+### ChaincodeExecRequest
 Chaincode execution specification
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| locator | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
 | type | [InvocationType](#cckit.gateway.InvocationType) |  |  |
 | input | [ChaincodeInput](#cckit.gateway.ChaincodeInput) |  |  |
 
@@ -152,7 +155,6 @@ Chaincode invocation input
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| chaincode | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
 | args | [bytes](#bytes) | repeated | Input contains the arguments for invocation. |
 | transient | [ChaincodeInput.TransientEntry](#cckit.gateway.ChaincodeInput.TransientEntry) | repeated | TransientMap contains data (e.g. cryptographic material) that might be used to implement some form of application-level confidentiality. The contents of this field are supposed to always be omitted from the transaction and excluded from the ledger. |
 
@@ -212,48 +214,62 @@ Chaincode invocation input
 
 
 
-<a name="cckit.gateway.ChaincodeInstanceExec"></a>
+<a name="cckit.gateway.ChaincodeInstanceExecRequest"></a>
 
-### ChaincodeInstanceExec
+### ChaincodeInstanceExecRequest
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | type | [InvocationType](#cckit.gateway.InvocationType) |  |  |
-| input | [ChaincodeInstanceInput](#cckit.gateway.ChaincodeInstanceInput) |  |  |
+| input | [ChaincodeInput](#cckit.gateway.ChaincodeInput) |  |  |
 
 
 
 
 
 
-<a name="cckit.gateway.ChaincodeInstanceInput"></a>
+<a name="cckit.gateway.ChaincodeInstanceInvokeRequest"></a>
 
-### ChaincodeInstanceInput
-Chaincode instance chaincode input spec
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| args | [bytes](#bytes) | repeated | Input contains the arguments for invocation. |
-| transient | [ChaincodeInstanceInput.TransientEntry](#cckit.gateway.ChaincodeInstanceInput.TransientEntry) | repeated | TransientMap contains data (e.g. cryptographic material) that might be used to implement some form of application-level confidentiality. The contents of this field are supposed to always be omitted from the transaction and excluded from the ledger. |
-
-
-
-
-
-
-<a name="cckit.gateway.ChaincodeInstanceInput.TransientEntry"></a>
-
-### ChaincodeInstanceInput.TransientEntry
+### ChaincodeInstanceInvokeRequest
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [bytes](#bytes) |  |  |
+| input | [ChaincodeInput](#cckit.gateway.ChaincodeInput) |  |  |
+
+
+
+
+
+
+<a name="cckit.gateway.ChaincodeInstanceQueryRequest"></a>
+
+### ChaincodeInstanceQueryRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| input | [ChaincodeInput](#cckit.gateway.ChaincodeInput) |  |  |
+
+
+
+
+
+
+<a name="cckit.gateway.ChaincodeInvokeRequest"></a>
+
+### ChaincodeInvokeRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| locator | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
+| input | [ChaincodeInput](#cckit.gateway.ChaincodeInput) |  |  |
 
 
 
@@ -270,6 +286,22 @@ Chaincode locator - channel name and chaincode name
 | ----- | ---- | ----- | ----------- |
 | chaincode | [string](#string) |  | Chaincode name |
 | channel | [string](#string) |  | Channel name |
+
+
+
+
+
+
+<a name="cckit.gateway.ChaincodeQueryRequest"></a>
+
+### ChaincodeQueryRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| locator | [ChaincodeLocator](#cckit.gateway.ChaincodeLocator) |  |  |
+| input | [ChaincodeInput](#cckit.gateway.ChaincodeInput) |  |  |
 
 
 
@@ -338,10 +370,10 @@ Chaincode instance communication service. Channel/chaincode already fixed.
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Exec | [ChaincodeInstanceExec](#cckit.gateway.ChaincodeInstanceExec) | [.protos.Response](#protos.Response) | Exec: Query or Invoke |
-| Query | [ChaincodeInstanceInput](#cckit.gateway.ChaincodeInstanceInput) | [.protos.Response](#protos.Response) | Query chaincode on home peer. Do NOT send to orderer. |
-| Invoke | [ChaincodeInstanceInput](#cckit.gateway.ChaincodeInstanceInput) | [.protos.Response](#protos.Response) | Invoke chaincode on peers, according to endorsement policy and the SEND to orderer |
-| EventsStream | [ChaincodeInstanceEventsStreamRequest](#cckit.gateway.ChaincodeInstanceEventsStreamRequest) | [.protos.ChaincodeEvent](#protos.ChaincodeEvent) stream | Chaincode events stream |
+| Exec | [ChaincodeInstanceExecRequest](#cckit.gateway.ChaincodeInstanceExecRequest) | [.protos.Response](#protos.Response) | Exec: Query or Invoke |
+| Query | [ChaincodeInstanceQueryRequest](#cckit.gateway.ChaincodeInstanceQueryRequest) | [.protos.Response](#protos.Response) | Query chaincode on home peer. Do NOT send to orderer. |
+| Invoke | [ChaincodeInstanceInvokeRequest](#cckit.gateway.ChaincodeInstanceInvokeRequest) | [.protos.Response](#protos.Response) | Invoke chaincode on peers, according to endorsement policy and the SEND to orderer |
+| EventsStream | [ChaincodeInstanceEventsStreamRequest](#cckit.gateway.ChaincodeInstanceEventsStreamRequest) | [ChaincodeEvent](#cckit.gateway.ChaincodeEvent) stream | Chaincode events stream |
 | Events | [ChaincodeInstanceEventsRequest](#cckit.gateway.ChaincodeInstanceEventsRequest) | [ChaincodeEvents](#cckit.gateway.ChaincodeEvents) | Chaincode events |
 
 
@@ -352,9 +384,9 @@ Chaincode communication service. Allows to locate channel/chaincode.
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Exec | [ChaincodeExec](#cckit.gateway.ChaincodeExec) | [.protos.Response](#protos.Response) | Exec: Query or Invoke |
-| Query | [ChaincodeInput](#cckit.gateway.ChaincodeInput) | [.protos.Response](#protos.Response) | Query chaincode on home peer. Do NOT send to orderer. |
-| Invoke | [ChaincodeInput](#cckit.gateway.ChaincodeInput) | [.protos.Response](#protos.Response) | Invoke chaincode on peers, according to endorsement policy and the SEND to orderer |
+| Exec | [ChaincodeExecRequest](#cckit.gateway.ChaincodeExecRequest) | [.protos.Response](#protos.Response) | Exec: Query or Invoke |
+| Query | [ChaincodeQueryRequest](#cckit.gateway.ChaincodeQueryRequest) | [.protos.Response](#protos.Response) | Query chaincode on home peer. Do NOT send to orderer. |
+| Invoke | [ChaincodeInvokeRequest](#cckit.gateway.ChaincodeInvokeRequest) | [.protos.Response](#protos.Response) | Invoke chaincode on peers, according to endorsement policy and the SEND to orderer |
 | EventsStream | [ChaincodeEventsStreamRequest](#cckit.gateway.ChaincodeEventsStreamRequest) | [ChaincodeEvent](#cckit.gateway.ChaincodeEvent) stream | Chaincode events stream |
 | Events | [ChaincodeEventsRequest](#cckit.gateway.ChaincodeEventsRequest) | [ChaincodeEvents](#cckit.gateway.ChaincodeEvents) | Chaincode events |
 

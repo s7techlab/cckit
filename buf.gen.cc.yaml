@@ -30,6 +30,7 @@ plugins:
       - logtostderr=true
       - paths=source_relative
       - embed_swagger
+      - service_resolver
 
   - name: doc
     out: .

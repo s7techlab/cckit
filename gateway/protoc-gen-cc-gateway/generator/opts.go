@@ -9,12 +9,15 @@ const (
 	ParamPathsSourceRelative          = `source_relative`
 	ParamEmbedSwagger                 = `embed_swagger`
 	ParamChaincodeMethodServicePrefix = `service_name_method_prefix`
+	ParamServiceChaincodeResolver     = `service_resolver`
 )
 
+// Opts by default all opts are disabled
 type Opts struct {
 	PathsSourceRelative          bool
-	EmbedSwagger                 bool
-	ChaincodeMethodServicePrefix bool
+	EmbedSwagger                 bool // generate var with embed annotation to include generated swagger fie
+	ChaincodeMethodServicePrefix bool // add prefix with service name to chaincode methdod
+	ServiceChaincodeResolver     bool
 }
 
 func isOptEnabled(paramValue string) bool {
@@ -45,7 +48,11 @@ func OptsFromParams(params string) Opts {
 
 		case ParamChaincodeMethodServicePrefix:
 			opts.ChaincodeMethodServicePrefix = isOptEnabled(value)
+
+		case ParamServiceChaincodeResolver:
+			opts.ServiceChaincodeResolver = isOptEnabled(value)
 		}
+
 	}
 
 	return opts

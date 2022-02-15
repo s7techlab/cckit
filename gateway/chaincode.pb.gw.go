@@ -29,7 +29,7 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 
 func request_ChaincodeService_Exec_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeExec
+	var protoReq ChaincodeExecRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -46,7 +46,7 @@ func request_ChaincodeService_Exec_0(ctx context.Context, marshaler runtime.Mars
 }
 
 func local_request_ChaincodeService_Exec_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeExec
+	var protoReq ChaincodeExecRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -67,7 +67,7 @@ var (
 )
 
 func request_ChaincodeService_Query_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInput
+	var protoReq ChaincodeQueryRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -83,7 +83,7 @@ func request_ChaincodeService_Query_0(ctx context.Context, marshaler runtime.Mar
 }
 
 func local_request_ChaincodeService_Query_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInput
+	var protoReq ChaincodeQueryRequest
 	var metadata runtime.ServerMetadata
 
 	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_ChaincodeService_Query_0); err != nil {
@@ -96,7 +96,7 @@ func local_request_ChaincodeService_Query_0(ctx context.Context, marshaler runti
 }
 
 func request_ChaincodeService_Invoke_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInput
+	var protoReq ChaincodeInvokeRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -113,7 +113,7 @@ func request_ChaincodeService_Invoke_0(ctx context.Context, marshaler runtime.Ma
 }
 
 func local_request_ChaincodeService_Invoke_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInput
+	var protoReq ChaincodeInvokeRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -252,7 +252,7 @@ func local_request_ChaincodeEventsService_Events_0(ctx context.Context, marshale
 }
 
 func request_ChaincodeInstanceService_Exec_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInstanceExec
+	var protoReq ChaincodeInstanceExecRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -269,7 +269,7 @@ func request_ChaincodeInstanceService_Exec_0(ctx context.Context, marshaler runt
 }
 
 func local_request_ChaincodeInstanceService_Exec_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeInstanceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInstanceExec
+	var protoReq ChaincodeInstanceExecRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -290,7 +290,7 @@ var (
 )
 
 func request_ChaincodeInstanceService_Query_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInstanceInput
+	var protoReq ChaincodeInstanceQueryRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -306,7 +306,7 @@ func request_ChaincodeInstanceService_Query_0(ctx context.Context, marshaler run
 }
 
 func local_request_ChaincodeInstanceService_Query_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeInstanceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInstanceInput
+	var protoReq ChaincodeInstanceQueryRequest
 	var metadata runtime.ServerMetadata
 
 	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_ChaincodeInstanceService_Query_0); err != nil {
@@ -319,7 +319,7 @@ func local_request_ChaincodeInstanceService_Query_0(ctx context.Context, marshal
 }
 
 func request_ChaincodeInstanceService_Invoke_0(ctx context.Context, marshaler runtime.Marshaler, client ChaincodeInstanceServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInstanceInput
+	var protoReq ChaincodeInstanceInvokeRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -336,7 +336,7 @@ func request_ChaincodeInstanceService_Invoke_0(ctx context.Context, marshaler ru
 }
 
 func local_request_ChaincodeInstanceService_Invoke_0(ctx context.Context, marshaler runtime.Marshaler, server ChaincodeInstanceServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ChaincodeInstanceInput
+	var protoReq ChaincodeInstanceInvokeRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)

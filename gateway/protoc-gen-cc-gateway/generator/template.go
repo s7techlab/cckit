@@ -56,11 +56,6 @@ const (
 {{ end }}
 )
 
-// {{ $svc.GetName }}ChaincodeResolver interface for service resolver
-type {{ $svc.GetName }}ChaincodeResolver interface {
-		{{ $svc.GetName }}Chaincode(ctx cckit_router.Context) ({{ $svc.GetName }}Chaincode, error)
-}
-
 // {{ $svc.GetName }}Chaincode chaincode methods interface
 type {{ $svc.GetName }}Chaincode interface {
 {{ range $m := $svc.Methods }}
@@ -98,38 +93,48 @@ var gatewayTemplate = template.Must(template.New("gateway").Funcs(funcMap).Optio
 
 {{ if $embedSwagger }}
  //go:embed {{ $source | removeExtension }}.swagger.json
- var {{ $svc.GetName }}Swagger []byte
-{{ end }}
+{{ end }} var {{ $svc.GetName }}Swagger []byte
+
 
 // New{{ $svc.GetName }}Gateway creates gateway to access chaincode method via chaincode service
-func New{{ $svc.GetName }}Gateway(ccService cckit_gateway.ChaincodeServiceServer, channel, chaincode string, opts ...cckit_gateway.Opt) *{{ $svc.GetName }}Gateway {
-	return &{{ $svc.GetName }}Gateway{Gateway: cckit_gateway.NewChaincode(ccService, channel, chaincode, opts...)}
+func New{{ $svc.GetName }}Gateway(sdk cckit_sdk.SDK , channel, chaincode string, opts ...cckit_gateway.Opt) *{{ $svc.GetName }}Gateway {
+	return New{{ $svc.GetName }}GatewayFromInstance(
+          cckit_gateway.NewChaincodeInstanceService ( 
+                sdk, 
+                &cckit_gateway.ChaincodeLocator { Channel : channel, Chaincode: chaincode },
+                opts...,
+    ))
 }
 
+func New{{ $svc.GetName }}GatewayFromInstance (chaincodeInstance cckit_gateway.ChaincodeInstance) *{{ $svc.GetName }}Gateway {
+  return &{{ $svc.GetName }}Gateway{
+       ChaincodeInstance: chaincodeInstance,
+    }
+}
 
 // gateway implementation
 // gateway can be used as kind of SDK, GRPC or REST server ( via grpc-gateway or clay )
 type {{ $svc.GetName }}Gateway struct {
-	Gateway cckit_gateway.Chaincode
+	ChaincodeInstance cckit_gateway.ChaincodeInstance
 }
+
+
+func (c *{{ $svc.GetName }}Gateway) Invoker() cckit_gateway.ChaincodeInstanceInvoker {
+   return cckit_gateway.NewChaincodeInstanceServiceInvoker(c.ChaincodeInstance)
+}
+
 
 // ServiceDef returns service definition
 func (c *{{ $svc.GetName }}Gateway) ServiceDef() cckit_gateway.ServiceDef {
-	return cckit_gateway.ServiceDef{
-		Desc:                        &_{{ $svc.GetName }}_serviceDesc,
-		Service:                     c,
-		HandlerFromEndpointRegister: Register{{ $svc.GetName }}HandlerFromEndpoint,
-	}
-}
-// ApiDef deprecated, use ServiceDef
-func (c *{{ $svc.GetName }}Gateway) ApiDef() cckit_gateway.ServiceDef {
-   return c.ServiceDef()
+	return cckit_gateway.NewServiceDef(
+        _{{ $svc.GetName }}_serviceDesc.ServiceName,
+        {{ $svc.GetName }}Swagger,
+        &_{{ $svc.GetName }}_serviceDesc,
+        c,
+        Register{{ $svc.GetName }}HandlerFromEndpoint,
+	)
 }
 
-// Events returns events subscription
-func (c *{{ $svc.GetName }}Gateway) Events(ctx context.Context) (cckit_gateway.ChaincodeEventSub, error) {
-   return c.Gateway.Events(ctx)
-}
 
  {{ range $m := $svc.Methods }}
  {{ $method := "Invoke"}}
@@ -143,7 +148,7 @@ func (c *{{ $svc.GetName }}Gateway) Events(ctx context.Context) (cckit_gateway.C
 	   } 
      }
 
-    if res, err := c.Gateway.{{ $method }}(ctx, {{ $svc.GetName }}Chaincode_{{ $m.GetName }} , []interface{}{in}, &{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}); err != nil {
+    if res, err := c.Invoker().{{ $method }}(ctx, {{ $svc.GetName }}Chaincode_{{ $m.GetName }} , []interface{}{in}, &{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}), nil
@@ -152,4 +157,101 @@ func (c *{{ $svc.GetName }}Gateway) Events(ctx context.Context) (cckit_gateway.C
  {{ end }}
 
 {{ end }}
+`))
+
+var resolverTemplate = template.Must(template.New("resolver").Funcs(funcMap).Option().Parse(`
+
+{{ range $svc := .Services }}
+
+// {{ $svc.GetName }}ChaincodeResolver interface for service resolver
+type (
+ {{ $svc.GetName }}ChaincodeResolver interface {
+		Resolve (ctx cckit_router.Context) ({{ $svc.GetName }}Chaincode, error)
+ }
+
+ {{ $svc.GetName }}ChaincodeLocalResolver struct {
+   service {{ $svc.GetName }}Chaincode
+ }
+
+ {{ $svc.GetName }}ChaincodeLocatorResolver struct {
+   locatorResolver cckit_gateway.ChaincodeLocatorResolver
+   service {{ $svc.GetName }}Chaincode
+ }
+) 
+
+func New{{ $svc.GetName }}ChaincodeLocalResolver (service {{ $svc.GetName }}Chaincode) *{{ $svc.GetName }}ChaincodeLocalResolver {
+	return &{{ $svc.GetName }}ChaincodeLocalResolver {
+		service: service,
+	}
+}
+
+func (r *{{ $svc.GetName }}ChaincodeLocalResolver) Resolve(ctx cckit_router.Context) ({{ $svc.GetName }}Chaincode, error) {
+	if r.service == nil {
+		return nil, errors.New ("service not set for local chaincode resolver")
+    }
+
+    return r.service, nil
+}
+
+func New{{ $svc.GetName }}ChaincodeResolver (locatorResolver cckit_gateway.ChaincodeLocatorResolver) *{{ $svc.GetName }}ChaincodeLocatorResolver {
+	return &{{ $svc.GetName }}ChaincodeLocatorResolver {
+		locatorResolver: locatorResolver,
+	}
+}
+
+func (r *{{ $svc.GetName }}ChaincodeLocatorResolver) Resolve(ctx cckit_router.Context) ({{ $svc.GetName }}Chaincode, error) {
+	if r.service != nil {
+		return r.service, nil
+    }
+
+    locator, err := r.locatorResolver(ctx, _{{ $svc.GetName }}_serviceDesc.ServiceName)
+	if err != nil {
+        return nil, err
+	}
+
+	r.service = New{{ $svc.GetName }}ChaincodeStubInvoker(locator)
+	return r.service, nil
+}
+
+
+type {{ $svc.GetName }}ChaincodeStubInvoker struct {
+  Invoker cckit_gateway.ChaincodeStubInvoker
+}
+
+func New{{ $svc.GetName }}ChaincodeStubInvoker(locator *cckit_gateway.ChaincodeLocator) *{{ $svc.GetName }}ChaincodeStubInvoker {
+	return &{{ $svc.GetName }}ChaincodeStubInvoker {
+		Invoker: &cckit_gateway.LocatorChaincodeStubInvoker{Locator: locator},
+	}
+}
+
+
+ {{ range $m := $svc.Methods }}
+ {{ $method := "Invoke"}}
+ {{ if $m | hasGetBinding }}{{ $method = "Query"}}{{ end }}
+
+ func (c *{{ $svc.GetName }}ChaincodeStubInvoker) {{ $m.GetName }}(ctx cckit_router.Context, in *{{$m.RequestType.GoType $m.Service.File.GoPkg.Path | goTypeName }}) (*{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}, error) {
+
+    {{ if $method | eq "Invoke" }}
+       return nil, cckit_gateway.ErrInvokeMethodNotAllowed 
+
+    {{ else }}
+    var inMsg interface{} = in
+    if v, ok := inMsg.(interface { Validate() error }); ok {
+       if err := v.Validate(); err != nil {
+		return nil, err
+	   } 
+     }
+
+    if res, err := c.Invoker.{{ $method }}(ctx.Stub(), {{ $svc.GetName }}Chaincode_{{ $m.GetName }} , []interface{}{in}, &{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*{{ $m.ResponseType.GoType $m.Service.File.GoPkg.Path | goTypeName }}), nil
+	}
+    {{ end }}
+ }
+ {{ end }}
+
+
+{{ end }}
+
 `))

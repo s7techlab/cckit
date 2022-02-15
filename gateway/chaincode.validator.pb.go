@@ -29,18 +29,50 @@ func (this *ChaincodeLocator) Validate() error {
 	return nil
 }
 func (this *ChaincodeInput) Validate() error {
-	if nil == this.Chaincode {
-		return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", fmt.Errorf("message must exist"))
-	}
-	if this.Chaincode != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Chaincode); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
-		}
-	}
 	// Validation of proto3 map<> fields is unsupported.
 	return nil
 }
-func (this *ChaincodeExec) Validate() error {
+func (this *ChaincodeExecRequest) Validate() error {
+	if nil == this.Locator {
+		return github_com_mwitkow_go_proto_validators.FieldError("Locator", fmt.Errorf("message must exist"))
+	}
+	if this.Locator != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Locator); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Locator", err)
+		}
+	}
+	if this.Input != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Input); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Input", err)
+		}
+	}
+	return nil
+}
+func (this *ChaincodeQueryRequest) Validate() error {
+	if nil == this.Locator {
+		return github_com_mwitkow_go_proto_validators.FieldError("Locator", fmt.Errorf("message must exist"))
+	}
+	if this.Locator != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Locator); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Locator", err)
+		}
+	}
+	if this.Input != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Input); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Input", err)
+		}
+	}
+	return nil
+}
+func (this *ChaincodeInvokeRequest) Validate() error {
+	if nil == this.Locator {
+		return github_com_mwitkow_go_proto_validators.FieldError("Locator", fmt.Errorf("message must exist"))
+	}
+	if this.Locator != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Locator); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Locator", err)
+		}
+	}
 	if this.Input != nil {
 		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Input); err != nil {
 			return github_com_mwitkow_go_proto_validators.FieldError("Input", err)
@@ -52,12 +84,12 @@ func (this *BlockLimit) Validate() error {
 	return nil
 }
 func (this *ChaincodeEventsStreamRequest) Validate() error {
-	if nil == this.Chaincode {
-		return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", fmt.Errorf("message must exist"))
+	if nil == this.Locator {
+		return github_com_mwitkow_go_proto_validators.FieldError("Locator", fmt.Errorf("message must exist"))
 	}
-	if this.Chaincode != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Chaincode); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
+	if this.Locator != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Locator); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Locator", err)
 		}
 	}
 	if this.FromBlock != nil {
@@ -73,12 +105,12 @@ func (this *ChaincodeEventsStreamRequest) Validate() error {
 	return nil
 }
 func (this *ChaincodeEventsRequest) Validate() error {
-	if nil == this.Chaincode {
-		return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", fmt.Errorf("message must exist"))
+	if nil == this.Locator {
+		return github_com_mwitkow_go_proto_validators.FieldError("Locator", fmt.Errorf("message must exist"))
 	}
-	if this.Chaincode != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Chaincode); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
+	if this.Locator != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Locator); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Locator", err)
 		}
 	}
 	if this.FromBlock != nil {
@@ -93,11 +125,23 @@ func (this *ChaincodeEventsRequest) Validate() error {
 	}
 	return nil
 }
-func (this *ChaincodeInstanceInput) Validate() error {
-	// Validation of proto3 map<> fields is unsupported.
+func (this *ChaincodeInstanceExecRequest) Validate() error {
+	if this.Input != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Input); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Input", err)
+		}
+	}
 	return nil
 }
-func (this *ChaincodeInstanceExec) Validate() error {
+func (this *ChaincodeInstanceQueryRequest) Validate() error {
+	if this.Input != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Input); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Input", err)
+		}
+	}
+	return nil
+}
+func (this *ChaincodeInstanceInvokeRequest) Validate() error {
 	if this.Input != nil {
 		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Input); err != nil {
 			return github_com_mwitkow_go_proto_validators.FieldError("Input", err)
@@ -132,9 +176,12 @@ func (this *ChaincodeInstanceEventsRequest) Validate() error {
 	return nil
 }
 func (this *ChaincodeEvents) Validate() error {
-	if this.Chaincode != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Chaincode); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Chaincode", err)
+	if nil == this.Locator {
+		return github_com_mwitkow_go_proto_validators.FieldError("Locator", fmt.Errorf("message must exist"))
+	}
+	if this.Locator != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Locator); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("Locator", err)
 		}
 	}
 	if this.FromBlock != nil {

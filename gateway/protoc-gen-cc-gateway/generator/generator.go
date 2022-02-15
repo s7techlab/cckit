@@ -90,10 +90,15 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 		{"github.com/s7techlab/cckit/gateway", "cckit_gateway"},
 		{"github.com/s7techlab/cckit/router", "cckit_router"},
 		{"github.com/s7techlab/cckit/router/param/defparam", "cckit_defparam"},
+		{"github.com/s7techlab/cckit/sdk", "cckit_sdk"},
 	}
 
 	if g.Opts.EmbedSwagger {
 		pkgs = append(pkgs, []string{"embed", "_"})
+	}
+
+	if g.Opts.ServiceChaincodeResolver {
+		pkgs = append(pkgs, []string{"errors", "errors"})
 	}
 
 	for _, pkg := range pkgs {
@@ -173,6 +178,12 @@ func applyTemplate(p TemplateParams) (string, error) {
 
 	if err := gatewayTemplate.Execute(w, p); err != nil {
 		return "", err
+	}
+
+	if p.Opts.ServiceChaincodeResolver {
+		if err := resolverTemplate.Execute(w, p); err != nil {
+			return "", err
+		}
 	}
 
 	return w.String(), nil
