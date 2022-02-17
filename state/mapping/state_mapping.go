@@ -300,3 +300,18 @@ func KeyRefsDiff(prevKeys []state.KeyValue, newKeys []state.KeyValue) (deleted, 
 
 	return deleted, inserted, nil
 }
+
+func MergeStateMappings(one StateMappings, more ...StateMappings) StateMappings {
+	out := make(StateMappings)
+	for k, v := range one {
+		out[k] = v
+	}
+
+	for _, m := range more {
+		for k, v := range m {
+			out[k] = v
+		}
+	}
+
+	return out
+}
