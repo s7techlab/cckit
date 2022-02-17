@@ -183,6 +183,16 @@ func (mp *MockedPeer) Events(
 	return eventsExtended, closer, nil
 }
 
+func (m *MockedPeer) Blocks(
+	ctx context.Context,
+	channelName string,
+	identity msp.SigningIdentity,
+	blockRange ...int64,
+) (blockChan <-chan *common.Block, closer func() error, err error) {
+	panic("not implemented")
+}
+
+
 func (es *EventSubscription) Events() chan *peer.ChaincodeEvent {
 	return es.events
 }
