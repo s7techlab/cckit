@@ -129,3 +129,17 @@ func EventFromPayload(payload interface{}) *Event {
 		Payload: payload,
 	}
 }
+
+func MergeEventMappings(one EventMappings, more ...EventMappings) EventMappings {
+	out := make(EventMappings)
+	for k, v := range one {
+		out[k] = v
+	}
+
+	for _, m := range more {
+		for k, v := range m {
+			out[k] = v
+		}
+	}
+	return out
+}
