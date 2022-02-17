@@ -163,6 +163,15 @@ func (smm StateMappings) Map(entry interface{}) (instance *StateInstance, err er
 	}
 }
 
+func (smm StateMappings) Resolve(objectType string, value []byte) (entry interface{}, err error) {
+	mapper, err := smm.GetByNamespace(state.Key{objectType})
+	if err != nil {
+		return nil, err
+	}
+
+	return DefaultSerializer.FromBytes(value, mapper.Schema())
+}
+
 //
 func (smm *StateMappings) IdxKey(entity interface{}, idx string, idxVal state.Key) (state.Key, error) {
 	keyMapped := NewKeyRefIDInstance(entity, idx, idxVal)
