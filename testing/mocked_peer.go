@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
 	"github.com/pkg/errors"
@@ -182,6 +183,16 @@ func (mp *MockedPeer) Events(
 
 	return eventsExtended, closer, nil
 }
+
+func (m *MockedPeer) Blocks(
+	ctx context.Context,
+	channelName string,
+	identity msp.SigningIdentity,
+	blockRange ...int64,
+) (blockChan <-chan *common.Block, closer func() error, err error) {
+	panic("not implemented")
+}
+
 
 func (es *EventSubscription) Events() chan *peer.ChaincodeEvent {
 	return es.events
