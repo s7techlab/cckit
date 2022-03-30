@@ -1,0 +1,276 @@
+syntax = "proto3";
+
+package examples.cflat;
+
+option go_package = ".;cflat";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+//import "mwitkow/go-proto-validators/validator.proto";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+
+
+service CFlatService {
+  rpc CreateFlat (CreateFlatRequest) returns (FlatView) {
+    option (google.api.http) = {
+      post: "/cflat/flats"
+      body: "*"
+    };
+  }
+
+  rpc UpdateFlat (UpdateFlatRequest) returns (FlatView) {
+    option (google.api.http) = {
+      put: "/cflat/flats/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteFlat (FlatId) returns (FlatView) {
+    option (google.api.http) = {
+      delete: "/cflat/flats/{id}"
+    };
+  }
+
+  rpc GetFlat (FlatId) returns (Flat) {
+    option (google.api.http) = {
+      get: "/cflat/flats/{id}"
+    };
+  }
+
+  rpc GetFlatView (FlatId) returns (FlatView) {
+    option (google.api.http) = {
+      get: "/cflat/flats/{id}/view"
+    };
+  }
+
+  rpc ListFlats (google.protobuf.Empty) returns (Flats) {
+    option (google.api.http) = {
+      get: "/cflat/flats"
+    };
+  }
+
+  rpc UpdateFlatResident (UpdateFlatResidentRequest) returns (FlatResident) {
+    option (google.api.http) = {
+      put: "/cflat/flats/{flat_id}/residents"
+    };
+  }
+
+  rpc DeleteFlatResident (FlatResidentId) returns (FlatResident) {
+    option (google.api.http) = {
+      delete: "/cflat/flats/{flat_id}/residents/{resident_id}"
+    };
+  }
+
+  rpc GetFlatResident (FlatResidentId) returns (FlatResident) {
+    option (google.api.http) = {
+      get: "/cflat/flats/{flat_id}/residents/{resident_id}"
+    };
+  }
+
+  rpc ListFlatResidents (FlatId) returns (FlatResidents) {
+    option (google.api.http) = {
+      get: "/cflat/flats/{id}/residents"
+    };
+  }
+
+  rpc UpdateFlatRoom (UpdateFlatRoomRequest) returns (FlatRoom) {
+    option (google.api.http) = {
+      put: "/cflat/flats/{flat_id}/rooms"
+    };
+  }
+
+  rpc DeleteFlatRoom (FlatRoomId) returns (FlatRoom) {
+    option (google.api.http) = {
+      delete: "/cflat/flats/{flat_id}/rooms/{room_id}"
+    };
+  }
+
+  rpc GetFlatRoom (FlatRoomId) returns (FlatRoom) {
+    option (google.api.http) = {
+      get: "/cflat/flats/{flat_id}/rooms/{room_id}"
+    };
+  }
+
+  rpc ListFlatRooms (FlatId) returns (FlatRooms) {
+    option (google.api.http) = {
+      get: "/cflat/flats/{id}/rooms"
+    };
+  }
+}
+
+// Dictionaries
+enum PropertyType {
+  PRIVATE = 0;
+  STATE = 1;
+}
+
+enum AccommodationType {
+  UNREGISTERED = 0;
+  REGISTERED = 1;
+  RENT = 2;
+}
+
+enum RoomType {
+  KITCHEN = 0;
+  LIVING = 1;
+  DINING = 2;
+  BATHROOM = 3;
+  BEDROOM = 4;
+  HALLWAY = 5;
+  NURSERY = 6;
+}
+
+// Entities
+message CreateFlatRequest {
+  string country = 1 [(validator.field) = {string_not_empty: true}];
+  string region = 2 [(validator.field) = {string_not_empty: true}];
+  string city = 3 [(validator.field) = {string_not_empty: true}];
+  string street = 4 [(validator.field) = {string_not_empty: true}];
+  uint64 house_num = 5 [(validator.field) = {int_gt: 0}];
+  uint64 flat_num = 6 [(validator.field) = {int_gt: 0}];
+  PropertyType type = 7;
+  repeated SetFlatResident residents = 8;
+  repeated SetFlatRoom rooms = 9 [(validator.field) = {repeated_count_min: 1}];
+}
+
+message UpdateFlatRequest {
+  repeated string id = 1 [(validator.field) = {repeated_count_min: 1}];
+  PropertyType type = 2;
+  repeated SetFlatResident residents = 3 [(validator.field) = {repeated_count_min: 1}];
+  repeated SetFlatRoom rooms = 4 [(validator.field) = {repeated_count_min: 1}];
+}
+
+message SetFlatResident {
+  string first_name = 1 [(validator.field) = {string_not_empty: true}];
+  string second_name = 2 [(validator.field) = {string_not_empty: true}];
+  AccommodationType type = 3;
+}
+
+message SetFlatRoom {
+  RoomType type = 1;
+  uint64 area = 2 [(validator.field) = {int_gt: 0}];
+}
+
+message FlatView {
+  Flat flat = 1;
+  FlatResidents residents = 2;
+  FlatRooms rooms = 3;
+}
+
+message Flat {
+  repeated string id = 1 [(validator.field) = {repeated_count_min: 1}];
+  string country = 2 [(validator.field) = {string_not_empty: true}];
+  string region = 3 [(validator.field) = {string_not_empty: true}];
+  string city = 4 [(validator.field) = {string_not_empty: true}];
+  string street = 5 [(validator.field) = {string_not_empty: true}];
+  uint64 house_num = 6 [(validator.field) = {int_gt: 0}];
+  uint64 flat_num = 7 [(validator.field) = {int_gt: 0}];
+  PropertyType type = 8;
+  uint64 residents_quantity = 9;
+  uint64 area = 10 [(validator.field) = {int_gt: 0}];
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message FlatResident {
+  repeated string flat_id = 1 [(validator.field) = {repeated_count_min: 1}];
+//  repeated string resident_id = 2 [(validator.field) = {repeated_count_min: 1}];
+  string first_name = 3 [(validator.field) = {string_not_empty: true}];
+  string second_name = 4 [(validator.field) = {string_not_empty: true}];
+  AccommodationType type = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message FlatRoom {
+  repeated string flat_id = 1 [(validator.field) = {repeated_count_min: 1}];
+//  repeated string room_id = 2 [(validator.field) = {repeated_count_min: 1}];
+  RoomType type = 3;
+  uint64 area = 4 [(validator.field) = {int_gt: 0}];
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message FlatId {
+  repeated string id = 1 [(validator.field) = {repeated_count_min: 1}];
+}
+
+message Flats {
+  repeated Flat flats = 1;
+}
+
+message UpdateFlatResidentRequest {
+  repeated string flat_id = 1 [(validator.field) = {repeated_count_min: 1}];
+  repeated SetFlatResident residents = 2 [(validator.field) = {repeated_count_min: 1}];
+}
+
+message FlatResidentId {
+  repeated string flat_id = 1 [(validator.field) = {repeated_count_min: 1}];
+  repeated string resident_id = 2 [(validator.field) = {repeated_count_min: 1}];
+}
+
+message FlatResidents {
+  repeated FlatResident residents = 1;
+}
+
+message UpdateFlatRoomRequest {
+  repeated string flat_id = 1 [(validator.field) = {repeated_count_min: 1}];
+  repeated SetFlatRoom rooms = 2 [(validator.field) = {repeated_count_min: 1}];
+}
+
+message FlatRoomId {
+  repeated string flat_id = 1 [(validator.field) = {repeated_count_min: 1}];
+  repeated string room_id = 2 [(validator.field) = {repeated_count_min: 1}];
+}
+
+message FlatRooms {
+  repeated FlatRoom rooms = 1;
+}
+
+// Events
+message FlatCreated {
+  repeated string id = 1;
+  string country = 2;
+  string region = 3;
+  string city = 4;
+  string street = 5;
+  uint64 house_num = 6;
+  uint64 flat_num = 7;
+  PropertyType type = 8;
+  uint64 residents_quantity = 9;
+  uint64 area = 10;
+}
+
+message FlatDeleted {
+  repeated string id = 1;
+  string country = 2;
+  string region = 3;
+  string city = 4;
+  string street = 5;
+  uint64 house_num = 6;
+  uint64 flat_num = 7;
+  PropertyType type = 8;
+  uint64 residents_quantity = 9;
+  uint64 area = 10;
+  FlatResidents residents = 11;
+  FlatRooms rooms = 12;
+}
+
+message FlatUpdated {
+  repeated string id = 1;
+  PropertyType type = 2;
+  uint64 residents_quantity = 3;
+  uint64 area = 4;
+}
+
+message FlatResidentsUpdated {
+  repeated string flat_id = 1;
+  FlatResidents residents = 2;
+}
+
+message FlatResidentsDeleted {}
+
+message FlatRoomsUpdated {
+  repeated string flat_id = 1;
+  FlatRooms rooms = 2;
+}
+
+message FlatRoomsDeleted {}

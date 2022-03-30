@@ -1,0 +1,831 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "cflat.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/cflat/flats": {
+      "get": {
+        "operationId": "CFlatService_ListFlats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlats"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "CFlatService"
+        ]
+      },
+      "post": {
+        "operationId": "CFlatService_CreateFlat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cflatCreateFlatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    },
+    "/cflat/flats/{flat_id}/residents": {
+      "put": {
+        "operationId": "CFlatService_UpdateFlatResident",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatResident"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flat_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    },
+    "/cflat/flats/{flat_id}/residents/{resident_id}": {
+      "get": {
+        "operationId": "CFlatService_GetFlatResident",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatResident"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flat_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "resident_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      },
+      "delete": {
+        "operationId": "CFlatService_DeleteFlatResident",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatResident"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flat_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "resident_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    },
+    "/cflat/flats/{flat_id}/rooms": {
+      "put": {
+        "operationId": "CFlatService_UpdateFlatRoom",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatRoom"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flat_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    },
+    "/cflat/flats/{flat_id}/rooms/{room_id}": {
+      "get": {
+        "operationId": "CFlatService_GetFlatRoom",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatRoom"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flat_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      },
+      "delete": {
+        "operationId": "CFlatService_DeleteFlatRoom",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatRoom"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flat_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "room_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    },
+    "/cflat/flats/{id}": {
+      "get": {
+        "operationId": "CFlatService_GetFlat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlat"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      },
+      "delete": {
+        "operationId": "CFlatService_DeleteFlat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      },
+      "put": {
+        "operationId": "CFlatService_UpdateFlat",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cflatUpdateFlatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    },
+    "/cflat/flats/{id}/residents": {
+      "get": {
+        "operationId": "CFlatService_ListFlatResidents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatResidents"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    },
+    "/cflat/flats/{id}/rooms": {
+      "get": {
+        "operationId": "CFlatService_ListFlatRooms",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatRooms"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    },
+    "/cflat/flats/{id}/view": {
+      "get": {
+        "operationId": "CFlatService_GetFlatView",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cflatFlatView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "CFlatService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "cflatAccommodationType": {
+      "type": "string",
+      "enum": [
+        "UNREGISTERED",
+        "REGISTERED",
+        "RENT"
+      ],
+      "default": "UNREGISTERED"
+    },
+    "cflatCreateFlatRequest": {
+      "type": "object",
+      "properties": {
+        "country": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "house_num": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "flat_num": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "type": {
+          "$ref": "#/definitions/cflatPropertyType"
+        },
+        "residents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cflatSetFlatResident"
+          }
+        },
+        "rooms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cflatSetFlatRoom"
+          }
+        }
+      },
+      "title": "Entities"
+    },
+    "cflatFlat": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "country": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "house_num": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "flat_num": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "type": {
+          "$ref": "#/definitions/cflatPropertyType"
+        },
+        "residents_quantity": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "area": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "cflatFlatResident": {
+      "type": "object",
+      "properties": {
+        "flat_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "first_name": {
+          "type": "string",
+          "title": "repeated string resident_id = 2 [(validator.field) = {repeated_count_min: 1}];"
+        },
+        "second_name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/cflatAccommodationType"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "cflatFlatResidents": {
+      "type": "object",
+      "properties": {
+        "residents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cflatFlatResident"
+          }
+        }
+      }
+    },
+    "cflatFlatRoom": {
+      "type": "object",
+      "properties": {
+        "flat_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "$ref": "#/definitions/cflatRoomType",
+          "title": "repeated string room_id = 2 [(validator.field) = {repeated_count_min: 1}];"
+        },
+        "area": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "cflatFlatRooms": {
+      "type": "object",
+      "properties": {
+        "rooms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cflatFlatRoom"
+          }
+        }
+      }
+    },
+    "cflatFlatView": {
+      "type": "object",
+      "properties": {
+        "flat": {
+          "$ref": "#/definitions/cflatFlat"
+        },
+        "residents": {
+          "$ref": "#/definitions/cflatFlatResidents"
+        },
+        "rooms": {
+          "$ref": "#/definitions/cflatFlatRooms"
+        }
+      }
+    },
+    "cflatFlats": {
+      "type": "object",
+      "properties": {
+        "flats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cflatFlat"
+          }
+        }
+      }
+    },
+    "cflatPropertyType": {
+      "type": "string",
+      "enum": [
+        "PRIVATE",
+        "STATE"
+      ],
+      "default": "PRIVATE",
+      "title": "Dictionaries"
+    },
+    "cflatRoomType": {
+      "type": "string",
+      "enum": [
+        "KITCHEN",
+        "LIVING",
+        "DINING",
+        "BATHROOM",
+        "BEDROOM",
+        "HALLWAY",
+        "NURSERY"
+      ],
+      "default": "KITCHEN"
+    },
+    "cflatSetFlatResident": {
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "type": "string"
+        },
+        "second_name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/cflatAccommodationType"
+        }
+      }
+    },
+    "cflatSetFlatRoom": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/cflatRoomType"
+        },
+        "area": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "cflatUpdateFlatRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "$ref": "#/definitions/cflatPropertyType"
+        },
+        "residents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cflatSetFlatResident"
+          }
+        },
+        "rooms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cflatSetFlatRoom"
+          }
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
