@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "cflat.proto",
+    "title": "fabcar.proto",
     "version": "version not set"
   },
   "consumes": [
@@ -11,14 +11,14 @@
     "application/json"
   ],
   "paths": {
-    "/cflat/flats": {
+    "/fabcar/cars": {
       "get": {
-        "operationId": "CFlatService_ListFlats",
+        "operationId": "FabCarService_ListCars",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlats"
+              "$ref": "#/definitions/fabcarCars"
             }
           },
           "default": {
@@ -29,16 +29,16 @@
           }
         },
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       },
       "post": {
-        "operationId": "CFlatService_CreateFlat",
+        "operationId": "FabCarService_CreateCar",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatView"
+              "$ref": "#/definitions/fabcarCarView"
             }
           },
           "default": {
@@ -54,23 +54,23 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/cflatCreateFlatRequest"
+              "$ref": "#/definitions/fabcarCreateCarRequest"
             }
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       }
     },
-    "/cflat/flats/{flat_id}/residents": {
+    "/fabcar/cars/{car_id}/details": {
       "put": {
-        "operationId": "CFlatService_UpdateFlatResident",
+        "operationId": "FabCarService_UpdateCarDetails",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatResident"
+              "$ref": "#/definitions/fabcarCarDetails"
             }
           },
           "default": {
@@ -82,7 +82,7 @@
         },
         "parameters": [
           {
-            "name": "flat_id",
+            "name": "car_id",
             "in": "path",
             "required": true,
             "type": "array",
@@ -94,18 +94,18 @@
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       }
     },
-    "/cflat/flats/{flat_id}/residents/{resident_id}": {
+    "/fabcar/cars/{car_id}/details/{type}": {
       "get": {
-        "operationId": "CFlatService_GetFlatResident",
+        "operationId": "FabCarService_GetCarDetail",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatResident"
+              "$ref": "#/definitions/fabcarCarDetail"
             }
           },
           "default": {
@@ -117,7 +117,7 @@
         },
         "parameters": [
           {
-            "name": "flat_id",
+            "name": "car_id",
             "in": "path",
             "required": true,
             "type": "array",
@@ -128,28 +128,27 @@
             "minItems": 1
           },
           {
-            "name": "resident_id",
+            "name": "type",
             "in": "path",
             "required": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "csv",
-            "minItems": 1
+            "type": "string",
+            "enum": [
+              "WHEELS",
+              "BATTERY"
+            ]
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       },
       "delete": {
-        "operationId": "CFlatService_DeleteFlatResident",
+        "operationId": "FabCarService_DeleteCarDetail",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatResident"
+              "$ref": "#/definitions/fabcarCarDetail"
             }
           },
           "default": {
@@ -161,7 +160,7 @@
         },
         "parameters": [
           {
-            "name": "flat_id",
+            "name": "car_id",
             "in": "path",
             "required": true,
             "type": "array",
@@ -172,30 +171,29 @@
             "minItems": 1
           },
           {
-            "name": "resident_id",
+            "name": "type",
             "in": "path",
             "required": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "csv",
-            "minItems": 1
+            "type": "string",
+            "enum": [
+              "WHEELS",
+              "BATTERY"
+            ]
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       }
     },
-    "/cflat/flats/{flat_id}/rooms": {
+    "/fabcar/cars/{car_id}/owners": {
       "put": {
-        "operationId": "CFlatService_UpdateFlatRoom",
+        "operationId": "FabCarService_UpdateCarOwners",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatRoom"
+              "$ref": "#/definitions/fabcarCarOwners"
             }
           },
           "default": {
@@ -207,7 +205,7 @@
         },
         "parameters": [
           {
-            "name": "flat_id",
+            "name": "car_id",
             "in": "path",
             "required": true,
             "type": "array",
@@ -219,18 +217,18 @@
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       }
     },
-    "/cflat/flats/{flat_id}/rooms/{room_id}": {
+    "/fabcar/cars/{car_id}/owners/{first_name}/{second_name}": {
       "get": {
-        "operationId": "CFlatService_GetFlatRoom",
+        "operationId": "FabCarService_GetCarOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatRoom"
+              "$ref": "#/definitions/fabcarCarOwner"
             }
           },
           "default": {
@@ -242,7 +240,7 @@
         },
         "parameters": [
           {
-            "name": "flat_id",
+            "name": "car_id",
             "in": "path",
             "required": true,
             "type": "array",
@@ -253,28 +251,29 @@
             "minItems": 1
           },
           {
-            "name": "room_id",
+            "name": "first_name",
             "in": "path",
             "required": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "csv",
-            "minItems": 1
+            "type": "string"
+          },
+          {
+            "name": "second_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       },
       "delete": {
-        "operationId": "CFlatService_DeleteFlatRoom",
+        "operationId": "FabCarService_DeleteCarOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatRoom"
+              "$ref": "#/definitions/fabcarCarOwner"
             }
           },
           "default": {
@@ -286,7 +285,7 @@
         },
         "parameters": [
           {
-            "name": "flat_id",
+            "name": "car_id",
             "in": "path",
             "required": true,
             "type": "array",
@@ -297,30 +296,31 @@
             "minItems": 1
           },
           {
-            "name": "room_id",
+            "name": "first_name",
             "in": "path",
             "required": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "csv",
-            "minItems": 1
+            "type": "string"
+          },
+          {
+            "name": "second_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       }
     },
-    "/cflat/flats/{id}": {
+    "/fabcar/cars/{id}": {
       "get": {
-        "operationId": "CFlatService_GetFlat",
+        "operationId": "FabCarService_GetCar",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlat"
+              "$ref": "#/definitions/fabcarCar"
             }
           },
           "default": {
@@ -344,16 +344,16 @@
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       },
       "delete": {
-        "operationId": "CFlatService_DeleteFlat",
+        "operationId": "FabCarService_DeleteCar",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatView"
+              "$ref": "#/definitions/fabcarCarView"
             }
           },
           "default": {
@@ -377,16 +377,16 @@
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       },
       "put": {
-        "operationId": "CFlatService_UpdateFlat",
+        "operationId": "FabCarService_UpdateCar",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatView"
+              "$ref": "#/definitions/fabcarCarView"
             }
           },
           "default": {
@@ -413,23 +413,23 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/cflatUpdateFlatRequest"
+              "$ref": "#/definitions/fabcarUpdateCarRequest"
             }
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       }
     },
-    "/cflat/flats/{id}/residents": {
+    "/fabcar/cars/{id}/details": {
       "get": {
-        "operationId": "CFlatService_ListFlatResidents",
+        "operationId": "FabCarService_ListCarDetails",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatResidents"
+              "$ref": "#/definitions/fabcarCarDetails"
             }
           },
           "default": {
@@ -453,18 +453,18 @@
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       }
     },
-    "/cflat/flats/{id}/rooms": {
+    "/fabcar/cars/{id}/owners": {
       "get": {
-        "operationId": "CFlatService_ListFlatRooms",
+        "operationId": "FabCarService_ListCarOwners",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatRooms"
+              "$ref": "#/definitions/fabcarCarOwners"
             }
           },
           "default": {
@@ -488,18 +488,18 @@
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
         ]
       }
     },
-    "/cflat/flats/{id}/view": {
+    "/fabcar/cars/{id}/view": {
       "get": {
-        "operationId": "CFlatService_GetFlatView",
+        "operationId": "FabCarService_GetCarView",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/cflatFlatView"
+              "$ref": "#/definitions/fabcarCarView"
             }
           },
           "default": {
@@ -523,226 +523,339 @@
           }
         ],
         "tags": [
-          "CFlatService"
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/makers": {
+      "get": {
+        "operationId": "FabCarService_ListMakers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarMakers"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "post": {
+        "operationId": "FabCarService_CreateMaker",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarMaker"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fabcarCreateMakerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/makers/{name}": {
+      "get": {
+        "operationId": "FabCarService_GetMaker",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarMaker"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "delete": {
+        "operationId": "FabCarService_DeleteMaker",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarMaker"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FabCarService"
         ]
       }
     }
   },
   "definitions": {
-    "cflatAccommodationType": {
-      "type": "string",
-      "enum": [
-        "UNREGISTERED",
-        "REGISTERED",
-        "RENT"
-      ],
-      "default": "UNREGISTERED"
-    },
-    "cflatCreateFlatRequest": {
+    "fabcarCar": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "make": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "colour": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "owners_quantity": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fabcarCarDetail": {
+      "type": "object",
+      "properties": {
+        "car_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "$ref": "#/definitions/fabcarDetailType"
+        },
+        "make": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fabcarCarDetails": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarCarDetail"
+          }
+        }
+      }
+    },
+    "fabcarCarOwner": {
+      "type": "object",
+      "properties": {
+        "car_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "second_name": {
+          "type": "string"
+        },
+        "vehicle_passport": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fabcarCarOwners": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarCarOwner"
+          }
+        }
+      }
+    },
+    "fabcarCarView": {
+      "type": "object",
+      "properties": {
+        "car": {
+          "$ref": "#/definitions/fabcarCar"
+        },
+        "owners": {
+          "$ref": "#/definitions/fabcarCarOwners"
+        },
+        "details": {
+          "$ref": "#/definitions/fabcarCarDetails"
+        }
+      }
+    },
+    "fabcarCars": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarCar"
+          }
+        }
+      }
+    },
+    "fabcarCreateCarRequest": {
+      "type": "object",
+      "properties": {
+        "make": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "colour": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarSetCarOwner"
+          }
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarSetCarDetail"
+          }
+        }
+      }
+    },
+    "fabcarCreateMakerRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
         "country": {
           "type": "string"
         },
-        "region": {
-          "type": "string"
-        },
-        "city": {
-          "type": "string"
-        },
-        "street": {
-          "type": "string"
-        },
-        "house_num": {
+        "foundation_year": {
           "type": "string",
           "format": "uint64"
-        },
-        "flat_num": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "type": {
-          "$ref": "#/definitions/cflatPropertyType"
-        },
-        "residents": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/cflatSetFlatResident"
-          }
-        },
-        "rooms": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/cflatSetFlatRoom"
-          }
         }
       },
       "title": "Entities"
     },
-    "cflatFlat": {
+    "fabcarDetailType": {
+      "type": "string",
+      "enum": [
+        "WHEELS",
+        "BATTERY"
+      ],
+      "default": "WHEELS",
+      "title": "Dictionaries"
+    },
+    "fabcarMaker": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "name": {
+          "type": "string"
         },
         "country": {
           "type": "string"
         },
-        "region": {
-          "type": "string"
-        },
-        "city": {
-          "type": "string"
-        },
-        "street": {
-          "type": "string"
-        },
-        "house_num": {
+        "foundation_year": {
           "type": "string",
           "format": "uint64"
-        },
-        "flat_num": {
-          "type": "string",
-          "format": "uint64"
-        },
+        }
+      }
+    },
+    "fabcarMakers": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarMaker"
+          }
+        }
+      }
+    },
+    "fabcarSetCarDetail": {
+      "type": "object",
+      "properties": {
         "type": {
-          "$ref": "#/definitions/cflatPropertyType"
+          "$ref": "#/definitions/fabcarDetailType"
         },
-        "residents_quantity": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "area": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "updated_at": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "cflatFlatResident": {
-      "type": "object",
-      "properties": {
-        "flat_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "first_name": {
-          "type": "string",
-          "title": "repeated string resident_id = 2 [(validator.field) = {repeated_count_min: 1}];"
-        },
-        "second_name": {
+        "make": {
           "type": "string"
-        },
-        "type": {
-          "$ref": "#/definitions/cflatAccommodationType"
-        },
-        "updated_at": {
-          "type": "string",
-          "format": "date-time"
         }
       }
     },
-    "cflatFlatResidents": {
-      "type": "object",
-      "properties": {
-        "residents": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/cflatFlatResident"
-          }
-        }
-      }
-    },
-    "cflatFlatRoom": {
-      "type": "object",
-      "properties": {
-        "flat_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "type": {
-          "$ref": "#/definitions/cflatRoomType",
-          "title": "repeated string room_id = 2 [(validator.field) = {repeated_count_min: 1}];"
-        },
-        "area": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "updated_at": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "cflatFlatRooms": {
-      "type": "object",
-      "properties": {
-        "rooms": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/cflatFlatRoom"
-          }
-        }
-      }
-    },
-    "cflatFlatView": {
-      "type": "object",
-      "properties": {
-        "flat": {
-          "$ref": "#/definitions/cflatFlat"
-        },
-        "residents": {
-          "$ref": "#/definitions/cflatFlatResidents"
-        },
-        "rooms": {
-          "$ref": "#/definitions/cflatFlatRooms"
-        }
-      }
-    },
-    "cflatFlats": {
-      "type": "object",
-      "properties": {
-        "flats": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/cflatFlat"
-          }
-        }
-      }
-    },
-    "cflatPropertyType": {
-      "type": "string",
-      "enum": [
-        "PRIVATE",
-        "STATE"
-      ],
-      "default": "PRIVATE",
-      "title": "Dictionaries"
-    },
-    "cflatRoomType": {
-      "type": "string",
-      "enum": [
-        "KITCHEN",
-        "LIVING",
-        "DINING",
-        "BATHROOM",
-        "BEDROOM",
-        "HALLWAY",
-        "NURSERY"
-      ],
-      "default": "KITCHEN"
-    },
-    "cflatSetFlatResident": {
+    "fabcarSetCarOwner": {
       "type": "object",
       "properties": {
         "first_name": {
@@ -751,24 +864,12 @@
         "second_name": {
           "type": "string"
         },
-        "type": {
-          "$ref": "#/definitions/cflatAccommodationType"
+        "vehicle_passport": {
+          "type": "string"
         }
       }
     },
-    "cflatSetFlatRoom": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "$ref": "#/definitions/cflatRoomType"
-        },
-        "area": {
-          "type": "string",
-          "format": "uint64"
-        }
-      }
-    },
-    "cflatUpdateFlatRequest": {
+    "fabcarUpdateCarRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -777,19 +878,23 @@
             "type": "string"
           }
         },
-        "type": {
-          "$ref": "#/definitions/cflatPropertyType"
+        "color": {
+          "type": "string"
         },
-        "residents": {
+        "number": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "owners": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/cflatSetFlatResident"
+            "$ref": "#/definitions/fabcarSetCarOwner"
           }
         },
-        "rooms": {
+        "details": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/cflatSetFlatRoom"
+            "$ref": "#/definitions/fabcarSetCarDetail"
           }
         }
       }

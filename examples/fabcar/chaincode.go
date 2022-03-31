@@ -1,17 +1,17 @@
-package cflat
+package fabcar
 
 import (
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 )
 
-const ChaincodeName = `cflat`
+const ChaincodeName = `fabcar`
 
 func New() (*router.Chaincode, error) {
 
 	r := router.New(ChaincodeName)
 
-	if err := RegisterCFlatServiceChaincode(r, &CFlatService{}); err != nil {
+	if err := RegisterFabCarServiceChaincode(r, &FabCarService{}); err != nil {
 		return nil, err
 	}
 
@@ -27,8 +27,8 @@ func MustNew() *router.Chaincode {
 	return cc
 }
 
-func ChaincodeInitFunc(ownerSvc *owner.ChaincodeOwnerService) func(router.Context) (interface{}, error) {
+func ChaincodeInitFunc() func(router.Context) (interface{}, error) {
 	return func(ctx router.Context) (interface{}, error) {
-		return ownerSvc.RegisterTxCreator(ctx)
+		return owner.SetFromCreator(ctx)
 	}
 }

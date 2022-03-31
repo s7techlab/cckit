@@ -1,7 +1,7 @@
 .: generate
 
 generate: clean
-	@echo "cflat service proto generation"
+	@echo "fabcar service proto generation"
 	@protoc-b2bchain -I=. \
 	-I=../../../../vendor \
 	-I=../../../../third_party/googleapis \
@@ -11,7 +11,7 @@ generate: clean
 	--go-b2bchain_out=plugins=grpc:. \
 	--grpc-gateway-b2bchain_out=logtostderr=true:. \
     --swagger-b2bchain_out=logtostderr=true:. \
-    --doc-b2bchain_out=../../../../docs/tools/proto-gen.tmpl,cflat.pb.md:. \
+    --doc-b2bchain_out=../../../../docs/tools/proto-gen.tmpl,fabcar.pb.md:. \
 	./*.proto
 
 clean:
