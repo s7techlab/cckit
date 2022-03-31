@@ -26,40 +26,40 @@ func (ms *MakerSample) ExpectEqual(maker *fabcar.Maker) {
 var (
 	MakerNonexistent = MakerSample{
 		Create: &fabcar.CreateMakerRequest{
-			Name: "Nonexistent",
-			Country: "Nonexistent",
+			Name:           "Nonexistent",
+			Country:        "Nonexistent",
 			FoundationYear: 1884,
 		},
 	}
 
 	MakerToyota = MakerSample{
 		Create: &fabcar.CreateMakerRequest{
-			Name: "Toyota",
-			Country: "Japan",
+			Name:           "Toyota",
+			Country:        "Japan",
 			FoundationYear: 1937,
 		},
 	}
 
 	MakerAudi = MakerSample{
 		Create: &fabcar.CreateMakerRequest{
-			Name: "Audi",
-			Country: "German",
+			Name:           "Audi",
+			Country:        "German",
 			FoundationYear: 1909,
 		},
 	}
 
 	MakerPeugeot = MakerSample{
 		Create: &fabcar.CreateMakerRequest{
-			Name: "Peugeot",
-			Country: "France",
+			Name:           "Peugeot",
+			Country:        "France",
 			FoundationYear: 1886,
 		},
 	}
 
 	MakerFord = MakerSample{
 		Create: &fabcar.CreateMakerRequest{
-			Name: "Ford",
-			Country: "USA",
+			Name:           "Ford",
+			Country:        "USA",
 			FoundationYear: 1903,
 		},
 	}

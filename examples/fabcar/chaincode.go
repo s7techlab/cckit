@@ -18,15 +18,6 @@ func New() (*router.Chaincode, error) {
 	return router.NewChaincode(r), nil
 }
 
-func MustNew() *router.Chaincode {
-	cc, err := New()
-	if err != nil {
-		panic(err)
-	}
-
-	return cc
-}
-
 func ChaincodeInitFunc() func(router.Context) (interface{}, error) {
 	return func(ctx router.Context) (interface{}, error) {
 		return owner.SetFromCreator(ctx)

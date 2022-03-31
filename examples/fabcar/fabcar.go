@@ -261,12 +261,6 @@ func (f *FabCarService) DeleteCarOwner(ctx router.Context, id *CarOwnerId) (*Car
 }
 
 func (f *FabCarService) GetCarOwner(ctx router.Context, id *CarOwnerId) (*CarOwner, error) {
-	//carView, err := f.GetCarView(ctx, &CarId{Id: id.CarId})
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//for _, carView := range carView.Owners {}
 	carOwner, err := State(ctx).Get(id, &CarOwner{})
 	if err != nil {
 		return nil, err
@@ -296,6 +290,10 @@ func (f *FabCarService) UpdateCarDetails(ctx router.Context, req *UpdateCarDetai
 
 	mapper := f.carMapperByView(carView)
 	if err = mapper.SetCarDetails(ctx, req.Details); err != nil {
+		return nil, err
+	}
+
+	if err = mapper.State.Apply(State(ctx), Event(ctx)); err != nil {
 		return nil, err
 	}
 

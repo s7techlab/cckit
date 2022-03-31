@@ -279,6 +279,19 @@ var _ = Describe(`FabCar service`, func() {
 			})
 
 			cc.Tx(func() {
+				carOwner, err := fabCarCC.GetCarOwner(ctx, &fabcar.CarOwnerId{
+					CarId:      car1IdString,
+					FirstName:  testdata.Car1.UpdateOwners[0].Owners[1].FirstName,
+					SecondName: testdata.Car1.UpdateOwners[0].Owners[1].SecondName,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(carOwner.CarId).To(Equal(car1IdString))
+				Expect(carOwner.FirstName).To(Equal(testdata.Car1.UpdateOwners[0].Owners[1].FirstName))
+				Expect(carOwner.SecondName).To(Equal(testdata.Car1.UpdateOwners[0].Owners[1].SecondName))
+				Expect(carOwner.VehiclePassport).To(Equal(testdata.Car1.UpdateOwners[0].Owners[1].VehiclePassport))
+			})
+
+			cc.Tx(func() {
 				carOwners, err := fabCarCC.ListCarOwners(ctx, &fabcar.CarId{Id: car1IdString})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(carOwners.Items).To(HaveLen(3))
@@ -317,6 +330,20 @@ var _ = Describe(`FabCar service`, func() {
 				Expect(carDetails.Items[1].CarId).To(Equal(car1IdString))
 				Expect(carDetails.Items[1].Type).To(Equal(testdata.Car1.UpdateDetails[0].Details[0].Type))
 				Expect(carDetails.Items[1].Make).To(Equal(testdata.Car1.UpdateDetails[0].Details[0].Make))
+			})
+
+			cc.Tx(func() {
+				carDetail, err := fabCarCC.GetCarDetail(ctx, &fabcar.CarDetailId{CarId: car1IdString, Type: fabcar.DetailType_WHEELS})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(carDetail.CarId).To(Equal(car1IdString))
+				Expect(carDetail.Type).To(Equal(testdata.Car1.UpdateDetails[0].Details[0].Type))
+				Expect(carDetail.Make).To(Equal(testdata.Car1.UpdateDetails[0].Details[0].Make))
+			})
+
+			cc.Tx(func() {
+				carOwners, err := fabCarCC.ListCarOwners(ctx, &fabcar.CarId{Id: car1IdString})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(carOwners.Items).To(HaveLen(2))
 			})
 		})
 	})
