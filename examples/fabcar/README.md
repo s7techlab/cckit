@@ -3,7 +3,8 @@
 Fabcar S7Techlab is modification of Hyperledger fabric-samples [fabcar chaincode](https://github.com/hyperledger/fabric-samples/blob/main/chaincode/fabcar/go/fabcar.go)
 
 Fabcar Hyperledger Fabric Chaincode (FHF) short description:
-1) At FHF you can create cat at once with method 'CreateCar'. Payload example:
+1) FHF is made without code generating
+2) At FHF you can create cat at once with method 'CreateCar'. Payload example:
 ```json
 {
   "car_number": "CAR1",
@@ -35,7 +36,8 @@ Fabcar Hyperledger Fabric Chaincode (FHF) short description:
 
 Fabcar S7Techlab Chaincode (FS7) has four entities: Maker, Car, Owner and Detail.
 FS7 has some difference from FHF:
-1) You can not create car at once, because before car's maker have to be created and put at BC state.
+1) FS7 gateway was generated with proto 
+2) You can not create car at once, because before car's maker have to be created and put at BC state.
    Use method 'CreateMaker', payload example:
 ```json
 {
