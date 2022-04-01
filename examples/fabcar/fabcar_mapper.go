@@ -32,7 +32,7 @@ func CreateCarID(car *Car) []string {
 	return []string{car.Make, car.Model, strconv.Itoa(int(car.Number))}
 }
 
-func (m *Mapper) CreateCar(ctx router.Context, req *CreateCarRequest) error {
+func (m *Mapper) CreateCar(ctx router.Context, req *CreateCarRequest) {
 	updatedAt, _ := ctx.Stub().GetTxTimestamp()
 
 	m.Car = &Car{
@@ -45,13 +45,8 @@ func (m *Mapper) CreateCar(ctx router.Context, req *CreateCarRequest) error {
 
 	m.Car.Id = CreateCarID(m.Car)
 
-	if err := m.SetCarOwners(ctx, req.Owners); err != nil {
-		return err
-	}
-
-	if err := m.SetCarDetails(ctx, req.Details); err != nil {
-		return err
-	}
+	m.SetCarOwners(ctx, req.Owners)
+	m.SetCarDetails(ctx, req.Details)
 
 	m.State.Commands.Insert(m.Car)
 	m.State.Event = mapping.EventFromPayload(&CarCreated{
@@ -61,25 +56,19 @@ func (m *Mapper) CreateCar(ctx router.Context, req *CreateCarRequest) error {
 		Colour: m.Car.Colour,
 		Number: m.Car.Number,
 	})
-
-	return nil
 }
 
-func (m *Mapper) SetCar(ctx router.Context, req *UpdateCarRequest) error {
+func (m *Mapper) SetCar(ctx router.Context, req *UpdateCarRequest) {
 	updatedAt, _ := ctx.Stub().GetTxTimestamp()
 	m.Car.UpdatedAt = updatedAt
 	m.Car.Colour = req.Color
 
 	if len(req.Owners) > 0 {
-		if err := m.SetCarOwners(ctx, req.Owners); err != nil {
-			return err
-		}
+		m.SetCarOwners(ctx, req.Owners)
 	}
 
 	if len(req.Details) > 0 {
-		if err := m.SetCarDetails(ctx, req.Details); err != nil {
-			return err
-		}
+		m.SetCarDetails(ctx, req.Details)
 	}
 
 	m.State.Commands.Put(m.Car)
@@ -87,10 +76,9 @@ func (m *Mapper) SetCar(ctx router.Context, req *UpdateCarRequest) error {
 		Id:     m.Car.Id,
 		Colour: m.Car.Colour,
 	}}
-	return nil
 }
 
-func (m *Mapper) SetCarOwners(ctx router.Context, reqs []*SetCarOwner) error {
+func (m *Mapper) SetCarOwners(ctx router.Context, reqs []*SetCarOwner) {
 	updatedAt, _ := ctx.Stub().GetTxTimestamp()
 
 	for _, req := range reqs {
@@ -120,11 +108,9 @@ func (m *Mapper) SetCarOwners(ctx router.Context, reqs []*SetCarOwner) error {
 	m.State.Event = &mapping.Event{Payload: &CarOwnersUpdated{
 		Owners: &CarOwners{Items: m.Owners},
 	}}
-
-	return nil
 }
 
-func (m *Mapper) SetCarDetails(ctx router.Context, reqs []*SetCarDetail) error {
+func (m *Mapper) SetCarDetails(ctx router.Context, reqs []*SetCarDetail) {
 	updatedAt, _ := ctx.Stub().GetTxTimestamp()
 
 	for _, req := range reqs {
@@ -153,6 +139,4 @@ func (m *Mapper) SetCarDetails(ctx router.Context, reqs []*SetCarDetail) error {
 	m.State.Event = &mapping.Event{Payload: &CarDetailsUpdated{
 		Details: &CarDetails{Items: m.Details},
 	}}
-
-	return nil
 }

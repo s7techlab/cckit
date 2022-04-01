@@ -107,10 +107,19 @@ var _ = Describe(`FabCar service`, func() {
 				Expect(makers.Items).To(HaveLen(4))
 			})
 		})
+
+		It("disallow to delete maker", func() {
+			cc.Tx(func() {
+				ExpectErrorContain(`state entry not found: Maker | Nonexistent`)(fabCarCC.DeleteMaker(ctx, &fabcar.MakerName{Name: testdata.MakerNonexistent.Create.Name}))
+			})
+		})
 	})
 
 	Context(`Car`, func() {
-		var car1IdString = testdata.Car1.IdStrings()
+		var (
+			car1IdString           = testdata.Car1.IdStrings()
+			carNonexistentIdString = append(car1IdString, testdata.MakerNonexistent.Create.Name)
+		)
 
 		It("disallow to create car", func() {
 			cc.Tx(func() {
@@ -230,6 +239,15 @@ var _ = Describe(`FabCar service`, func() {
 			})
 		})
 
+		It("disallow to delete car", func() {
+			cc.Tx(func() {
+				req := testdata.Car1.Clone()
+				req.Create.Make = testdata.MakerNonexistent.Create.Name
+
+				ExpectErrorContain(`state entry not found: Car | Nonexistent | Prius | 85322`)(fabCarCC.DeleteCar(ctx, &fabcar.CarId{Id: req.IdStrings()}))
+			})
+		})
+
 		It("allow to update car", func() {
 			cc.Tx(func() {
 				carView, err := fabCarCC.UpdateCar(ctx, testdata.Car1.Updates[0])
@@ -254,6 +272,14 @@ var _ = Describe(`FabCar service`, func() {
 				Expect(carView.Details.Items[1].CarId).To(Equal(car1IdString))
 				Expect(carView.Details.Items[1].Type).To(Equal(testdata.Car1.Updates[0].Details[0].Type))
 				Expect(carView.Details.Items[1].Make).To(Equal(testdata.Car1.Updates[0].Details[0].Make))
+			})
+		})
+
+		It("disallow to update car", func() {
+			cc.Tx(func() {
+				req := testdata.Car1.Clone()
+				req.Updates[0].Id = carNonexistentIdString
+				ExpectErrorContain(`state entry not found: Car | Toyota | Prius | 85322 | Nonexistent`)(fabCarCC.UpdateCar(ctx, req.Updates[0]))
 			})
 		})
 
@@ -297,6 +323,15 @@ var _ = Describe(`FabCar service`, func() {
 			})
 		})
 
+		It("disallow to update car owners", func() {
+			cc.Tx(func() {
+				req := testdata.Car1.Clone()
+
+				req.UpdateOwners[0].CarId = carNonexistentIdString
+				ExpectErrorContain(`state entry not found: Car | Toyota | Prius | 85322 | Nonexistent`)(fabCarCC.UpdateCarOwners(ctx, req.UpdateOwners[0]))
+			})
+		})
+
 		It("allow to delete car owner", func() {
 			cc.Tx(func() {
 				carOwner, err := fabCarCC.DeleteCarOwner(ctx, &fabcar.CarOwnerId{
@@ -315,6 +350,17 @@ var _ = Describe(`FabCar service`, func() {
 				carOwners, err := fabCarCC.ListCarOwners(ctx, &fabcar.CarId{Id: car1IdString})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(carOwners.Items).To(HaveLen(2))
+			})
+		})
+
+		It("disallow to delete car owner", func() {
+			cc.Tx(func() {
+				carOwnerId := &fabcar.CarOwnerId{
+					CarId:      carNonexistentIdString,
+					FirstName:  testdata.Car1.Updates[0].Owners[1].FirstName,
+					SecondName: testdata.Car1.Updates[0].Owners[1].SecondName,
+				}
+				ExpectErrorContain(`state entry not found: CarOwner | Toyota | Prius | 85322 | Nonexistent | Michel | Tailor`)(fabCarCC.DeleteCarOwner(ctx, carOwnerId))
 			})
 		})
 
@@ -343,6 +389,43 @@ var _ = Describe(`FabCar service`, func() {
 				carOwners, err := fabCarCC.ListCarOwners(ctx, &fabcar.CarId{Id: car1IdString})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(carOwners.Items).To(HaveLen(2))
+			})
+		})
+
+		It("disallow to update car details", func() {
+			cc.Tx(func() {
+				req := testdata.Car1.Clone()
+				req.UpdateDetails[0].CarId = carNonexistentIdString
+				ExpectErrorContain(`state entry not found: Car | Toyota | Prius | 85322 | Nonexistent`)(fabCarCC.UpdateCarDetails(ctx, req.UpdateDetails[0]))
+			})
+		})
+
+		It("allow to delete car details", func() {
+			cc.Tx(func() {
+				carDetail, err := fabCarCC.DeleteCarDetail(ctx, &fabcar.CarDetailId{
+					CarId: car1IdString,
+					Type:  testdata.Car1.UpdateDetails[0].Details[0].Type,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(carDetail.CarId).To(Equal(car1IdString))
+				Expect(carDetail.Type).To(Equal(testdata.Car1.UpdateDetails[0].Details[0].Type))
+				Expect(carDetail.Make).To(Equal(testdata.Car1.UpdateDetails[0].Details[0].Make))
+			})
+
+			cc.Tx(func() {
+				carDetails, err := fabCarCC.ListCarDetails(ctx, &fabcar.CarId{Id: car1IdString})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(carDetails.Items).To(HaveLen(1))
+			})
+		})
+
+		It("disallow to delete car details", func() {
+			cc.Tx(func() {
+				carDetailId := &fabcar.CarDetailId{
+					CarId: carNonexistentIdString,
+					Type:  fabcar.DetailType_WHEELS,
+				}
+				ExpectErrorContain(`state entry not found: CarDetail | Toyota | Prius | 85322 | Nonexistent | WHEELS`)(fabCarCC.DeleteCarDetail(ctx, carDetailId))
 			})
 		})
 	})

@@ -38,6 +38,10 @@ func (f *FabCarService) CreateMaker(ctx router.Context, req *CreateMakerRequest)
 }
 
 func (f *FabCarService) DeleteMaker(ctx router.Context, name *MakerName) (*Maker, error) {
+	if err := router.ValidateRequest(name); err != nil {
+		return nil, err
+	}
+
 	maker, err := f.GetMaker(ctx, name)
 	if err != nil {
 		return nil, err
@@ -108,9 +112,7 @@ func (f *FabCarService) CreateCar(ctx router.Context, req *CreateCarRequest) (*C
 	}
 
 	mapper := f.carMapper()
-	if err = mapper.CreateCar(ctx, req); err != nil {
-		return nil, err
-	}
+	mapper.CreateCar(ctx, req)
 
 	if err = mapper.State.Apply(State(ctx), Event(ctx)); err != nil {
 		return nil, err
@@ -130,9 +132,7 @@ func (f *FabCarService) UpdateCar(ctx router.Context, req *UpdateCarRequest) (*C
 	}
 
 	mapper := f.carMapperByView(carView)
-	if err = mapper.SetCar(ctx, req); err != nil {
-		return nil, err
-	}
+	mapper.SetCar(ctx, req)
 
 	if err = mapper.State.Apply(State(ctx), Event(ctx)); err != nil {
 		return nil, err
@@ -196,6 +196,10 @@ func (f *FabCarService) GetCar(ctx router.Context, id *CarId) (*Car, error) {
 }
 
 func (f *FabCarService) GetCarView(ctx router.Context, id *CarId) (*CarView, error) {
+	if err := router.ValidateRequest(id); err != nil {
+		return nil, err
+	}
+
 	var (
 		carView = &CarView{}
 		err     error
@@ -229,15 +233,17 @@ func (f *FabCarService) ListCars(ctx router.Context, _ *emptypb.Empty) (*Cars, e
 }
 
 func (f *FabCarService) UpdateCarOwners(ctx router.Context, req *UpdateCarOwnersRequest) (*CarOwners, error) {
+	if err := router.ValidateRequest(req); err != nil {
+		return nil, err
+	}
+
 	carView, err := f.GetCarView(ctx, &CarId{Id: req.CarId})
 	if err != nil {
 		return nil, err
 	}
 
 	mapper := f.carMapperByView(carView)
-	if err = mapper.SetCarOwners(ctx, req.Owners); err != nil {
-		return nil, err
-	}
+	mapper.SetCarOwners(ctx, req.Owners)
 
 	if err = mapper.State.Apply(State(ctx), Event(ctx)); err != nil {
 		return nil, err
@@ -247,6 +253,10 @@ func (f *FabCarService) UpdateCarOwners(ctx router.Context, req *UpdateCarOwners
 }
 
 func (f *FabCarService) DeleteCarOwner(ctx router.Context, id *CarOwnerId) (*CarOwner, error) {
+	if err := router.ValidateRequest(id); err != nil {
+		return nil, err
+	}
+
 	carOwner, err := f.GetCarOwner(ctx, id)
 	if err != nil {
 		return nil, err
@@ -260,6 +270,10 @@ func (f *FabCarService) DeleteCarOwner(ctx router.Context, id *CarOwnerId) (*Car
 }
 
 func (f *FabCarService) GetCarOwner(ctx router.Context, id *CarOwnerId) (*CarOwner, error) {
+	if err := router.ValidateRequest(id); err != nil {
+		return nil, err
+	}
+
 	carOwner, err := State(ctx).Get(id, &CarOwner{})
 	if err != nil {
 		return nil, err
@@ -282,15 +296,17 @@ func (f *FabCarService) ListCarOwners(ctx router.Context, id *CarId) (*CarOwners
 }
 
 func (f *FabCarService) UpdateCarDetails(ctx router.Context, req *UpdateCarDetailsRequest) (*CarDetails, error) {
+	if err := router.ValidateRequest(req); err != nil {
+		return nil, err
+	}
+
 	carView, err := f.GetCarView(ctx, &CarId{Id: req.CarId})
 	if err != nil {
 		return nil, err
 	}
 
 	mapper := f.carMapperByView(carView)
-	if err = mapper.SetCarDetails(ctx, req.Details); err != nil {
-		return nil, err
-	}
+	mapper.SetCarDetails(ctx, req.Details)
 
 	if err = mapper.State.Apply(State(ctx), Event(ctx)); err != nil {
 		return nil, err
@@ -300,6 +316,10 @@ func (f *FabCarService) UpdateCarDetails(ctx router.Context, req *UpdateCarDetai
 }
 
 func (f *FabCarService) DeleteCarDetail(ctx router.Context, id *CarDetailId) (*CarDetail, error) {
+	if err := router.ValidateRequest(id); err != nil {
+		return nil, err
+	}
+
 	carDetail, err := f.GetCarDetail(ctx, id)
 	if err != nil {
 		return nil, err
@@ -313,6 +333,10 @@ func (f *FabCarService) DeleteCarDetail(ctx router.Context, id *CarDetailId) (*C
 }
 
 func (f *FabCarService) GetCarDetail(ctx router.Context, id *CarDetailId) (*CarDetail, error) {
+	if err := router.ValidateRequest(id); err != nil {
+		return nil, err
+	}
+
 	carDetail, err := State(ctx).Get(id, &CarDetail{})
 	if err != nil {
 		return nil, err

@@ -48,9 +48,39 @@ func (cs CarSample) CreateClone() *fabcar.CreateCarRequest {
 	return proto.Clone(cs.Create).(*fabcar.CreateCarRequest)
 }
 
+func (cs CarSample) UpdatesClone() []*fabcar.UpdateCarRequest {
+	var updates []*fabcar.UpdateCarRequest
+	for _, req := range cs.Updates {
+		updates = append(updates, proto.Clone(req).(*fabcar.UpdateCarRequest))
+	}
+
+	return updates
+}
+
+func (cs CarSample) UpdateOwnersClone() []*fabcar.UpdateCarOwnersRequest {
+	var updates []*fabcar.UpdateCarOwnersRequest
+	for _, req := range cs.UpdateOwners {
+		updates = append(updates, proto.Clone(req).(*fabcar.UpdateCarOwnersRequest))
+	}
+
+	return updates
+}
+
+func (cs CarSample) UpdatesDetailsClone() []*fabcar.UpdateCarDetailsRequest {
+	var updates []*fabcar.UpdateCarDetailsRequest
+	for _, req := range cs.UpdateDetails {
+		updates = append(updates, proto.Clone(req).(*fabcar.UpdateCarDetailsRequest))
+	}
+
+	return updates
+}
+
 func (cs CarSample) Clone() CarSample {
 	return CarSample{
-		Create: cs.CreateClone(),
+		Create:        cs.CreateClone(),
+		Updates:       cs.UpdatesClone(),
+		UpdateOwners:  cs.UpdateOwnersClone(),
+		UpdateDetails: cs.UpdatesDetailsClone(),
 	}
 }
 
