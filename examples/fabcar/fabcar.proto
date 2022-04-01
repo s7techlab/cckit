@@ -7,7 +7,9 @@ option go_package = ".;fabcar";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
-import "mwitkow/go-proto-validators/validator.proto";
+//import "mwitkow/go-proto-validators/validator.proto";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+
 
 service FabCarService {
   rpc CreateMaker (CreateMakerRequest) returns (Maker) {
@@ -161,9 +163,8 @@ message CreateCarRequest {
 message UpdateCarRequest {
   repeated string id = 1 [(validator.field) = {repeated_count_min: 1}];
   string color = 2 [(validator.field) = {string_not_empty: true}];
-  uint64 number = 3 [(validator.field) = {int_gt: 0}];
-  repeated SetCarOwner owners = 4;
-  repeated SetCarDetail details = 5;
+  repeated SetCarOwner owners = 3;
+  repeated SetCarDetail details = 4;
 }
 
 message SetCarOwner {
@@ -189,8 +190,7 @@ message Car {
   string model = 3 [(validator.field) = {string_not_empty: true}];
   string colour = 4 [(validator.field) = {string_not_empty: true}];
   uint64 number = 5 [(validator.field) = {int_gt: 0}];
-  uint64 owners_quantity = 6;
-  google.protobuf.Timestamp updated_at = 7;
+  google.protobuf.Timestamp updated_at = 6;
 }
 
 message CarOwner {
@@ -264,7 +264,6 @@ message CarCreated {
   string model = 3;
   string colour = 4;
   uint64 number = 5;
-  uint64 owners_quantity = 6;
 }
 
 message CarDeleted {
@@ -273,16 +272,13 @@ message CarDeleted {
   string model = 3;
   string colour = 4;
   uint64 number = 5;
-  uint64 owners_quantity = 6;
-  CarOwners owners = 7;
-  CarDetails details = 8;
+  CarOwners owners = 6;
+  CarDetails details = 7;
 }
 
 message CarUpdated {
   repeated string id = 1;
   string colour = 2;
-  uint64 number = 3;
-  uint64 owners_quantity = 4;
 }
 
 message CarOwnersUpdated {

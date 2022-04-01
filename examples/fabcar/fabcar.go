@@ -168,14 +168,13 @@ func (f *FabCarService) DeleteCar(ctx router.Context, id *CarId) (*CarView, erro
 	}
 
 	if err = Event(ctx).Set(&CarDeleted{
-		Id:             carView.Car.Id,
-		Make:           carView.Car.Make,
-		Model:          carView.Car.Model,
-		Colour:         carView.Car.Colour,
-		Number:         carView.Car.Number,
-		OwnersQuantity: carView.Car.OwnersQuantity,
-		Owners:         carView.Owners,
-		Details:        carView.Details,
+		Id:      carView.Car.Id,
+		Make:    carView.Car.Make,
+		Model:   carView.Car.Model,
+		Colour:  carView.Car.Colour,
+		Number:  carView.Car.Number,
+		Owners:  carView.Owners,
+		Details: carView.Details,
 	}); err != nil {
 		return nil, err
 	}

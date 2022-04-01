@@ -29,7 +29,6 @@ func (cs CarSample) ExpectCreateEqualCarView(cv *fabcar.CarView) {
 	Expect(cv.Car.Model).To(Equal(cs.Create.Model))
 	Expect(cv.Car.Colour).To(Equal(cs.Create.Colour))
 	Expect(cv.Car.Number).To(Equal(cs.Create.Number))
-	Expect(cv.Car.OwnersQuantity).To(Equal(uint64(len(cs.Create.Owners))))
 
 	ExpectOwnersViewContain(cs.Create.Owners, cv.Owners.Items)
 
@@ -43,7 +42,6 @@ func (cs CarSample) ExpectCreateEqualCar(car *fabcar.Car) {
 	Expect(car.Model).To(Equal(cs.Create.Model))
 	Expect(car.Colour).To(Equal(cs.Create.Colour))
 	Expect(car.Number).To(Equal(cs.Create.Number))
-	Expect(car.OwnersQuantity).To(Equal(uint64(len(cs.Create.Owners))))
 }
 
 func (cs CarSample) CreateClone() *fabcar.CreateCarRequest {
@@ -86,9 +84,8 @@ var (
 	Car1 = CarSample{
 		Create: Car1Create,
 		Updates: []*fabcar.UpdateCarRequest{{
-			Id:     Car1ID,
-			Color:  "black",
-			Number: 333211124,
+			Id:    Car1ID,
+			Color: "black",
 			Owners: []*fabcar.SetCarOwner{{
 				FirstName:       Car1Create.Owners[0].FirstName,
 				SecondName:      Car1Create.Owners[0].SecondName,

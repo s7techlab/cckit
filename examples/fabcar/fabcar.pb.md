@@ -48,7 +48,6 @@
 | model | [string](#string) |  |  |
 | colour | [string](#string) |  |  |
 | number | [uint64](#uint64) |  |  |
-| owners_quantity | [uint64](#uint64) |  |  |
 | updated_at | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 
 
@@ -69,7 +68,6 @@
 | model | [string](#string) |  |  |
 | colour | [string](#string) |  |  |
 | number | [uint64](#uint64) |  |  |
-| owners_quantity | [uint64](#uint64) |  |  |
 
 
 
@@ -89,7 +87,6 @@
 | model | [string](#string) |  |  |
 | colour | [string](#string) |  |  |
 | number | [uint64](#uint64) |  |  |
-| owners_quantity | [uint64](#uint64) |  |  |
 | owners | [CarOwners](#examples.fabcar.CarOwners) |  |  |
 | details | [CarDetails](#examples.fabcar.CarDetails) |  |  |
 
@@ -283,8 +280,6 @@
 | ----- | ---- | ----- | ----------- |
 | id | [string](#string) | repeated |  |
 | colour | [string](#string) |  |  |
-| number | [uint64](#uint64) |  |  |
-| owners_quantity | [uint64](#uint64) |  |  |
 
 
 
@@ -516,7 +511,6 @@ Events
 | ----- | ---- | ----- | ----------- |
 | id | [string](#string) | repeated |  |
 | color | [string](#string) |  |  |
-| number | [uint64](#uint64) |  |  |
 | owners | [SetCarOwner](#examples.fabcar.SetCarOwner) | repeated |  |
 | details | [SetCarDetail](#examples.fabcar.SetCarDetail) | repeated |  |
 

@@ -661,10 +661,6 @@
           "type": "string",
           "format": "uint64"
         },
-        "owners_quantity": {
-          "type": "string",
-          "format": "uint64"
-        },
         "updated_at": {
           "type": "string",
           "format": "date-time"
@@ -880,10 +876,6 @@
         },
         "color": {
           "type": "string"
-        },
-        "number": {
-          "type": "string",
-          "format": "uint64"
         },
         "owners": {
           "type": "array",

@@ -89,9 +89,6 @@ func (this *UpdateCarRequest) Validate() error {
 	if this.Color == "" {
 		return github_com_mwitkow_go_proto_validators.FieldError("Color", fmt.Errorf(`value '%v' must not be an empty string`, this.Color))
 	}
-	if !(this.Number > 0) {
-		return github_com_mwitkow_go_proto_validators.FieldError("Number", fmt.Errorf(`value '%v' must be greater than '0'`, this.Number))
-	}
 	for _, item := range this.Owners {
 		if item != nil {
 			if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(item); err != nil {

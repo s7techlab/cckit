@@ -32,8 +32,6 @@ var _ = Describe(`FabCar service`, func() {
 
 		// same ctx for all related services - like all services in one chaincode
 		cc, ctx = testcc.NewTxHandler(fabcar.ChaincodeName)
-
-		car1IdString = testdata.Car1.IdStrings()
 	)
 
 	It("Allow to init related", func() {
@@ -112,6 +110,8 @@ var _ = Describe(`FabCar service`, func() {
 	})
 
 	Context(`Car`, func() {
+		var car1IdString = testdata.Car1.IdStrings()
+
 		It("disallow to create car", func() {
 			cc.Tx(func() {
 				carReq := testdata.Car1.CreateClone()
@@ -236,7 +236,6 @@ var _ = Describe(`FabCar service`, func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(carView.Car.Id).To(Equal(car1IdString))
 				Expect(carView.Car.Colour).To(Equal(testdata.Car1.Updates[0].Color))
-				Expect(carView.Car.Number).To(Equal(testdata.Car1.Updates[0].Number))
 
 				Expect(carView.Owners.Items[0].CarId).To(Equal(car1IdString))
 				Expect(carView.Owners.Items[0].FirstName).To(Equal(testdata.Car1.Updates[0].Owners[0].FirstName))
