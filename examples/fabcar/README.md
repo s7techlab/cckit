@@ -36,8 +36,8 @@ Fabcar Hyperledger Fabric Chaincode (FHF) short description:
 
 Fabcar CCkit Chaincode (FCk) has four entities: Maker, Car, Owner and Detail.
 FCk has some difference from FHF:
-1) FCk gateway was generated with proto 
-2) You can not create car at once, because before car's maker have to be created and put at BC state.
+1) FCk gateway was generated with [proto](./fabcar.proto)
+2) You can not create car at once, because before car's maker have to be created and put at BC state. Chaincode state stored as serialized protobuf
    Use method 'CreateMaker', payload example:
 ```json
 {
