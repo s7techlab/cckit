@@ -1,0 +1,928 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "fabcar.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/fabcar/cars": {
+      "get": {
+        "operationId": "FabCarService_ListCars",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCars"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "post": {
+        "operationId": "FabCarService_CreateCar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fabcarCreateCarRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/cars/{car_id}/details": {
+      "put": {
+        "operationId": "FabCarService_UpdateCarDetails",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarDetails"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "car_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/cars/{car_id}/details/{type}": {
+      "get": {
+        "operationId": "FabCarService_GetCarDetail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarDetail"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "car_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "WHEELS",
+              "BATTERY"
+            ]
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "delete": {
+        "operationId": "FabCarService_DeleteCarDetail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarDetail"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "car_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "WHEELS",
+              "BATTERY"
+            ]
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/cars/{car_id}/owners": {
+      "put": {
+        "operationId": "FabCarService_UpdateCarOwners",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarOwners"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "car_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/cars/{car_id}/owners/{first_name}/{second_name}": {
+      "get": {
+        "operationId": "FabCarService_GetCarOwner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "car_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "first_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "second_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "delete": {
+        "operationId": "FabCarService_DeleteCarOwner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "car_id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "first_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "second_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/cars/{id}": {
+      "get": {
+        "operationId": "FabCarService_GetCar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCar"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "delete": {
+        "operationId": "FabCarService_DeleteCar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "put": {
+        "operationId": "FabCarService_UpdateCar",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fabcarUpdateCarRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/cars/{id}/details": {
+      "get": {
+        "operationId": "FabCarService_ListCarDetails",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarDetails"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/cars/{id}/owners": {
+      "get": {
+        "operationId": "FabCarService_ListCarOwners",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarOwners"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/cars/{id}/view": {
+      "get": {
+        "operationId": "FabCarService_GetCarView",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarCarView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/makers": {
+      "get": {
+        "operationId": "FabCarService_ListMakers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarMakers"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "post": {
+        "operationId": "FabCarService_CreateMaker",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarMaker"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fabcarCreateMakerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    },
+    "/fabcar/makers/{name}": {
+      "get": {
+        "operationId": "FabCarService_GetMaker",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarMaker"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      },
+      "delete": {
+        "operationId": "FabCarService_DeleteMaker",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fabcarMaker"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FabCarService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "fabcarCar": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "make": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "colour": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fabcarCarDetail": {
+      "type": "object",
+      "properties": {
+        "car_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "$ref": "#/definitions/fabcarDetailType"
+        },
+        "make": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fabcarCarDetails": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarCarDetail"
+          }
+        }
+      }
+    },
+    "fabcarCarOwner": {
+      "type": "object",
+      "properties": {
+        "car_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "second_name": {
+          "type": "string"
+        },
+        "vehicle_passport": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fabcarCarOwners": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarCarOwner"
+          }
+        }
+      }
+    },
+    "fabcarCarView": {
+      "type": "object",
+      "properties": {
+        "car": {
+          "$ref": "#/definitions/fabcarCar"
+        },
+        "owners": {
+          "$ref": "#/definitions/fabcarCarOwners"
+        },
+        "details": {
+          "$ref": "#/definitions/fabcarCarDetails"
+        }
+      }
+    },
+    "fabcarCars": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarCar"
+          }
+        }
+      }
+    },
+    "fabcarCreateCarRequest": {
+      "type": "object",
+      "properties": {
+        "make": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "colour": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarSetCarOwner"
+          }
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarSetCarDetail"
+          }
+        }
+      }
+    },
+    "fabcarCreateMakerRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "foundation_year": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "Entities"
+    },
+    "fabcarDetailType": {
+      "type": "string",
+      "enum": [
+        "WHEELS",
+        "BATTERY"
+      ],
+      "default": "WHEELS",
+      "title": "Dictionaries"
+    },
+    "fabcarMaker": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "foundation_year": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "fabcarMakers": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarMaker"
+          }
+        }
+      }
+    },
+    "fabcarSetCarDetail": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/fabcarDetailType"
+        },
+        "make": {
+          "type": "string"
+        }
+      }
+    },
+    "fabcarSetCarOwner": {
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "type": "string"
+        },
+        "second_name": {
+          "type": "string"
+        },
+        "vehicle_passport": {
+          "type": "string"
+        }
+      }
+    },
+    "fabcarUpdateCarRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "color": {
+          "type": "string"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarSetCarOwner"
+          }
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fabcarSetCarDetail"
+          }
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
