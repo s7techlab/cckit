@@ -11,6 +11,8 @@ func New() (*router.Chaincode, error) {
 
 	r := router.New(ChaincodeName)
 
+	r.Init(ChaincodeInitFunc())
+
 	if err := RegisterFabCarServiceChaincode(r, &FabCarService{}); err != nil {
 		return nil, err
 	}
