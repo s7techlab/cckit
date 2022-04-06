@@ -2,11 +2,10 @@ package cpaper
 
 import (
 	"fmt"
-	"github.com/s7techlab/cckit/router/param"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/router"
+	"github.com/s7techlab/cckit/router/param"
 )
 
 type TaskState string
@@ -29,7 +28,7 @@ type CommercialPaper struct {
 	State        TaskState `json:"state,omitempty"`
 }
 
-// Comercial paper has a composite key <`CommercialPaper`, Issuer, PaperNumber>
+// Key commercial paper has a composite key < CommercialPaper, Issuer, PaperNumber >
 func (c CommercialPaper) Key() ([]string, error) {
 	return []string{CommercialPaperTypeName, c.Issuer, c.PaperNumber}, nil
 }
@@ -95,8 +94,8 @@ func get(c router.Context) (interface{}, error) {
 
 func list(c router.Context) (interface{}, error) {
 	// List method retrieves all entries from the ledger using GetStateByPartialCompositeKey method and passing it the
-	// namespace of our contract type, in this example that's `CommercialPaper`, then it unmarshals received bytes via
-	// json.Ummarshal method and creates a JSON array of CommercialPaper entities
+	// namespace of our contract type, in this example that's `CommercialPaper`, then it unmarshalls received bytes via
+	// json.Unmarshal method and creates a JSON array of CommercialPaper entities
 	return c.State().List(CommercialPaperTypeName, &CommercialPaper{})
 }
 
@@ -131,7 +130,7 @@ func buy(c router.Context) (interface{}, error) {
 	)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "paper not found")
+		return nil, fmt.Errorf("paper not found: %w", err)
 	}
 
 	commercialPaper = cp.(CommercialPaper)
@@ -175,7 +174,7 @@ func redeem(c router.Context) (interface{}, error) {
 	)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "paper not found")
+		return nil, fmt.Errorf("paper not found: %w", err)
 	}
 
 	commercialPaper = cp.(CommercialPaper)
