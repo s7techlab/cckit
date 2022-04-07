@@ -4,7 +4,7 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
-func responseEncryptor(encryptionRequired bool) router.MiddlewareFunc {
+func encryptIfEncodeKeyExists(encryptionRequired bool) router.MiddlewareFunc {
 	return func(pre router.HandlerFunc, pos ...int) router.HandlerFunc {
 		return func(ctx router.Context) (interface{}, error) {
 			res, err := pre(ctx)
@@ -12,22 +12,25 @@ func responseEncryptor(encryptionRequired bool) router.MiddlewareFunc {
 			if err != nil || ctx.Handler().Type != router.MethodInvoke {
 				return res, err
 			}
-			var (
-				enc []byte
-			)
-			if enc, err = EncryptWithTransientKey(ctx, res); err == ErrKeyNotDefinedInTransientMap && !encryptionRequired {
-				return res, nil
+			if _, err = KeyFromTransient(ctx); err != nil {
+				if err == ErrKeyNotDefinedInTransientMap && !encryptionRequired {
+					return res, nil
+				}
+				return nil, err
 			}
 
-			return enc, err
+			return EncryptWithTransientKey(ctx, res)
 		}
 	}
 }
 
+// EncryptInvokeResponse returns middleware function for encrypt chaincode invocation response
 func EncryptInvokeResponse() router.MiddlewareFunc {
-	return responseEncryptor(true)
+	return encryptIfEncodeKeyExists(true)
 }
 
+// EncryptInvokeResponseIfKeyProvided returns middleware function for encrypt chaincode invocation response if
+// encryption key provided in transient map
 func EncryptInvokeResponseIfKeyProvided() router.MiddlewareFunc {
-	return responseEncryptor(false)
+	return encryptIfEncodeKeyExists(false)
 }
