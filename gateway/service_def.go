@@ -23,7 +23,7 @@ type (
 		Swagger() []byte
 		GRPCDesc() *grpc.ServiceDesc
 		Impl() interface{}
-		GRPCGatewayRegister() RegisterHandlerFromEndpoint
+		GRPCGatewayRegister() func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error)
 	}
 )
 
@@ -53,6 +53,6 @@ func (s ServiceDef) Impl() interface{} {
 	return s.Service
 }
 
-func (s ServiceDef) GRPCGatewayRegister() RegisterHandlerFromEndpoint {
+func (s ServiceDef) GRPCGatewayRegister() func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	return s.HandlerFromEndpointRegister
 }
