@@ -45,7 +45,7 @@ applications, interacts with smart contracts).
 
 For example, official 
 [Commercial paper chaincode example](https://hyperledger-fabric.readthedocs.io/en/release-1.4/tutorial/commercial_paper.html) 
-includes smart contract implementation and cli tools for interacting with deployed сhaincodes.
+includes smart contract implementation and cli tools for interacting with deployed chaincodes.
 With external applications, implemented with different technologies and programming 
 languages, it is important to have a standard way to define service interfaces and underlying message interchange formats. 
 

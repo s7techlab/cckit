@@ -4,7 +4,7 @@ Often there is a need to find out if everything is correct with chaincode. To do
 and know some information.
 
 CCKit provides `pinger` extension for implementing ping opportunity in Hyperledger Fabric chaincodes. When chaincode will be pinged,
-you get information about invoker, hit certificate and time.
+you get information about invoker, his certificate and time.
 
 Pinger implemented in two version:
 

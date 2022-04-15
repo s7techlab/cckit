@@ -45,7 +45,7 @@ func (c *ChaincodeInstanceServiceInvoker) Query(
 		return nil, err
 	}
 
-	return ссOutput(res, target)
+	return ccOutput(res, target)
 }
 
 func (c *ChaincodeInstanceServiceInvoker) Invoke(
@@ -63,7 +63,7 @@ func (c *ChaincodeInstanceServiceInvoker) Invoke(
 		return nil, err
 	}
 
-	return ссOutput(res, target)
+	return ccOutput(res, target)
 }
 
 func InvokerArgs(fn string, args []interface{}) ([][]byte, error) {
@@ -91,7 +91,7 @@ func ccInput(ctx context.Context, fn string, args []interface{}) (*ChaincodeInpu
 	return ccInput, nil
 }
 
-func ссOutput(response *peer.Response, target interface{}) (res interface{}, err error) {
+func ccOutput(response *peer.Response, target interface{}) (res interface{}, err error) {
 	output, err := convert.FromBytes(response.Payload, target)
 	if err != nil {
 		return nil, fmt.Errorf(`convert output to=%s: %w`, reflect.TypeOf(target), err)

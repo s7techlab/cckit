@@ -37,7 +37,7 @@ var _ = Describe(`State mappings`, func() {
 		Expect(mapping.Namespace()).To(Equal(state.Key{`EntityWithComplexId`}))
 	})
 
-	It(`Allow to сreate primary key`, func() {
+	It(`Allow to create primary key`, func() {
 		mapping, _ := mappings.Get(&schema.EntityWithComplexId{})
 		key, err := mapping.PrimaryKey(testdata.CreateEntityWithComplextId[0])
 

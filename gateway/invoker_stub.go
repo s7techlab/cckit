@@ -42,5 +42,5 @@ func (c *LocatorChaincodeStubInvoker) Query(
 			c.Locator.Chaincode, c.Locator.Channel, errors.New(response.Message))
 	}
 
-	return ссOutput(&response, target)
+	return ccOutput(&response, target)
 }
