@@ -26,7 +26,8 @@ var _ = Describe(`Chaincode pinger`, func() {
 
 			Expect(pingInfo.InvokerId).To(Equal(Someone.GetID()))
 			Expect(pingInfo.InvokerCert).To(Equal(Someone.GetPEM()))
-			Expect(pingInfo.Time).To(Not(BeNil()))
+			Expect(pingInfo.EndorsingServerTime).To(Not(BeNil()))
+			Expect(pingInfo.TxTime).To(Not(BeNil()))
 		})
 	})
 })

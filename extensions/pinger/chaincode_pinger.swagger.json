@@ -56,7 +56,11 @@
           "type": "string",
           "format": "byte"
         },
-        "time": {
+        "endorsing_server_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tx_time": {
           "type": "string",
           "format": "date-time"
         }

@@ -32,7 +32,8 @@ stores time and certificate of ping tx creator
 | ----- | ---- | ----- | ----------- |
 | invoker_id | [string](#string) |  |  |
 | invoker_cert | [bytes](#bytes) |  |  |
-| time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| endorsing_server_time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+| tx_time | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 
 
 

@@ -40,6 +40,8 @@ var _ = Describe(`Pinger`, func() {
 			pingInfo := expectcc.PayloadIs(cc.From(Someone).Invoke(FuncPing), &PingInfo{}).(*PingInfo)
 			Expect(pingInfo.InvokerId).To(Equal(Someone.GetID()))
 			Expect(pingInfo.InvokerCert).To(Equal(Someone.GetPEM()))
+			Expect(pingInfo.EndorsingServerTime).To(Not(BeNil()))
+			Expect(pingInfo.TxTime).To(Not(BeNil()))
 		})
 	})
 })

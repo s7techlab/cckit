@@ -22,5 +22,6 @@ service ChaincodePingerService {
 message PingInfo {
   string invoker_id = 1;
   bytes invoker_cert = 2;
-  google.protobuf.Timestamp time = 3;
+  google.protobuf.Timestamp endorsing_server_time = 3;
+  google.protobuf.Timestamp tx_time = 4;
 }

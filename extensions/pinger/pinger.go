@@ -22,14 +22,15 @@ func Ping(ctx r.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	t, err := ctx.Time()
+	txTime, err := ctx.Time()
 	if err != nil {
 		return nil, err
 	}
 
 	return &PingInfo{
-		InvokerId:   id,
-		InvokerCert: invoker.GetPEM(),
-		Time:        timestamppb.New(t),
+		InvokerId:           id,
+		InvokerCert:         invoker.GetPEM(),
+		EndorsingServerTime: timestamppb.Now(),
+		TxTime:              timestamppb.New(txTime),
 	}, nil
 }

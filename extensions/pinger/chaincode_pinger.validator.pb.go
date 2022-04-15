@@ -19,9 +19,14 @@ var _ = fmt.Errorf
 var _ = math.Inf
 
 func (this *PingInfo) Validate() error {
-	if this.Time != nil {
-		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.Time); err != nil {
-			return github_com_mwitkow_go_proto_validators.FieldError("Time", err)
+	if this.EndorsingServerTime != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.EndorsingServerTime); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("EndorsingServerTime", err)
+		}
+	}
+	if this.TxTime != nil {
+		if err := github_com_mwitkow_go_proto_validators.CallValidatorIfExists(this.TxTime); err != nil {
+			return github_com_mwitkow_go_proto_validators.FieldError("TxTime", err)
 		}
 	}
 	return nil
