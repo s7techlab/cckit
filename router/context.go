@@ -10,7 +10,7 @@ import (
 	"github.com/s7techlab/cckit/state"
 )
 
-// Default parameter name
+// DefaultParam default parameter name
 const DefaultParam = `default`
 
 type (
@@ -32,7 +32,7 @@ type (
 		State() state.State
 		UseState(state.State) Context
 
-		// Time returns txTimesta
+		// Time returns txTimestamp
 		Time() (time.Time, error)
 
 		ReplaceArgs(args [][]byte) Context // replace args, for usage in preMiddleware
@@ -173,7 +173,6 @@ func (c *context) UseEvent(e state.Event) Context {
 	return c
 }
 
-// Time
 func (c *context) Time() (time.Time, error) {
 	txTimestamp, err := c.stub.GetTxTimestamp()
 	if err != nil {
@@ -222,11 +221,11 @@ func (c *context) Arg(name string) interface{} {
 }
 
 func (c *context) Param(name ...string) interface{} {
-	var pname = DefaultParam
+	var pName = DefaultParam
 	if len(name) > 0 {
-		pname = name[0]
+		pName = name[0]
 	}
-	return c.params[pname]
+	return c.params[pName]
 }
 
 // Deprecated: Use ParamString instead.

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/extensions/pinger";
+
+package extensions.pinger;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service ChaincodePingerService {
+  // ping chaincode
+  rpc Ping (google.protobuf.Empty) returns (PingInfo) {
+    option (google.api.http) = {
+      post: "/chaincode/pinger/ping"
+      body: "*"
+    };
+  }
+}
+
+// stores time and certificate of ping tx creator
+message PingInfo {
+  string invoker_id = 1;
+  bytes invoker_cert = 2;
+  google.protobuf.Timestamp endorsing_server_time = 3;
+  google.protobuf.Timestamp tx_time = 4;
+}

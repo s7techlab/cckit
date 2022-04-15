@@ -1,0 +1,104 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "chaincode_pinger.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/chaincode/pinger/ping": {
+      "post": {
+        "summary": "ping chaincode",
+        "operationId": "ChaincodePingerService_Ping",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pingerPingInfo"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "ChaincodePingerService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "pingerPingInfo": {
+      "type": "object",
+      "properties": {
+        "invoker_id": {
+          "type": "string"
+        },
+        "invoker_cert": {
+          "type": "string",
+          "format": "byte"
+        },
+        "endorsing_server_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tx_time": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "stores time and certificate of ping tx creator"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

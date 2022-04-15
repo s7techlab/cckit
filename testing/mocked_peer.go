@@ -193,7 +193,6 @@ func (m *MockedPeer) Blocks(
 	panic("not implemented")
 }
 
-
 func (es *EventSubscription) Events() chan *peer.ChaincodeEvent {
 	return es.events
 }

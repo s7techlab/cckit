@@ -14,7 +14,7 @@ var (
 )
 
 // Only allow access from chain code owner
-func Only(next router.HandlerFunc, pos ...int) router.HandlerFunc {
+func Only(next router.HandlerFunc, _ ...int) router.HandlerFunc {
 	return func(c router.Context) (interface{}, error) {
 		err := IsTxCreator(c)
 		if err == nil {

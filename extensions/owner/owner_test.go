@@ -61,7 +61,7 @@ var _ = Describe(`Ownable`, func() {
 			ownerIdentity := expectcc.PayloadIs(
 				cc1.From(Someone).Invoke(QueryMethod), &identity.Entry{}).(identity.Entry)
 			Expect(ownerIdentity.GetSubject()).To(Equal(Owner.GetSubject()))
-			Expect(ownerIdentity.GetMSPID()).To(Equal(Owner.MspID))
+			Expect(ownerIdentity.GetMSPIdentifier()).To(Equal(Owner.MspID))
 			Expect(ownerIdentity.GetPublicKey()).To(Equal(Owner.Cert.PublicKey))
 		})
 	})
@@ -89,7 +89,7 @@ var _ = Describe(`Ownable`, func() {
 			ownerIdentity := expectcc.PayloadIs(
 				cc2.From(Someone).Invoke(QueryMethod), &identity.Entry{}).(identity.Entry)
 			Expect(ownerIdentity.GetSubject()).To(Equal(Owner.GetSubject()))
-			Expect(ownerIdentity.GetMSPID()).To(Equal(Owner.MspID))
+			Expect(ownerIdentity.GetMSPIdentifier()).To(Equal(Owner.MspID))
 			Expect(ownerIdentity.GetPublicKey()).To(Equal(Owner.Cert.PublicKey))
 		})
 

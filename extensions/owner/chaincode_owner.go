@@ -28,8 +28,7 @@ func NewService() *ChaincodeOwnerService {
 
 var _ ChaincodeOwnerServiceChaincode = &ChaincodeOwnerService{}
 
-type ChaincodeOwnerService struct {
-}
+type ChaincodeOwnerService struct{}
 
 // IsTxCreator - wrapper for TxCreatorIsOwner for local calls
 func (c *ChaincodeOwnerService) IsTxCreator(ctx router.Context) (*ChaincodeOwner, error) {
@@ -56,7 +55,7 @@ func (c *ChaincodeOwnerService) GetOwnerByTxCreator(ctx router.Context, _ *empty
 		return nil, fmt.Errorf(`find owner by tx creator's msp_id and cert subject: %w`, err)
 	}
 
-	if err := identity.Equal(txCreator, owner); err != nil {
+	if err = identity.Equal(txCreator, owner); err != nil {
 		return nil, fmt.Errorf(`owner with tx creator's' msp_id and cert subject found, but: %w`, err)
 	}
 
@@ -89,7 +88,7 @@ func (c *ChaincodeOwnerService) allowToModifyBy(ctx router.Context, invoker iden
 		return err
 	}
 
-	// no owners, allow to register
+	// no owners, allow registering
 	if len(currentOwners.Items) == 0 {
 		return nil
 	}
@@ -251,11 +250,11 @@ func (c ChaincodeOwnerService) DeleteOwner(ctx router.Context, id *OwnerId) (*Ch
 		return nil, ErrDeleteLastOwnerIsNotAllowed
 	}
 
-	if err := State(ctx).Delete(id); err != nil {
+	if err = State(ctx).Delete(id); err != nil {
 		return nil, err
 	}
 
-	if err := Event(ctx).Set(&ChaincodeOwnerDeleted{
+	if err = Event(ctx).Set(&ChaincodeOwnerDeleted{
 		MspId:   id.MspId,
 		Subject: id.Subject,
 	}); err != nil {

@@ -2,6 +2,7 @@ package state
 
 import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
+
 	"github.com/s7techlab/cckit/convert"
 )
 

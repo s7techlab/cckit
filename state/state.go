@@ -29,7 +29,7 @@ type State interface {
 	// Get returns value from state, converted to target type
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	Get(entry interface{}, target ...interface{}) (interface{}, error)
-	// Get returns value from state, converted to int
+	// GetInt returns value from state, converted to int
 	// entry can be Key (string or []string) or type implementing Keyer interface
 	GetInt(entry interface{}, defaultValue int) (int, error)
 
@@ -43,14 +43,14 @@ type State interface {
 
 	// Put returns result of putting entry to state
 	// entry can be Key (string or []string) or type implementing Keyer interface
-	// if entry is implements Keyer interface and it's struct or type implementing
+	// if entry is implements Keyer interface, and it's struct or type implementing
 	// ToByter interface value can be omitted
 	Put(entry interface{}, value ...interface{}) error
 
 	// Insert returns result of inserting entry to state
 	// If same key exists in state error wil be returned
 	// entry can be Key (string or []string) or type implementing Keyer interface
-	// if entry is implements Keyer interface and it's struct or type implementing
+	// if entry is implements Keyer interface, and it's struct or type implementing
 	// ToByter interface value can be omitted
 	Insert(entry interface{}, value ...interface{}) error
 
@@ -83,14 +83,14 @@ type State interface {
 
 	// PutPrivate returns result of putting entry to private state
 	// entry can be Key (string or []string) or type implementing Keyer interface
-	// if entry is implements Keyer interface and it's struct or type implementing
+	// if entry is implements Keyer interface, and it's struct or type implementing
 	// ToByter interface value can be omitted
 	PutPrivate(collection string, entry interface{}, value ...interface{}) error
 
 	// InsertPrivate returns result of inserting entry to private state
 	// If same key exists in state error wil be returned
 	// entry can be Key (string or []string) or type implementing Keyer interface
-	// if entry is implements Keyer interface and it's struct or type implementing
+	// if entry is implements Keyer interface, and it's struct or type implementing
 	// ToByter interface value can be omitted
 	InsertPrivate(collection string, entry interface{}, value ...interface{}) error
 
@@ -410,12 +410,12 @@ func (s *Impl) Keys(namespace interface{}) ([]string, error) {
 			return nil, err
 		}
 
-		reverseTranformedKey, err := s.StateKeyReverseTransformer(key)
+		reverseTransformedKey, err := s.StateKeyReverseTransformer(key)
 		if err != nil {
 			return nil, fmt.Errorf(`reverse transform key: %w`, err)
 		}
 
-		keyStr, err := KeyToString(s.stub, reverseTranformedKey)
+		keyStr, err := KeyToString(s.stub, reverseTransformedKey)
 		if err != nil {
 			return nil, err
 		}
@@ -443,7 +443,7 @@ func (s *Impl) argKeyValue(arg interface{}, values []interface{}) (key Key, valu
 	}
 }
 
-// Put data value in state with key, trying convert data to []byte
+// Put data value in state with key, trying to convert data to []byte
 func (s *Impl) Put(entry interface{}, values ...interface{}) error {
 	entryKey, value, err := s.argKeyValue(entry, values)
 	if err != nil {
@@ -510,7 +510,7 @@ func (s *Impl) UseStatePutTransformer(tb ToBytesTransformer) State {
 	return s
 }
 
-// Get data by key from private state, trying to convert to target interface
+// GetPrivate data by key from private state, trying to convert to target interface
 func (s *Impl) GetPrivate(collection string, entry interface{}, config ...interface{}) (interface{}, error) {
 	key, err := s.Key(entry)
 	if err != nil {
@@ -535,7 +535,7 @@ func (s *Impl) GetPrivate(collection string, entry interface{}, config ...interf
 	return s.StateGetTransformer(bb, config...)
 }
 
-// PrivateExists check entry with key exists in chaincode private state
+// ExistsPrivate check entry with key exists in chaincode private state
 func (s *Impl) ExistsPrivate(collection string, entry interface{}) (bool, error) {
 	key, err := s.Key(entry)
 	if err != nil {
@@ -549,7 +549,7 @@ func (s *Impl) ExistsPrivate(collection string, entry interface{}) (bool, error)
 	return len(bb) != 0, nil
 }
 
-// List data from private state using objectType prefix in composite key, trying to convert to target interface.
+// ListPrivate data from private state using objectType prefix in composite key, trying to convert to target interface.
 // Keys -  additional components of composite key
 // If usePrivateDataIterator is true, used private state for iterate over objects
 // if false, used public state for iterate over keys and GetPrivateData for each key
@@ -607,7 +607,7 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 	return stateList.Get()
 }
 
-// Put data value in private state with key, trying convert data to []byte
+// PutPrivate data value in private state with key, trying to convert data to []byte
 func (s *Impl) PutPrivate(collection string, entry interface{}, values ...interface{}) (err error) {
 	entryKey, value, err := s.argKeyValue(entry, values)
 	if err != nil {
@@ -627,7 +627,7 @@ func (s *Impl) PutPrivate(collection string, entry interface{}, values ...interf
 	return s.stub.PutPrivateData(collection, key.String, bb)
 }
 
-// Insert value into chaincode private state, returns error if key already exists
+// InsertPrivate value into chaincode private state, returns error if key already exists
 func (s *Impl) InsertPrivate(collection string, entry interface{}, values ...interface{}) (err error) {
 	if exists, err := s.ExistsPrivate(collection, entry); err != nil {
 		return err
@@ -643,7 +643,7 @@ func (s *Impl) InsertPrivate(collection string, entry interface{}, values ...int
 	return s.PutPrivate(collection, key, value)
 }
 
-// Delete entry from private state
+// DeletePrivate entry from private state
 func (s *Impl) DeletePrivate(collection string, entry interface{}) error {
 	key, err := s.Key(entry)
 	if err != nil {
