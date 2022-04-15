@@ -44,7 +44,7 @@ func FromSerialized(s protomsp.SerializedIdentity) (ci *CertIdentity, err error)
 	return New(s.Mspid, s.IdBytes)
 }
 
-// CertIdentity  structs holds data of an tx creator
+// CertIdentity  structs holds data of tx creator
 type CertIdentity struct {
 	MspID string
 	Cert  *x509.Certificate

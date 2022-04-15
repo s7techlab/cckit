@@ -13,8 +13,8 @@ var (
 	// ErrOwnerNotProvided occurs when providing owner identity in init arguments
 	ErrOwnerNotProvided = errors.New(`owner not provided`)
 
-	// ErrOwnerAlreadySetted owner already setted
-	ErrOwnerAlreadySetted = errors.New(`owner already setted`)
+	// ErrOwnerAlreadySet owner already set
+	ErrOwnerAlreadySet = errors.New(`owner already set`)
 )
 
 func IsSet(c r.Context) (bool, error) {
@@ -36,9 +36,9 @@ func Get(c r.Context) (*identity.Entry, error) {
 // SetFromCreator sets chain code owner from stub creator
 // Service implementation recommended, see chaincode_owner.proto
 func SetFromCreator(c r.Context) (*identity.Entry, error) {
-	if ownerSetted, err := IsSet(c); err != nil {
+	if ownerSet, err := IsSet(c); err != nil {
 		return nil, err
-	} else if ownerSetted {
+	} else if ownerSet {
 		return Get(c)
 	}
 
@@ -55,7 +55,7 @@ func SetFromCreator(c r.Context) (*identity.Entry, error) {
 	return identityEntry, c.State().Insert(OwnerStateKey, identityEntry)
 }
 
-// SetFromArgs set owner fron first args
+// SetFromArgs set owner from first args
 func SetFromArgs(c r.Context) (*identity.Entry, error) {
 	args := c.Stub().GetArgs()
 
@@ -63,9 +63,9 @@ func SetFromArgs(c r.Context) (*identity.Entry, error) {
 		return Insert(c, string(args[0]), args[1])
 	}
 
-	if isSetted, err := IsSet(c); err != nil {
+	if isSet, err := IsSet(c); err != nil {
 		return nil, err
-	} else if !isSetted {
+	} else if !isSet {
 		return nil, ErrOwnerNotProvided
 	}
 
@@ -74,11 +74,10 @@ func SetFromArgs(c r.Context) (*identity.Entry, error) {
 
 // Insert information about owner to chaincode state
 func Insert(c r.Context, mspID string, cert []byte) (*identity.Entry, error) {
-
-	if ownerSetted, err := IsSet(c); err != nil {
+	if ownerSet, err := IsSet(c); err != nil {
 		return nil, fmt.Errorf(`check owner is set: %w`, err)
-	} else if ownerSetted {
-		return nil, ErrOwnerAlreadySetted
+	} else if ownerSet {
+		return nil, ErrOwnerAlreadySet
 	}
 
 	id, err := identity.New(mspID, cert)

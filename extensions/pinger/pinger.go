@@ -2,77 +2,34 @@
 package pinger
 
 import (
-	"time"
-
 	"github.com/hyperledger/fabric-chaincode-go/pkg/cid"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
 )
 
-const (
-	// PingsStatePrefix prefix for PingInfo composite key in chain code state
-	PingKeyPrefix = `PING`
-	// PingEvent event name
-	PingEvent = `PING`
-	// FuncPingConstant func name
-	FuncPingConstant = `pingLocal`
-	// FuncPing func name
-	FuncPing = `ping`
-	// FuncPings func name
-	FuncPings = `pings`
-)
-
-// PingInfo stores time and certificate of ping tx creator
-type PingInfo struct {
-	Time        time.Time
-	InvokerID   string
-	InvokerCert []byte
-}
-
-func (p PingInfo) Key() ([]string, error) {
-	return []string{PingKeyPrefix, p.InvokerID, p.Time.String()}, nil
-}
-
-// Ping chaincode func puts tx creator information into chaincode state
-// can be used for checking endorsement policy is working
-func Ping(c r.Context) (interface{}, error) {
-	pingInfo, err := FromContext(c)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := c.Event().Set(PingEvent, pingInfo); err != nil {
-		return nil, err
-	}
-	return pingInfo, c.State().Put(pingInfo, pingInfo)
-}
-
-// FromContext create PingInfo struct with tx creator Id and certificate in PEM format
-func FromContext(c r.Context) (*PingInfo, error) {
-	id, err := cid.GetID(c.Stub())
+// Ping create PingInfo struct with tx creator ID and certificate in PEM format
+func Ping(ctx r.Context) (interface{}, error) {
+	id, err := cid.GetID(ctx.Stub())
 	if err != nil {
 		return nil, err
 	}
 
 	//take certificate from creator
-	invoker, err := identity.FromStub(c.Stub())
+	invoker, err := identity.FromStub(ctx.Stub())
 	if err != nil {
 		return nil, err
 	}
-	t, err := c.Time()
+
+	t, err := ctx.Time()
 	if err != nil {
 		return nil, err
 	}
-	return &PingInfo{Time: t, InvokerID: id, InvokerCert: invoker.GetPEM()}, nil
-}
 
-// PingConstant chaincode func returns invoker information
-// can be used for testing that chain code is installed and instantiated
-func PingConstant(c r.Context) (interface{}, error) {
-	return FromContext(c)
-}
-
-// Pings chain code func returns pings from chain code state
-func Pings(c r.Context) (interface{}, error) {
-	return c.State().List(PingKeyPrefix, &PingInfo{})
+	return &PingInfo{
+		InvokerId:   id,
+		InvokerCert: invoker.GetPEM(),
+		Time:        timestamppb.New(t),
+	}, nil
 }
