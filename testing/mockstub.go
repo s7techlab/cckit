@@ -59,6 +59,9 @@ type MockStub struct {
 	chaincodeEventSubscriptions []chan *peer.ChaincodeEvent // multiple event subscriptions
 
 	PrivateKeys map[string]*list.List
+	// flag for cc2cc invokation via InvokeChaincode to dump state on outer tx finish
+	// https://github.com/s7techlab/cckit/issues/97
+	cc2ccInvokation bool
 }
 
 type CreatorTransformer func(...interface{}) (mspID string, certPEM []byte, err error)
@@ -223,6 +226,7 @@ func (stub *MockStub) InvokeChaincode(chaincodeName string, args [][]byte, chann
 	}
 
 	otherStub.mockCreator = stub.mockCreator
+	otherStub.cc2ccInvokation = true
 	res := otherStub.MockInvoke(stub.TxID, args)
 	return res
 }
@@ -298,21 +302,23 @@ func (stub *MockStub) DumpStateBuffer() {
 				_ = stub.MockStub.PutState(s.Key, s.Value)
 			}
 		}
-
-		if stub.ChaincodeEvent != nil {
-			// send only last event
-			for _, sub := range stub.chaincodeEventSubscriptions {
-				// subscription can be closed
-				if sub != nil {
-					sub <- stub.ChaincodeEvent
-				}
-			}
-			stub.ChaincodeEventsChannel <- stub.ChaincodeEvent
-		}
 	} else {
 		stub.ChaincodeEvent = nil
 	}
 	stub.StateBuffer = nil
+}
+
+func (stub *MockStub) dumpEvents() {
+	if stub.ChaincodeEvent != nil {
+		// send only last event
+		for _, sub := range stub.chaincodeEventSubscriptions {
+			// subscription can be closed
+			if sub != nil {
+				sub <- stub.ChaincodeEvent
+			}
+		}
+		stub.ChaincodeEventsChannel <- stub.ChaincodeEvent
+	}
 }
 
 // MockQuery
@@ -332,9 +338,17 @@ func (stub *MockStub) MockTransactionStart(uuid string) {
 
 func (stub *MockStub) MockTransactionEnd(uuid string) {
 	stub.LastTxID = stub.TxID
-	stub.DumpStateBuffer()
+	if !stub.cc2ccInvokation { // skip for inner tx cc2cc calls
+		stub.DumpStateBuffer()
+		stub.dumpEvents() // events works only for outer stub in Fabric
 
-	stub.MockStub.MockTransactionEnd(uuid)
+		// dump buffer to state on outer tx finishing (https://github.com/s7techlab/cckit/issues/97)
+		for _, invokableStub := range stub.Invokables {
+			invokableStub.DumpStateBuffer()
+			invokableStub.cc2ccInvokation = false
+		}
+		stub.MockStub.MockTransactionEnd(uuid)
+	}
 
 	if stub.ClearCreatorAfterInvoke {
 		stub.mockCreator = nil
