@@ -59,6 +59,10 @@ func (mp *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *Mocke
 	return mp
 }
 
+func (mp *MockedPeer) CurrentIdentity() msp.SigningIdentity {
+	return nil
+}
+
 func (mp *MockedPeer) Invoke(
 	ctx context.Context,
 	channel string,
