@@ -53,6 +53,10 @@ func NewPeerDecorator(sdk sdk.SDK) *MockedPeerDecorator {
 	}
 }
 
+func (mpd *MockedPeerDecorator) CurrentIdentity() msp.SigningIdentity {
+	return mpd.SDK.CurrentIdentity()
+}
+
 func (mpd *MockedPeerDecorator) Invoke(
 	ctx context.Context,
 	channel string,

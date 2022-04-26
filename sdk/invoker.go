@@ -8,6 +8,8 @@ import (
 )
 
 type Invoker interface {
+	CurrentIdentity() msp.SigningIdentity
+
 	Query(
 		ctx context.Context,
 		chanName string,
