@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/examples/erc20_service";
+package examples.erc20_service;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+// ERC-20
+service ERC20 {
+  // Returns the name of the token.
+  rpc Name(google.protobuf.Empty) returns (NameResponse) {
+    option (google.api.http) = {
+      get: "/name"
+    };
+  }
+
+  // Returns the symbol of the token, usually a shorter version of the name.
+  rpc Symbol(google.protobuf.Empty) returns (SymbolResponse) {
+    option (google.api.http) = {
+      get: "/symbol"
+    };
+  }
+
+  // Returns the number of decimals used to get its user representation.
+  // For example, if decimals equals 2, a balance of 505 tokens should be displayed to a user as 5,05 (505 / 10 ** 2).
+  rpc Decimals (google.protobuf.Empty) returns (DecimalsResponse) {
+    option (google.api.http) = {
+      get: "/decimals"
+    };
+  }
+
+  // Returns the amount of tokens in existence.
+  rpc TotalSupply (google.protobuf.Empty) returns (TotalSupplyResponse) {
+    option (google.api.http) = {
+      get: "/total-supply"
+    };
+  }
+
+  // Returns the amount of tokens owned by account.
+  rpc BalanceOf (BalanceOfRequest) returns (BalanceOfResponse) {
+    option (google.api.http) = {
+      get: "/balance/{address}"
+    };
+  }
+
+  // Moves amount tokens from the caller’s account to recipient.
+  // Returns a boolean value indicating whether the operation succeeded.
+  rpc Transfer (TransferRequest) returns (TransferResponse) {
+    option (google.api.http) = {
+      post: "/transfer"
+    };
+  }
+
+  // Returns the remaining number of tokens that spender will be allowed to spend on behalf of owner through transfersender.
+  // This is zero by default.
+  rpc Allowance (AllowanceRequest) returns (AllowanceResponse) {
+    option (google.api.http) = {
+      get: "/allowance/{owner_address}/{spender_address}"
+    };
+  }
+
+  // Sets amount as the allowance of spender over the caller’s tokens.
+  // Emits an ApprovalEvent
+  rpc Approve (ApproveRequest) returns (ApproveResponse) {
+    option (google.api.http) = {
+      post: "/approve"
+    };
+  }
+
+  // Moves amount tokens from sender to recipient using the allowance mechanism.
+  // Amount is then deducted from the caller’s allowance.
+  // Emits TransferEvent
+  rpc TransferFrom (TransferFromRequest) returns (TransferResponse) {
+    option (google.api.http) = {
+      post: "/transfer-from"
+    };
+  }
+}
+
+message NameResponse {
+  string name = 1;
+}
+
+message SymbolResponse {
+  string symbol = 1;
+}
+
+message DecimalsResponse {
+  uint32 decimals = 1;
+}
+
+message TotalSupplyResponse {
+  uint64 total_supply = 1;
+}
+
+message BalanceOfRequest {
+  string address = 1;
+}
+
+message BalanceOfResponse {
+  string address = 1;
+  uint64 balance = 2;
+}
+
+message TransferRequest  {
+  string recipient_address = 1;
+  uint64 amount = 2;
+}
+
+message TransferResponse {
+  string sender_address = 1;
+  string recipient_address = 2;
+  uint64 amount = 3;
+}
+
+message AllowanceRequest {
+  string sender_address = 1;
+  string recipient_address = 2;
+}
+
+message AllowanceResponse {
+  string sender_address = 1;
+  string recipient_address = 2;
+  uint64 amount = 3;
+}
+
+message ApproveRequest {
+  string sender_address = 1;
+  string recipient_address = 2;
+  uint64 amount = 3;
+}
+
+message ApproveResponse {
+  string sender_address = 1;
+  string recipient_address = 2;
+  uint64 amount = 3;
+}
+
+message TransferFromRequest {
+  string sender_address = 1;
+  string recipient_address = 2;
+  uint64 amount = 3;
+}
+
+// Events
+
+message TransferEvent  {
+  string sender_address = 1;
+  string recipient_address = 2;
+  uint64 amount = 3;
+}
+
+message ApprovalEvent  {
+  string sender_address = 1;
+  string recipient_address = 2;
+  uint64 amount = 3;
+}
