@@ -1,30 +1,34 @@
 version: v1
 
 plugins:
-
   - name: go
+    path: generators/bin/protoc-gen-go-cckit
     out: .
     opt:
       - plugins=grpc
       - paths=source_relative
 
   - name: govalidators
+    path: generators/bin/protoc-gen-govalidators-cckit
     out: .
     opt:
       - paths=source_relative
 
   - name: grpc-gateway
+    path: generators/bin/protoc-gen-grpc-gateway-cckit
     out: .
     opt:
       - logtostderr=true
       - paths=source_relative
 
   - name: swagger
+    path: generators/bin/protoc-gen-swagger-cckit
     out: .
     opt:
       - logtostderr=true
 
   - name: doc
+    path: generators/bin/protoc-gen-doc-cckit
     out: .
     opt:
-      - markdown,doc.pb.md,source_relative
+      - markdown,doc.md

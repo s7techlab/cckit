@@ -4,10 +4,6 @@
     "title": "chaincode.proto",
     "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
-  ],
   "consumes": [
     "application/json"
   ],
@@ -18,12 +14,18 @@
     "/chaincode-instance/events": {
       "get": {
         "summary": "Chaincode events s",
-        "operationId": "Events",
+        "operationId": "ChaincodeInstanceEventsService_Events",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/gatewayChaincodeEvents"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -70,12 +72,27 @@
     "/chaincode-instance/events-stream": {
       "get": {
         "summary": "Chaincode events stream",
-        "operationId": "EventsStream",
+        "operationId": "ChaincodeInstanceEventsService_EventsStream",
         "responses": {
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "$ref": "#/x-stream-definitions/cckitgatewayChaincodeEvent"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/cckitgatewayChaincodeEvent"
+                },
+                "error": {
+                  "$ref": "#/definitions/runtimeStreamError"
+                }
+              },
+              "title": "Stream result of cckitgatewayChaincodeEvent"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -115,12 +132,18 @@
     "/chaincode-instance/exec": {
       "post": {
         "summary": "Exec: Query or Invoke",
-        "operationId": "Exec",
+        "operationId": "ChaincodeInstanceService_Exec",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/protosResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -142,12 +165,18 @@
     "/chaincode-instance/invoke": {
       "post": {
         "summary": "Invoke chaincode on peers, according to endorsement policy and the SEND to orderer",
-        "operationId": "Invoke",
+        "operationId": "ChaincodeInstanceService_Invoke",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/protosResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -169,12 +198,18 @@
     "/chaincode-instance/query": {
       "get": {
         "summary": "Query chaincode on home peer. Do NOT send to orderer.",
-        "operationId": "Query",
+        "operationId": "ChaincodeInstanceService_Query",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/protosResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -200,12 +235,18 @@
     "/chaincode/events": {
       "get": {
         "summary": "Chaincode events",
-        "operationId": "Events",
+        "operationId": "ChaincodeEventsService_Events",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/gatewayChaincodeEvents"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -266,12 +307,27 @@
     "/chaincode/events-stream": {
       "get": {
         "summary": "Chaincode events stream",
-        "operationId": "EventsStream",
+        "operationId": "ChaincodeEventsService_EventsStream",
         "responses": {
           "200": {
             "description": "A successful response.(streaming responses)",
             "schema": {
-              "$ref": "#/x-stream-definitions/cckitgatewayChaincodeEvent"
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/cckitgatewayChaincodeEvent"
+                },
+                "error": {
+                  "$ref": "#/definitions/runtimeStreamError"
+                }
+              },
+              "title": "Stream result of cckitgatewayChaincodeEvent"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -325,12 +381,18 @@
     "/chaincode/exec": {
       "post": {
         "summary": "Exec: Query or Invoke",
-        "operationId": "Exec",
+        "operationId": "ChaincodeService_Exec",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/protosResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -352,12 +414,18 @@
     "/chaincode/invoke": {
       "post": {
         "summary": "Invoke chaincode on peers, according to endorsement policy and the SEND to orderer",
-        "operationId": "Invoke",
+        "operationId": "ChaincodeService_Invoke",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/protosResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -379,12 +447,18 @@
     "/chaincode/query": {
       "get": {
         "summary": "Query chaincode on home peer. Do NOT send to orderer.",
-        "operationId": "Query",
+        "operationId": "ChaincodeService_Query",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/protosResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -624,6 +698,27 @@
       },
       "description": "A response with a representation similar to an HTTP response that can\nbe used within another message."
     },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
     "runtimeStreamError": {
       "type": "object",
       "properties": {
@@ -648,20 +743,6 @@
           }
         }
       }
-    }
-  },
-  "x-stream-definitions": {
-    "cckitgatewayChaincodeEvent": {
-      "type": "object",
-      "properties": {
-        "result": {
-          "$ref": "#/definitions/cckitgatewayChaincodeEvent"
-        },
-        "error": {
-          "$ref": "#/definitions/runtimeStreamError"
-        }
-      },
-      "title": "Stream result of cckitgatewayChaincodeEvent"
     }
   }
 }

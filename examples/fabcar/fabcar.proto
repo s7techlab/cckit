@@ -2,14 +2,13 @@ syntax = "proto3";
 
 package examples.fabcar;
 
-option go_package = ".;fabcar";
+option go_package = "github.com/s7techlab/cckit/examples/fabcar";
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
-//import "mwitkow/go-proto-validators/validator.proto";
-import "github.com/mwitkow/go-proto-validators/validator.proto";
 
+import "mwitkow/go-proto-validators/validator.proto";
 
 service FabCarService {
   rpc CreateMaker (CreateMakerRequest) returns (Maker) {

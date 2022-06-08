@@ -1,0 +1,370 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "erc20_service/erc20.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/allowance/{sender_address}/{recipient_address}": {
+      "get": {
+        "summary": "Returns the remaining number of tokens that spender will be allowed to spend on behalf of owner through transfersender.\nThis is zero by default.",
+        "operationId": "ERC20_Allowance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceAllowanceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sender_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "recipient_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ERC20"
+        ]
+      }
+    },
+    "/approve": {
+      "post": {
+        "summary": "Sets amount as the allowance of spender over the caller’s tokens.\nEmits an ApprovalEvent",
+        "operationId": "ERC20_Approve",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceApproveResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ERC20"
+        ]
+      }
+    },
+    "/balance/{address}": {
+      "get": {
+        "summary": "Returns the amount of tokens owned by account.",
+        "operationId": "ERC20_BalanceOf",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceBalanceOfResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ERC20"
+        ]
+      }
+    },
+    "/decimals": {
+      "get": {
+        "summary": "Returns the number of decimals used to get its user representation.\nFor example, if decimals equals 2, a balance of 505 tokens should be displayed to a user as 5,05 (505 / 10 ** 2).",
+        "operationId": "ERC20_Decimals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceDecimalsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ERC20"
+        ]
+      }
+    },
+    "/name": {
+      "get": {
+        "summary": "Returns the name of the token.",
+        "operationId": "ERC20_Name",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceNameResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ERC20"
+        ]
+      }
+    },
+    "/symbol": {
+      "get": {
+        "summary": "Returns the symbol of the token, usually a shorter version of the name.",
+        "operationId": "ERC20_Symbol",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceSymbolResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ERC20"
+        ]
+      }
+    },
+    "/total-supply": {
+      "get": {
+        "summary": "Returns the amount of tokens in existence.",
+        "operationId": "ERC20_TotalSupply",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceTotalSupplyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ERC20"
+        ]
+      }
+    },
+    "/transfer": {
+      "post": {
+        "summary": "Moves amount tokens from the caller’s account to recipient.\nReturns a boolean value indicating whether the operation succeeded.",
+        "operationId": "ERC20_Transfer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceTransferResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ERC20"
+        ]
+      }
+    },
+    "/transfer-from": {
+      "post": {
+        "summary": "Moves amount tokens from sender to recipient using the allowance mechanism.\nAmount is then deducted from the caller’s allowance.\nEmits TransferEvent",
+        "operationId": "ERC20_TransferFrom",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/erc20_serviceTransferResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ERC20"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "erc20_serviceAllowanceResponse": {
+      "type": "object",
+      "properties": {
+        "sender_address": {
+          "type": "string"
+        },
+        "recipient_address": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "erc20_serviceApproveResponse": {
+      "type": "object",
+      "properties": {
+        "sender_address": {
+          "type": "string"
+        },
+        "recipient_address": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "erc20_serviceBalanceOfResponse": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "balance": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "erc20_serviceDecimalsResponse": {
+      "type": "object",
+      "properties": {
+        "decimals": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "erc20_serviceNameResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "erc20_serviceSymbolResponse": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string"
+        }
+      }
+    },
+    "erc20_serviceTotalSupplyResponse": {
+      "type": "object",
+      "properties": {
+        "total_supply": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "erc20_serviceTransferResponse": {
+      "type": "object",
+      "properties": {
+        "sender_address": {
+          "type": "string"
+        },
+        "recipient_address": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

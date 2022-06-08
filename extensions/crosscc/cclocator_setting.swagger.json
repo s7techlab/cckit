@@ -4,10 +4,6 @@
     "title": "crosscc/cclocator_setting.proto",
     "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
-  ],
   "consumes": [
     "application/json"
   ],
@@ -17,12 +13,18 @@
   "paths": {
     "/croscc/ping": {
       "get": {
-        "operationId": "PingServices",
+        "operationId": "SettingService_PingServices",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/crossccPingServiceResponses"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -34,12 +36,18 @@
     "/croscc/ping/{service}": {
       "get": {
         "summary": "Try to query chaincodes from service chaincode settings",
-        "operationId": "PingService",
+        "operationId": "SettingService_PingService",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/crossccPingServiceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -58,12 +66,18 @@
     },
     "/croscc/services": {
       "get": {
-        "operationId": "ListServiceLocators",
+        "operationId": "SettingService_ListServiceLocators",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/crossccServiceLocators"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -72,12 +86,18 @@
         ]
       },
       "post": {
-        "operationId": "ServiceLocatorSet",
+        "operationId": "SettingService_ServiceLocatorSet",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/crossccServiceLocator"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -98,12 +118,18 @@
     },
     "/croscc/{service}": {
       "get": {
-        "operationId": "ServiceLocatorGet",
+        "operationId": "SettingService_ServiceLocatorGet",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/crossccServiceLocator"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -185,6 +211,39 @@
         }
       },
       "title": "List: service resolving settings"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
     }
   }
 }
