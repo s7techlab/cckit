@@ -4,10 +4,6 @@
     "title": "cpaper_asservice/cpaper.proto",
     "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
-  ],
   "consumes": [
     "application/json"
   ],
@@ -18,12 +14,18 @@
     "/cpaper": {
       "get": {
         "summary": "List method returns all registered commercial papers",
-        "operationId": "List",
+        "operationId": "CPaperService_List",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/cpaper_asserviceCommercialPaperList"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -35,12 +37,18 @@
     "/cpaper/buy": {
       "post": {
         "summary": "Buy commercial paper",
-        "operationId": "Buy",
+        "operationId": "CPaperService_Buy",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/cpaper_asserviceCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -62,12 +70,18 @@
     "/cpaper/extid/{id}": {
       "get": {
         "summary": "GetByExternalId",
-        "operationId": "GetByExternalId",
+        "operationId": "CPaperService_GetByExternalId",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/cpaper_asserviceCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -87,12 +101,18 @@
     "/cpaper/issue": {
       "post": {
         "summary": "Issue commercial paper",
-        "operationId": "Issue",
+        "operationId": "CPaperService_Issue",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/cpaper_asserviceCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -114,12 +134,18 @@
     "/cpaper/redeem": {
       "post": {
         "summary": "Redeem commercial paper",
-        "operationId": "Redeem",
+        "operationId": "CPaperService_Redeem",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/cpaper_asserviceCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -141,12 +167,18 @@
     "/cpaper/{issuer}/{paper_number}": {
       "get": {
         "summary": "Get method returns commercial paper data by id",
-        "operationId": "Get",
+        "operationId": "CPaperService_Get",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/cpaper_asserviceCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -170,12 +202,18 @@
       },
       "delete": {
         "summary": "Delete commercial paper",
-        "operationId": "Delete",
+        "operationId": "CPaperService_Delete",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/cpaper_asserviceCommercialPaper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -328,6 +366,39 @@
         }
       },
       "title": "RedeemCommercialPaper event"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
     }
   }
 }

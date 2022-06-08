@@ -4,10 +4,6 @@
     "title": "debug/debug_state.proto",
     "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
-  ],
   "consumes": [
     "application/json"
   ],
@@ -18,12 +14,18 @@
     "/debug/state": {
       "put": {
         "summary": "Put state value",
-        "operationId": "PutState",
+        "operationId": "DebugStateService_PutState",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugValue"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -45,12 +47,18 @@
     "/debug/state/clean": {
       "post": {
         "summary": "Delete all states or, if prefixes are defined, only prefix matched",
-        "operationId": "DeleteStates",
+        "operationId": "DebugStateService_DeleteStates",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugPrefixesMatchCount"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -72,12 +80,18 @@
     "/debug/state/keys/{key}": {
       "get": {
         "summary": "Get keys list, returns all keys or, if prefixes are defined, only prefix matched",
-        "operationId": "ListKeys",
+        "operationId": "DebugStateService_ListKeys",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugCompositeKeys"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -103,12 +117,18 @@
     "/debug/state/{key}": {
       "get": {
         "summary": "Get state value by key",
-        "operationId": "GetState",
+        "operationId": "DebugStateService_GetState",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugValue"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -131,12 +151,18 @@
       },
       "delete": {
         "summary": "Delete state value",
-        "operationId": "DeleteState",
+        "operationId": "DebugStateService_DeleteState",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/debugValue"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -239,6 +265,39 @@
         }
       },
       "title": "State value"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
     }
   }
 }

@@ -4,10 +4,6 @@
     "title": "owner/chaincode_owner.proto",
     "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
-  ],
   "consumes": [
     "application/json"
   ],
@@ -18,12 +14,18 @@
     "/chaincode/owners": {
       "get": {
         "summary": "Get owners list",
-        "operationId": "ListOwners",
+        "operationId": "ChaincodeOwnerService_ListOwners",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwners"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -33,12 +35,18 @@
       },
       "post": {
         "summary": "Register new chaincode owner, method can be call by current owner or if no owner exists\nIf chaincode owner with same MspID, certificate subject and issuer exists - throws error",
-        "operationId": "CreateOwner",
+        "operationId": "ChaincodeOwnerService_CreateOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -58,12 +66,18 @@
       },
       "put": {
         "summary": "Update chaincode owner. Msp id and certificate subject must be equal to current owner certificate",
-        "operationId": "UpdateOwner",
+        "operationId": "ChaincodeOwnerService_UpdateOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -85,12 +99,18 @@
     "/chaincode/owners/txcreator": {
       "post": {
         "summary": "Register tx creator as chaincode owner",
-        "operationId": "CreateOwnerTxCreator",
+        "operationId": "ChaincodeOwnerService_CreateOwnerTxCreator",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -112,12 +132,18 @@
     "/chaincode/owners/whoami": {
       "get": {
         "summary": "Checks tx creator is owner",
-        "operationId": "GetOwnerByTxCreator",
+        "operationId": "ChaincodeOwnerService_GetOwnerByTxCreator",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -129,12 +155,18 @@
     "/chaincode/owners/{msp_id}/{subject}": {
       "get": {
         "summary": "Get owner by msp_id and certificate subject",
-        "operationId": "GetOwner",
+        "operationId": "ChaincodeOwnerService_GetOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -160,12 +192,18 @@
       },
       "delete": {
         "summary": "Delete owner",
-        "operationId": "DeleteOwner",
+        "operationId": "ChaincodeOwnerService_DeleteOwner",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/ownerChaincodeOwner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
             }
           }
         },
@@ -275,6 +313,39 @@
         }
       },
       "title": "Request: update owner certificate"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
     }
   }
 }

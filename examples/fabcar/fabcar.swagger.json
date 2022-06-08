@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "fabcar.proto",
+    "title": "fabcar/fabcar.proto",
     "version": "version not set"
   },
   "consumes": [

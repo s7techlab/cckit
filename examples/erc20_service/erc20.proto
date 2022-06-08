@@ -56,7 +56,7 @@ service ERC20 {
   // This is zero by default.
   rpc Allowance (AllowanceRequest) returns (AllowanceResponse) {
     option (google.api.http) = {
-      get: "/allowance/{owner_address}/{spender_address}"
+      get: "/allowance/{sender_address}/{recipient_address}"
     };
   }
 
