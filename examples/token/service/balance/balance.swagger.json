@@ -1,0 +1,281 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "token/service/balance/balance.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/token/balances": {
+      "get": {
+        "operationId": "BalanceService_ListBalances",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceBalances"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "BalanceService"
+        ]
+      }
+    },
+    "/token/balances/{address}": {
+      "get": {
+        "operationId": "BalanceService_ListAddressBalances",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceBalances"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BalanceService"
+        ]
+      }
+    },
+    "/token/balances/{address}/{token}": {
+      "get": {
+        "summary": "Returns the amount of tokens owned by account.",
+        "operationId": "BalanceService_GetBalance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceBalance"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "BalanceService"
+        ]
+      }
+    },
+    "/token/transfer": {
+      "post": {
+        "summary": "Moves amount tokens from the caller’s account to recipient.\nReturns transfer details",
+        "operationId": "BalanceService_Transfer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTransferResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/balanceTransferRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BalanceService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "balanceAddMetaRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "balanceBalance": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "token": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amount": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "Balance"
+    },
+    "balanceBalances": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceBalance"
+          }
+        }
+      },
+      "title": "List"
+    },
+    "balanceMeta": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "balanceTransferRequest": {
+      "type": "object",
+      "properties": {
+        "recipient_address": {
+          "type": "string"
+        },
+        "token": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amount": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "meta": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceAddMetaRequest"
+          }
+        }
+      }
+    },
+    "balanceTransferResponse": {
+      "type": "object",
+      "properties": {
+        "sender_address": {
+          "type": "string"
+        },
+        "recipient_address": {
+          "type": "string"
+        },
+        "token": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amount": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "meta": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceMeta"
+          }
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

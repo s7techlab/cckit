@@ -1,0 +1,614 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "token/service/config/config.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/token/config": {
+      "get": {
+        "operationId": "ConfigService_GetConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceConfig"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ConfigService"
+        ]
+      }
+    },
+    "/token/tokens/{token_name}/groups/{name}": {
+      "get": {
+        "operationId": "ConfigService_GetTokenGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTokenGroup"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      },
+      "delete": {
+        "operationId": "ConfigService_DeleteTokenGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceToken"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      }
+    },
+    "/token/tokens/{token}": {
+      "get": {
+        "operationId": "ConfigService_GetToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceToken"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      }
+    },
+    "/token/types": {
+      "get": {
+        "operationId": "ConfigService_ListTokenTypes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTokenTypes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ConfigService"
+        ]
+      },
+      "post": {
+        "operationId": "ConfigService_CreateTokenType",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTokenType"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/balanceCreateTokenTypeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      }
+    },
+    "/token/types/{name}": {
+      "get": {
+        "operationId": "ConfigService_GetTokenType",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTokenType"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      },
+      "delete": {
+        "operationId": "ConfigService_DeleteTokenType",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTokenType"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      },
+      "put": {
+        "operationId": "ConfigService_UpdateTokenType",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTokenType"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/balanceUpdateTokenTypeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      }
+    },
+    "/token/types/{name}/groups": {
+      "get": {
+        "operationId": "ConfigService_GetTokenGroups",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTokenGroups"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      },
+      "post": {
+        "operationId": "ConfigService_CreateTokenGroup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceTokenGroup"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/balanceCreateTokenGroupRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "balanceConfig": {
+      "type": "object",
+      "properties": {
+        "max_token_types_num": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "max_token_groups_num": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "balanceCreateTokenGroupRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "token_type": {
+          "type": "string"
+        },
+        "total_supply": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "meta": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceTokenMetaRequest"
+          }
+        }
+      }
+    },
+    "balanceCreateTokenTypeRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "decimals": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "group_type": {
+          "$ref": "#/definitions/balanceTokenGroupType"
+        },
+        "total_supply": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "meta": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceTokenMetaRequest"
+          }
+        }
+      }
+    },
+    "balanceToken": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "$ref": "#/definitions/balanceTokenType"
+        },
+        "group": {
+          "$ref": "#/definitions/balanceTokenGroup"
+        }
+      }
+    },
+    "balanceTokenGroup": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "token_type": {
+          "type": "string"
+        },
+        "total_supply": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "meta": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceTokenMeta"
+          }
+        }
+      },
+      "title": "State: TokenGroup"
+    },
+    "balanceTokenGroupType": {
+      "type": "string",
+      "enum": [
+        "OPTIONAL",
+        "REQUIRED",
+        "NOT_ALLOWED"
+      ],
+      "default": "OPTIONAL"
+    },
+    "balanceTokenGroups": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceTokenGroup"
+          }
+        }
+      }
+    },
+    "balanceTokenMeta": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "balanceTokenMetaRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "balanceTokenType": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "decimals": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_supply": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "group_type": {
+          "$ref": "#/definitions/balanceTokenGroupType"
+        },
+        "meta": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceTokenMeta"
+          }
+        }
+      },
+      "title": "State: TokenType"
+    },
+    "balanceTokenTypes": {
+      "type": "object",
+      "properties": {
+        "types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceTokenType"
+          }
+        }
+      }
+    },
+    "balanceUpdateTokenTypeRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "total_supply": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "meta": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/balanceTokenMetaRequest"
+          }
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
