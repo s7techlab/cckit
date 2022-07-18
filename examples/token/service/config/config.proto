@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/examples/token/service/config";
+package examples.erc20_service.service.balance;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "mwitkow/go-proto-validators/validator.proto";
+
+// Config token
+service ConfigService {
+
+  rpc GetConfig (google.protobuf.Empty) returns (Config) {
+    option (google.api.http) = {
+      get: "/token/config"
+    };
+  }
+
+  rpc GetToken (TokenId) returns (Token) {
+    option (google.api.http) = {
+      get: "/token/tokens/{token}"
+    };
+  }
+
+  rpc CreateTokenType (CreateTokenTypeRequest) returns (TokenType) {
+    option (google.api.http) = {
+      post: "/token/types"
+      body: "*"
+    };
+  }
+
+  rpc GetTokenType(TokenTypeId) returns (TokenType) {
+    option (google.api.http) = {
+      get: "/token/types/{name}"
+    };
+  }
+
+  rpc ListTokenTypes(google.protobuf.Empty) returns (TokenTypes) {
+    option (google.api.http) = {
+      get: "/token/types"
+    };
+  }
+
+  rpc UpdateTokenType (UpdateTokenTypeRequest) returns (TokenType) {
+    option (google.api.http) = {
+      put: "/token/types/{name}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteTokenType (TokenTypeId) returns (TokenType) {
+    option (google.api.http) = {
+      delete: "/token/types/{name}"
+    };
+  }
+
+  rpc GetTokenGroups(TokenTypeId) returns (TokenGroups) {
+    option (google.api.http) = {
+      get: "/token/types/{name}/groups"
+    };
+  }
+
+  rpc CreateTokenGroup (CreateTokenGroupRequest) returns (TokenGroup) {
+    option (google.api.http) = {
+      post: "/token/types/{name}/groups"
+      body: "*"
+    };
+  }
+
+  rpc GetTokenGroup (TokenGroupId) returns (TokenGroup) {
+    option (google.api.http) = {
+      get: "/token/tokens/{token_name}/groups/{name}"
+    };
+  }
+
+  rpc DeleteTokenGroup (TokenGroupId) returns (Token) {
+    option (google.api.http) = {
+      delete: "/token/tokens/{token_name}/groups/{name}"
+    };
+  }
+}
+
+message CreateTokenTypeRequest {
+  string name = 1 [(validator.field) = {string_not_empty : true}];
+  string symbol = 2 [(validator.field) = {string_not_empty : true}];
+  uint32 decimals = 3 [(validator.field) = {int_lt: 9}]; // from 0 to 8
+  TokenGroupType group_type = 4 [(validator.field) = {is_in_enum : true}];;
+  uint64 total_supply = 5;
+  repeated TokenMetaRequest meta = 6;
+}
+
+message UpdateTokenTypeRequest {
+  string name = 1 [(validator.field) = {string_not_empty : true}];
+  string symbol = 2 [(validator.field) = {string_not_empty : true}];
+  uint64 total_supply = 3;
+  repeated TokenMetaRequest meta = 4;
+}
+
+message CreateTokenGroupRequest {
+  repeated string name = 1 [(validator.field) = {repeated_count_min : 1}];
+  string token_type = 2 [(validator.field) = {string_not_empty : true}];
+  uint64 total_supply = 3;
+  repeated TokenMetaRequest meta = 4;
+}
+
+message Config {
+  int32 max_token_types_num = 1;
+  int32 max_token_groups_num = 2;
+}
+
+message TokenId {
+  repeated string token = 1;
+}
+
+// Id: toke type id
+message TokenTypeId {
+  string name = 1;
+}
+
+// State: TokenType
+message TokenType {
+  string name = 1;
+  string symbol = 2;
+  uint32 decimals = 3;
+  uint64 total_supply = 4;
+  TokenGroupType group_type = 5;
+  repeated TokenMeta meta = 6;
+}
+
+message TokenTypes {
+  repeated TokenType types = 1;
+}
+
+message TokenGroupId {
+  string token_name = 1;
+  repeated string name = 2;
+}
+
+// State: TokenGroup
+message TokenGroup {
+  repeated string name = 1;
+  string token_type = 2;
+  uint64 total_supply = 3;
+  repeated TokenMeta meta = 4;
+}
+
+message TokenGroups {
+  repeated TokenGroup groups = 1;
+}
+
+message TokenMetaRequest {
+  string key = 1 [(validator.field) = {string_not_empty : true}];
+  string value = 2 [(validator.field) = {string_not_empty : true}];
+}
+
+message TokenMeta {
+  string key = 1;
+  string value = 2;
+}
+
+message Token  {
+  repeated string token = 1;
+  TokenType type = 2;
+  TokenGroup group = 3;
+}
+
+enum TokenGroupType {
+  OPTIONAL = 0;
+  REQUIRED = 1;
+  NOT_ALLOWED = 3;
+}
+
+message TokenTypeCreated {
+  string name = 1;
+  string symbol = 2;
+}
+
+message TokenGroupCreated {
+  string token_type = 1;
+  repeated string name = 2;
+}

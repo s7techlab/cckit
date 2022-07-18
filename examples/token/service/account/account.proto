@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/examples/token/service/account";
+package examples.token.service.account;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+// Account
+service AccountService {
+
+  rpc GetInvokerAddress (google.protobuf.Empty) returns (AddressId) {
+    option (google.api.http) = {
+      get: "/token/addresses/whoami"
+    };
+  }
+
+  rpc GetAddress (GetAddressRequest) returns (AddressId) {
+    option (google.api.http) = {
+      get: "/token/addresses/{public_key}"
+    };
+  }
+
+  rpc GetAccount (AccountId) returns (Account) {
+    option (google.api.http) = {
+      get: "/token/accounts/{address}"
+    };
+  }
+
+}
+
+message GetAddressRequest {
+  bytes public_key = 1;
+}
+
+message GetAccountRequest {
+  string address = 1;
+}
+
+message Address {
+  string address = 1;
+}
+
+message AddressId {
+  string address = 1;
+}
+
+message AccountId {
+  string address = 1;
+}
+
+message Account {
+  string address = 1;
+  AccountStatus status = 2;
+}
+
+message AccountKey {
+  bytes public_key = 1;
+  KeyStatus status = 2;
+}
+
+enum KeyStatus {
+  KEY_STATUS_UNKNOWN = 0;
+  KEY_STATUS_ENABLED = 1;
+  KEY_STATUS_DISABLED = 2;
+}
+
+enum AccountStatus {
+  ACCOUNT_STATUS_UNKNOWN = 0;
+  ACCOUNT_STATUS_ENABLED = 1;
+  ACCOUNT_STATUS_DISABLED = 2;
+}
