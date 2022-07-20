@@ -1,0 +1,187 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "token/service/allowance/allowance.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/allowance/{owner_address}/{spender_address}/{token}": {
+      "get": {
+        "summary": "Returns the remaining number of tokens that spender will be allowed to spend on behalf of owner through transfersender.\nThis is zero by default.",
+        "operationId": "AllowanceService_GetAllowance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/allowanceAllowance"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "owner_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "spender_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
+          }
+        ],
+        "tags": [
+          "AllowanceService"
+        ]
+      }
+    },
+    "/approve": {
+      "post": {
+        "summary": "Sets amount as the allowance of spender over the caller’s tokens.\nEmits an ApprovalEvent",
+        "operationId": "AllowanceService_Approve",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/allowanceAllowance"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "AllowanceService"
+        ]
+      }
+    },
+    "/transfer-from": {
+      "post": {
+        "summary": "Moves amount tokens from sender to recipient using the allowance mechanism.\nAmount is then deducted from the caller’s allowance.\nEmits TransferEvent",
+        "operationId": "AllowanceService_TransferFrom",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/allowanceTransferFromResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "AllowanceService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "allowanceAllowance": {
+      "type": "object",
+      "properties": {
+        "owner_address": {
+          "type": "string"
+        },
+        "spender_address": {
+          "type": "string"
+        },
+        "token": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amount": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "Allowance"
+    },
+    "allowanceTransferFromResponse": {
+      "type": "object",
+      "properties": {
+        "owner_address": {
+          "type": "string"
+        },
+        "recipient_address": {
+          "type": "string"
+        },
+        "token": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amount": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

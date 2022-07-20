@@ -294,8 +294,8 @@ func (s *Impl) Logger() *zap.Logger {
 	return s.State.Logger()
 }
 
-func (s *Impl) UseKeyTransformer(kt state.KeyTransformer) state.State {
-	return s.State.UseKeyTransformer(kt)
+func (s *Impl) UseKeyTransformer(kt state.KeyTransformer) {
+	s.State.UseKeyTransformer(kt)
 }
 
 func (s *Impl) GetPrivate(collection string, entry interface{}, target ...interface{}) (result interface{}, err error) {

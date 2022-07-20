@@ -24,7 +24,7 @@ func WithNamespace(namespace state.Key) StateMappingOpt {
 	}
 }
 
-// WithStaticPKey set static key for all instances of mapped entry
+// WithConstPKey set static key for all instances of mapped entry
 func WithConstPKey(keys ...state.Key) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
 		key := state.Key{}
@@ -130,15 +130,6 @@ func PKeyAttr(attrs ...string) StateMappingOpt {
 // PKeyId use Id attr as source for mapped state entry key
 func PKeyId() StateMappingOpt {
 	return PKeyAttr(`Id`)
-}
-
-// PKeyConst use constant as state entry key
-func PKeyConst(key state.Key) StateMappingOpt {
-	return func(sm *StateMapping, smm StateMappings) {
-		sm.primaryKeyer = func(instance interface{}) (state.Key, error) {
-			return key, nil
-		}
-	}
 }
 
 // PKeyComplexId sets Id as key field, also adds mapping for pkeySchema

@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option go_package = "github.com/s7techlab/cckit/examples/token/service/config_erc20";
+package examples.erc20_service.service.config_erc20;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+// ERC-20 Config getters
+service ConfigERC20Service {
+
+  // Returns the name of the token.
+  rpc GetName(google.protobuf.Empty) returns (NameResponse) {
+    option (google.api.http) = {
+      get: "/name"
+    };
+  }
+
+  // Returns the symbol of the token, usually a shorter version of the name.
+  rpc GetSymbol(google.protobuf.Empty) returns (SymbolResponse) {
+    option (google.api.http) = {
+      get: "/symbol"
+    };
+  }
+
+  // Returns the number of decimals used to get its user representation.
+  // For example, if decimals equals 2, a balance of 505 tokens should be displayed to a user as 5,05 (505 / 10 ** 2).
+  rpc GetDecimals (google.protobuf.Empty) returns (DecimalsResponse) {
+    option (google.api.http) = {
+      get: "/decimals"
+    };
+  }
+
+  // Returns the amount of tokens in existence.
+  rpc GetTotalSupply (google.protobuf.Empty) returns (TotalSupplyResponse) {
+    option (google.api.http) = {
+      get: "/total-supply"
+    };
+  }
+}
+
+message NameResponse {
+  string name = 1;
+}
+
+message SymbolResponse {
+  string symbol = 1;
+}
+
+message DecimalsResponse {
+  uint32 decimals = 1;
+}
+
+message TotalSupplyResponse {
+  uint64 total_supply = 1;
+}

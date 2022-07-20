@@ -1,6 +1,9 @@
 package identity
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -116,4 +119,16 @@ var attributeTypeNames = map[string]string{
 	"2.5.4.8":  "ST",
 	"2.5.4.9":  "STREET",
 	"2.5.4.17": "POSTALCODE",
+}
+
+func MarshalPublicKey(publicKey interface{}) []byte {
+	switch pubKey := publicKey.(type) {
+	case *rsa.PublicKey:
+		fmt.Println(`LALALALAL`)
+		return nil
+	case *ecdsa.PublicKey:
+		return elliptic.Marshal(pubKey.Curve, pubKey.X, pubKey.Y)
+	}
+
+	return nil
 }
