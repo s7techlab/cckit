@@ -36,27 +36,27 @@ service AllowanceService {
 message AllowanceRequest {
   string owner_address = 1 [(validator.field) = {string_not_empty : true}];
   string spender_address = 2 [(validator.field) = {string_not_empty : true}];
-  string token = 3;
+  repeated string token = 3;
 }
 
 message ApproveRequest {
   string owner_address = 1 [(validator.field) = {string_not_empty : true}];
   string spender_address = 2 [(validator.field) = {string_not_empty : true}];
   uint64 amount = 3 [(validator.field) = {int_gt: 0}];
-  string token = 4;
+  repeated string token = 4;
 }
 
 message TransferFromRequest {
   string owner_address = 1 [(validator.field) = {string_not_empty : true}];
   string recipient_address = 2 [(validator.field) = {string_not_empty : true}];
   uint64 amount = 3 [(validator.field) = {int_gt: 0}];
-  string token = 4;
+  repeated string token = 4;
 }
 
 message TransferFromResponse {
   string owner_address = 1;
   string recipient_address = 2;
-  string token = 3;
+  repeated string token = 3;
   uint64 amount = 4;
 }
 
@@ -64,15 +64,14 @@ message TransferFromResponse {
 message AllowanceId {
   string owner_address = 1;
   string spender_address = 2;
-  repeated string token_id = 3;
-  repeated string path = 4;
+  repeated string token = 3;
 }
 
 // Allowance
 message Allowance {
   string  owner_address = 1;
   string  spender_address = 2;
-  repeated string path = 3;
+  repeated string token = 3;
   uint64 amount = 4;
 }
 
@@ -84,7 +83,7 @@ message Allowances {
 message Approved  {
   string owner_address = 1;
   string spender_address = 2;
-  string token = 3;
+  repeated string token = 3;
   uint64 amount = 4;
 }
 
@@ -93,5 +92,6 @@ message TransferredFrom  {
   string owner_address = 1;
   string spender_address = 2;
   string recipient_address = 3;
-  uint64 amount = 4;
+  repeated string token = 4;
+  uint64 amount = 5;
 }

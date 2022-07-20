@@ -10,6 +10,7 @@ import (
 	"github.com/s7techlab/cckit/examples/token/chaincode/erc20"
 	"github.com/s7techlab/cckit/examples/token/service/account"
 	"github.com/s7techlab/cckit/examples/token/service/balance"
+	"github.com/s7techlab/cckit/examples/token/service/config_erc20"
 	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
@@ -45,6 +46,18 @@ var _ = Describe(`ERC`, func() {
 
 	It(`Allows to call init once more time `, func() {
 		expectcc.ResponseOk(cc.From(ownerIdentity).Init())
+	})
+
+	Context(`token info`, func() {
+
+		It(`Allows to get token name`, func() {
+			name := expectcc.PayloadIs(
+				cc.From(user1Identity).
+					Query(config_erc20.ConfigERC20ServiceChaincode_GetName, nil),
+				&config_erc20.NameResponse{}).(*config_erc20.NameResponse)
+
+			Expect(name.Name).To(Equal(erc20.Token.Name))
+		})
 	})
 
 	Context(`initial balance`, func() {

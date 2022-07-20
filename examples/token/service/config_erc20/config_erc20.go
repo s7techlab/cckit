@@ -3,44 +3,46 @@ package config_erc20
 import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/s7techlab/cckit/examples/token/service/config"
 	"github.com/s7techlab/cckit/router"
 )
 
-type Service struct {
+type ERC20Service struct {
+	Token config.TokenGetter
 }
 
-func (s *Service) GetName(ctx router.Context, _ *emptypb.Empty) (*NameResponse, error) {
-	config, err := s.GetConfig(ctx, nil)
+func (s *ERC20Service) GetName(ctx router.Context, e *emptypb.Empty) (*NameResponse, error) {
+	token, err := s.Token.GetDefaultToken(ctx, e)
 	if err != nil {
 		return nil, err
 	}
 
-	return &NameResponse{Name: config.Name}, nil
+	return &NameResponse{Name: token.GetType().GetName()}, nil
 }
 
-func (s *Service) GetSymbol(ctx router.Context, _ *emptypb.Empty) (*SymbolResponse, error) {
-	config, err := s.GetConfig(ctx, nil)
+func (s *ERC20Service) GetSymbol(ctx router.Context, e *emptypb.Empty) (*SymbolResponse, error) {
+	token, err := s.Token.GetDefaultToken(ctx, e)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SymbolResponse{Symbol: config.Symbol}, nil
+	return &SymbolResponse{Symbol: token.GetType().GetSymbol()}, nil
 }
 
-func (s *Service) GetDecimals(ctx router.Context, _ *emptypb.Empty) (*DecimalsResponse, error) {
-	config, err := s.GetConfig(ctx, nil)
+func (s *ERC20Service) GetDecimals(ctx router.Context, e *emptypb.Empty) (*DecimalsResponse, error) {
+	token, err := s.Token.GetDefaultToken(ctx, e)
 	if err != nil {
 		return nil, err
 	}
 
-	return &DecimalsResponse{Decimals: config.Decimals}, nil
+	return &DecimalsResponse{Decimals: token.GetType().GetDecimals()}, nil
 }
 
-func (s *Service) GetTotalSupply(ctx router.Context, _ *emptypb.Empty) (*TotalSupplyResponse, error) {
-	config, err := s.GetConfig(ctx, nil)
+func (s *ERC20Service) GetTotalSupply(ctx router.Context, e *emptypb.Empty) (*TotalSupplyResponse, error) {
+	token, err := s.Token.GetDefaultToken(ctx, e)
 	if err != nil {
 		return nil, err
 	}
 
-	return &TotalSupplyResponse{TotalSupply: config.TotalSupply}, nil
+	return &TotalSupplyResponse{TotalSupply: token.GetType().GetTotalSupply()}, nil
 }

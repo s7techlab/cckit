@@ -46,7 +46,12 @@
             "name": "token",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "minItems": 1
           }
         ],
         "tags": [
@@ -111,7 +116,7 @@
         "spender_address": {
           "type": "string"
         },
-        "path": {
+        "token": {
           "type": "array",
           "items": {
             "type": "string"
@@ -134,7 +139,10 @@
           "type": "string"
         },
         "token": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "amount": {
           "type": "string",

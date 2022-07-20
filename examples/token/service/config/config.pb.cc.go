@@ -30,7 +30,11 @@ const (
 
 	ConfigServiceChaincode_GetConfig = ConfigServiceChaincodeMethodPrefix + "GetConfig"
 
+	ConfigServiceChaincode_SetConfig = ConfigServiceChaincodeMethodPrefix + "SetConfig"
+
 	ConfigServiceChaincode_GetToken = ConfigServiceChaincodeMethodPrefix + "GetToken"
+
+	ConfigServiceChaincode_GetDefaultToken = ConfigServiceChaincodeMethodPrefix + "GetDefaultToken"
 
 	ConfigServiceChaincode_CreateTokenType = ConfigServiceChaincodeMethodPrefix + "CreateTokenType"
 
@@ -55,7 +59,11 @@ const (
 type ConfigServiceChaincode interface {
 	GetConfig(cckit_router.Context, *emptypb.Empty) (*Config, error)
 
+	SetConfig(cckit_router.Context, *Config) (*Config, error)
+
 	GetToken(cckit_router.Context, *TokenId) (*Token, error)
+
+	GetDefaultToken(cckit_router.Context, *emptypb.Empty) (*Token, error)
 
 	CreateTokenType(cckit_router.Context, *CreateTokenTypeRequest) (*TokenType, error)
 
@@ -85,11 +93,23 @@ func RegisterConfigServiceChaincode(r *cckit_router.Group, cc ConfigServiceChain
 		},
 		cckit_defparam.Proto(&emptypb.Empty{}))
 
+	r.Invoke(ConfigServiceChaincode_SetConfig,
+		func(ctx cckit_router.Context) (interface{}, error) {
+			return cc.SetConfig(ctx, ctx.Param().(*Config))
+		},
+		cckit_defparam.Proto(&Config{}))
+
 	r.Query(ConfigServiceChaincode_GetToken,
 		func(ctx cckit_router.Context) (interface{}, error) {
 			return cc.GetToken(ctx, ctx.Param().(*TokenId))
 		},
 		cckit_defparam.Proto(&TokenId{}))
+
+	r.Query(ConfigServiceChaincode_GetDefaultToken,
+		func(ctx cckit_router.Context) (interface{}, error) {
+			return cc.GetDefaultToken(ctx, ctx.Param().(*emptypb.Empty))
+		},
+		cckit_defparam.Proto(&emptypb.Empty{}))
 
 	r.Invoke(ConfigServiceChaincode_CreateTokenType,
 		func(ctx cckit_router.Context) (interface{}, error) {
@@ -203,6 +223,21 @@ func (c *ConfigServiceGateway) GetConfig(ctx context.Context, in *emptypb.Empty)
 	}
 }
 
+func (c *ConfigServiceGateway) SetConfig(ctx context.Context, in *Config) (*Config, error) {
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Invoker().Invoke(ctx, ConfigServiceChaincode_SetConfig, []interface{}{in}, &Config{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*Config), nil
+	}
+}
+
 func (c *ConfigServiceGateway) GetToken(ctx context.Context, in *TokenId) (*Token, error) {
 	var inMsg interface{} = in
 	if v, ok := inMsg.(interface{ Validate() error }); ok {
@@ -212,6 +247,21 @@ func (c *ConfigServiceGateway) GetToken(ctx context.Context, in *TokenId) (*Toke
 	}
 
 	if res, err := c.Invoker().Query(ctx, ConfigServiceChaincode_GetToken, []interface{}{in}, &Token{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*Token), nil
+	}
+}
+
+func (c *ConfigServiceGateway) GetDefaultToken(ctx context.Context, in *emptypb.Empty) (*Token, error) {
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Invoker().Query(ctx, ConfigServiceChaincode_GetDefaultToken, []interface{}{in}, &Token{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*Token), nil
@@ -430,6 +480,12 @@ func (c *ConfigServiceChaincodeStubInvoker) GetConfig(ctx cckit_router.Context, 
 
 }
 
+func (c *ConfigServiceChaincodeStubInvoker) SetConfig(ctx cckit_router.Context, in *Config) (*Config, error) {
+
+	return nil, cckit_gateway.ErrInvokeMethodNotAllowed
+
+}
+
 func (c *ConfigServiceChaincodeStubInvoker) GetToken(ctx cckit_router.Context, in *TokenId) (*Token, error) {
 
 	var inMsg interface{} = in
@@ -440,6 +496,23 @@ func (c *ConfigServiceChaincodeStubInvoker) GetToken(ctx cckit_router.Context, i
 	}
 
 	if res, err := c.Invoker.Query(ctx.Stub(), ConfigServiceChaincode_GetToken, []interface{}{in}, &Token{}); err != nil {
+		return nil, err
+	} else {
+		return res.(*Token), nil
+	}
+
+}
+
+func (c *ConfigServiceChaincodeStubInvoker) GetDefaultToken(ctx cckit_router.Context, in *emptypb.Empty) (*Token, error) {
+
+	var inMsg interface{} = in
+	if v, ok := inMsg.(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	if res, err := c.Invoker.Query(ctx.Stub(), ConfigServiceChaincode_GetDefaultToken, []interface{}{in}, &Token{}); err != nil {
 		return nil, err
 	} else {
 		return res.(*Token), nil

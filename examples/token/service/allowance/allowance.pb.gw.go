@@ -71,7 +71,7 @@ func request_AllowanceService_GetAllowance_0(ctx context.Context, marshaler runt
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "token")
 	}
 
-	protoReq.Token, err = runtime.String(val)
+	protoReq.Token, err = runtime.StringSlice(val, ",")
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "token", err)
@@ -120,7 +120,7 @@ func local_request_AllowanceService_GetAllowance_0(ctx context.Context, marshale
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "token")
 	}
 
-	protoReq.Token, err = runtime.String(val)
+	protoReq.Token, err = runtime.StringSlice(val, ",")
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "token", err)

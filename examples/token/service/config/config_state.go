@@ -15,7 +15,15 @@ func NewStateService() *StateService {
 	return &StateService{}
 }
 
-func (s *StateService) GetConfig(ctx router.Context, empty *emptypb.Empty) (*Config, error) {
+func (s *StateService) SetConfig(ctx router.Context, config *Config) (*Config, error) {
+	err := State(ctx).Put(config)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+
+func (s *StateService) GetConfig(ctx router.Context, _ *emptypb.Empty) (*Config, error) {
 	config, err := State(ctx).Get(&Config{}, &Config{})
 	if err != nil {
 		return nil, err
@@ -57,6 +65,19 @@ func (s *StateService) GetToken(ctx router.Context, id *TokenId) (*Token, error)
 		Type:  tokenType,
 		Group: tokenGroup,
 	}, nil
+}
+
+func (s *StateService) GetDefaultToken(ctx router.Context, _ *emptypb.Empty) (*Token, error) {
+	config, err := s.GetConfig(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(config.DefaultToken) > 0 {
+		return s.GetToken(ctx, &TokenId{Token: config.DefaultToken})
+	}
+
+	return nil, nil
 }
 
 func (s *StateService) CreateTokenType(ctx router.Context, req *CreateTokenTypeRequest) (*TokenType, error) {

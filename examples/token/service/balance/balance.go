@@ -13,14 +13,14 @@ import (
 )
 
 type Service struct {
-	account account.Resolver
-	token   config.TokenResolver
+	account account.Getter
+	token   config.TokenGetter
 }
 
-func New(accountResolver account.Resolver, tokenResolver config.TokenResolver) *Service {
+func New(accountResolver account.Getter, tokenGetter config.TokenGetter) *Service {
 	return &Service{
 		account: accountResolver,
-		token:   tokenResolver,
+		token:   tokenGetter,
 	}
 }
 

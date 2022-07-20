@@ -31,6 +31,58 @@
         "tags": [
           "ConfigService"
         ]
+      },
+      "put": {
+        "operationId": "ConfigService_SetConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceConfig"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/balanceConfig"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigService"
+        ]
+      }
+    },
+    "/token/default": {
+      "get": {
+        "operationId": "ConfigService_GetDefaultToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/balanceToken"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "ConfigService"
+        ]
       }
     },
     "/token/tokens/{token_name}/groups/{name}": {
@@ -370,6 +422,12 @@
     "balanceConfig": {
       "type": "object",
       "properties": {
+        "default_token": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "max_token_types_num": {
           "type": "integer",
           "format": "int32"

@@ -6,7 +6,7 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
-type Resolver interface {
+type Getter interface {
 	GetInvokerAddress(router.Context, *emptypb.Empty) (*AddressId, error)
 
 	GetAddress(router.Context, *GetAddressRequest) (*AddressId, error)

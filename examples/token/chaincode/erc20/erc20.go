@@ -1,11 +1,12 @@
 package erc20
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/s7techlab/cckit/examples/token/service/account"
 	"github.com/s7techlab/cckit/examples/token/service/balance"
 	"github.com/s7techlab/cckit/examples/token/service/config"
+	"github.com/s7techlab/cckit/examples/token/service/config_erc20"
 	"github.com/s7techlab/cckit/router"
 )
 
@@ -26,16 +27,15 @@ func New() (*router.Chaincode, error) {
 	configSvc := config.NewStateService()
 	balanceSvc := balance.New(accountSvc, configSvc)
 
+	erc20ConfigSvc := &config_erc20.ERC20Service{Token: configSvc}
+
 	r.Init(func(ctx router.Context) (interface{}, error) {
 		// add token definition to state if not exists
-		tokenType, _ := configSvc.GetTokenType(ctx, &config.TokenTypeId{Name: Token.Name})
-		if tokenType != nil {
-			return nil, nil
-		}
-
-		// init token on first Init call
-		_, err := configSvc.CreateTokenType(ctx, Token)
+		token, err := config.CreateDefaultToken(ctx, configSvc, Token)
 		if err != nil {
+			if errors.Is(err, config.ErrTokenAlreadyExists) {
+				return nil, nil
+			}
 			return nil, err
 		}
 
@@ -44,10 +44,8 @@ func New() (*router.Chaincode, error) {
 			return nil, err
 		}
 
-		fmt.Println(`---`, ownerAddress.Address)
-
-		// add  `TotalSupply` to identity
-		if err = balance.NewStore(ctx).Add(ownerAddress.Address, []string{Token.Name}, Token.TotalSupply); err != nil {
+		// add  `TotalSupply` to chaincode first committer
+		if err = balance.NewStore(ctx).Add(ownerAddress.Address, token, Token.TotalSupply); err != nil {
 			return nil, err
 		}
 
@@ -60,7 +58,9 @@ func New() (*router.Chaincode, error) {
 	if err := account.RegisterAccountServiceChaincode(r, accountSvc); err != nil {
 		return nil, err
 	}
-
+	if err := config_erc20.RegisterConfigERC20ServiceChaincode(r, erc20ConfigSvc); err != nil {
+		return nil, err
+	}
 	//if err := RegisterAllowanceServiceChaincode(r, allowance.New(balanceSvc)); err != nil {
 	//	return nil, err
 	//}

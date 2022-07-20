@@ -16,9 +16,22 @@ service ConfigService {
     };
   }
 
+  rpc SetConfig (Config) returns (Config) {
+    option (google.api.http) = {
+      put: "/token/config"
+      body: "*"
+    };
+  }
+
   rpc GetToken (TokenId) returns (Token) {
     option (google.api.http) = {
       get: "/token/tokens/{token}"
+    };
+  }
+
+  rpc GetDefaultToken (google.protobuf.Empty) returns (Token) {
+    option (google.api.http) = {
+      get: "/token/default"
     };
   }
 
@@ -104,8 +117,9 @@ message CreateTokenGroupRequest {
 }
 
 message Config {
-  int32 max_token_types_num = 1;
-  int32 max_token_groups_num = 2;
+  repeated string default_token = 1;
+  int32 max_token_types_num = 2;
+  int32 max_token_groups_num = 3;
 }
 
 message TokenId {
