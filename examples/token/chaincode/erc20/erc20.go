@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/s7techlab/cckit/examples/token/service/account"
+	"github.com/s7techlab/cckit/examples/token/service/allowance"
 	"github.com/s7techlab/cckit/examples/token/service/balance"
 	"github.com/s7techlab/cckit/examples/token/service/config"
 	"github.com/s7techlab/cckit/examples/token/service/config_erc20"
@@ -25,7 +26,10 @@ func New() (*router.Chaincode, error) {
 	// accountSvc resolves address as base58( invoker.Cert.PublicKey )
 	accountSvc := account.NewLocalService()
 	configSvc := config.NewStateService()
+	// Balance management service
 	balanceSvc := balance.New(accountSvc, configSvc)
+	// Allowance management service
+	allowanceSvc := allowance.NewService(balanceSvc)
 
 	erc20ConfigSvc := &config_erc20.ERC20Service{Token: configSvc}
 
@@ -39,6 +43,7 @@ func New() (*router.Chaincode, error) {
 			return nil, err
 		}
 
+		// get chaincode instantiator address
 		ownerAddress, err := accountSvc.GetInvokerAddress(ctx, nil)
 		if err != nil {
 			return nil, err
@@ -61,9 +66,9 @@ func New() (*router.Chaincode, error) {
 	if err := config_erc20.RegisterConfigERC20ServiceChaincode(r, erc20ConfigSvc); err != nil {
 		return nil, err
 	}
-	//if err := RegisterAllowanceServiceChaincode(r, allowance.New(balanceSvc)); err != nil {
-	//	return nil, err
-	//}
+	if err := allowance.RegisterAllowanceServiceChaincode(r, allowanceSvc); err != nil {
+		return nil, err
+	}
 
 	return router.NewChaincode(r), nil
 }

@@ -13,14 +13,14 @@ import (
 )
 
 type Service struct {
-	account account.Getter
-	token   config.TokenGetter
+	Account account.Getter
+	Token   config.TokenGetter
 }
 
 func New(accountResolver account.Getter, tokenGetter config.TokenGetter) *Service {
 	return &Service{
-		account: accountResolver,
-		token:   tokenGetter,
+		Account: accountResolver,
+		Token:   tokenGetter,
 	}
 }
 
@@ -28,31 +28,12 @@ func (s *Service) Store(ctx router.Context) *Store {
 	return NewStore(ctx)
 }
 
-//func (s *Service) Init(ctx router.Context, req *InitRequest) (*InitResponse, error) {
-//	if err := router.ValidateRequest(req); err != nil {
-//		return nil, err
-//	}
-//
-//	if err := State(ctx).Insert(&Config{
-//		Name:        req.Name,
-//		Symbol:      req.Symbol,
-//		Decimals:    req.Decimals,
-//		TotalSupply: req.TotalSupply,
-//	}); err != nil {
-//		return nil, err
-//	}
-//
-//	return &InitResponse{
-//		Name: req.Name,
-//	}, nil
-//}
-
 func (s *Service) GetBalance(ctx router.Context, req *GetBalanceRequest) (*Balance, error) {
 	if err := router.ValidateRequest(req); err != nil {
 		return nil, err
 	}
 
-	token, err := s.token.GetToken(ctx, &config.TokenId{Token: req.Token})
+	token, err := s.Token.GetToken(ctx, &config.TokenId{Token: req.Token})
 	if err != nil {
 		return nil, fmt.Errorf(`get token: %w`, err)
 	}
@@ -80,12 +61,12 @@ func (s *Service) Transfer(ctx router.Context, req *TransferRequest) (*TransferR
 		return nil, err
 	}
 
-	invokerAddress, err := s.account.GetInvokerAddress(ctx, nil)
+	invokerAddress, err := s.Account.GetInvokerAddress(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf(`get invoker address: %w`, err)
 	}
 
-	token, err := s.token.GetToken(ctx, &config.TokenId{Token: req.Token})
+	token, err := s.Token.GetToken(ctx, &config.TokenId{Token: req.Token})
 	if err != nil {
 		return nil, fmt.Errorf(`get token: %w`, err)
 	}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/s7techlab/cckit/examples/token/service/balance"
-	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/router"
 )
 
@@ -18,7 +17,7 @@ type Service struct {
 	balance *balance.Service
 }
 
-func New(balance *balance.Service) *Service {
+func NewService(balance *balance.Service) *Service {
 	return &Service{
 		balance: balance,
 	}
@@ -29,7 +28,7 @@ func (s *Service) GetAllowance(ctx router.Context, req *AllowanceRequest) (*Allo
 		return nil, err
 	}
 
-	allowance, err := NewStore(ctx).Get(req.OwnerAddress, req.SpenderAddress)
+	allowance, err := NewStore(ctx).Get(req.OwnerAddress, req.SpenderAddress, req.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -42,16 +41,16 @@ func (s *Service) Approve(ctx router.Context, req *ApproveRequest) (*Allowance, 
 		return nil, err
 	}
 
-	invoker, err := identity.FromStub(ctx.Stub())
+	invokerAddress, err := s.balance.Account.GetInvokerAddress(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`get invoker address: %w`, err)
 	}
 
-	if s.balance.Address(invoker.Cert) != req.OwnerAddress {
+	if invokerAddress.Address != req.OwnerAddress {
 		return nil, ErrOwnerOnly
 	}
 
-	allowance, err := NewStore(ctx).Set(req.OwnerAddress, req.SpenderAddress, req.Amount)
+	allowance, err := NewStore(ctx).Set(req.OwnerAddress, req.SpenderAddress, req.Token, req.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -72,14 +71,12 @@ func (s *Service) TransferFrom(ctx router.Context, req *TransferFromRequest) (*T
 		return nil, err
 	}
 
-	invoker, err := identity.FromStub(ctx.Stub())
+	spenderAddress, err := s.balance.Account.GetInvokerAddress(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	spenderAddress := s.balance.Address(invoker.Cert)
-
-	allowance, err := NewStore(ctx).Get(req.OwnerAddress, spenderAddress)
+	allowance, err := NewStore(ctx).Get(req.OwnerAddress, spenderAddress.Address, req.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -89,13 +86,13 @@ func (s *Service) TransferFrom(ctx router.Context, req *TransferFromRequest) (*T
 			req.Amount, allowance.Amount, ErrAllowanceInsufficient)
 	}
 
-	if err = s.balance.Store(ctx).Transfer(req.OwnerAddress, req.RecipientAddress, req.Amount); err != nil {
+	if err = s.balance.Store(ctx).Transfer(req.OwnerAddress, req.RecipientAddress, req.Token, req.Amount); err != nil {
 		return nil, err
 	}
 
 	if err = Event(ctx).Set(&TransferredFrom{
 		OwnerAddress:     req.OwnerAddress,
-		SpenderAddress:   spenderAddress,
+		SpenderAddress:   spenderAddress.Address,
 		RecipientAddress: req.RecipientAddress,
 		Amount:           0,
 	}); err != nil {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/s7techlab/cckit/examples/token/chaincode/erc20"
 	"github.com/s7techlab/cckit/examples/token/service/account"
+	"github.com/s7techlab/cckit/examples/token/service/allowance"
 	"github.com/s7techlab/cckit/examples/token/service/balance"
 	"github.com/s7techlab/cckit/examples/token/service/config_erc20"
 	"github.com/s7techlab/cckit/identity"
@@ -44,13 +45,13 @@ var _ = Describe(`ERC`, func() {
 		expectcc.ResponseOk(cc.From(ownerIdentity).Init())
 	})
 
-	It(`Allows to call init once more time `, func() {
+	It(`Allow to call init once more time `, func() {
 		expectcc.ResponseOk(cc.From(ownerIdentity).Init())
 	})
 
 	Context(`token info`, func() {
 
-		It(`Allows to get token name`, func() {
+		It(`Allow to get token name`, func() {
 			name := expectcc.PayloadIs(
 				cc.From(user1Identity).
 					Query(config_erc20.ConfigERC20ServiceChaincode_GetName, nil),
@@ -62,7 +63,7 @@ var _ = Describe(`ERC`, func() {
 
 	Context(`initial balance`, func() {
 
-		It(`Allows to know invoker address `, func() {
+		It(`Allow to know invoker address `, func() {
 			address := expectcc.PayloadIs(
 				cc.From(user1Identity).
 					Query(account.AccountServiceChaincode_GetInvokerAddress, nil),
@@ -78,7 +79,7 @@ var _ = Describe(`ERC`, func() {
 			Expect(address.Address).To(Equal(user2Address))
 		})
 
-		It(`Allows to get owner balance`, func() {
+		It(`Allow to get owner balance`, func() {
 			b := expectcc.PayloadIs(
 				cc.From(user1Identity). // call by any user
 							Query(balance.BalanceServiceChaincode_GetBalance,
@@ -89,7 +90,7 @@ var _ = Describe(`ERC`, func() {
 			Expect(b.Amount).To(Equal(uint64(erc20.Token.TotalSupply)))
 		})
 
-		It(`Allows to get zero balance`, func() {
+		It(`Allow to get zero balance`, func() {
 			b := expectcc.PayloadIs(
 				cc.From(user1Identity).
 					Query(balance.BalanceServiceChaincode_GetBalance,
@@ -102,44 +103,114 @@ var _ = Describe(`ERC`, func() {
 	})
 
 	Context(`transfer`, func() {
-		transferAmount := 100
+		var transferAmount uint64 = 100
 
-		It(`Disallow to transfer balance  by user with zero balance`, func() {
+		It(`Disallow to transfer balance by user with zero balance`, func() {
 			expectcc.ResponseError(
 				cc.From(user1Identity).
 					Invoke(balance.BalanceServiceChaincode_Transfer,
 						&balance.TransferRequest{
 							RecipientAddress: user2Address,
 							Token:            []string{erc20.Token.Name},
-							Amount:           100,
+							Amount:           transferAmount,
 						}), balance.ErrAmountInsuficcient)
 
 		})
 
-		It(`Allows to transfer balance by owner`, func() {
+		It(`Allow to transfer balance by owner`, func() {
 			r := expectcc.PayloadIs(
 				cc.From(ownerIdentity).
 					Invoke(balance.BalanceServiceChaincode_Transfer,
 						&balance.TransferRequest{
 							RecipientAddress: user1Address,
 							Token:            []string{erc20.Token.Name},
-							Amount:           100,
+							Amount:           transferAmount,
 						}),
 				&balance.TransferResponse{}).(*balance.TransferResponse)
 
 			Expect(r.SenderAddress).To(Equal(ownerAddress))
-			Expect(r.Amount).To(Equal(uint64(transferAmount)))
+			Expect(r.Amount).To(Equal(transferAmount))
 		})
 
-		It(`Allows to get new non zero balance`, func() {
+		It(`Allow to get new non zero balance`, func() {
 			b := expectcc.PayloadIs(
 				cc.From(user1Identity).
 					Query(balance.BalanceServiceChaincode_GetBalance,
 						&balance.BalanceId{Address: user1Address, Token: []string{erc20.Token.Name}}),
 				&balance.Balance{}).(*balance.Balance)
 
-			Expect(b.Amount).To(Equal(uint64(transferAmount)))
+			Expect(b.Amount).To(Equal(transferAmount))
 		})
 
+	})
+
+	Context(`Allowance`, func() {
+
+		var allowAmount uint64 = 50
+
+		It(`Allow to approve amount by owner for spender even if balance is zero`, func() {
+			a := expectcc.PayloadIs(
+				cc.From(user2Identity).
+					Invoke(allowance.AllowanceServiceChaincode_Approve,
+						&allowance.ApproveRequest{
+							OwnerAddress:   user2Address,
+							SpenderAddress: user1Address,
+							Token:          []string{erc20.Token.Name},
+							Amount:         allowAmount,
+						}),
+				&allowance.Allowance{}).(*allowance.Allowance)
+
+			Expect(a.OwnerAddress).To(Equal(user2Address))
+			Expect(a.SpenderAddress).To(Equal(user1Address))
+			Expect(a.Amount).To(Equal(allowAmount))
+		})
+		It(`Disallow to approve amount by non owner`, func() {
+			expectcc.ResponseError(
+				cc.From(user2Identity).
+					Invoke(allowance.AllowanceServiceChaincode_Approve,
+						&allowance.ApproveRequest{
+							OwnerAddress:   ownerAddress,
+							SpenderAddress: user1Address,
+							Token:          []string{erc20.Token.Name},
+							Amount:         allowAmount,
+						}), allowance.ErrOwnerOnly)
+		})
+
+		It(`Allow to approve amount by owner for spender if amount is sufficient`, func() {
+			a := expectcc.PayloadIs(
+				cc.From(ownerIdentity).
+					Invoke(allowance.AllowanceServiceChaincode_Approve,
+						&allowance.ApproveRequest{
+							OwnerAddress:   ownerAddress,
+							SpenderAddress: user2Address,
+							Token:          []string{erc20.Token.Name},
+							Amount:         allowAmount,
+						}),
+				&allowance.Allowance{}).(*allowance.Allowance)
+
+			Expect(a.OwnerAddress).To(Equal(ownerAddress))
+			Expect(a.SpenderAddress).To(Equal(user2Address))
+			Expect(a.Amount).To(Equal(allowAmount))
+		})
+
+		It(`Allow to transfer from`, func() {
+			spenderIdentity := user2Identity
+			spenderAddress := user2Address
+
+			t := expectcc.PayloadIs(
+				cc.From(spenderIdentity).
+					Invoke(allowance.AllowanceServiceChaincode_TransferFrom,
+						&allowance.TransferFromRequest{
+							OwnerAddress:     ownerAddress,
+							RecipientAddress: spenderAddress,
+							Token:            []string{erc20.Token.Name},
+							Amount:           allowAmount,
+						}),
+				&allowance.TransferFromResponse{}).(*allowance.TransferFromResponse)
+
+			Expect(t.OwnerAddress).To(Equal(ownerAddress))
+			Expect(t.RecipientAddress).To(Equal(spenderAddress))
+			Expect(t.Amount).To(Equal(allowAmount))
+		})
 	})
 })
