@@ -63,7 +63,7 @@ func (g *Generator) generateCC(file *descriptor.File) (*plugin.CodeGeneratorResp
 	ext := filepath.Ext(name)
 	base := strings.TrimSuffix(name, ext)
 
-	basePath := file.GoPkg.Name
+	basePath := path.Dir(*file.FileDescriptorProto.Name)
 	if !g.Opts.PathsSourceRelative {
 		basePath = file.GoPkg.Path
 	}
