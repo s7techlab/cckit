@@ -100,7 +100,7 @@ func (s *ClaimStatus) UnmarshalJSON(b []byte) error {
 func (s *ClaimStatus) MarshalJSON() ([]byte, error) {
 	var value string
 
-	switch s {
+	switch *s {
 	default:
 		fallthrough
 	case ClaimStatusUnknown:

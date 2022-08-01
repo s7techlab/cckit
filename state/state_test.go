@@ -101,7 +101,7 @@ var _ = Describe(`State`, func() {
 
 		It("Allow to upsert entry", func() {
 			bookToUpdate := testdata.Books[2]
-			bookToUpdate.Title = `third title`
+			bookToUpdate.Title = `thirdiest title`
 
 			bookUpdated := expectcc.PayloadIs(booksCC.Invoke(`bookUpsert`, &bookToUpdate), &schema.Book{}).(schema.Book)
 			Expect(bookUpdated.Title).To(Equal(bookToUpdate.Title))
