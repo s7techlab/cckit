@@ -3,15 +3,14 @@ package testdata
 import (
 	"github.com/s7techlab/cckit/examples/payment"
 	"github.com/s7techlab/cckit/examples/payment/schema"
-
 	"github.com/s7techlab/cckit/extensions/encryption"
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/router/param"
 )
 
-// Test interaction with external encrypted chaincode (payments)
+// NewExternalCC test interaction with external encrypted chaincode (payments)
 // see example/payment
-func NewExternaldCC(encCCName, channelName string) *router.Chaincode {
+func NewExternalCC(encCCName, channelName string) *router.Chaincode {
 	r := router.New(`external`)
 
 	r.

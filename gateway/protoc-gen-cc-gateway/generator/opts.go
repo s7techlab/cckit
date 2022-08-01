@@ -16,7 +16,7 @@ const (
 type Opts struct {
 	PathsSourceRelative          bool
 	EmbedSwagger                 bool // generate var with embed annotation to include generated swagger fie
-	ChaincodeMethodServicePrefix bool // add prefix with service name to chaincode methdod
+	ChaincodeMethodServicePrefix bool // add prefix with service name to chaincode method
 	ServiceChaincodeResolver     bool
 }
 

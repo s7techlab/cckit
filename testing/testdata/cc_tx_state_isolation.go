@@ -31,7 +31,7 @@ func ReadAfterWrite(c router.Context) (interface{}, error) {
 
 	// return empty, cause state changes cannot be read
 	res, _ := c.State().Get(Key1)
-	// if we return error - state changes will not applied
+	// if we return error - state changes will not apply
 	return res, nil
 }
 
@@ -39,6 +39,6 @@ func ReadAfterDelete(c router.Context) (interface{}, error) {
 	if err := c.State().Delete(Key1); err != nil {
 		return nil, err
 	}
-	// return non empty, cause state changes, include deletion, cannot be read
+	// return non-empty, cause state changes, include deletion, cannot be read
 	return c.State().Get(Key1)
 }

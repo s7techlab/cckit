@@ -1,7 +1,8 @@
 package erc20
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
 	p "github.com/s7techlab/cckit/router/param"
@@ -33,10 +34,10 @@ func NewErc20FixedSupply() *router.Chaincode {
 		Invoke(`transfer`, invokeTransfer, p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`)).
 
 		// Allow spender to withdraw from your account, multiple times, up to the _value amount.
-		// If this function is called again it overwrites the current allowance with _valu
+		// If this function is called again it overwrites the current allowance with _value
 		Invoke(`approve`, invokeApprove, p.String(`spenderMspId`), p.String(`spenderCertId`), p.Int(`amount`)).
 
-		//    Returns the amount which _spender is still allowed to withdraw from _owner]
+		//    Returns the amount which _spender is still allowed to withdraw from _owner
 		Query(`allowance`, queryAllowance, p.String(`ownerMspId`), p.String(`ownerCertId`),
 			p.String(`spenderMspId`), p.String(`spenderCertId`)).
 
@@ -50,25 +51,25 @@ func NewErc20FixedSupply() *router.Chaincode {
 func invokeInitFixedSupply(c router.Context) (interface{}, error) {
 	ownerIdentity, err := owner.SetFromCreator(c)
 	if err != nil {
-		return nil, errors.Wrap(err, `set chaincode owner`)
+		return nil, fmt.Errorf(`set chaincode owner: %w`, err)
 	}
 
 	// save token configuration in state
-	if err := c.State().Insert(SymbolKey, c.ParamString(`symbol`)); err != nil {
+	if err = c.State().Insert(SymbolKey, c.ParamString(`symbol`)); err != nil {
 		return nil, err
 	}
 
-	if err := c.State().Insert(NameKey, c.ParamString(`name`)); err != nil {
+	if err = c.State().Insert(NameKey, c.ParamString(`name`)); err != nil {
 		return nil, err
 	}
 
-	if err := c.State().Insert(TotalSupplyKey, c.ParamInt(`totalSupply`)); err != nil {
+	if err = c.State().Insert(TotalSupplyKey, c.ParamInt(`totalSupply`)); err != nil {
 		return nil, err
 	}
 
 	// set token owner initial balance
-	if err := setBalance(c, ownerIdentity.GetMSPID(), ownerIdentity.GetID(), c.ParamInt(`totalSupply`)); err != nil {
-		return nil, errors.Wrap(err, `set owner initial balance`)
+	if err = setBalance(c, ownerIdentity.GetMSPIdentifier(), ownerIdentity.GetID(), c.ParamInt(`totalSupply`)); err != nil {
+		return nil, fmt.Errorf(`set owner initial balance: %w`, err)
 	}
 
 	return ownerIdentity, nil

@@ -42,7 +42,6 @@ func EventEqual(event *peer.ChaincodeEvent, expected *mapping.Event) {
 	EventStringerEqual(event, expected.Name, expected.Payload)
 }
 
-// EventPayloadEqual
 func EventPayloadEqual(event *peer.ChaincodeEvent, expectedPayload interface{}) {
 	EventEqual(event, mapping.EventFromPayload(expectedPayload))
 }

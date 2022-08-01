@@ -1,11 +1,11 @@
 package state_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"encoding/json"
 	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
@@ -101,7 +101,7 @@ var _ = Describe(`State`, func() {
 
 		It("Allow to upsert entry", func() {
 			bookToUpdate := testdata.Books[2]
-			bookToUpdate.Title = `thirdiest title`
+			bookToUpdate.Title = `third title`
 
 			bookUpdated := expectcc.PayloadIs(booksCC.Invoke(`bookUpsert`, &bookToUpdate), &schema.Book{}).(schema.Book)
 			Expect(bookUpdated.Title).To(Equal(bookToUpdate.Title))

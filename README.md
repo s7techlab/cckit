@@ -165,7 +165,7 @@ message CommercialPaperList {
 
 #### Chaincode transaction and events payload
 
-This file defines the data payload used using in the business logic methods.
+This file defines the data payload used in the business logic methods.
 In this example transaction and event payloads are exactly the same for the sake of brevity, but you could
 create a different schema for each type of payload.
 
@@ -216,7 +216,7 @@ message RedeemCommercialPaper {
 
 In [examples/cpaper_extended/chaincode.go](examples/cpaper_extended/chaincode.go) file we will define the mappings,
 chaincode initialization method and business logic in the transaction methods.
-For brevity we will only display snippets of the code here, please refer to the original file for full example.
+For brevity, we will only display snippets of the code here, please refer to the original file for full example.
 
 Firstly we define mapping rules. These specify the struct used to hold a specific chaincode state, it's primary key, list mapping, unique keys, etc.
 Then we define the schemas used for emitting events.
@@ -354,7 +354,7 @@ func invokeCPaperBuy(c router.Context) (interface{}, error) {
 
 And finally we should write tests to ensure our business logic is behaving as it should.
 Again, for brevity, we omitted most of the code from [examples/cpaper_extended/chaincode_test.go](examples/cpaper_extended/chaincode_test.go).
-CCKit support chaincode testing with [Mockstub](testing).
+CCKit support chaincode testing with [MockStub](testing).
 
 ```go
 var _ = Describe(`CommercialPaper`, func() {

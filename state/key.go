@@ -23,14 +23,13 @@ func StringsIdFromStr(idString string) []string {
 type (
 	Key []string
 
-	// StateKey stores origin and transformed state key
+	// TransformedKey stores origin and transformed state key
 	TransformedKey struct {
 		Origin Key
 		Parts  Key
 		String string
 	}
 
-	//KeyerFunc func(string) ([]string, error)
 	KeyFunc func() (Key, error)
 
 	// KeyerFunc transforms string to key
@@ -41,7 +40,7 @@ type (
 		Key() (Key, error)
 	}
 
-	// StringsKeys interface for entity containing logic of its key creation - backward compatibility
+	// StringsKeyer interface for entity containing logic of its key creation - backward compatibility
 	StringsKeyer interface {
 		Key() ([]string, error)
 	}
@@ -62,7 +61,7 @@ func (k Key) Append(key Key) Key {
 	return append(k, key...)
 }
 
-// Key human readable representation
+// Key human-readable representation
 func (k Key) String() string {
 	return strings.Join(k, ` | `)
 }

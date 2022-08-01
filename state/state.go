@@ -5,10 +5,8 @@ import (
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
-
 	pb "github.com/hyperledger/fabric-protos-go/peer"
+	"go.uber.org/zap"
 
 	"github.com/s7techlab/cckit/convert"
 )
@@ -111,7 +109,7 @@ func (s *Impl) Key(key interface{}) (*TransformedKey, error) {
 	)
 
 	if trKey.Origin, err = NormalizeKey(s.stub, key); err != nil {
-		return nil, errors.Wrap(err, `key normalizing`)
+		return nil, fmt.Errorf(`key normalizing: %w`, err)
 	}
 
 	s.logger.Debug(`state KEY`, zap.String(`key`, trKey.Origin.String()))
@@ -145,7 +143,7 @@ func (s *Impl) Get(entry interface{}, config ...interface{}) (interface{}, error
 		if len(config) >= 2 {
 			return config[1], nil
 		}
-		return nil, errors.Errorf(`%s: %s`, ErrKeyNotFound, key.Origin)
+		return nil, fmt.Errorf(`%s: %s`, ErrKeyNotFound, key.Origin)
 	}
 
 	// config[0] - target type
@@ -225,7 +223,7 @@ func (s *Impl) List(namespace interface{}, target ...interface{}) (interface{}, 
 
 	iter, err := s.createStateQueryIterator(namespace)
 	if err != nil {
-		return nil, errors.Wrap(err, `state iterator`)
+		return nil, fmt.Errorf(`state iterator: %w`, err)
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -274,7 +272,7 @@ func (s *Impl) ListPaginated(
 
 	iter, md, err := s.createStateQueryPagedIterator(namespace, pageSize, bookmark)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, `state iterator`)
+		return nil, nil, fmt.Errorf(`state iterator: %w`, err)
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -305,7 +303,7 @@ func (s *Impl) createStateQueryPagedIterator(namespace interface{}, pageSize int
 func (s *Impl) Keys(namespace interface{}) ([]string, error) {
 	iter, err := s.createStateQueryIterator(namespace)
 	if err != nil {
-		return nil, errors.Wrap(err, `state iterator`)
+		return nil, fmt.Errorf(`state iterator: %w`, err)
 	}
 
 	defer func() { _ = iter.Close() }()
@@ -395,7 +393,7 @@ func (s *Impl) Insert(entry interface{}, values ...interface{}) error {
 func (s *Impl) Delete(entry interface{}) error {
 	key, err := s.Key(entry)
 	if err != nil {
-		return errors.Wrap(err, `deleting from state`)
+		return fmt.Errorf(`deleting from state: %w`, err)
 	}
 
 	s.logger.Debug(`state DELETE`, zap.String(`key`, key.String))
@@ -436,7 +434,7 @@ func (s *Impl) GetPrivate(collection string, entry interface{}, config ...interf
 		if len(config) >= 2 {
 			return config[1], nil
 		}
-		return nil, errors.Errorf(`%s: %s`, ErrKeyNotFound, key.Origin.String())
+		return nil, fmt.Errorf(`%s: %s`, ErrKeyNotFound, key.Origin.String())
 	}
 
 	// config[0] - target type
@@ -468,7 +466,7 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 	}
 	key, err := NormalizeKey(s.stub, namespace)
 	if err != nil {
-		return nil, errors.Wrap(err, `prepare list key parts`)
+		return nil, fmt.Errorf(`prepare list key parts: %w`, err)
 	}
 	s.logger.Debug(`state LIST`, zap.String(`namespace`, key.String()))
 
@@ -480,7 +478,7 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 	if usePrivateDataIterator {
 		iter, err := s.stub.GetPrivateDataByPartialCompositeKey(collection, key[0], key[1:])
 		if err != nil {
-			return nil, errors.Wrap(err, `create list iterator`)
+			return nil, fmt.Errorf(`create list iterator: %w`, err)
 		}
 		defer func() { _ = iter.Close() }()
 		return stateList.Fill(iter, s.StateGetTransformer)
@@ -488,7 +486,7 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 
 	iter, err := s.stub.GetStateByPartialCompositeKey(key[0], key[1:])
 	if err != nil {
-		return nil, errors.Wrap(err, `create list iterator`)
+		return nil, fmt.Errorf(`create list iterator: %w`, err)
 	}
 	defer func() { _ = iter.Close() }()
 
@@ -499,7 +497,7 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 	)
 	for iter.HasNext() {
 		if kv, err = iter.Next(); err != nil {
-			return nil, errors.Wrap(err, `get key value`)
+			return nil, fmt.Errorf(`get key value: %w`, err)
 		}
 		if objKey, keyParts, err = s.stub.SplitCompositeKey(kv.Key); err != nil {
 			return nil, err
@@ -541,7 +539,7 @@ func (s *Impl) InsertPrivate(collection string, entry interface{}, values ...int
 		return err
 	} else if exists {
 		key, _ := s.Key(entry)
-		return errors.Errorf(`%s: %s`, ErrKeyAlreadyExists, key.Origin)
+		return fmt.Errorf(`%s: %s`, ErrKeyAlreadyExists, key.Origin)
 	}
 
 	key, value, err := s.argKeyValue(entry, values)
@@ -555,7 +553,7 @@ func (s *Impl) InsertPrivate(collection string, entry interface{}, values ...int
 func (s *Impl) DeletePrivate(collection string, entry interface{}) error {
 	key, err := s.Key(entry)
 	if err != nil {
-		return errors.Wrap(err, `deleting from private state`)
+		return fmt.Errorf(`deleting from private state: %w`, err)
 	}
 	s.logger.Debug(`private state DELETE`, zap.String(`key`, key.String))
 	return s.stub.DelPrivateData(collection, key.String)

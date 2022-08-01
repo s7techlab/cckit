@@ -14,8 +14,8 @@ import (
 
 var (
 	ErrPeerInvoke                   = errors.New(`invoke failed`)
-	ErrPeerQuery                    = errors.New(`query failed`)
-	ChaincodeSimulationErrorReponse = &peer.Response{
+	ErrPeerQuery                     = errors.New(`query failed`)
+	ChaincodeSimulationErrorResponse = &peer.Response{
 		Status: shim.ERROR, Message: `chaincode simulation produced error response`}
 )
 

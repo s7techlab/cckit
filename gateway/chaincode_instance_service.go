@@ -18,7 +18,7 @@ type (
 	}
 
 	// ChaincodeInstance base implementation ChaincodeInstanceService  - via SDK
-	// but also possible another implementation (via REST, another SDK etc)
+	// but also possible another implementation (via REST, another SDK etc.)
 	ChaincodeInstance interface {
 		ChaincodeInstanceServiceServer
 

@@ -1,9 +1,8 @@
 package owner
 
 import (
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
 
 	"github.com/s7techlab/cckit/router"
 )

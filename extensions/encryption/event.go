@@ -2,9 +2,9 @@ package encryption
 
 import (
 	"encoding/base64"
+	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/pkg/errors"
 
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/state"
@@ -42,7 +42,7 @@ func Event(c router.Context, key []byte) (state.Event, error) {
 	return s, nil
 }
 
-// EncryptStringWith returns state.StringTransformer encrypting string with provided key
+// StringEncryptor returns state.StringTransformer encrypting string with provided key
 func StringEncryptor(key []byte) state.StringTransformer {
 	return func(s string) (encrypted string, err error) {
 		var (
@@ -79,14 +79,13 @@ func EncryptEvent(encKey []byte, event *peer.ChaincodeEvent) (encrypted *peer.Ch
 	}, nil
 }
 
-// DecryptEvent
 func DecryptEvent(encKey []byte, event *peer.ChaincodeEvent) (decrypted *peer.ChaincodeEvent, err error) {
 	var (
 		encNameBytes, decName, decPayload []byte
 	)
 
 	if encNameBytes, err = base64.StdEncoding.DecodeString(event.EventName); err != nil {
-		return nil, errors.Wrap(err, `event name base64 decoding`)
+		return nil, fmt.Errorf(`event name base64 decoding: %w`, err)
 	}
 
 	if decName, err = Decrypt(encKey, encNameBytes); err != nil {

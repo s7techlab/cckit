@@ -3,10 +3,10 @@ package convert_test
 import (
 	"testing"
 
-	"github.com/s7techlab/cckit/convert"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/s7techlab/cckit/convert"
 )
 
 func TestState(t *testing.T) {

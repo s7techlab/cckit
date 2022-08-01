@@ -1,4 +1,4 @@
-// Package access contains structs for storing chaincode access control information
+// Package identity contains structs for storing chaincode access control information
 package identity
 
 import (
@@ -56,7 +56,7 @@ func (e Entry) GetIssuer() string {
 	return e.Issuer
 }
 
-// GetPK certificate issuer
+// GetPEM certificate issuer
 func (e Entry) GetPEM() []byte {
 	return e.PEM
 }
@@ -76,7 +76,7 @@ func (e Entry) GetPublicKey() interface{} {
 	return e.Cert.PublicKey
 }
 
-// Is checks IdentityEntry is equal to an other Identity
+// Is checks IdentityEntry is equal to another Identity
 func (e Entry) Is(id Identity) bool {
 	return e.MSPId == id.GetMSPIdentifier() && e.Subject == id.GetSubject()
 }

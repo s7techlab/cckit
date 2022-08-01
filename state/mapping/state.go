@@ -3,10 +3,8 @@ package mapping
 import (
 	"fmt"
 
-	"go.uber.org/zap"
-
 	pb "github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/schema"
@@ -27,7 +25,7 @@ type (
 		// Deprecated: use GetByKey
 		GetByUniqKey(schema interface{}, idx string, idxVal []string, target ...interface{}) (result interface{}, err error)
 
-		// GetByKey
+		// GetByKey return one entry
 		GetByKey(schema interface{}, idx string, idxVal []string, target ...interface{}) (result interface{}, err error)
 	}
 
@@ -59,7 +57,7 @@ func (s *Impl) Get(entry interface{}, target ...interface{}) (interface{}, error
 		return s.State.Get(entry, target...) // return as is
 	}
 
-	// target was not set, but we can knew about target from mapping
+	// target has not been set, but we can know about target from mapping
 	if len(target) == 0 {
 		var targetFromMapping interface{}
 		if mapped.Mapper().KeyerFor() != nil {
@@ -101,7 +99,7 @@ func (s *Impl) Put(entry interface{}, value ...interface{}) error {
 	if len(mapped.Mapper().Indexes()) > 0 {
 		keyRefs, err := mapped.Keys() // key refs based on current entry value, defined by mapping indexes
 		if err != nil {
-			return errors.Wrap(err, `put mapping key refs`)
+			return fmt.Errorf(`put mapping key refs: %w`, err)
 		}
 
 		var insertKeyRefs, deleteKeyRefs []state.KeyValue
@@ -113,16 +111,16 @@ func (s *Impl) Put(entry interface{}, value ...interface{}) error {
 			// prev entry exists, calculate refs to delete and to insert
 			prevMapped, err := s.mappings.Map(prevEntry)
 			if err != nil {
-				return errors.Wrap(err, `get prev`)
+				return fmt.Errorf(`get prev: %w`, err)
 			}
 			prevKeyRefs, err := prevMapped.Keys() // key refs based on current entry value, defined by mapping indexes
 			if err != nil {
-				return errors.Wrap(err, `previ keys`)
+				return fmt.Errorf(`previ keys: %w`, err)
 			}
 
 			deleteKeyRefs, insertKeyRefs, err = KeyRefsDiff(prevKeyRefs, keyRefs)
 			if err != nil {
-				return errors.Wrap(err, `calculate ref keys diff`)
+				return fmt.Errorf(`calculate ref keys diff: %w`, err)
 			}
 
 		} else {
@@ -133,7 +131,7 @@ func (s *Impl) Put(entry interface{}, value ...interface{}) error {
 		// delete previous key refs if key exists
 		for _, kr := range deleteKeyRefs {
 			if err = s.State.Delete(kr); err != nil {
-				return errors.Wrap(err, `delete previous mapping key ref`)
+				return fmt.Errorf(`delete previous mapping key ref: %w`, err)
 			}
 		}
 
@@ -176,7 +174,7 @@ func (s *Impl) List(entry interface{}, target ...interface{}) (interface{}, erro
 
 	m, err := s.mappings.Get(entry)
 	if err != nil {
-		return nil, errors.Wrap(err, `mapping`)
+		return nil, fmt.Errorf(`mapping: %w`, err)
 	}
 
 	namespace := m.Namespace()
@@ -193,7 +191,7 @@ func (s *Impl) ListPaginated(entry interface{}, pageSize int32, bookmark string,
 
 	m, err := s.mappings.Get(entry)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, `mapping`)
+		return nil, nil, fmt.Errorf(`mapping: %w`, err)
 	}
 
 	namespace := m.Namespace()
@@ -209,7 +207,7 @@ func (s *Impl) ListWith(entry interface{}, key state.Key) (result interface{}, e
 	}
 	m, err := s.mappings.Get(entry)
 	if err != nil {
-		return nil, errors.Wrap(err, `mapping`)
+		return nil, fmt.Errorf(`mapping: %w`, err)
 	}
 
 	namespace := m.Namespace()
@@ -226,7 +224,7 @@ func (s *Impl) ListPaginatedWith(
 	}
 	m, err := s.mappings.Get(schema)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, `mapping`)
+		return nil, nil, fmt.Errorf(`mapping: %w`, err)
 	}
 
 	namespace := m.Namespace()
@@ -251,7 +249,7 @@ func (s *Impl) GetByKey(
 
 	keyRef, err := s.State.Get(NewKeyRefIDInstance(entry, idx, idxVal), &schema.KeyRef{})
 	if err != nil {
-		return nil, errors.Errorf(`%s: {%s}.%s: %s`, ErrIndexReferenceNotFound, mapKey(entry), idx, err)
+		return nil, fmt.Errorf(`%s: {%s}.%s: %w`, ErrIndexReferenceNotFound, mapKey(entry), idx, err)
 	}
 
 	return s.State.Get(keyRef.(*schema.KeyRef).PKey, target...)
@@ -262,7 +260,7 @@ func (s *Impl) Delete(entry interface{}) error {
 		return s.State.Delete(entry) // return as is
 	}
 
-	// we need full entry data fro state
+	// we need full entry data from state
 	// AND entry can be record to delete or reference to record
 	// If entry is keyer entity for another entry (reference)
 	entry, err := s.Get(entry)
@@ -283,7 +281,7 @@ func (s *Impl) Delete(entry interface{}) error {
 	// delete uniq key refs
 	for _, kr := range keyRefs {
 		if err = s.State.Delete(kr); err != nil {
-			return errors.Wrap(err, `delete ref key`)
+			return fmt.Errorf(`delete ref key: %w`, err)
 		}
 	}
 
@@ -323,7 +321,7 @@ func (s *Impl) ListPrivate(collection string, usePrivateDataIterator bool, names
 	}
 	m, err := s.mappings.Get(namespace)
 	if err != nil {
-		return nil, errors.Wrap(err, `mapping`)
+		return nil, fmt.Errorf(`mapping: %w`, err)
 	}
 
 	namespace = m.Namespace()

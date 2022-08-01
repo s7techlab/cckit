@@ -7,17 +7,16 @@ import (
 	"strconv"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 // ArgsToBytes converts func arguments to bytes
-func ArgsToBytes(iargs ...interface{}) (aa [][]byte, err error) {
-	args := make([][]byte, len(iargs))
+func ArgsToBytes(iArgs ...interface{}) ([][]byte, error) {
+	args := make([][]byte, len(iArgs))
 
-	for i, arg := range iargs {
+	for i, arg := range iArgs {
 		val, err := ToBytes(arg)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf(`unable to convert invoke arg[%d]`, i))
+			return nil, fmt.Errorf(`convert invoke arg[%d]: %w`, i, err)
 		}
 		args[i] = val
 	}
@@ -25,7 +24,7 @@ func ArgsToBytes(iargs ...interface{}) (aa [][]byte, err error) {
 	return args, nil
 }
 
-// ToBytes converts inteface{} (string, []byte , struct to ToByter interface to []byte for storing in state
+// ToBytes converts interface{} (string, []byte , struct to ToByter interface to []byte for storing in state
 func ToBytes(value interface{}) ([]byte, error) {
 	if value == nil {
 		return nil, nil
@@ -62,6 +61,5 @@ func ToBytes(value interface{}) ([]byte, error) {
 				`toBytes converting supports ToByter interface,struct,array,slice,bool and string, current type is %s`,
 				valueType)
 		}
-
 	}
 }

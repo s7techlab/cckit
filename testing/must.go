@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/s7techlab/cckit/convert"
 )
 
-// PanicIfError
 func PanicIfError(err error) {
 	if err != nil {
 		panic(err)
@@ -31,18 +31,16 @@ func MustJSONMarshal(val interface{}) []byte {
 	return bb
 }
 
-// MustProtoUnmarshal unmarshals proto.Message, panics if error
+// MustProtoUnmarshal unmarshal proto.Message, panics if error
 func MustProtoUnmarshal(bb []byte, pm proto.Message) proto.Message {
 	p := proto.Clone(pm)
 	PanicIfError(proto.Unmarshal(bb, p))
 	return p
 }
 
-// MustProtoTimestamp, creates proto.Timestamp, panics if error
+// MustProtoTimestamp creates proto.Timestamp, panics if error
 func MustProtoTimestamp(t time.Time) *timestamp.Timestamp {
-	ts, err := ptypes.TimestampProto(t)
-	PanicIfError(err)
-	return ts
+	return timestamppb.New(t)
 }
 
 func MustConvertFromBytes(bb []byte, target interface{}) interface{} {
@@ -58,10 +56,5 @@ func MustTime(s string) *timestamp.Timestamp {
 		panic(err)
 	}
 
-	ts, err := ptypes.TimestampProto(t)
-	if err != nil {
-		panic(err)
-	}
-
-	return ts
+	return timestamppb.New(t)
 }

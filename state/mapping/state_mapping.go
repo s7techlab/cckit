@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"github.com/s7techlab/cckit/state"
 )
@@ -38,7 +37,7 @@ type (
 		Indexes() []*StateIndex
 	}
 
-	// InstanceKeyer returns key of an state entry instance
+	// InstanceKeyer returns key of a state entry instance
 	InstanceKeyer      func(instance interface{}) (state.Key, error)
 	InstanceMultiKeyer func(instance interface{}) ([]state.Key, error)
 
@@ -152,7 +151,7 @@ func (smm StateMappings) PrimaryKey(entry interface{}) (pkey state.Key, err erro
 func (smm StateMappings) Map(entry interface{}) (instance *StateInstance, err error) {
 	mapper, err := smm.Get(entry)
 	if err != nil {
-		return nil, errors.Wrap(err, `mapping`)
+		return nil, fmt.Errorf(`mapping: %w`, err)
 	}
 
 	switch entry.(type) {
@@ -172,8 +171,7 @@ func (smm StateMappings) Resolve(objectType string, value []byte) (entry interfa
 	return DefaultSerializer.FromBytes(value, mapper.Schema())
 }
 
-//
-func (smm *StateMappings) IdxKey(entity interface{}, idx string, idxVal state.Key) (state.Key, error) {
+func (smm StateMappings) IdxKey(entity interface{}, idx string, idxVal state.Key) (state.Key, error) {
 	keyMapped := NewKeyRefIDInstance(entity, idx, idxVal)
 	return keyMapped.Key()
 }
@@ -226,7 +224,7 @@ func (sm *StateMapping) Keys(entity interface{}) ([]state.KeyValue, error) {
 		// uniq key attr values
 		idxKeys, err := idx.Keyer(entity)
 		if err != nil {
-			return nil, errors.Errorf(`uniq key %s: %s`, idx.Name, err)
+			return nil, fmt.Errorf(`uniq key %s: %w`, idx.Name, err)
 		}
 
 		for _, key := range idxKeys {
@@ -271,7 +269,7 @@ func KeyRefsDiff(prevKeys []state.KeyValue, newKeys []state.KeyValue) (deleted, 
 	for i, kv := range prevKeys {
 		k, err := kv.Key()
 		if err != nil {
-			return nil, nil, errors.Wrap(err, `prev ref key`)
+			return nil, nil, fmt.Errorf(`prev ref key: %w`, err)
 		}
 
 		prevK[k.String()] = i
@@ -280,7 +278,7 @@ func KeyRefsDiff(prevKeys []state.KeyValue, newKeys []state.KeyValue) (deleted, 
 	for i, kv := range newKeys {
 		k, err := kv.Key()
 		if err != nil {
-			return nil, nil, errors.Wrap(err, `new ref key`)
+			return nil, nil, fmt.Errorf(`new ref key: %w`, err)
 		}
 
 		newK[k.String()] = i

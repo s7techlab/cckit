@@ -1,14 +1,13 @@
 package testing_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"fmt"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	"github.com/hyperledger/fabric-protos-go/peer"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	testcc "github.com/s7techlab/cckit/testing"
 )

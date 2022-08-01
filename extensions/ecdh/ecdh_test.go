@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/s7techlab/cckit/extensions/ecdh"
-	"github.com/s7techlab/cckit/identity/testdata"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/s7techlab/cckit/extensions/ecdh"
+	"github.com/s7techlab/cckit/identity/testdata"
 )
 
 func TestDebug(t *testing.T) {
@@ -46,11 +46,9 @@ var _ = Describe(`ECDH`, func() {
 		Expect(err).To(BeNil())
 
 		Expect(secret23).To(Equal(secret32))
-
 	})
 
 	It("Allow to create shared key for 3 parties", func() {
-
 		secret12, err := ecdh.GenerateSharedSecret(privKey1, pubKey2)
 		Expect(err).To(BeNil())
 
@@ -65,7 +63,5 @@ var _ = Describe(`ECDH`, func() {
 		//	X:     x,
 		//	Y:     y,
 		//}
-
 	})
-
 })

@@ -3,8 +3,6 @@ package cpaper_extended
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/s7techlab/cckit/examples/cpaper_extended/schema"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
@@ -15,7 +13,7 @@ import (
 )
 
 var (
-	// State mappings
+	// StateMappings state mappings
 	StateMappings = m.StateMappings{}.
 		//  Create mapping for Commercial Paper entity
 		Add(&schema.CommercialPaper{},
@@ -24,7 +22,7 @@ var (
 			m.UniqKey("ExternalId"),                   // External Id is unique
 		)
 
-	// EventMappings
+	// EventMappings event mappings
 	EventMappings = m.EventMappings{}.
 		// Event name will be "IssueCommercialPaper", payload - same as issue payload
 		Add(&schema.IssueCommercialPaper{}).
@@ -96,11 +94,11 @@ func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 	)
 	// Validate input message using the rules defined in schema
 	if err = issueData.Validate(); err != nil {
-		return nil, errors.Wrap(err, "payload validation")
+		return nil, fmt.Errorf("payload validation: %w", err)
 	}
 
 	// Create state entry
-	cpaper := &schema.CommercialPaper{
+	cPaper := &schema.CommercialPaper{
 		Issuer:       issueData.Issuer,
 		PaperNumber:  issueData.PaperNumber,
 		Owner:        issueData.Issuer,
@@ -115,12 +113,12 @@ func invokeCPaperIssue(c router.Context) (res interface{}, err error) {
 		return nil, err
 	}
 
-	return cpaper, c.State().Insert(cpaper)
+	return cPaper, c.State().Insert(cPaper)
 }
 
 func invokeCPaperBuy(c router.Context) (interface{}, error) {
 	var (
-		cpaper *schema.CommercialPaper
+		cPaper *schema.CommercialPaper
 
 		// Buy transaction payload
 		buyData = c.Param().(*schema.BuyCommercialPaper)
@@ -132,37 +130,37 @@ func invokeCPaperBuy(c router.Context) (interface{}, error) {
 	)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "not found")
+		return nil, fmt.Errorf("not found: %w", err)
 	}
 
-	cpaper = cp.(*schema.CommercialPaper)
+	cPaper = cp.(*schema.CommercialPaper)
 
 	// Validate current owner
-	if cpaper.Owner != buyData.CurrentOwner {
+	if cPaper.Owner != buyData.CurrentOwner {
 		return nil, fmt.Errorf(
 			"paper %s %s is not owned by %s",
-			cpaper.Issuer, cpaper.PaperNumber, buyData.CurrentOwner)
+			cPaper.Issuer, cPaper.PaperNumber, buyData.CurrentOwner)
 	}
 
 	// First buyData moves state from ISSUED to TRADING
-	if cpaper.State == schema.CommercialPaper_STATE_ISSUED {
-		cpaper.State = schema.CommercialPaper_STATE_TRADING
+	if cPaper.State == schema.CommercialPaper_STATE_ISSUED {
+		cPaper.State = schema.CommercialPaper_STATE_TRADING
 	}
 
 	// Check paper is not already REDEEMED
-	if cpaper.State == schema.CommercialPaper_STATE_TRADING {
-		cpaper.Owner = buyData.NewOwner
+	if cPaper.State == schema.CommercialPaper_STATE_TRADING {
+		cPaper.Owner = buyData.NewOwner
 	} else {
 		return nil, fmt.Errorf(
 			"paper %s %s is not trading.current state = %s",
-			cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
+			cPaper.Issuer, cPaper.PaperNumber, cPaper.State)
 	}
 
 	if err = c.Event().Set(buyData); err != nil {
 		return nil, err
 	}
 
-	return cpaper, c.State().Put(cpaper)
+	return cPaper, c.State().Put(cPaper)
 }
 
 func invokeCPaperRedeem(c router.Context) (interface{}, error) {
@@ -180,7 +178,7 @@ func invokeCPaperRedeem(c router.Context) (interface{}, error) {
 	)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "paper not found")
+		return nil, fmt.Errorf("paper not found: %w", err)
 	}
 
 	commercialPaper = cp.(*schema.CommercialPaper)

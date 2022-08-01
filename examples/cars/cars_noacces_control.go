@@ -1,4 +1,4 @@
-// Simple CRUD chaincode for store information about cars
+// Package cars simple CRUD chaincode for store information about cars
 package cars
 
 import (

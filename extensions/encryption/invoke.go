@@ -1,8 +1,11 @@
 package encryption
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/pkg/errors"
+
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/state"
 )
@@ -12,11 +15,11 @@ func InvokeChaincode(
 	stub shim.ChaincodeStubInterface, encKey []byte, chaincodeName string,
 	args []interface{}, channel string, target interface{}) (interface{}, error) {
 
-	// args are not encrypted cause we cannot pass encryption key in transient map while invoking cc from cc
+	// args are not encrypted because we cannot pass encryption key in transient map while invoking cc from cc
 	// thus target cc cannot decrypt args
 	aa, err := convert.ArgsToBytes(args...)
 	if err != nil {
-		return nil, errors.Wrap(err, `encrypt args`)
+		return nil, fmt.Errorf(`encrypt args: %w`, err)
 	}
 
 	response := stub.InvokeChaincode(chaincodeName, aa, channel)
@@ -30,7 +33,7 @@ func InvokeChaincode(
 
 	decrypted, err := Decrypt(encKey, response.Payload)
 	if err != nil {
-		return nil, errors.Wrap(err, `decrypt payload`)
+		return nil, fmt.Errorf(`decrypt payload: %w`, err)
 	}
 	return convert.FromBytes(decrypted, target)
 }

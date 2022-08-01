@@ -15,9 +15,9 @@ type (
 )
 
 // NewServiceWithLocalCPaperResolver - crosscc service and cpaper service in one chaincode
-func NewServiceWithLocalCPaperResolver(cpaperService cpservice.CPaperServiceChaincode) *CPaperProxyService {
+func NewServiceWithLocalCPaperResolver(cPaperService cpservice.CPaperServiceChaincode) *CPaperProxyService {
 	return &CPaperProxyService{
-		CPaperServiceResolver: cpservice.NewCPaperServiceChaincodeLocalResolver(cpaperService),
+		CPaperServiceResolver: cpservice.NewCPaperServiceChaincodeLocalResolver(cPaperService),
 	}
 }
 
@@ -28,19 +28,19 @@ func NewServiceWithRemoteCPaperResolver(setting crosscc.SettingServiceChaincode)
 }
 
 func (c *CPaperProxyService) GetFromCPaper(ctx router.Context, id *Id) (*InfoFromCPaper, error) {
-	cpaperService, err := c.CPaperServiceResolver.Resolve(ctx)
+	cPaperService, err := c.CPaperServiceResolver.Resolve(ctx)
 	if err != nil {
 		return nil, fmt.Errorf(`resolve Commercial Paper service: %w`, err)
 	}
 	// It can be cross chaincode invocation or local, if commercial paper service works in same chaincode
-	cpaper, err := cpaperService.Get(ctx, &cpservice.CommercialPaperId{Issuer: id.Issuer, PaperNumber: id.PaperNumber})
+	cPaper, err := cPaperService.Get(ctx, &cpservice.CommercialPaperId{Issuer: id.Issuer, PaperNumber: id.PaperNumber})
 	if err != nil {
 		return nil, fmt.Errorf(`get commercial paper from service: %w`, err)
 	}
 
 	return &InfoFromCPaper{
-		Issuer:      cpaper.Issuer,
-		PaperNumber: cpaper.PaperNumber,
-		Owner:       cpaper.Owner,
+		Issuer:      cPaper.Issuer,
+		PaperNumber: cPaper.PaperNumber,
+		Owner:       cPaper.Owner,
 	}, nil
 }

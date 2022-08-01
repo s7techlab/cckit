@@ -10,7 +10,7 @@ import (
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
-// Chaincode WITH schema mapping
+// NewEncryptedPaymentCCWithEncStateContext chaincode WITH schema mapping
 // and required encrypting
 func NewEncryptedPaymentCCWithEncStateContext() *router.Chaincode {
 	r := router.New(`encrypted-with-custom-context`).
@@ -55,7 +55,7 @@ func invokePaymentCreateWithDefaultContext(c router.Context) (res interface{}, e
 		return
 	}
 
-	// returned value will be placed in ledger - so if we don't want to show in in ledger - we must encrypt it
+	// returned value will be placed in ledger - so if we don't want to show in ledger - we must encrypt it
 	return payment, nil
 }
 

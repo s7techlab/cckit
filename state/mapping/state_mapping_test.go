@@ -1,10 +1,10 @@
 package mapping_test
 
 import (
+	"errors"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"errors"
 
 	"github.com/s7techlab/cckit/state"
 	m "github.com/s7techlab/cckit/state/mapping"
@@ -39,7 +39,7 @@ var _ = Describe(`State mappings`, func() {
 
 	It(`Allow to create primary key`, func() {
 		mapping, _ := mappings.Get(&schema.EntityWithComplexId{})
-		key, err := mapping.PrimaryKey(testdata.CreateEntityWithComplextId[0])
+		key, err := mapping.PrimaryKey(testdata.CreateEntityWithComplexId[0])
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(key).To(Equal(state.Key{`EntityWithComplexId`, `aaa`, `bb`, `ccc`, `2020-01-28`}))

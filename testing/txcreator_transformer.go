@@ -2,10 +2,10 @@ package testing
 
 import (
 	"github.com/golang/protobuf/proto"
-	"github.com/hyperledger/fabric/msp"
-	"github.com/s7techlab/cckit/identity"
-
 	pmsp "github.com/hyperledger/fabric-protos-go/msp"
+	"github.com/hyperledger/fabric/msp"
+
+	"github.com/s7techlab/cckit/identity"
 )
 
 func CreatorFromSigningIdentity(creator msp.SigningIdentity) (mspID string, certPEM []byte, err error) {

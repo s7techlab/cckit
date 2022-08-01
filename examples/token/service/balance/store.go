@@ -66,7 +66,7 @@ func (s *Store) Sub(address string, token []string, amount uint64) error {
 	}
 
 	if balance.Amount < amount {
-		return fmt.Errorf(`subtract from=%s: %w`, address, ErrAmountInsuficcient)
+		return fmt.Errorf(`subtract from=%s: %w`, address, ErrAmountInsufficient)
 	}
 
 	err = s.set(address, token, balance.Amount-amount)

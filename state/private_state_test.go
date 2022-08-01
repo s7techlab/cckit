@@ -71,7 +71,7 @@ var _ = Describe(`PrivateState`, func() {
 
 		It("Allow to upsert entry", func() {
 			book2Updated := testdata.PrivateBooks[2]
-			book2Updated.Title = `thirdiest title`
+			book2Updated.Title = `third title`
 
 			updateRes := expectcc.PayloadIs(booksCC.Invoke(`privateBookUpsert`, &book2Updated), &schema.PrivateBook{}).(schema.PrivateBook)
 			Expect(updateRes.Title).To(Equal(book2Updated.Title))

@@ -17,7 +17,7 @@ type (
 		// *  [0] - from oldest block to maxBlock
 		// * [{blockFrom}] - from specified block to maxBlock
 		// * [-{blockFrom}] - specified blocks back from channel height
-		// * [0,0] from oldest block to current channel height
+		// * [0,0] from the oldest block to current channel height
 		// * [-{blockFrom},0] - specified blocks back from channel height to current channel height
 		// * [-{blockFrom}, -{blockTo}} -{blockFrom} blocks back from channel height to -{blockTo} block from channel height
 		// * [-{blockFrom}, {blockTo}} -{blockFrom} blocks back from channel height to block {blockTo}

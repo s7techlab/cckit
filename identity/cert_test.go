@@ -1,13 +1,13 @@
 package identity_test
 
 import (
-	"github.com/s7techlab/cckit/identity"
-	"github.com/s7techlab/cckit/identity/testdata"
+	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"testing"
+	"github.com/s7techlab/cckit/identity"
+	"github.com/s7techlab/cckit/identity/testdata"
 )
 
 func TestIdentity(t *testing.T) {

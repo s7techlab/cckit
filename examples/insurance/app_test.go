@@ -3,10 +3,10 @@ package insurance
 import (
 	"testing"
 
-	"github.com/s7techlab/cckit/examples/insurance/app"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/s7techlab/cckit/examples/insurance/app"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
@@ -89,7 +89,7 @@ var _ = Describe(`Insurance`, func() {
 
 		It("Allow every one to get user info", func() {
 
-			// orininally was error https://github.com/IBM/build-blockchain-insurance-app/pull/44
+			// originally was error https://github.com/IBM/build-blockchain-insurance-app/pull/44
 			user := expectcc.PayloadIs(
 				cc.Invoke(`user_get_info`, &GetUserDTO{
 					Username: Contract1.Username,

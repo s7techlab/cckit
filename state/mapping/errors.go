@@ -12,7 +12,7 @@ var (
 	// ErrEventMappingNotFound occurs when mapping for event is not defined
 	ErrEventMappingNotFound = errors.New(`event mapping not found`)
 
-	// ErrFieldTypeNotSupportedForKeyExtraction key cannot extracted from field
+	// ErrFieldTypeNotSupportedForKeyExtraction key cannot extract from field
 	ErrFieldTypeNotSupportedForKeyExtraction = errors.New(`field type not supported for key extraction`)
 
 	ErrMappingUniqKeyExists = errors.New(`mapping uniq key exists`)
@@ -20,7 +20,7 @@ var (
 	ErrFieldNotExists         = errors.New(`field is not exists`)
 	ErrPrimaryKeyerNotDefined = errors.New(`primary keyer is not defined`)
 
-	// ErrIndexAlreadyExists occurs when when trying to add index to mapping with existent name
+	// ErrIndexAlreadyExists occurs when trying to add index to mapping with existent name
 	ErrIndexAlreadyExists = errors.New(`index already exists`)
 
 	// ErrIndexReferenceNotFound occurs when trying to find entry by index

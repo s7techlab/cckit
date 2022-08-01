@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-
 	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"

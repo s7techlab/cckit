@@ -6,8 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/s7techlab/cckit/examples/cpaper_extended"
 	"github.com/s7techlab/cckit/examples/cpaper_extended/schema"
@@ -48,7 +47,7 @@ var _ = Describe(`CommercialPaper`, func() {
 			issueTransactionData := &schema.IssueCommercialPaper{
 				Issuer:       IssuerName,
 				PaperNumber:  "0001",
-				IssueDate:    ptypes.TimestampNow(),
+				IssueDate:    timestamppb.Now(),
 				MaturityDate: testcc.MustProtoTimestamp(time.Now().AddDate(0, 2, 0)),
 				FaceValue:    100000,
 				ExternalId:   "EXT0001",
@@ -116,7 +115,7 @@ var _ = Describe(`CommercialPaper`, func() {
 				CurrentOwner: IssuerName,
 				NewOwner:     BuyerName,
 				Price:        95000,
-				PurchaseDate: ptypes.TimestampNow(),
+				PurchaseDate: timestamppb.Now(),
 			}
 
 			expectcc.ResponseOk(paperChaincode.Invoke(`buy`, buyTransactionData))
@@ -142,7 +141,7 @@ var _ = Describe(`CommercialPaper`, func() {
 				Issuer:         IssuerName,
 				PaperNumber:    "0001",
 				RedeemingOwner: BuyerName,
-				RedeemDate:     ptypes.TimestampNow(),
+				RedeemDate:     timestamppb.Now(),
 			}
 
 			expectcc.ResponseOk(paperChaincode.Invoke(`redeem`, redeemTransactionData))

@@ -3,7 +3,7 @@
 As well as Ethereum blockchain,  Hyperledger Fabric platform (HLF) can be used for token creation, implemented as
 smart contract (chaincode in HLF terminology), that holds user balances. Unlike Ethereum, HLF chaincodes can't work
 with user addresses as a holder key, thus we will use combination of Membership Service Provider (MSP) Identifier 
-and user certificate identifier. Below is an simple example of how to create a token as Golang chaincode on the 
+and user certificate identifier. Below is a simple example of how to create a token as Golang chaincode on the 
 Hyperledger Fabric platform using CCKit chaincode library.
 
 ## What is ERC20 token standard
@@ -56,7 +56,7 @@ In the Hyperledger Fabric network, all actors have an identity known to other pa
 Provider](https://hyperledger-fabric.readthedocs.io/en/release-1.3/msp.html) implementation uses X.509 certificates as identities, adopting a traditional Public Key Infrastructure (PKI) 
 hierarchical model.
 
-Using information about creator of a proposal and asset ownership the chaincode should be able implement chaincode-level 
+Using information about creator of a proposal and asset ownership the chaincode should be able to implement chaincode-level 
 access control mechanisms checking  is actor can initiate transactions that update the asset. The corresponding chaincode 
 logic has to be able to store this "ownership" information associated with the asset and evaluate it with respect to the 
 proposal creator.
@@ -67,7 +67,7 @@ This ID is guaranteed to be unique within the MSP.
 
 ```go
 func (c *clientIdentityImpl) GetID() (string, error) {
-	// The leading "x509::" distinquishes this as an X509 certificate, and
+	// The leading "x509::" distinguishes this as an X509 certificate, and
 	// the subject and issuer DNs uniquely identify the X509 certificate.
 	// The resulting ID will remain the same if the certificate is renewed.
 	id := fmt.Sprintf("x509::%s::%s", getDN(&c.cert.Subject), getDN(&c.cert.Issuer))
@@ -83,7 +83,7 @@ In particular, you may make access control decisions based on either or both of 
  * the client identity's MSP (Membership Service Provider) ID
  * an attribute associated with the client identity
 
-CCkit contains [identity](https://github.com/s7techlab/cckit/tree/master/identity) package with structures and functions 
+CCKit contains [identity](https://github.com/s7techlab/cckit/tree/master/identity) package with structures and functions 
 can that be used for implementing access control in chaincode. 
 
 ## Getting started with example
@@ -103,11 +103,11 @@ ERC20 example is located in [examples/erc20](https://github.com/s7techlab/cckit/
 ## Defining token smart contract functions
 
 First, we need to define chaincode functions. In our example we use [router](https://github.com/s7techlab/cckit/tree/master/router) 
-package from CCkit, that allows us to define chaincode methods and their parameters in consistent way. 
+package from CCKit, that allows us to define chaincode methods and their parameters in consistent way. 
 
-At first we define `init` function (smart contract constructor) with arguments `symbol`, `name` and `totalSupply`. 
+At first, we define `init` function (smart contract constructor) with arguments `symbol`, `name` and `totalSupply`. 
 After that we define chaincode methods, implementing ERC20 interface, adopted to HLF owner identifiers 
-(pair of MSP Id and certificate ID). All querying method are prefixed with `query`, all writing to state methods are prefixed with
+(pair of MSP ID and certificate ID). All querying method are prefixed with `query`, all writing to state methods are prefixed with
 `invoke`.
 
 As a result we use [default chaincode](https://github.com/s7techlab/cckit/blob/master/router/chaincode.go) structure, 
@@ -130,9 +130,9 @@ func NewErc20FixedSupply() *router.Chaincode {
         //Send value amount of tokens
         Invoke(`transfer`, invokeTransfer, p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`)).
         // Allow spender to withdraw from your account, multiple times, up to the _value amount.
-        // If this function is called again it overwrites the current allowance with _valu
+        // If this function is called again it overwrites the current allowance with _value
         Invoke(`approve`, invokeApprove, p.String(`spenderMspId`), p.String(`spenderCertId`), p.Int(`amount`)).
-        //    Returns the amount which _spender is still allowed to withdraw from _owner]
+        //    Returns the amount which _spender is still allowed to withdraw from _owner
         Invoke(`allowance`, queryAllowance, p.String(`ownerMspId`), p.String(`ownerCertId`),
             p.String(`spenderMspId`), p.String(`spenderCertId`)).
         // Send amount of tokens from owner account to another
@@ -148,7 +148,7 @@ func NewErc20FixedSupply() *router.Chaincode {
 Chaincode `init` function (token constructor) performs the following actions:
 
 * puts to chaincode state information about chaincode owner, using 
-  [owner](https://github.com/s7techlab/cckit/tree/master/extensions/owner) extension from CCkit
+  [owner](https://github.com/s7techlab/cckit/tree/master/extensions/owner) extension from CCKit
 * puts to chaincode state token configuration - token symbol, name and total supply
 * sets chaincode owner balance with total supply
 
@@ -247,7 +247,7 @@ func invokeTransfer(c r.Context) (interface{}, error) {
 	//transfer amount
 	amount := c.ArgInt(`amount`)
 
-	// get informartion about tx creator
+	// get information about tx creator
 	invoker, err := identity.FromStub(c.Stub())
 	if err != nil {
 		return nil, err
@@ -310,7 +310,7 @@ func balanceKey(ownerMspId, ownerCertId string) []string {
 
 ## Testing 
 
-Also, we can fast test our chaincode via CCkit [MockStub](https://github.com/s7techlab/cckit/tree/master/testing).  
+Also, we can fast test our chaincode via CCKit [MockStub](https://github.com/s7techlab/cckit/tree/master/testing).  
 
 To start testing we init chaincode via MockStub with test parameters:
 
@@ -329,14 +329,14 @@ var _ = Describe(`ERC-20`, func() {
 	actors, err := identity.ActorsFromPemFile(`SOME_MSP`, map[string]string{
 		`token_owner`:     `s7techlab.pem`,
 		`account_holder1`: `victor-nosov.pem`,
-		//`accoubt_holder2`: `victor-nosov.pem`
+		//`account_holder2`: `victor-nosov.pem`
 	}, examplecert.Content)
 	if err != nil {
 		panic(err)
 	}
 
 	BeforeSuite(func() {
-		// init token haincode
+		// init token chaincode
 		expectcc.ResponseOk(erc20fs.From(actors[`token_owner`]).Init(TokenSymbol, TokenName, TotalSupply, Decimals))
 	})
 ```

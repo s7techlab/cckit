@@ -7,8 +7,9 @@ import (
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/s7techlab/cckit/response"
 	"go.uber.org/zap"
+
+	"github.com/s7techlab/cckit/response"
 )
 
 type (

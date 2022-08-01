@@ -34,14 +34,14 @@ type (
 )
 
 func ConvertFromBytes(bb []byte, config ...interface{}) (interface{}, error) {
-	// convertation not needed
+	// conversion is not needed
 	if len(config) == 0 {
 		return bb, nil
 	}
 	return convert.FromBytes(bb, config[0])
 }
 
-func ConvertToBytes(v interface{}, config ...interface{}) ([]byte, error) {
+func ConvertToBytes(v interface{}, _ ...interface{}) ([]byte, error) {
 	return convert.ToBytes(v)
 }
 

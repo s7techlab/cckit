@@ -3,6 +3,7 @@ package testdata
 import (
 	"errors"
 	"fmt"
+
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
@@ -74,7 +75,7 @@ func bookInsert(c router.Context) (interface{}, error) {
 func bookUpsert(c router.Context) (interface{}, error) {
 	book := c.Param(`book`).(schema.Book)
 
-	// udate data in state
+	// update data in state
 	if err := c.State().Put(book); err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func bookUpsert(c router.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	// state read in same tx must return PREVIOOUS value
+	// state read in same tx must return PREVIOUS value
 	if book.Title == upsertedBook.(schema.Book).Title {
 		return nil, errors.New(`read after write in same tx must return previous value`)
 	}
@@ -98,7 +99,7 @@ func bookUpsertWithCache(c router.Context) (interface{}, error) {
 
 	stateCached := state.WithCache(c.State())
 
-	// udate data in state
+	// update data in state
 	if err := stateCached.Put(book); err != nil {
 		return nil, err
 	}
@@ -152,6 +153,9 @@ func privateBookGet(c router.Context) (interface{}, error) {
 }
 
 func privateBookDelete(c router.Context) (interface{}, error) {
-	c.State().Delete(schema.PrivateBook{Id: c.ParamString(`id`)})
+	err := c.State().Delete(schema.PrivateBook{Id: c.ParamString(`id`)})
+	if err != nil {
+		return nil, err
+	}
 	return nil, c.State().DeletePrivate(collection, schema.PrivateBook{Id: c.ParamString(`id`)})
 }

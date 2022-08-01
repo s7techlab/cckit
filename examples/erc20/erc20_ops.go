@@ -1,7 +1,8 @@
 package erc20
 
 import (
-	"github.com/pkg/errors"
+	"errors"
+
 	"github.com/s7techlab/cckit/identity"
 	r "github.com/s7techlab/cckit/router"
 )
@@ -44,7 +45,7 @@ func queryTotalSupply(c r.Context) (interface{}, error) {
 }
 
 func queryBalanceOf(c r.Context) (interface{}, error) {
-	return getBalance(c, c.ArgString(`mspId`), c.ArgString(`certId`))
+	return getBalance(c, c.ParamString(`mspId`), c.ParamString(`certId`))
 }
 
 func invokeTransfer(c r.Context) (interface{}, error) {
@@ -93,7 +94,7 @@ func invokeTransfer(c r.Context) (interface{}, error) {
 	}
 
 	// Trigger event with name "transfer" and payload - serialized to json Transfer structure
-	if err = c.SetEvent(`transfer`, &Transfer{
+	if err = c.Event().Set(`transfer`, &Transfer{
 		From: identity.Id{
 			MSP:  invoker.GetMSPIdentifier(),
 			Cert: invoker.GetID(),
@@ -132,7 +133,7 @@ func invokeApprove(c r.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	if err = c.SetEvent(`approve`, &Approve{
+	if err = c.Event().Set(`approve`, &Approve{
 		From: identity.Id{
 			MSP:  invoker.GetMSPIdentifier(),
 			Cert: invoker.GetID(),

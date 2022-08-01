@@ -17,9 +17,9 @@ import (
 	"github.com/s7techlab/cckit/testing/testdata"
 )
 
-func TestMockstub(t *testing.T) {
+func TestMockStub(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Mockstub Suite")
+	RunSpecs(t, "MockStub Suite")
 }
 
 var (
@@ -46,7 +46,7 @@ var _ = Describe(`Testing`, func() {
 	// ccproxy can invoke cc and vice versa
 	mockedPeer := testcc.NewPeer().WithChannel(Channel, cc, ccproxy)
 
-	Describe(`Mockstub`, func() {
+	Describe(`MockStub`, func() {
 
 		It("Allow to init chaincode", func() {
 			//invoke chaincode method from authority actor
@@ -132,7 +132,7 @@ var _ = Describe(`Testing`, func() {
 
 	})
 
-	Describe(`Mockstub invoker`, func() {
+	Describe(`MockStub invoker`, func() {
 
 		It("Allow to invoke mocked chaincode ", func(done Done) {
 			ctx := context.Background()

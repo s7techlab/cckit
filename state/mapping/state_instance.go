@@ -6,7 +6,7 @@ import (
 
 type (
 	StateInstance struct {
-		// instance can be instance itself or key for instance
+		// instance can be instanced itself or key for instance
 		// key can be proto or Key ( []string )
 		instance    interface{}
 		stateMapper StateMapper

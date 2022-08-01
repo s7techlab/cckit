@@ -29,8 +29,8 @@ func NewKeyRef(target interface{}, idx string, refKey, pKey state.Key) *schema.K
 	return &schema.KeyRef{
 		Schema: strings.Join(SchemaNamespace(target), `-`),
 		Idx:    idx,
-		RefKey: []string(refKey),
-		PKey:   []string(pKey),
+		RefKey: refKey,
+		PKey:   pKey,
 	}
 }
 
@@ -38,7 +38,7 @@ func NewKeyRefID(target interface{}, idx string, refKey state.Key) *schema.KeyRe
 	return &schema.KeyRefId{
 		Schema: strings.Join(SchemaNamespace(target), `-`),
 		Idx:    idx,
-		RefKey: []string(refKey),
+		RefKey: refKey,
 	}
 }
 

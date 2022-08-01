@@ -1,12 +1,12 @@
 package state
 
 import (
+	"errors"
 	"sort"
 	"strings"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -26,7 +26,7 @@ type (
 	}
 )
 
-// WithCached returns state with tx level state cache
+// WithCache returns state with tx level state cache
 func WithCache(ss State) *Cached {
 	s := ss.(*Impl)
 	cached := &Cached{

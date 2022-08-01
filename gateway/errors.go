@@ -5,7 +5,7 @@ import "errors"
 var (
 	ErrEventChannelClosed = errors.New(`event channel is closed`)
 
-	// ErrChaincodeNotExists occurs when attempting to invoke a nonexostent external chaincode
+	// ErrChaincodeNotExists occurs when attempting to invoke a nonexistent external chaincode
 	ErrChaincodeNotExists = errors.New(`chaincode not exists`)
 
 	// ErrSignerNotDefinedInContext msp.SigningIdentity is not defined in context

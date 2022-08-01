@@ -1,10 +1,10 @@
-# Fabcar CCkit Chaincode
+# Fabcar CCKit Chaincode
 
-Fabcar CCkit is modification of Hyperledger fabric-samples [fabcar chaincode](https://github.com/hyperledger/fabric-samples/blob/main/chaincode/fabcar/go/fabcar.go)
+Fabcar CCKit is modification of Hyperledger fabric-samples [fabcar chaincode](https://github.com/hyperledger/fabric-samples/blob/main/chaincode/fabcar/go/fabcar.go)
 
 Fabcar Hyperledger Fabric Chaincode (FHF) short description:
 1) FHF is made without code generating
-2) At FHF you can create cat at once with method 'CreateCar'. Payload example:
+2) At FHF you can create car at once with method 'CreateCar'. Payload example:
 ```json
 {
   "car_number": "CAR1",
@@ -15,7 +15,7 @@ Fabcar Hyperledger Fabric Chaincode (FHF) short description:
 }
 ```
 
-2) Then you can get car with method 'QueryCar'. Payload example:
+Then you can get car with method 'QueryCar'. Payload example:
 ```json
 {
   "car_number": "CAR1"
@@ -34,7 +34,7 @@ Fabcar Hyperledger Fabric Chaincode (FHF) short description:
 
 
 
-Fabcar CCkit Chaincode (FCk) has four entities: Maker, Car, Owner and Detail.
+Fabcar CCKit Chaincode (FCk) has four entities: Maker, Car, Owner and Detail.
 FCk has some difference from FHF:
 1) FCk gateway was generated with [proto](./fabcar.proto)
 2) You can not create car at once, because before car's maker have to be created and put at BC state. Chaincode state stored as serialized protobuf
@@ -47,16 +47,16 @@ FCk has some difference from FHF:
 }
 ```
 
-2) You can get (method 'GetMaker') or delete (method 'DeleteMaker') maker by its name. For example:
+3) You can get (method 'GetMaker') or delete (method 'DeleteMaker') maker by its name. For example:
 ```json
 {
   "name": "Toyota"
 }
 ```
 
-3) And get all cars with method 'ListMakers' without payload
+4) And get all cars with method 'ListMakers' without payload
 
-4) Now your car can be created with 'CreateCar' method, for example:
+5) Now your car can be created with 'CreateCar' method, for example:
 ```json
 {
   "make": "Toyota", // if maker is not created programm will return error
@@ -121,7 +121,7 @@ The response is:
 }
 ```
 
-5) Car updating makes with 'UpdateCar', payload:
+6) Car updating makes with 'UpdateCar', payload:
 ```json
 {
   "id": ["Toyota", "Prius", "111111"],
@@ -194,18 +194,18 @@ The response is:
 }
 ```
 
-6) Also, you can delete car with 'DeleteCar', the response is like from 'UpdateCar' method (point 5)
+7) Also, you can delete car with 'DeleteCar', the response is like from 'UpdateCar' method (point 5)
 
-7) If you would like to get car, use 'GetCar' to get it without owners and details or 'GetCarView' with them. Request:
+8) If you would like to get car, use 'GetCar' to get it without owners and details or 'GetCarView' with them. Request:
 ```json
 {
   "id": ["Toyota", "Prius", "111111"]
 }
 ```
 
-8) To get all cars use 'ListCars' without payload
+9) To get all cars use 'ListCars' without payload
 
-9) Also, car owner can be updated without car changing ('UpdateCarOwners' method):
+10) Also, car owner can be updated without car changing ('UpdateCarOwners' method):
 ```json
 {
   "car_id": ["Toyota", "Prius", "111111"],
@@ -250,7 +250,7 @@ The response:
 }
 ```
 
-10) To delete ('DeleteCarOwner') or get ('GetCarOwner') car owner use the same payload:
+11) To delete ('DeleteCarOwner') or get ('GetCarOwner') car owner use the same payload:
 ```json
 {
   "car_id": ["Toyota", "Prius", "111111"],
@@ -259,7 +259,7 @@ The response:
 }
 ```
 
-11) Also, you can update car detail ('UpdateCarDetails') without car changes, for example:
+12) Also, you can update car detail ('UpdateCarDetails') without car changes, for example:
 ```json
 {
   "car_id": ["Toyota", "Prius", "111111"],
@@ -294,7 +294,7 @@ The response:
 }
 ```
 
-12) To delete ('DeleteCarDetail') or get ('GetCarDetail') car owner use the same payload:
+13) To delete ('DeleteCarDetail') or get ('GetCarDetail') car owner use the same payload:
 ```json
 {
   "car_id": ["Toyota", "Prius", "111111"],
@@ -302,7 +302,7 @@ The response:
 }
 ``` 
 
-13) And, of course, you can get list of car owners (method 'ListCarOwners') or list of car details (method 'ListCarDetails')
+14) And, of course, you can get list of car owners (method 'ListCarOwners') or list of car details (method 'ListCarDetails')
     by car id. Use payload:
 ```json
 {

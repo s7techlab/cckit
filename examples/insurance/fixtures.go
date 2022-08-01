@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	// ContractType fixture
+	// ContractType1 ContractType fixture
 	ContractType1 = ContractTypeDTO{
 		UUID: `12345`,
 		ContractType: &app.ContractType{
@@ -36,7 +36,7 @@ var (
 			MaxDurationDays: 10,
 		}}
 
-	// Contract fixture
+	// Contract1 Contract fixture
 	Contract1 = CreateContractDTO{
 		UUID:             `xxx-aaa-bbb`,
 		ContractTypeUUID: `xxx-ddd-ccc`,

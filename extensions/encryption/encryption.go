@@ -1,7 +1,8 @@
 package encryption
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
 )
@@ -20,16 +21,16 @@ func EncryptArgs(key []byte, args ...interface{}) ([][]byte, error) {
 
 // EncryptArgsBytes encrypt args with key
 func EncryptArgsBytes(key []byte, argsBytes [][]byte) ([][]byte, error) {
-	eargs := make([][]byte, len(argsBytes))
+	eArgs := make([][]byte, len(argsBytes))
 	for i, bb := range argsBytes {
 		encrypted, err := EncryptBytes(key, bb)
 		if err != nil {
-			return nil, errors.Wrap(err, `encryption error`)
+			return nil, fmt.Errorf(`encryption error: %w`, err)
 		}
 
-		eargs[i] = encrypted
+		eArgs[i] = encrypted
 	}
-	return eargs, nil
+	return eArgs, nil
 }
 
 // DecryptArgs decrypt args
@@ -45,7 +46,7 @@ func DecryptArgs(key []byte, args [][]byte) ([][]byte, error) {
 
 		decrypted, err := DecryptBytes(key, a)
 		if err != nil {
-			return nil, errors.Wrap(err, `decryption error`)
+			return nil, fmt.Errorf(`decryption error: %w`, err)
 		}
 		dargs[i] = decrypted
 	}
@@ -57,7 +58,7 @@ func Encrypt(key []byte, value interface{}) ([]byte, error) {
 	// TODO: customize  IV
 	bb, err := convert.ToBytes(value)
 	if err != nil {
-		return nil, errors.Wrap(err, `convert values to bytes`)
+		return nil, fmt.Errorf(`convert values to bytes: %w`, err)
 	}
 
 	return EncryptBytes(key, bb)

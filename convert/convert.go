@@ -2,10 +2,10 @@
 package convert
 
 import (
+	"errors"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/pkg/errors"
 )
 
 var (

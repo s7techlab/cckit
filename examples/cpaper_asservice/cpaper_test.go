@@ -45,7 +45,7 @@ var _ = Describe(`Commercial paper service`, func() {
 
 	It("Allow issuer to issue new commercial paper", func() {
 		cc.From(Issuer).Tx(func() {
-			cc.Expect(CPaper.Issue(ctx, testdata.Issue1)).Is(testdata.CpaperInState1)
+			cc.Expect(CPaper.Issue(ctx, testdata.Issue1)).Is(testdata.CPaperInState1)
 		})
 	})
 
@@ -59,7 +59,7 @@ var _ = Describe(`Commercial paper service`, func() {
 	It("Allow issuer to get commercial paper by composite primary key", func() {
 		cc.Tx(func() {
 			// Expect helper, check error is empty and result
-			cc.Expect(CPaper.Get(ctx, testdata.Id1)).Is(testdata.CpaperInState1)
+			cc.Expect(CPaper.Get(ctx, testdata.Id1)).Is(testdata.CPaperInState1)
 		})
 	})
 
@@ -71,7 +71,7 @@ var _ = Describe(`Commercial paper service`, func() {
 			})
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(res).To(StringerEqual(testdata.CpaperInState1))
+			Expect(res).To(StringerEqual(testdata.CPaperInState1))
 		})
 
 	})
@@ -82,7 +82,7 @@ var _ = Describe(`Commercial paper service`, func() {
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res.Items).To(HaveLen(1))
-			Expect(res.Items[0]).To(StringerEqual(testdata.CpaperInState1))
+			Expect(res.Items[0]).To(StringerEqual(testdata.CPaperInState1))
 		})
 	})
 
@@ -93,7 +93,7 @@ var _ = Describe(`Commercial paper service`, func() {
 				ProduceEvent(`BuyCommercialPaper`, testdata.Buy1)
 		})
 
-		newState := proto.Clone(testdata.CpaperInState1).(*cpaper_asservice.CommercialPaper)
+		newState := proto.Clone(testdata.CPaperInState1).(*cpaper_asservice.CommercialPaper)
 		newState.Owner = testdata.Buy1.NewOwner
 		newState.State = cpaper_asservice.CommercialPaper_STATE_TRADING
 
@@ -108,7 +108,7 @@ var _ = Describe(`Commercial paper service`, func() {
 			return CPaper.Redeem(c, testdata.Redeem1)
 		}).Expect().ProduceEvent(`RedeemCommercialPaper`, testdata.Redeem1)
 
-		newState := proto.Clone(testdata.CpaperInState1).(*cpaper_asservice.CommercialPaper)
+		newState := proto.Clone(testdata.CPaperInState1).(*cpaper_asservice.CommercialPaper)
 		newState.State = cpaper_asservice.CommercialPaper_STATE_REDEEMED
 
 		cc.Invoke(func(c router.Context) (interface{}, error) {

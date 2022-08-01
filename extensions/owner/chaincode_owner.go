@@ -167,7 +167,7 @@ func (c *ChaincodeOwnerService) CreateOwner(ctx router.Context, create *CreateOw
 	return chaincodeOwner, nil
 }
 
-func (c ChaincodeOwnerService) UpdateOwner(ctx router.Context, updateRequest *UpdateOwnerRequest) (*ChaincodeOwner, error) {
+func (c *ChaincodeOwnerService) UpdateOwner(ctx router.Context, updateRequest *UpdateOwnerRequest) (*ChaincodeOwner, error) {
 	if err := router.ValidateRequest(updateRequest); err != nil {
 		return nil, err
 	}
@@ -227,7 +227,7 @@ func (c ChaincodeOwnerService) UpdateOwner(ctx router.Context, updateRequest *Up
 	return chaincodeOwner, nil
 }
 
-func (c ChaincodeOwnerService) DeleteOwner(ctx router.Context, id *OwnerId) (*ChaincodeOwner, error) {
+func (c *ChaincodeOwnerService) DeleteOwner(ctx router.Context, id *OwnerId) (*ChaincodeOwner, error) {
 	if err := router.ValidateRequest(id); err != nil {
 		return nil, err
 	}

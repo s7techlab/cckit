@@ -365,8 +365,8 @@ package cpaper
 
 import (
 	"fmt"
+	"errors"
 	
-	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/examples/cpaper/schema"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/encryption"
