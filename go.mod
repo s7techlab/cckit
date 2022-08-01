@@ -14,8 +14,7 @@ require (
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.9.0
 	github.com/pelletier/go-toml v1.4.0 // indirect
-	github.com/pkg/errors v0.8.1
-	github.com/pseudomuto/protoc-gen-doc v1.3.1 // indirect
+	github.com/pseudomuto/protoc-gen-doc v1.3.1
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/viper v1.4.0 // indirect
 	github.com/sykesm/zap-logfmt v0.0.3 // indirect

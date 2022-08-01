@@ -189,7 +189,7 @@ func invokeInitFixedSupply(c router.Context) (interface{}, error) {
 
 ## Defining events structure types
 
-We use [Id](https://github.com/s7techlab/cckit/blob/master/identity/entry.go) structure from 
+We use [ID](https://github.com/s7techlab/cckit/blob/master/identity/entry.go) structure from 
 [identity](https://github.com/s7techlab/cckit/tree/master/identity) package:
 ```go
 // Id structure defines short id representation

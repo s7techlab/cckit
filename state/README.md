@@ -87,8 +87,8 @@ In the example above smart contract code explicitly performs many auxiliary acti
 
 ### State methods wrapper
 
-CCKit contains [wrapper](state.go) on `ChaincodeStubInterface` methods to working with chaincode state. This methods
-simplifies chaincode key creation and data transformation during working with chaincode state.
+CCKit contains [wrapper](state.go) on `ChaincodeStubInterface` methods to working with chaincode state. These methods
+simplify chaincode key creation and data transformation during working with chaincode state.
 
 ```go
 type State interface {
@@ -110,14 +110,14 @@ type State interface {
     
     // Put returns result of putting entry to state
     // entry can be Key (string or []string) or type implementing Keyer interface
-    // if entry is implements Keyer interface and it's struct or type implementing
+    // if entry is implements Keyer interface, and it's struct or type implementing
     // ToByter interface value can be omitted
     Put(entry interface{}, value ...interface{}) (err error)
     
     // Insert returns result of inserting entry to state
     // If same key exists in state error wil be returned
     // entry can be Key (string or []string) or type implementing Keyer interface
-    // if entry is implements Keyer interface and it's struct or type implementing
+    // if entry is implements Keyer interface, and it's struct or type implementing
     // ToByter interface value can be omitted
     Insert(entry interface{}, value ...interface{}) (err error)
     
@@ -157,8 +157,8 @@ type (
 * [Protobuf](https://developers.google.com/protocol-buffers/docs/gotutorial) golang struct
 
 
-Golang structs [automatically](../convert) marshals/ unmarshals using [json.Marshal](https://golang.org/pkg/encoding/json/#Marshal) and
-and [json.Umarshal](https://golang.org/pkg/encoding/json/#Unmarshal) methods. 
+Golang's structs [automatically](../convert) marshal/unmarshal using [json.Marshal](https://golang.org/pkg/encoding/json/#Marshal)
+and [json.Unmarshal](https://golang.org/pkg/encoding/json/#Unmarshal) methods. 
 [proto.Marshal](https://godoc.org/github.com/golang/protobuf/proto#Marshal) and 
 [proto.Unmarshal](https://godoc.org/github.com/golang/protobuf/proto#Unmarshal) is used to convert protobuf.
 
@@ -182,7 +182,7 @@ The following snippet shows a list of functions that create and work with compos
 
 ```go
 // The function creates a key by combining the attributes into a single string.
-// The arguments must be valid utf8 strings and must not contain U+0000 (nil byte) and U+10FFFF charactres.
+// The arguments must be valid utf8 strings and must not contain U+0000 (nil byte) and U+10FFFF characters.
 func CreateCompositeKey(objectType string, attributes []string) (string, error)
 
 // The function splits the compositeKey into attributes from which the key was formed.
@@ -242,7 +242,7 @@ Protobuf schema advantages:
 
 1. Schema abstraction layer
 
-Encoding the semantics of your business objects once,  in proto format, is enough to help ensure that the signal doesn’t get lost between applications, 
+Encoding the semantics of your business objects once,  in proto format, is enough to help ensure that the signal doesn't get lost between applications, 
 and that the boundaries you create enforce your business rules.
 
 2. Extensions - validators etc
@@ -252,7 +252,7 @@ https://github.com/mwitkow/go-proto-validators. It allows to encode, at the sche
 
 3. Easy Language Interoperability
 Because Protocol Buffers are implemented in a variety of languages, they make interoperability between polyglot applications in your architecture that much simpler. 
-If you’re introducing a new service using Java or Node.Js SDK  you simply have to hand the proto file to the code generator written in the target language and you
+If you’re introducing a new service using Java or Node.Js SDK  you simply have to hand the proto file to the code generator written in the target language, and you
 have guarantees about the safety and interoperability between those architectures. 
 
 
@@ -364,9 +364,9 @@ var (
 package cpaper
 
 import (
-	"fmt"
 	"errors"
-	
+	"fmt"
+
 	"github.com/s7techlab/cckit/examples/cpaper/schema"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/encryption"
@@ -375,7 +375,6 @@ import (
 	"github.com/s7techlab/cckit/router/param/defparam"
 	m "github.com/s7techlab/cckit/state/mapping"
 )
-
 
 func NewCC() *router.Chaincode {
 
@@ -409,12 +408,11 @@ func NewCC() *router.Chaincode {
 	return router.NewChaincode(r)
 }
 
-
 func cpaperList(c router.Context) (interface{}, error) {
 	// commercial paper key is composite key <`CommercialPaper`>, {Issuer}, {PaperNumber} >
 	// where `CommercialPaper` - namespace of this type
 	// list method retrieves entries from chaincode state 
-	// using GetStateByPartialCompositeKey method, then unmarshal received from state bytes via proto.Ummarshal method
+	// using GetStateByPartialCompositeKey method, then unmarshal received from state bytes via proto.Unmarshal method
 	// and creates slice of *schema.CommercialPaper
 	return c.State().List(&schema.CommercialPaper{})
 }
@@ -477,14 +475,14 @@ func cpaperBuy(c router.Context) (interface{}, error) {
 		return nil, fmt.Errorf(`paper %s %s is not trading.current state = %s`, cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
 	}
 
-    if err = c.Event().Set(buy); err != nil {
+	if err = c.Event().Set(buy); err != nil {
 		return nil, err
 	}
 	return cpaper, c.State().Put(cpaper)
 }
 
 func cpaperRedeem(c router.Context) (interface{}, error) {
-	
+
 	// implement me
 
 	return nil, nil
@@ -508,24 +506,19 @@ package mapping_test
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/protos/peer"
-
-	"github.com/golang/protobuf/ptypes"
-
 	"github.com/golang/protobuf/proto"
-	"github.com/s7techlab/cckit/examples/cpaper/schema"
-	"github.com/s7techlab/cckit/examples/cpaper/testdata"
-	"github.com/s7techlab/cckit/state"
-
-	"github.com/s7techlab/cckit/examples/cpaper"
-
-	examplecert "github.com/s7techlab/cckit/examples/cert"
-	"github.com/s7techlab/cckit/identity"
-	testcc "github.com/s7techlab/cckit/testing"
-	expectcc "github.com/s7techlab/cckit/testing/expect"
-
+	"github.com/golang/protobuf/ptypes"
+	"github.com/hyperledger/fabric/protos/peer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	examplecert "github.com/s7techlab/cckit/examples/cert"
+	"github.com/s7techlab/cckit/examples/cpaper"
+	"github.com/s7techlab/cckit/examples/cpaper/schema"
+	"github.com/s7techlab/cckit/examples/cpaper/testdata"
+	"github.com/s7techlab/cckit/identity"
+	"github.com/s7techlab/cckit/state"
+	testcc "github.com/s7techlab/cckit/testing"
+	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
 
 func TestState(t *testing.T) {

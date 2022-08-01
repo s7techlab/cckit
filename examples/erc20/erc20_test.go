@@ -3,13 +3,13 @@ package erc20_test
 import (
 	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	"github.com/s7techlab/cckit/examples/erc20"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 func TestErc20(t *testing.T) {

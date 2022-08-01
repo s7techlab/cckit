@@ -165,7 +165,7 @@ message CommercialPaperList {
 
 #### Chaincode transaction and events payload
 
-This file defines the data payload used in the business logic methods.
+This file defines the data payload used in business logic methods.
 In this example transaction and event payloads are exactly the same for the sake of brevity, but you could
 create a different schema for each type of payload.
 

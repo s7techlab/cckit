@@ -3,15 +3,15 @@ package cars_test
 import (
 	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	"github.com/s7techlab/cckit/examples/cars"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 func TestCars(t *testing.T) {

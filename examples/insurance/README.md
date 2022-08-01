@@ -128,7 +128,7 @@ var _ = Describe(`Insurance`, func() {
  
 ## What to test 
 
-Chaincode interface functions described in file [main.go](main.go), so we can see all possible operations with chaincode data:
+Chaincode interface functions described in file [main.go](./app/bin/main.go), so we can see all possible operations with chaincode data:
 
 * list contract types
 * create contract type
