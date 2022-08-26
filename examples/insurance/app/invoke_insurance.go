@@ -2,9 +2,7 @@ package app
 
 import (
 	"encoding/json"
-
 	"strings"
-
 	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -27,9 +25,9 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	defer resultsIterator.Close()
+	defer func() { _ = resultsIterator.Close() }()
 
-	results := []interface{}{}
+	var results []interface{}
 	for resultsIterator.HasNext() {
 		kvResult, err := resultsIterator.Next()
 		if err != nil {
@@ -174,9 +172,9 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	defer resultsIterator.Close()
+	defer func() { _ = resultsIterator.Close() }()
 
-	results := []interface{}{}
+	var results []interface{}
 	// Iterate over the results
 	for resultsIterator.HasNext() {
 		kvResult, err := resultsIterator.Next()
@@ -204,7 +202,7 @@ func listContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response 
 			result.UUID = prefix
 		}
 
-		// Fetch the claims, if the the username parameter is specified
+		// Fetch the claims, if the username parameter is specified
 		if len(input.Username) > 0 {
 			result.Claims, err = result.Contract.Claims(stub)
 			if err != nil {
@@ -235,12 +233,12 @@ func listClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 		status = input.Status
 	}
 
-	results := []interface{}{}
+	var results []interface{}
 	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixClaim, []string{})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	defer resultsIterator.Close()
+	defer func() { _ = resultsIterator.Close() }()
 
 	for resultsIterator.HasNext() {
 		kvResult, err := resultsIterator.Next()
@@ -343,7 +341,7 @@ func fileClaim(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	stub.PutState(contractKey, contractBytes)
+	err = stub.PutState(contractKey, contractBytes)
 	if err != nil {
 		return shim.Error(err.Error())
 	}

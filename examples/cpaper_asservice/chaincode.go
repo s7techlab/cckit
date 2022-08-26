@@ -38,7 +38,7 @@ func NewCCEncrypted() (*router.Chaincode, error) {
 		Pre(encryption.ArgsDecrypt).
 		// default Context replaced with EncryptedStateContext only if key is provided in transient map
 		Use(encryption.EncStateContext).
-		// invoke response will be encrypted cause it will be placed in blocks
+		// invoke response will be encrypted because it will be placed in blocks
 		After(encryption.EncryptInvokeResponse())
 
 	return router.NewChaincode(r), nil

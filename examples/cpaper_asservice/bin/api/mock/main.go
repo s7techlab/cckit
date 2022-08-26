@@ -37,18 +37,18 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// Mockstub for commercial paper
-	cpaperMock := testing.NewMockStub(chaincodeName, cc)
+	// MockStub for commercial paper
+	cPaperMock := testing.NewMockStub(chaincodeName, cc)
 
-	// default identity for signing requests to peeer (mocked)
+	// default identity for signing requests to peer (mocked)
 	apiIdentity, err := testing.IdentityFromFile(`MSP`, `../../../testdata/admin.pem`, ioutil.ReadFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	// Generated gateway for access to chaincode from external application
-	cpaperGateway := cpaper_asservice.NewCPaperServiceGateway(
+	cPaperGateway := cpaper_asservice.NewCPaperServiceGateway(
 		// Chaincode invocation service mock. For real network you can use example with hlf-sdk-go
-		testing.NewPeer().WithChannel(channelName, cpaperMock),
+		testing.NewPeer().WithChannel(channelName, cPaperMock),
 		channelName,
 		chaincodeName,
 		gateway.WithDefaultSigner(apiIdentity))
@@ -60,7 +60,7 @@ func main() {
 
 	// Create gRPC server
 	s := grpc.NewServer()
-	cpaper_asservice.RegisterCPaperServiceServer(s, cpaperGateway)
+	cpaper_asservice.RegisterCPaperServiceServer(s, cPaperGateway)
 
 	// Runs gRPC server in goroutine
 	go func() {

@@ -98,8 +98,8 @@ func WithIndex(idx *StateIndexDef) StateMappingOpt {
 }
 
 // PKeySchema registers all fields from pkeySchema as part of primary key.
-// Same fields should exists in mapped entity.
-// Also register keyer for pkeySchema with with namespace from current schema.
+// Same fields should exist in mapped entity.
+// Also register keyer for pkeySchema with namespace from current schema.
 func PKeySchema(pkeySchema interface{}) StateMappingOpt {
 	attrs := attrsFrom(pkeySchema)
 
@@ -127,12 +127,12 @@ func PKeyAttr(attrs ...string) StateMappingOpt {
 	}
 }
 
-// PKeyId use Id attr as source for mapped state entry key
+// PKeyId use ID attr as source for mapped state entry key
 func PKeyId() StateMappingOpt {
 	return PKeyAttr(`Id`)
 }
 
-// PKeyComplexId sets Id as key field, also adds mapping for pkeySchema
+// PKeyComplexId sets ID as key field, also adds mapping for pkeySchema
 // with namespace from mapping schema
 func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
@@ -144,9 +144,9 @@ func PKeyComplexId(pkeySchema interface{}) StateMappingOpt {
 	}
 }
 
-func PKeyer(pkeyer InstanceKeyer) StateMappingOpt {
+func PKeyer(pKeyer InstanceKeyer) StateMappingOpt {
 	return func(sm *StateMapping, smm StateMappings) {
-		sm.primaryKeyer = pkeyer
+		sm.primaryKeyer = pKeyer
 	}
 }
 
@@ -195,7 +195,7 @@ func attrsKeyer(attrs []string) InstanceKeyer {
 	}
 }
 
-// attrMultiKeyer creates keyer based of one field and can return multiple keyss
+// attrMultiKeyer creates keyer based of one field and can return multiple keys
 func attrMultiKeyer(attr string) InstanceMultiKeyer {
 	return func(instance interface{}) ([]state.Key, error) {
 		inst := reflect.Indirect(reflect.ValueOf(instance))

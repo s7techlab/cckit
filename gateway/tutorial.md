@@ -8,7 +8,7 @@ chaincode method routing and `REST` API architecture as the de-facto technology 
 `CCKit`, library for Hyperledger Fabric application development, addresses several aspects of Hyperledger Fabric 
 application development:
 
-* [Chaincode method routing](../router) allows to consistently define rules how an chaincode responds to a client requests
+* [Chaincode method routing](../router) allows to consistently define rules how a chaincode responds to a client requests
 
 * [Using protocol buffers](../state) can help to define data model once and then easily write and read structured data to 
 and from chaincode world state
@@ -62,7 +62,7 @@ Like many RPC systems, `gRPC` is based around the idea of defining a service, sp
 remotely with their parameters and return types. `gRPC` technology stack natively supports a clean and powerful way to 
 specify service contracts using the Interface Definition Language (`IDL`):
 
-* messages defines data structures of the input parameters and return types.
+* message defines data structures of the input parameters and return types.
 * services definition outlines methods signatures that can be invoked remotely 
 
 When the client invokes the service, the client-side `gRPC` library uses the protocol buffer and marshals the remote procedure 
@@ -91,7 +91,7 @@ Chaincode interacts with the shared ledger and defines business logic for blockc
 common terms, data, rules, concept definitions, and processes (for example,
 [Commercial paper](https://hyperledger-fabric.readthedocs.io/en/release-1.4/tutorial/commercial_paper.html)  or 
 [ERC20](https://medium.com/coinmonks/erc20-token-as-hyperledger-fabric-golang-chaincode-d09dfd16a339) token functionality),
-lay out the business model that govern all of the interactions between transacting parties.
+lay out the business model that govern all the interactions between transacting parties.
 
 
 Chaincode interface is very simple and contains only 2 methods:
@@ -521,7 +521,7 @@ application with 3 methods:
 
 This service used by `Chaincode gateway` or can be exposed separately as `gRPC` or `REST` API.
 `CCKit` contains chaincode service [implementation](service/chaincode.go) based on https://github.com/s7techlab/hlf-sdk-go and
-[version for testing](service/mock.go), based on [Mockstub](../testing)
+[version for testing](service/mock.go), based on [MockStub](../testing)
 
 ```proto
 syntax = "proto3";
@@ -680,7 +680,7 @@ func main() {
 	// Chaincode invocation service mock. For real network you can use example with hlf-sdk-go
 	cpaperMockService := service.NewMock().WithChannel(channelName, cpaperMock)
 
-	// default identity for signing requests to peeer (mocked)
+	// default identity for signing requests to peer (mocked)
 	apiIdentity, err := testing.IdentityFromFile(`MSP`, `../../../testdata/admin.pem`, ioutil.ReadFile)
 	if err != nil {
 		log.Fatalln(err)

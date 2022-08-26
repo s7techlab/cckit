@@ -6,15 +6,15 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
-func NewCCWithLocalCpaper() (*router.Chaincode, error) {
+func NewCCWithLocalCPaper() (*router.Chaincode, error) {
 	r := router.New(`crosscc_local`)
 
-	cpaperService := cpaper_asservice.NewService()
-	crossCCService := NewServiceWithLocalCPaperResolver(cpaperService)
+	cPaperService := cpaper_asservice.NewService()
+	crossCCService := NewServiceWithLocalCPaperResolver(cPaperService)
 
 	// 2 services in one chaincode
 	// both CPaper and CrossCC in one chaincode, that is why used local resolver
-	if err := cpaper_asservice.RegisterCPaperServiceChaincode(r, cpaperService); err != nil {
+	if err := cpaper_asservice.RegisterCPaperServiceChaincode(r, cPaperService); err != nil {
 		return nil, err
 	}
 
@@ -25,14 +25,14 @@ func NewCCWithLocalCpaper() (*router.Chaincode, error) {
 	return router.NewChaincode(r), nil
 }
 
-func NewCCWithRemoteCpaper() (*router.Chaincode, error) {
+func NewCCWithRemoteCPaper() (*router.Chaincode, error) {
 	r := router.New(`crosscc_remote`)
 
 	crossCCSettingService := crosscc.NewSettingService()
 	crossCCService := NewServiceWithRemoteCPaperResolver(crossCCSettingService)
 
 	// crossCC service and CPaper service - in separate chaincodes
-	// in crossCC chauincode there are two services:
+	// in crossCC chaincode there are two services:
 	// 1. CrossCC itself
 	// 2. Setting service to store information where (channel, chaincode) CPaper service located
 	if err := crosscc.RegisterSettingServiceChaincode(r, crossCCSettingService); err != nil {

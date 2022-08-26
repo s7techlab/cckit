@@ -11,8 +11,6 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 // Certificate decode and parse .pem []byte x509 certificate structure
@@ -27,12 +25,12 @@ func Certificate(c []byte) (cert *x509.Certificate, err error) {
 func CertSubjEqual(a, b []byte) (bool, error) {
 	certA, err := Certificate(a)
 	if err != nil {
-		return false, errors.Wrap(err, `certificate 1`)
+		return false, fmt.Errorf(`parse certificate 1: %w`, err)
 	}
 
 	certB, err := Certificate(b)
 	if err != nil {
-		return false, errors.Wrap(err, `certificate 1`)
+		return false, fmt.Errorf(`parse certificate 2: %w`, err)
 	}
 
 	return GetDN(&certA.Subject) == GetDN(&certB.Subject), nil
@@ -124,7 +122,6 @@ var attributeTypeNames = map[string]string{
 func MarshalPublicKey(publicKey interface{}) []byte {
 	switch pubKey := publicKey.(type) {
 	case *rsa.PublicKey:
-		fmt.Println(`LALALALAL`)
 		return nil
 	case *ecdsa.PublicKey:
 		return elliptic.Marshal(pubKey.Curve, pubKey.X, pubKey.Y)

@@ -66,7 +66,7 @@ func ContextWithTxWaiter(ctx context.Context, txWaiterType string) context.Conte
 // TxWaiterFromContext - fetch 'txWaiterType' param which identify transaction waiting policy
 // what params you'll have depends on your implementation
 // for example, in hlf-sdk:
-// available: 'self'(wait for one peer of endorser org), 'all'(wait for each organizations from endorsement policy)
+// available: 'self'(wait for one peer of endorser org), 'all'(wait for each organization from endorsement policy)
 // default is 'self'(even if you pass empty string)
 func TxWaiterFromContext(ctx context.Context) string {
 	txWaiter, _ := ctx.Value(CtxTxWaiterKey).(string)

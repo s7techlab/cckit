@@ -3,13 +3,13 @@ package erc20_test
 import (
 	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	"github.com/s7techlab/cckit/examples/erc20"
 	idtestdata "github.com/s7techlab/cckit/identity/testdata"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 func TestErc20(t *testing.T) {
@@ -36,7 +36,7 @@ var _ = Describe(`ERC-20`, func() {
 	erc20fs := testcc.NewMockStub(`erc20`, erc20.NewErc20FixedSupply())
 
 	BeforeSuite(func() {
-		// init token haincode
+		// init token chaincode
 		expectcc.ResponseOk(erc20fs.From(TokenOwner).Init(TokenSymbol, TokenName, TotalSupply, Decimals))
 	})
 
@@ -132,7 +132,7 @@ var _ = Describe(`ERC-20`, func() {
 					Spender1.MspID, Spender1.GetID()), 10)
 		})
 
-		It("Disallow nonspender to initiate payment from owner waller", func() {
+		It("Disallow non-spender to initiate payment from owner waller", func() {
 			expectcc.ResponseError(
 				erc20fs.From(AccountHolder1).Invoke(
 					`transferFrom`,

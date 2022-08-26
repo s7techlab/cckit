@@ -8,13 +8,14 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 )
 
-func listTheftClaims(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	results := []interface{}{}
+func listTheftClaims(stub shim.ChaincodeStubInterface, _ []string) pb.Response {
+	var results []interface{}
+
 	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixClaim, []string{})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	defer resultsIterator.Close()
+	defer func() { _ = resultsIterator.Close() }()
 
 	for resultsIterator.HasNext() {
 		kvResult, err := resultsIterator.Next()

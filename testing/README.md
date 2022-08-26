@@ -75,7 +75,7 @@ blockchain network. It implements almost every function the actual stub does, bu
 
 `MockStub` from [https://github.com/hyperledger/fabric/](https://github.com/hyperledger/fabric/) repository includes 
 implementation for most of `shim.ChaincodeStubInterface` function, but until current version 
-of Hyperledger Fabric (1.4), the `MockStub` has not implemented some of the important methods such
+of Hyperledger Fabric (1.4), the `MockStub` has not implemented some important methods such
 as `GetCreator` or method for work with private state range, for example. Since chaincode would use `GetCreator`  method 
 to get transaction creator certificate for access control, it's critical to be able to stub this method in order 
 to completely unit-test chaincode.
@@ -154,7 +154,7 @@ the [Gomega](https://github.com/onsi/gomega) matcher library, but is designed to
 
 As with popular BDD frameworks in other languages, `Ginkgo` allows you to group tests in `Describe` and `Context` container blocks. 
 `Ginkgo` provides the `It` and `Specify` blocks which can hold your assertions. It also comes with handy structural utilities
-such as `BeforeSuite`, `AfterSuite`, etc that allows you to separate test configuration from test creation, and improve code reuse.
+such as `BeforeSuite`, `AfterSuite`, etc. that allows you to separate test configuration from test creation, and improve code reuse.
 
 `Ginkgo` also comes with support for writing asynchronous tests. This makes testing code that use channels with chaincode events 
 as easy as testing synchronous code.
@@ -171,7 +171,7 @@ You cannot fiddle around with the internals, instead you focus on the exposed ch
 
 ### Import matchers and helpers
 
-To get started, we need to import the `matcher` functionality from the Ginkgo testing package 
+To get started, we need to import the `matcher` functionality from the Ginkgo testing package,
 so we can use different comparison mechanisms like comparing response objects or status codes.
 
 We import the `ginkgo` and `gomega` packages with the `.` namespace, so that we can use functions from these packages 
@@ -185,26 +185,27 @@ The call to `RegisterFailHandler` registers a handler, the `Fail` function from 
 coupling between `Ginkgo` and `Gomega`.
 
 Test suite bootstrap example:
+
 ```go
 package main
 
 import (
-	"fmt"
-	"testing"
-	"github.com/s7techlab/cckit/examples/insurance/app"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	testcc "github.com/s7techlab/cckit/testing"
-	expectcc "github.com/s7techlab/cckit/testing/expect"
+ "fmt"
+ "testing"
+
+ . "github.com/onsi/ginkgo"
+ . "github.com/onsi/gomega"
+ "github.com/s7techlab/cckit/examples/insurance/app"
+ testcc "github.com/s7techlab/cckit/testing"
+ expectcc "github.com/s7techlab/cckit/testing/expect"
 )
 
 func TestCommercialPaper(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Commercial paper suite")
+ RegisterFailHandler(Fail)
+ RunSpecs(t, "Commercial paper suite")
 }
 
 var _ = Describe(`Commercial paper`, func() {
-	
 
 }
 ```
@@ -269,7 +270,7 @@ type Response struct {
 }
 ```
 
-During tests we can check `Response` attribute:
+During tests, we can check `Response` attribute:
 
 * Status (error or success)
 * Message string (contains error description)
@@ -284,7 +285,7 @@ Most frequently used helpers are:
 * `PayloadIs`(*response* **peer.Response**, *target* **interface{}) expects that peer response contains `ok` status code (`200`) 
 and converts response to **target** type using `CCKit` [convert](../convert) package
 
-For example we can simply test that `Init` method (invoked when the chaincode is initialised) returns successful status code: 
+For example, we can simply test that `Init` method (invoked when the chaincode is initialised) returns successful status code: 
  
 ```go
 BeforeSuite(func() {
@@ -307,7 +308,7 @@ We expect that invocation of `issue` chaincode method will result in:
 * event `IssueCommercialPaper` is fired
 
 In the test we can invoke `issue` method via MockStub, check response status and check chaincode event. Chaincode events 
-can be receive from `chaincodeEventsChannel`. The `BeEquivalentTo` method of the `expect` functionality 
+can be received from `chaincodeEventsChannel`. The `BeEquivalentTo` method of the `expect` functionality 
 comes in handy to compare the event payload.
 
 ```go
@@ -342,11 +343,11 @@ It("Allow issuer to issue new commercial paper", func(done Done) {
  This test will block until a response is received over the channel `paperChaincode.ChaincodeEventsChannel` (chaincode event).
  A deadlock or timeout is a common failure mode for tests like this. A common pattern in such situations is to add a select 
  statement at the bottom of the function and include a <-time.After(X) channel to specify a timeout. Ginkgo has this pattern
- built in. The body functions in all non-container blocks (`It` , `BeforeEache` etc ) can take an optional done `Done` argument.
+ built in. The body functions in all non-container blocks (`It` , `BeforeEache` etc.) can take an optional done `Done` argument.
  
  Done is a `chan interface{}`. When `Ginkgo` detects that the `done Done` argument has been requested it runs the body function 
  as a goroutine, wrapping it with the necessary logic to apply a timeout assertion. You must either close the done channel, 
- or send something (anything) to it to tell `Ginkgo` that your test has ended. If your test doesn’t end after a timeout period,
+ or send something (anything) to it to tell `Ginkgo` that your test has ended. If your test doesn't end after a timeout period,
  `Ginkgo` will fail the test and move on the next one.
  
  The default timeout is 1 second. You can modify this timeout by passing a float64 (in seconds) after the body function.
@@ -451,5 +452,5 @@ after any test fails.
 ## Conclusion
 
 Chaincode `MockStub` is really useful as it allows a developer to test his chaincode without starting the network every time. 
-This reduces development time as he can use a test driven development (TDD) approach where he doesn’t 
+This reduces development time as he can use a test driven development (TDD) approach where he doesn't 
 need to start the network (this takes +- 40-80 seconds depending on the specs of the computer).

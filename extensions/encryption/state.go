@@ -2,9 +2,8 @@ package encryption
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
 
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
@@ -45,7 +44,7 @@ func KeyFromTransient(c router.Context) ([]byte, error) {
 	return key, nil
 }
 
-// StateWithTransientKey creates encrypted state state with provided key for symmetric encryption/decryption
+// StateWithTransientKey creates encrypted state with provided key for symmetric encryption/decryption
 func StateWithTransientKey(c router.Context) (state.State, error) {
 	key, err := KeyFromTransient(c)
 	if err != nil {
@@ -109,7 +108,7 @@ func FromBytesDecryptor(key []byte) state.FromBytesTransformer {
 	return func(bb []byte, config ...interface{}) (interface{}, error) {
 		decrypted, err := Decrypt(key, bb)
 		if err != nil {
-			return nil, errors.Wrap(err, `decrypt bytes`)
+			return nil, fmt.Errorf(`decrypt bytes: %w`, err)
 		}
 		if len(config) == 0 {
 			return decrypted, nil

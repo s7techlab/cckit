@@ -6,18 +6,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	identitytestdata "github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/state"
 	"github.com/s7techlab/cckit/state/mapping"
 	"github.com/s7techlab/cckit/state/mapping/testdata"
 	"github.com/s7techlab/cckit/state/mapping/testdata/schema"
-	state_schema "github.com/s7techlab/cckit/state/schema"
+	stateschema "github.com/s7techlab/cckit/state/schema"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
@@ -165,7 +164,7 @@ var _ = Describe(`State mapping in chaincode`, func() {
 
 	Describe(`Entity with complex id`, func() {
 
-		ent1 := testdata.CreateEntityWithComplextId[0]
+		ent1 := testdata.CreateEntityWithComplexId[0]
 
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(complexIDCC.From(Owner).Invoke(`entityInsert`, ent1))
@@ -185,14 +184,14 @@ var _ = Describe(`State mapping in chaincode`, func() {
 		})
 
 		It("Allow to get entity", func() {
-			// use Id as key
+			// use ID as key
 			ent1FromCC := expectcc.ResponseOk(complexIDCC.Query(`entityGet`, ent1.Id)).Payload
 			Expect(ent1FromCC).To(Equal(testcc.MustProtoMarshal(ent1)))
 		})
 
 		It("Allow to list entity", func() {
-			// use Id as key
-			listFromCC := expectcc.PayloadIs(complexIDCC.Query(`entityList`), &state_schema.List{}).(*state_schema.List)
+			// use ID as key
+			listFromCC := expectcc.PayloadIs(complexIDCC.Query(`entityList`), &stateschema.List{}).(*stateschema.List)
 			Expect(listFromCC.Items).To(HaveLen(1))
 
 			Expect(listFromCC.Items[0].Value).To(Equal(testcc.MustProtoMarshal(ent1)))
@@ -201,7 +200,7 @@ var _ = Describe(`State mapping in chaincode`, func() {
 
 	Describe(`Entity with slice id`, func() {
 
-		ent2 := &schema.EntityWithSliceId{Id: []string{`aa`, `bb`}, SomeDate: ptypes.TimestampNow()}
+		ent2 := &schema.EntityWithSliceId{Id: []string{`aa`, `bb`}, SomeDate: timestamppb.Now()}
 
 		It("Allow to add data to chaincode state", func() {
 			expectcc.ResponseOk(sliceIDCC.Invoke(`entityInsert`, ent2))
@@ -215,14 +214,14 @@ var _ = Describe(`State mapping in chaincode`, func() {
 		})
 
 		It("Allow to get entity", func() {
-			// use Id as key
+			// use ID as key
 			ent1FromCC := expectcc.ResponseOk(sliceIDCC.Query(`entityGet`, state.StringsIdToStr(ent2.Id))).Payload
 			Expect(ent1FromCC).To(Equal(testcc.MustProtoMarshal(ent2)))
 		})
 
 		It("Allow to list entity", func() {
-			// use Id as key
-			listFromCC := expectcc.PayloadIs(sliceIDCC.Query(`entityList`), &state_schema.List{}).(*state_schema.List)
+			// use ID as key
+			listFromCC := expectcc.PayloadIs(sliceIDCC.Query(`entityList`), &stateschema.List{}).(*stateschema.List)
 			Expect(listFromCC.Items).To(HaveLen(1))
 
 			Expect(listFromCC.Items[0].Value).To(Equal(testcc.MustProtoMarshal(ent2)))

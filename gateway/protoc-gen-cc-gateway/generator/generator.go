@@ -137,14 +137,14 @@ func (g *Generator) getCCTemplate(f *descriptor.File) (string, error) {
 	return applyTemplate(p)
 }
 
-func (g *Generator) newGoPackage(pkgPath string, aalias ...string) descriptor.GoPackage {
+func (g *Generator) newGoPackage(pkgPath string, aliases ...string) descriptor.GoPackage {
 	gopkg := descriptor.GoPackage{
 		Path: pkgPath,
 		Name: path.Base(pkgPath),
 	}
 	alias := gopkg.Name
-	if len(aalias) > 0 {
-		alias = aalias[0]
+	if len(aliases) > 0 {
+		alias = aliases[0]
 		gopkg.Alias = alias
 	}
 

@@ -2,6 +2,7 @@ package convert
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -9,7 +10,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/pkg/errors"
 )
 
 // FromBytes converts []byte to target interface
@@ -74,12 +74,12 @@ func FromBytesToStruct(bb []byte, target interface{}) (result interface{}, err e
 	}
 }
 
-// JsonUnmarshalPtr unmarshalls []byte as json to pointer, and returns value pointed to
+// JSONUnmarshalPtr unmarshalls []byte as json to pointer, and returns value pointed to
 func JSONUnmarshalPtr(bb []byte, to interface{}) (result interface{}, err error) {
 	targetPtr := reflect.New(reflect.ValueOf(to).Elem().Type()).Interface()
 	err = json.Unmarshal(bb, targetPtr)
 	if err != nil {
-		return nil, fmt.Errorf(ErrUnableToConvertValueToStruct.Error())
+		return nil, ErrUnableToConvertValueToStruct
 	}
 	return reflect.Indirect(reflect.ValueOf(targetPtr)).Interface(), nil
 }
@@ -89,7 +89,7 @@ func ProtoUnmarshal(bb []byte, messageType proto.Message) (message proto.Message
 	msg := proto.Clone(messageType)
 	err = proto.Unmarshal(bb, msg)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrUnableToConvertValueToStruct.Error())
+		return nil, ErrUnableToConvertValueToStruct
 	}
 	return msg, nil
 }

@@ -82,10 +82,10 @@ func NewErc20FixedSupply() *router.Chaincode {
 		Invoke(`transfer`, invokeTransfer, p.String(`toMspId`), p.String(`toCertId`), p.Int(`amount`)).
 
 		// Allow spender to withdraw from your account, multiple times, up to the _value amount.
-		// If this function is called again it overwrites the current allowance with _valu
+		// If this function is called again it overwrites the current allowance with _value
 		Invoke(`approve`, invokeApprove, p.String(`spenderMspId`), p.String(`spenderCertId`), p.Int(`amount`)).
 
-		//    Returns the amount which _spender is still allowed to withdraw from _owner]
+		//    Returns the amount which _spender is still allowed to withdraw from _owner
 		Invoke(`allowance`, queryAllowance, p.String(`ownerMspId`), p.String(`ownerCertId`),
 			p.String(`spenderMspId`), p.String(`spenderCertId`)).
 

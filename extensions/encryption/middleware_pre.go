@@ -12,13 +12,13 @@ import (
 )
 
 // ArgsDecryptIfKeyProvided  - pre middleware, decrypts chaincode method arguments if key provided in transient map
-func ArgsDecryptIfKeyProvided(next router.ContextHandlerFunc, pos ...int) router.ContextHandlerFunc {
+func ArgsDecryptIfKeyProvided(next router.ContextHandlerFunc, _ ...int) router.ContextHandlerFunc {
 	return argsDecryptor(next, false, nil)
 }
 
-// ArgsDecryptIfKeyProvided - pre middleware, decrypts chaincode method arguments,
+// ArgsDecrypt - pre middleware, decrypts chaincode method arguments,
 // key must be provided in transient map
-func ArgsDecrypt(next router.ContextHandlerFunc, pos ...int) router.ContextHandlerFunc {
+func ArgsDecrypt(next router.ContextHandlerFunc, _ ...int) router.ContextHandlerFunc {
 	return argsDecryptor(next, true, nil)
 }
 
@@ -69,7 +69,7 @@ func argsDecryptor(next router.ContextHandlerFunc, keyShouldBe bool, exceptMetho
 }
 
 // EncStateContext replaces default state with encrypted state
-func EncStateContext(next router.HandlerFunc, pos ...int) router.HandlerFunc {
+func EncStateContext(next router.HandlerFunc, _ ...int) router.HandlerFunc {
 	return func(c router.Context) (res interface{}, err error) {
 		if err = replaceStateEncrypted(c); err != nil {
 			return
@@ -97,8 +97,8 @@ func replaceStateEncrypted(c router.Context) (err error) {
 	return
 }
 
-// EncStateContext replaces default state with encrypted state
-func EncStateContextIfKeyProvided(next router.HandlerFunc, pos ...int) router.HandlerFunc {
+// EncStateContextIfKeyProvided replaces default state with encrypted state
+func EncStateContextIfKeyProvided(next router.HandlerFunc, _ ...int) router.HandlerFunc {
 	return func(c router.Context) (res interface{}, err error) {
 		if _, err = KeyFromTransient(c); err != nil {
 			// skip state changing

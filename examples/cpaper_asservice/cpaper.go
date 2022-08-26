@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/pkg/errors"
 
 	"github.com/s7techlab/cckit/router"
 )
@@ -16,7 +15,7 @@ func NewService() *CPaperService {
 	return &CPaperService{}
 }
 
-func (cc *CPaperService) List(ctx router.Context, in *empty.Empty) (*CommercialPaperList, error) {
+func (cc *CPaperService) List(ctx router.Context, _ *empty.Empty) (*CommercialPaperList, error) {
 	// List method retrieves all entries from the ledger using GetStateByPartialCompositeKey method and passing it the
 	// namespace of our contract type, in this example that's "CommercialPaper", then it unmarshals received bytes via
 	// proto.Ummarshal method and creates a []CommercialPaperList as defined in the
@@ -48,11 +47,11 @@ func (cc *CPaperService) GetByExternalId(ctx router.Context, id *ExternalId) (*C
 func (cc *CPaperService) Issue(ctx router.Context, issue *IssueCommercialPaper) (*CommercialPaper, error) {
 	// Validate input message using the rules defined in schema
 	if err := issue.Validate(); err != nil {
-		return nil, errors.Wrap(err, "payload validation")
+		return nil, fmt.Errorf("payload validation: %w", err)
 	}
 
 	// Create state entry
-	cpaper := &CommercialPaper{
+	cPaper := &CommercialPaper{
 		Issuer:       issue.Issuer,
 		PaperNumber:  issue.PaperNumber,
 		Owner:        issue.Issuer,
@@ -67,94 +66,94 @@ func (cc *CPaperService) Issue(ctx router.Context, issue *IssueCommercialPaper) 
 		return nil, err
 	}
 
-	if err := State(ctx).Insert(cpaper); err != nil {
+	if err := State(ctx).Insert(cPaper); err != nil {
 		return nil, err
 	}
-	return cpaper, nil
+	return cPaper, nil
 }
 
 func (cc *CPaperService) Buy(ctx router.Context, buy *BuyCommercialPaper) (*CommercialPaper, error) {
 	// Get the current commercial paper state
-	cpaper, err := cc.Get(ctx, &CommercialPaperId{Issuer: buy.Issuer, PaperNumber: buy.PaperNumber})
+	cPaper, err := cc.Get(ctx, &CommercialPaperId{Issuer: buy.Issuer, PaperNumber: buy.PaperNumber})
 	if err != nil {
-		return nil, errors.Wrap(err, "get cpaper")
+		return nil, fmt.Errorf("get cPaper: %w", err)
 	}
 
 	// Validate current owner
-	if cpaper.Owner != buy.CurrentOwner {
+	if cPaper.Owner != buy.CurrentOwner {
 		return nil, fmt.Errorf(
 			"paper %s %s is not owned by %s",
-			cpaper.Issuer, cpaper.PaperNumber, buy.CurrentOwner)
+			cPaper.Issuer, cPaper.PaperNumber, buy.CurrentOwner)
 	}
 
 	// First buyData moves state from ISSUED to TRADING
-	if cpaper.State == CommercialPaper_STATE_ISSUED {
-		cpaper.State = CommercialPaper_STATE_TRADING
+	if cPaper.State == CommercialPaper_STATE_ISSUED {
+		cPaper.State = CommercialPaper_STATE_TRADING
 	}
 
 	// Check paper is not already REDEEMED
-	if cpaper.State == CommercialPaper_STATE_TRADING {
-		cpaper.Owner = buy.NewOwner
+	if cPaper.State == CommercialPaper_STATE_TRADING {
+		cPaper.Owner = buy.NewOwner
 	} else {
 		return nil, fmt.Errorf(
 			"paper %s %s is not trading.current state = %s",
-			cpaper.Issuer, cpaper.PaperNumber, cpaper.State)
+			cPaper.Issuer, cPaper.PaperNumber, cPaper.State)
 	}
 
 	if err = Event(ctx).Set(buy); err != nil {
 		return nil, err
 	}
 
-	if err = State(ctx).Put(cpaper); err != nil {
+	if err = State(ctx).Put(cPaper); err != nil {
 		return nil, err
 	}
 
-	return cpaper, nil
+	return cPaper, nil
 }
 
 func (cc *CPaperService) Redeem(ctx router.Context, redeem *RedeemCommercialPaper) (*CommercialPaper, error) {
 	// Get the current commercial paper state
-	cpaper, err := cc.Get(ctx, &CommercialPaperId{Issuer: redeem.Issuer, PaperNumber: redeem.PaperNumber})
+	cPaper, err := cc.Get(ctx, &CommercialPaperId{Issuer: redeem.Issuer, PaperNumber: redeem.PaperNumber})
 	if err != nil {
-		return nil, errors.Wrap(err, "get cpaper")
+		return nil, fmt.Errorf("get cPaper: %w", err)
 	}
 	if err != nil {
-		return nil, errors.Wrap(err, "paper not found")
+		return nil, fmt.Errorf("paper not found: %w", err)
 	}
 
 	// Check paper is not REDEEMED
-	if cpaper.State == CommercialPaper_STATE_REDEEMED {
-		return nil, fmt.Errorf("paper %s %s is already redeemed", cpaper.Issuer, cpaper.PaperNumber)
+	if cPaper.State == CommercialPaper_STATE_REDEEMED {
+		return nil, fmt.Errorf("paper %s %s is already redeemed", cPaper.Issuer, cPaper.PaperNumber)
 	}
 
 	// Verify that the redeemer owns the commercial paper before redeeming it
-	if cpaper.Owner == redeem.RedeemingOwner {
-		cpaper.Owner = redeem.Issuer
-		cpaper.State = CommercialPaper_STATE_REDEEMED
+	if cPaper.Owner == redeem.RedeemingOwner {
+		cPaper.Owner = redeem.Issuer
+		cPaper.State = CommercialPaper_STATE_REDEEMED
 	} else {
-		return nil, fmt.Errorf("redeeming owner does not own paper %s %s", cpaper.Issuer, cpaper.PaperNumber)
+		return nil, fmt.Errorf("redeeming owner does not own paper %s %s", cPaper.Issuer, cPaper.PaperNumber)
 	}
 
 	if err = Event(ctx).Set(redeem); err != nil {
 		return nil, err
 	}
 
-	if err = State(ctx).Put(cpaper); err != nil {
+	if err = State(ctx).Put(cPaper); err != nil {
 		return nil, err
 	}
 
-	return cpaper, nil
+	return cPaper, nil
 }
 
 func (cc *CPaperService) Delete(ctx router.Context, id *CommercialPaperId) (*CommercialPaper, error) {
-	cpaper, err := cc.Get(ctx, id)
+	cPaper, err := cc.Get(ctx, id)
 	if err != nil {
-		return nil, errors.Wrap(err, "get cpaper")
+		return nil, fmt.Errorf("get cPaper: %w", err)
 	}
 
 	if err = State(ctx).Delete(id); err != nil {
 		return nil, err
 	}
 
-	return cpaper, nil
+	return cPaper, nil
 }

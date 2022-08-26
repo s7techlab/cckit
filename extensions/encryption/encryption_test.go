@@ -85,7 +85,7 @@ var _ = Describe(`Router`, func() {
 		encCCInvoker.DecryptInvokeResponse = true
 
 		externalCC = testcc.NewMockStub(`external`,
-			testdata.NewExternaldCC(`paymentsEncWithContext`, `payment-channel`))
+			testdata.NewExternalCC(`paymentsEncWithContext`, `payment-channel`))
 
 		// external cc have access to encrypted payment chaincode
 		externalCC.MockPeerChaincode(
@@ -164,7 +164,7 @@ var _ = Describe(`Router`, func() {
 
 			// Check that value is encrypted in chaincode state - use debugStateGet func
 			// without providing key in transient map - so we need to provide encrypted key
-			// and cause we dont't require key - state also returns unencrypted
+			// and because we don't require key - state also returns unencrypted
 			expectcc.PayloadBytes(encryptOnDemandPaymentCC.Invoke(`debugStateGet`, []string{
 				base64.StdEncoding.EncodeToString(encPaymentNamespace),
 				base64.StdEncoding.EncodeToString(encryptedPType),
@@ -270,7 +270,7 @@ var _ = Describe(`Router`, func() {
 
 		It("Allow to get payment providing key using debugStateGet", func() {
 			// we didn't provide encrypting key,
-			// chaincode use ArgsDecrypt middleware, requiring key in transient map
+			// chaincode use ArgsDecrypt middleware, requiring key in transient map,
 			// but we add exception for method debugStateGet
 			// for all chaincode methods, except stateGet @see example/payments/cc_enc_context_with_mapping.go
 			expectcc.ResponseOk(encCCInvoker.MockStub.Invoke(`debugStateGet`, []string{

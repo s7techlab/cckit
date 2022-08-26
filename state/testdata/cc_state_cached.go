@@ -48,7 +48,7 @@ func ReadAfterWrite(ctx router.Context) (interface{}, error) {
 		}
 	}
 
-	// return non empty, cause state changes cached
+	// return non-empty, cause state changes cached
 	return stateWithCache.Get(Key(Keys[0]), &Value{})
 }
 
@@ -63,7 +63,7 @@ func ReadAfterDelete(ctx router.Context) (interface{}, error) {
 
 	// return empty, cause state changes cached
 	val, _ := ctxWithStateCache.State().Get(Key(Keys[0]))
-	// if we return error - state changes will not applied
+	// if we return error - state changes will not apply
 	return val, nil
 }
 

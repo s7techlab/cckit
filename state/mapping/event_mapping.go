@@ -1,12 +1,12 @@
 package mapping
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 
 	"github.com/s7techlab/cckit/state"
 )
@@ -89,7 +89,7 @@ func (emm EventMappings) Exists(entry interface{}) bool {
 func (emm EventMappings) Map(entry interface{}) (instance *EventInstance, err error) {
 	mapping, err := emm.Get(entry)
 	if err != nil {
-		return nil, errors.Wrap(err, `mapping`)
+		return nil, fmt.Errorf(`mapping: %w`, err)
 	}
 
 	switch entry.(type) {
@@ -114,7 +114,7 @@ func (em EventMapping) Schema() interface{} {
 	return em.schema
 }
 
-func (em EventMapping) Name(instance interface{}) (string, error) {
+func (em EventMapping) Name(_ interface{}) (string, error) {
 	return em.name, nil
 }
 

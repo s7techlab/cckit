@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // From bccsp/sw/aes
 func pkcs7Padding(src []byte) []byte {
 	padding := aes.BlockSize - len(src)%aes.BlockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(src, padtext...)
+	padText := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(src, padText...)
 }
 
 func pkcs7UnPadding(src []byte) ([]byte, error) {
@@ -19,13 +19,13 @@ func pkcs7UnPadding(src []byte) ([]byte, error) {
 	unpadding := int(src[length-1])
 
 	if unpadding > aes.BlockSize || unpadding == 0 {
-		return nil, errors.New("Invalid pkcs7 padding (unpadding > aes.BlockSize || unpadding == 0)")
+		return nil, errors.New("invalid pkcs7 padding (unpadding > aes.BlockSize || unpadding == 0)")
 	}
 
 	pad := src[len(src)-unpadding:]
 	for i := 0; i < unpadding; i++ {
 		if pad[i] != byte(unpadding) {
-			return nil, errors.New("Invalid pkcs7 padding (pad[i] != unpadding)")
+			return nil, errors.New("invalid pkcs7 padding (pad[i] != unpadding)")
 		}
 	}
 
@@ -34,11 +34,11 @@ func pkcs7UnPadding(src []byte) ([]byte, error) {
 
 func aesCBCEncryptWithIV(IV []byte, key, s []byte) ([]byte, error) {
 	if len(s)%aes.BlockSize != 0 {
-		return nil, errors.New("Invalid plaintext. It must be a multiple of the block size")
+		return nil, errors.New("invalid plaintext, it must be a multiple of the block size")
 	}
 
 	if len(IV) != aes.BlockSize {
-		return nil, errors.New("Invalid IV. It must have length the block size")
+		return nil, errors.New("invalid IV, t must have length the block size")
 	}
 
 	block, err := aes.NewCipher(key)
@@ -72,13 +72,13 @@ func aesCBCDecrypt(key, src []byte) ([]byte, error) {
 	}
 
 	if len(src) < aes.BlockSize {
-		return nil, errors.New("Invalid ciphertext. It must be a multiple of the block size")
+		return nil, errors.New("invalid ciphertext, it must be a multiple of the block size")
 	}
 	iv := src[:aes.BlockSize]
 	src = src[aes.BlockSize:]
 
 	if len(src)%aes.BlockSize != 0 {
-		return nil, errors.New("Invalid ciphertext. It must be a multiple of the block size")
+		return nil, errors.New("invalid ciphertext, it must be a multiple of the block size")
 	}
 
 	mode := cipher.NewCBCDecrypter(block, iv)

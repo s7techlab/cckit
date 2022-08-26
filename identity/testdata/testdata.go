@@ -8,6 +8,7 @@ import (
 	"runtime"
 
 	"github.com/hyperledger/fabric/msp"
+
 	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/testing"
 )
@@ -56,12 +57,12 @@ var (
 
 func ReadLocal() func(filename string) ([]byte, error) {
 	_, curFile, _, ok := runtime.Caller(1)
-	path := path.Dir(curFile)
+	curFilePath := path.Dir(curFile)
 	if !ok {
 		return nil
 	}
 	return func(filename string) ([]byte, error) {
-		return ioutil.ReadFile(path + "/" + filename)
+		return ioutil.ReadFile(curFilePath + "/" + filename)
 	}
 }
 

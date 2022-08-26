@@ -7,6 +7,7 @@ import (
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	g "github.com/onsi/gomega"
+
 	"github.com/s7techlab/cckit/convert"
 )
 
@@ -75,7 +76,7 @@ func PayloadBytes(response peer.Response, expectedValue []byte) []byte {
 
 func PayloadInt(response peer.Response, expectedValue int) int {
 	ResponseOk(response)
-	d, err := strconv.Atoi(string((response.Payload)))
+	d, err := strconv.Atoi(string(response.Payload))
 	g.Expect(err).To(g.BeNil())
 	g.Expect(d).To(g.Equal(expectedValue))
 	return d

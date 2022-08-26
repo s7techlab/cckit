@@ -1,13 +1,13 @@
 package state
 
 import (
+	"fmt"
 	"reflect"
 
-	"github.com/golang/protobuf/ptypes"
-
-	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+
 	"github.com/s7techlab/cckit/state/schema"
 )
 
@@ -33,8 +33,7 @@ func NewStateList(config ...interface{}) (sl *StateList, err error) {
 	return &StateList{itemTarget: itemTarget, listTarget: listTarget}, nil
 }
 
-func (sl *StateList) Fill(
-	iter shim.StateQueryIteratorInterface, fromBytes FromBytesTransformer) (list interface{}, err error) {
+func (sl *StateList) Fill(iter shim.StateQueryIteratorInterface, fromBytes FromBytesTransformer) (list interface{}, err error) {
 
 	for iter.HasNext() {
 		kv, err := iter.Next()
@@ -43,7 +42,7 @@ func (sl *StateList) Fill(
 		}
 		item, err := fromBytes(kv.Value, sl.itemTarget)
 		if err != nil {
-			return nil, errors.Wrap(err, `transform list entry`)
+			return nil, fmt.Errorf(`transform list entry: %w`, err)
 		}
 		sl.list = append(sl.list, item)
 	}
@@ -62,16 +61,16 @@ func (sl *StateList) Get() (list interface{}, err error) {
 		}
 		return customList, nil
 
-		// default list proto.Message ( with repeated Any)
+		// default list proto.Message (with repeated Any)
 	} else if _, isItemProto := sl.itemTarget.(proto.Message); isItemProto {
 		defList := &schema.List{}
 
 		for _, item := range sl.list {
-			any, err := ptypes.MarshalAny(item.(proto.Message))
+			newAny, err := anypb.New(item.(proto.Message))
 			if err != nil {
 				return nil, err
 			}
-			defList.Items = append(defList.Items, any)
+			defList.Items = append(defList.Items, newAny)
 		}
 		return defList, nil
 	}

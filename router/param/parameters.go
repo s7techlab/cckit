@@ -1,9 +1,9 @@
 package param
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/convert"
 	"github.com/s7techlab/cckit/router"
 )

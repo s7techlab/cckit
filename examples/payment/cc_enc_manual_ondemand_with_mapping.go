@@ -10,7 +10,7 @@ import (
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
-// Chaincode WITH schema mapping
+// NewEncryptOnDemandPaymentCC chaincode WITH schema mapping
 // and encrypting data on demand (if encrypting key is provided in transient map)
 func NewEncryptOnDemandPaymentCC() *router.Chaincode {
 	r := router.New(`encrypted-on-demand`).

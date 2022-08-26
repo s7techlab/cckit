@@ -62,7 +62,7 @@ func (s *Store) Sub(ownerAddress, spenderAddress string, token []string, amount 
 	}
 
 	if allowance.Amount < amount {
-		return nil, balance.ErrAmountInsuficcient
+		return nil, balance.ErrAmountInsufficient
 	}
 
 	return s.Set(ownerAddress, spenderAddress, token, allowance.Amount-amount)

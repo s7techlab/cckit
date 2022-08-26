@@ -1,4 +1,4 @@
-// Simple CRUD chaincode for store information about cars
+// Package cars simple CRUD chaincode for store information about cars
 package cars
 
 import (
@@ -73,13 +73,13 @@ func queryCars(c router.Context) (interface{}, error) {
 // carRegister car register chaincode method handler
 func invokeCarRegister(c router.Context) (interface{}, error) {
 	// arg name defined in router method definition
-	p := c.Param(`car`).(CarPayload)
+	param := c.Param(`car`).(CarPayload)
 
 	t, _ := c.Time() // tx time
 	car := &Car{     // data for chaincode state
-		Id:        p.Id,
-		Title:     p.Title,
-		Owner:     p.Owner,
+		Id:        param.Id,
+		Title:     param.Title,
+		Owner:     param.Owner,
 		UpdatedAt: t,
 	}
 

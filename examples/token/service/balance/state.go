@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrAmountInsuficcient = errors.New(`amount insufficient`)
+	ErrAmountInsufficient = errors.New(`amount insufficient`)
 
 	StateMappings = m.StateMappings{}.
 		//  Create mapping for Balance entity

@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	// State mappings
+	// StateMappings state mappings
 	StateMappings = m.StateMappings{}.Add(
 		&schema.Payment{},             // state entry value will contain marshaled protobuf schema.Payment
 		m.PKeyAttr(`Type`, `Id`),      // state entry key will be composite key <'Payment',{Type}, {Id}>
@@ -14,7 +14,7 @@ var (
 	// same same
 	//Add(&schema.Payment{}, m.PKeySchema(&schema.PaymentId{}))
 
-	// Event mappings
+	// EventMappings event mappings
 	EventMappings = m.EventMappings{}.
 			Add(&schema.PaymentEvent{})
 )

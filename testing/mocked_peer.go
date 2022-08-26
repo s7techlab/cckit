@@ -2,6 +2,7 @@ package testing
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -45,10 +45,10 @@ func (mp *MockedPeer) WithChannel(channel string, mockStubs ...*MockStub) *Mocke
 
 	for _, ms := range mockStubs {
 		mp.ChannelCC[channel][ms.Name] = ms
-		for chName, chnl := range mp.ChannelCC {
-			for ccName, cc := range chnl {
+		for chName, chMock := range mp.ChannelCC {
+			for ccName, cc := range chMock {
 
-				// add visibility of added cc to all other cc
+				// add visibility of added cc to all others cc
 				cc.MockPeerChaincode(ms.Name+`/`+channel, ms)
 
 				// add visibility of other cc to added cc
@@ -65,13 +65,13 @@ func (mp *MockedPeer) CurrentIdentity() msp.SigningIdentity {
 }
 
 func (mp *MockedPeer) Invoke(
-	ctx context.Context,
+	_ context.Context,
 	channel string,
 	chaincode string,
 	args [][]byte,
 	identity msp.SigningIdentity,
 	transArgs map[string][]byte,
-	txWaiterType string) (res *peer.Response, chaincodeTx string, err error) {
+	_ string) (res *peer.Response, chaincodeTx string, err error) {
 
 	mp.m.Lock()
 	defer mp.m.Unlock()
@@ -89,7 +89,7 @@ func (mp *MockedPeer) Invoke(
 }
 
 func (mp *MockedPeer) Query(
-	ctx context.Context,
+	_ context.Context,
 	channel string,
 	chaincode string,
 	args [][]byte,
@@ -125,7 +125,7 @@ func (mp *MockedPeer) Events(
 	ctx context.Context,
 	channel string,
 	chaincode string,
-	identity msp.SigningIdentity,
+	_ msp.SigningIdentity,
 	blockRange ...int64,
 ) (events chan interface {
 	Event() *peer.ChaincodeEvent
@@ -140,7 +140,7 @@ func (mp *MockedPeer) Events(
 	var (
 		eventsRaw chan *peer.ChaincodeEvent
 	)
-	// from oldest block to current channel height
+	// from the oldest block to current channel height
 	if len(blockRange) > 0 && blockRange[0] == 0 {
 		// create copy of mockStub events chan
 		eventsRaw, closer = mockStub.EventSubscription(0)
@@ -188,11 +188,11 @@ func (mp *MockedPeer) Events(
 	return eventsExtended, closer, nil
 }
 
-func (m *MockedPeer) Blocks(
-	ctx context.Context,
-	channelName string,
-	identity msp.SigningIdentity,
-	blockRange ...int64,
+func (mp *MockedPeer) Blocks(
+	_ context.Context,
+	_ string,
+	_ msp.SigningIdentity,
+	_ ...int64,
 ) (blockChan <-chan *common.Block, closer func() error, err error) {
 	panic("not implemented")
 }

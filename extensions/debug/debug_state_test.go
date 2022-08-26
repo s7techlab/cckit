@@ -1,15 +1,14 @@
 package debug_test
 
 import (
+	"strconv"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/s7techlab/cckit/testing/gomega"
-
-	"strconv"
-
 	"github.com/s7techlab/cckit/extensions/debug"
 	testcc "github.com/s7techlab/cckit/testing"
+	. "github.com/s7techlab/cckit/testing/gomega"
 )
 
 var _ = Describe(`State`, func() {

@@ -1,7 +1,8 @@
 package debug
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+
 	"github.com/s7techlab/cckit/router"
 	"github.com/s7techlab/cckit/router/param"
 	"github.com/s7techlab/cckit/state"
@@ -22,18 +23,18 @@ var (
 	// PrefixParam parameter
 	PrefixParam = param.String(`prefix`)
 
-	// PrefixesParams parameter
+	// PrefixesParam parameter
 	PrefixesParam = param.Strings(`prefixes`)
 
 	// ValueParam  parameter for putting value in state
 	ValueParam = param.Bytes(`value`)
 )
 
-// AddHandler adds debug handlers to router, allows to add more middleware
+// AddHandlers adds debug handlers to router, allows to add more middleware
 // for example for access control
 func AddHandlers(r *router.Group, prefix string, middleware ...router.MiddlewareFunc) {
 
-	// clear state entries by key prefixs
+	// clear state entries by key prefix
 	r.Invoke(
 		prefix+InvokeStateCleanFunc,
 		InvokeStateClean,
@@ -67,12 +68,12 @@ func InvokeStateClean(c router.Context) (interface{}, error) {
 	return DeleteStateByPrefixes(c.State(), c.Param(`prefixes`).([]string))
 }
 
-// InvokeValueByKeyPut router handler puts value in chaincode state with composite key,
+// InvokeStatePut router handler puts value in chaincode state with composite key,
 // created with key parts ([]string)
 func InvokeStatePut(c router.Context) (interface{}, error) {
 	key, err := state.KeyToString(c.Stub(), c.Param(`key`).([]string))
 	if err != nil {
-		return nil, errors.Wrap(err, `unable to create key`)
+		return nil, fmt.Errorf(`create key: %w`, err)
 	}
 	return nil, c.Stub().PutState(key, c.ParamBytes(`value`))
 }
@@ -86,16 +87,16 @@ func QueryKeysList(c router.Context) (interface{}, error) {
 func QueryStateGet(c router.Context) (interface{}, error) {
 	key, err := state.KeyToString(c.Stub(), c.Param(`key`).([]string))
 	if err != nil {
-		return nil, errors.Wrap(err, `unable to create key`)
+		return nil, fmt.Errorf(`create key: %w`, err)
 	}
 	return c.Stub().GetState(key)
 }
 
-// QueryStateGet router handler delete state entry by key ([]string)
+// InvokeStateDelete router handler delete state entry by key ([]string)
 func InvokeStateDelete(c router.Context) (interface{}, error) {
 	key, err := state.KeyToString(c.Stub(), c.Param(`key`).([]string))
 	if err != nil {
-		return nil, errors.Wrap(err, `unable to create key`)
+		return nil, fmt.Errorf(`create key: %w`, err)
 	}
 	return nil, c.Stub().DelState(key)
 }

@@ -2,6 +2,7 @@ package testing
 
 import (
 	"github.com/hyperledger/fabric/msp"
+
 	"github.com/s7techlab/cckit/identity"
 )
 
@@ -57,7 +58,6 @@ func IdentityFromFile(mspID string, file string, readFile ReadFile) (*identity.C
 	return identity.New(mspID, content)
 }
 
-//  MustIdentitiesFromFiles
 func MustIdentitiesFromFiles(mspID string, files map[string]string, readFile ReadFile) Identities {
 	ids, err := IdentitiesFromFiles(mspID, files, readFile)
 	if err != nil {

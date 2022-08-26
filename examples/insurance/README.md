@@ -36,7 +36,7 @@ that determines how the methods should change the state of the smart contract / 
 when to return success or error response. This kind of software is ideal for development through testing.
 
 
-## Why test with Mockstub
+## Why test with MockStub
 
 Creating blockchain network and deploying the chaincode(s) to it is quite cumbersome and slow process, especially if your 
 code is constantly changing during developing process. 
@@ -45,16 +45,16 @@ The Hyperledger Fabric [shim package](https://github.com/hyperledger/fabric/tree
 contains the [MockStub](https://github.com/hyperledger/fabric/blob/release-1.2/core/chaincode/shim/mockstub.go)
 implementation that wraps chaincode and stub out the calls to 
 [shim.ChaincodeStubInterface](https://github.com/hyperledger/fabric/blob/release-1.2/core/chaincode/shim/interfaces.go) 
-in chaincode functions. Mockstub allows you to get the test results almost immediately.
+in chaincode functions. MockStub allows you to get the test results almost immediately.
 
 
 MockStub contains implementation for most of `shim.ChaincodeStubInterface` function, but in the current version 
-of Hyperledger Fabric (1.4), the MockStub has not implemented some of the important methods such
+of Hyperledger Fabric (1.4), the MockStub has not implemented some important methods such
 as `GetCreator`, for example. Since chaincode would use this method to get tx creator certificate
 for access control, it's critical to be able to stub this method  in order to completely unit-test chaincode. 
 
-`CCKit` contains extended [MockStub](../../testing/mockstub.go) with implementation of some of the unimplemented
-methods and delegating existing ones to shim.MockStub. [CCkit MockStub]((../../testing/mockstub.go)) holds a reference
+`CCKit` contains extended [MockStub](../../testing/mockstub.go) with implementation of some unimplemented
+methods and delegating existing ones to shim.MockStub. [CCKit MockStub](../../testing/mockstub.go) holds a reference
 to the original MockStub and has additional methods and properties. 
 
 
@@ -79,13 +79,12 @@ and get dependencies using `go mod` command:
 `go mod vendor`
 
 
-CCkit repository contains several examples:
+CCKit repository contains several examples:
 
 * [Cars](../cars)
-* [Marbles](../marbles)
 * And `insurance`
 
-All examples and this tutorial uses the [Ginkgo](https://onsi.github.io/ginkgo/) testing library, it hooks into Go’s existing testing infrastructure. This allows you to run a Ginkgo suite using go test.
+All examples and this tutorial use the [Ginkgo](https://onsi.github.io/ginkgo/) testing library, it hooks into Go’s existing testing infrastructure. This allows you to run a Ginkgo suite using go test.
 We import the ginkgo and gomega packages into the test’s top-level namespace by performing a dot-import. More about
 testing with Ginkgo you can read on [onsi.github.io/ginkgo/](https://onsi.github.io/ginkgo/)
 
@@ -103,9 +102,10 @@ package main
 import (
 	"fmt"
 	"testing"
-	"github.com/s7techlab/cckit/examples/insurance/app"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/s7techlab/cckit/examples/insurance/app"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
 )
@@ -119,16 +119,16 @@ var _ = Describe(`Insurance`, func() {
 
 	//Create chaincode mock
 	cc := testcc.NewMockStub(`insurance`, new(app.SmartContract))
-	
+
 	...
-	}
+}
 }
 ```
 
  
 ## What to test 
 
-Chaincode interface functions described in file [main.go](main.go), so we can see all possible operations with chaincode data:
+Chaincode interface functions described in file [main.go](./app/bin/main.go), so we can see all possible operations with chaincode data:
 
 * list contract types
 * create contract type
@@ -159,7 +159,7 @@ var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Resp
 	"theft_claim_process": processTheftClaim,
 }
 ```
-Also chaincode has `init` function. So we can use them for testing insurance chaincode functionality.
+Also, chaincode has `init` function. So we can use them for testing insurance chaincode functionality.
 
 
 ## Data transfer objects and fixtures
@@ -247,7 +247,7 @@ Describe("Contract", func() {
 
 		It("Allow every one to get user info", func() {
 
-			// orininally was error https://github.com/IBM/build-blockchain-insurance-app/pull/44
+			// originally was error https://github.com/IBM/build-blockchain-insurance-app/pull/44
 			user := expectcc.PayloadIs(
 				cc.Invoke(`user_get_info`, &GetUserDTO{
 					Username: Contract1.Username,

@@ -1,11 +1,11 @@
 package debug_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"strconv"
 	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"

@@ -60,8 +60,8 @@ type Transformer struct {
 }
 
 // With func transformer
-func (t Transformer) With(transfomer func(interface{}) interface{}) peer.Response {
-	return Create(transfomer(t.data), t.err)
+func (t Transformer) With(transformer func(interface{}) interface{}) peer.Response {
+	return Create(transformer(t.data), t.err)
 }
 
 // Transform creates Transformer struct

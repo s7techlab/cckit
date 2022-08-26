@@ -2,12 +2,12 @@ package testing
 
 import (
 	"container/list"
+	"errors"
 	"strings"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-protos-go/ledger/queryresult"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/pkg/errors"
 )
 
 // MockStateRangeQueryPagedIterator represents paged version of shimtest.MockStateRangeQueryIterator

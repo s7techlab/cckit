@@ -1,20 +1,20 @@
 package app
 
-import "github.com/hyperledger/fabric-chaincode-go/shim"
 import (
 	"encoding/json"
 
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 )
 
-func listRepairOrders(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func listRepairOrders(stub shim.ChaincodeStubInterface, _ []string) pb.Response {
 	resultsIterator, err := stub.GetStateByPartialCompositeKey(prefixRepairOrder, []string{})
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	defer resultsIterator.Close()
+	defer func() { _ = resultsIterator.Close() }()
 
-	results := []interface{}{}
+	var results []interface{}
 	for resultsIterator.HasNext() {
 		kvResult, err := resultsIterator.Next()
 		if err != nil {

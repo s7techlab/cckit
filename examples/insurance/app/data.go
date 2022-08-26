@@ -2,15 +2,14 @@ package app
 
 import (
 	"encoding/json"
-	"time"
-
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 )
 
-// Key consists of prefix + UUID of the contract type
+// ContractType consists of prefix + UUID of the contract type
 type ContractType struct {
 	ShopType        string  `json:"shop_type"`
 	FormulaPerDay   string  `json:"formula_per_day"`
@@ -23,7 +22,7 @@ type ContractType struct {
 	MaxDurationDays int32   `json:"max_duration_days"`
 }
 
-// Key consists of prefix + username + UUID of the contract
+// Contract consists of prefix + username + UUID of the contract
 type Contract struct {
 	Username         string    `json:"username"`
 	Item             Item      `json:"item"`
@@ -34,7 +33,7 @@ type Contract struct {
 	ClaimIndex       []string  `json:"claim_index,omitempty"`
 }
 
-// Entity not persisted on its own
+// Item not persisted on its own
 type Item struct {
 	ID          int32   `json:"id"`
 	Brand       string  `json:"brand"`
@@ -44,7 +43,7 @@ type Item struct {
 	SerialNo    string  `json:"serial_no"`
 }
 
-// Key consists of prefix + UUID of the contract + UUID of the claim
+// Claim consists of prefix + UUID of the contract + UUID of the claim
 type Claim struct {
 	ContractUUID  string      `json:"contract_uuid"`
 	Date          time.Time   `json:"date"`
@@ -56,21 +55,21 @@ type Claim struct {
 	FileReference string      `json:"file_reference"`
 }
 
-// The claim status indicates how the claim should be treated
+// ClaimStatus the claim status indicates how the claim should be treated
 type ClaimStatus int8
 
 const (
-	// The claims status is unknown
+	// ClaimStatusUnknown the claims status is unknown
 	ClaimStatusUnknown ClaimStatus = iota
-	// The claim is new
+	// ClaimStatusNew the claim is new
 	ClaimStatusNew
-	// The claim has been rejected (either by the insurer, or by authorities
+	// ClaimStatusRejected the claim has been rejected (either by the insurer, or by authorities
 	ClaimStatusRejected
-	// The item is up for repairs, or has been repaired
+	// ClaimStatusRepair the item is up for repairs, or has been repaired
 	ClaimStatusRepair
-	// The customer should be reimbursed, or has already been
+	// ClaimStatusReimbursement the customer should be reimbursed, or has already been
 	ClaimStatusReimbursement
-	// The theft of the item has been confirmed by authorities
+	// ClaimStatusTheftConfirmed the theft of the item has been confirmed by authorities
 	ClaimStatusTheftConfirmed
 )
 
@@ -98,10 +97,10 @@ func (s *ClaimStatus) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (s ClaimStatus) MarshalJSON() ([]byte, error) {
+func (s *ClaimStatus) MarshalJSON() ([]byte, error) {
 	var value string
 
-	switch s {
+	switch *s {
 	default:
 		fallthrough
 	case ClaimStatusUnknown:
@@ -121,7 +120,7 @@ func (s ClaimStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(value)
 }
 
-// Key consists of prefix + username
+// User consists of prefix + username
 type User struct {
 	Username      string   `json:"username"`
 	Password      string   `json:"password"`
@@ -130,7 +129,7 @@ type User struct {
 	ContractIndex []string `json:"contracts"`
 }
 
-// Key consists of prefix + UUID fo the repair order
+// RepairOrder consists of prefix + UUID fo the repair order
 type RepairOrder struct {
 	ClaimUUID    string `json:"claim_uuid"`
 	ContractUUID string `json:"contract_uuid"`
@@ -168,7 +167,7 @@ func (u *User) Contacts(stub shim.ChaincodeStubInterface) []Contract {
 }
 
 func (c *Contract) Claims(stub shim.ChaincodeStubInterface) ([]Claim, error) {
-	claims := []Claim{}
+	var claims []Claim
 
 	for _, claimKey := range c.ClaimIndex {
 		claim := Claim{}
@@ -193,7 +192,7 @@ func (c *Contract) User(stub shim.ChaincodeStubInterface) (*User, error) {
 	user := &User{}
 
 	if len(c.Username) == 0 {
-		return nil, errors.New("Invalid user name in contract.")
+		return nil, errors.New("invalid user name in contract")
 	}
 
 	userKey, err := stub.CreateCompositeKey(prefixUser, []string{c.Username})
@@ -222,7 +221,7 @@ func (c *Claim) Contract(stub shim.ChaincodeStubInterface) (*Contract, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resultsIterator.Close()
+	defer func() { _ = resultsIterator.Close() }()
 
 	for resultsIterator.HasNext() {
 		kvResult, err := resultsIterator.Next()

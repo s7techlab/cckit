@@ -15,9 +15,8 @@ func NewChaincode(r *Group) *Chaincode {
 	return &Chaincode{r}
 }
 
-//========  Base methods ====================================
-//
 // Init initializes chain code - sets chaincode "owner"
+//========  Base methods ====================================
 func (cc *Chaincode) Init(stub shim.ChaincodeStubInterface) peer.Response {
 	// delegate handling to router
 	return cc.router.HandleInit(stub)

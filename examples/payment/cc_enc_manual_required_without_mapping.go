@@ -10,7 +10,7 @@ import (
 	m "github.com/s7techlab/cckit/state/mapping"
 )
 
-// Chaincode with required encrypting (encrypting key must be provided in transient map)
+// NewEncryptPaymentCC chaincode with required encrypting (encrypting key must be provided in transient map)
 // WITHOUT mapping
 func NewEncryptPaymentCC() *router.Chaincode {
 	r := router.New(`encrypted`).

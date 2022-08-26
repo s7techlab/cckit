@@ -6,7 +6,7 @@ import (
 	"github.com/s7techlab/cckit/examples/insurance/app"
 )
 
-// ContractTypesDTO type used in in "Init" func (arg) in main.go and in "listContractTypes" (return) in "invoke_insurance.go"
+// ContractTypesDTO type used in "Init" func (arg) in main.go and in "listContractTypes" (return) in "invoke_insurance.go"
 type ContractTypesDTO []ContractTypeDTO
 
 type ContractTypeDTO struct {
@@ -23,7 +23,7 @@ type ShopTypeDTO struct {
 	ShopType string `json:"shop_type"`
 }
 
-// CreateContractDTO type used in in "createContract" func (arg) in invoke_shop.go
+// CreateContractDTO type used in "createContract" func (arg) in invoke_shop.go
 type CreateContractDTO struct {
 	UUID             string    `json:"uuid"`
 	ContractTypeUUID string    `json:"contract_type_uuid"`
@@ -36,7 +36,7 @@ type CreateContractDTO struct {
 	EndDate          time.Time `json:"end_date"`
 }
 
-// ContractCreateResponse type used in in "createContract" func in invoke_shop.go
+// ContractCreateResponse type used in "createContract" func in invoke_shop.go
 type ContractCreateResponse struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -47,12 +47,12 @@ type LsContractTypeDTO struct {
 	ShopType string `json:"shop_type"`
 }
 
-// type used in in "getUser" func in invoke_insurance.go
+// GetUserDTO type used in "getUser" func in invoke_insurance.go
 type GetUserDTO struct {
 	Username string `json:"username"`
 }
 
-// named type, from anonymous type used in in "getUser" func in invoke_insurance.go
+// ResponseUserDTO named type, from anonymous type used in "getUser" func in invoke_insurance.go
 type ResponseUserDTO struct {
 	Username  string `json:"username"`
 	FirstName string `json:"first_name"`

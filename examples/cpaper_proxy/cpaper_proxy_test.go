@@ -50,10 +50,10 @@ var _ = Describe(`Chaincode service resolving`, func() {
 		)
 
 		It("Init", func() {
-			cpaperProxyCC, err := cpaper_proxy.NewCCWithLocalCpaper()
+			cPaperProxyCC, err := cpaper_proxy.NewCCWithLocalCPaper()
 			Expect(err).NotTo(HaveOccurred())
 
-			mockStub := testcc.NewMockStub(ChaincodeCPaperProxy, cpaperProxyCC)
+			mockStub := testcc.NewMockStub(ChaincodeCPaperProxy, cPaperProxyCC)
 			peer := testcc.NewPeer().WithChannel(Channel1, mockStub)
 
 			// both gw are looking to same channel / chaincode
@@ -89,7 +89,7 @@ var _ = Describe(`Chaincode service resolving`, func() {
 		)
 
 		It("Init", func() {
-			cPaperProxyCC, err := cpaper_proxy.NewCCWithRemoteCpaper()
+			cPaperProxyCC, err := cpaper_proxy.NewCCWithRemoteCPaper()
 			Expect(err).NotTo(HaveOccurred())
 
 			cPaperCC, err := cpservice.NewCC()

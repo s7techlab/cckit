@@ -3,14 +3,14 @@ package owner
 import (
 	"testing"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	"github.com/s7techlab/cckit/identity"
 	"github.com/s7techlab/cckit/identity/testdata"
 	"github.com/s7techlab/cckit/router"
 	testcc "github.com/s7techlab/cckit/testing"
 	expectcc "github.com/s7techlab/cckit/testing/expect"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var (

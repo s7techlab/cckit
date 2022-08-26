@@ -87,7 +87,7 @@ var _ = Describe(`ERC`, func() {
 				&balance.Balance{}).(*balance.Balance)
 
 			Expect(b.Address).To(Equal(ownerAddress))
-			Expect(b.Amount).To(Equal(uint64(erc20.Token.TotalSupply)))
+			Expect(b.Amount).To(Equal(erc20.Token.TotalSupply))
 		})
 
 		It(`Allow to get zero balance`, func() {
@@ -113,7 +113,7 @@ var _ = Describe(`ERC`, func() {
 							RecipientAddress: user2Address,
 							Token:            []string{erc20.Token.Name},
 							Amount:           transferAmount,
-						}), balance.ErrAmountInsuficcient)
+						}), balance.ErrAmountInsufficient)
 
 		})
 
